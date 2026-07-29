@@ -1,0 +1,15 @@
+# Domain Events
+
+RecommendationGenerated
+
+RecommendationDisplayed
+
+RecommendationOpened
+
+RecommendationExecuted
+
+RecommendationDismissed
+
+RecommendationExpired
+
+RecommendationRegenerated
