@@ -1,11 +1,25 @@
-# Évolutions
+---
+id: LANG-010
+title: Future Language
+status: Draft
+owner: Product
+version: 1.0
+last_updated: 2026-07-30
+---
 
-Le Product Language devra évoluer avec Atlas.
+# Évolutions futures
 
-Toute création d'un nouveau domaine devra :
+Ce document recense les concepts susceptibles d'intégrer le Product Language à l'avenir, sans qu'ils soient encore considérés comme officiels.
 
-- enrichir le glossaire ;
-- vérifier les conflits de terminologie ;
-- documenter les nouveaux concepts.
+Exemples :
 
-Aucun nouveau terme ne doit être introduit sans justification.
+- Subscription
+- Contract
+- Expense
+- Bank Account
+- Transaction
+- Tax Report
+- Forecast
+- Goal
+- AI Agent
+- Marketplace

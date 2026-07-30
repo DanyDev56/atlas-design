@@ -1,71 +1,104 @@
+---
+id: LANG-003
+title: Naming Rules
+status: Stable
+owner: Product
+version: 1.0
+last_updated: 2026-07-30
+---
+
 # Règles de nommage
 
-## Une idée = un terme
+## Concepts métier
 
-Un même concept ne possède qu'un seul nom.
+Toujours :
 
----
+Nom
 
-## Les noms sont orientés métier
+Jamais :
 
-Toujours préférer :
-
-Invoice
-
-plutôt que
-
-BillingDocument
+Verbe
 
 ---
 
-Opportunity
+## Entités
 
-plutôt que
-
-Lead
-
----
-
-Recommendation
-
-plutôt que
-
-Suggestion
-
----
-
-Workspace
-
-plutôt que
-
-Organization
-
----
-
-## Les termes sont stables
-
-Un terme ne change pas selon le contexte.
-
-L'interface, les API, les événements et la documentation utilisent exactement le même vocabulaire.
-
----
-
-## Les noms décrivent le métier
-
-Les termes techniques ne doivent jamais apparaître dans l'interface utilisateur.
+Singulier
 
 Exemple :
 
-Éviter :
+Client
 
-UUID
+Invoice
 
-Slug
+Workspace
 
-Entity
+---
 
-Aggregate
+## Collections
 
-DTO
+Pluriel.
 
-Ces termes restent internes au développement.
+clients
+
+workspaces
+
+quotes
+
+---
+
+## Événements
+
+NomEntité + VerbeAuPassé
+
+Exemple :
+
+InvoiceIssued
+
+QuoteAccepted
+
+PaymentRecorded
+
+---
+
+## API
+
+Toujours :
+
+/clients
+
+/workspaces
+
+/payments
+
+Jamais :
+
+/company
+
+/deals
+
+/bills
+
+---
+
+## Classes
+
+PascalCase.
+
+---
+
+## Variables
+
+camelCase.
+
+---
+
+## Tables SQL
+
+snake_case pluriel.
+
+---
+
+## Colonnes
+
+snake_case singulier.

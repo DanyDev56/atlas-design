@@ -1,30 +1,29 @@
 ---
+id: LANG-000
 title: Product Language
-status: Draft
+status: Stable
 owner: Product
-last_updated: 2026-07-29
+version: 1.0
+last_updated: 2026-07-30
+references:
+  - ../constitution.md
 ---
 
 # Product Language
 
-## Pourquoi ce document existe
+Le Product Language définit le vocabulaire officiel d’Atlas.
 
-Atlas est un produit.
+Chaque concept métier possède exactement un nom officiel.
 
-Un produit possède son propre langage.
+Cette règle s'applique :
 
-Chaque terme utilisé dans :
-
-- le produit ;
-- la documentation ;
-- le code ;
-- les API ;
-- le marketing ;
-- le support ;
-
-doit avoir une définition unique.
-
-Le Product Language garantit cette cohérence.
+- à la documentation ;
+- à l'interface utilisateur ;
+- aux API ;
+- aux événements ;
+- au code ;
+- aux tests ;
+- aux ADR.
 
 ---
 
@@ -32,16 +31,34 @@ Le Product Language garantit cette cohérence.
 
 Le Product Language permet de :
 
-- réduire les ambiguïtés ;
-- améliorer l'expérience utilisateur ;
-- faciliter la communication entre les équipes ;
-- simplifier le développement ;
-- rendre Atlas plus cohérent.
+- éviter les synonymes ;
+- garantir une terminologie cohérente ;
+- faciliter la communication entre Produit, Design et Développement ;
+- assurer la stabilité des concepts métier.
+
+---
+
+## Documents
+
+- glossary.md
+- terminology.md
+- naming-rules.md
+- ui-writing.md
+- reserved-words.md
+- domain-language.md
+- event-language.md
+- api-language.md
+- code-language.md
+- future.md
 
 ---
 
 ## Règle fondamentale
 
-Un concept = un seul mot.
+Un concept métier possède :
 
-Si deux mots désignent la même chose, un seul est conservé.
+- un nom officiel ;
+- une définition officielle ;
+- un comportement officiel.
+
+Un même concept ne doit jamais être désigné par plusieurs noms.

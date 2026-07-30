@@ -1,53 +1,27 @@
+---
+id: LANG-005
+title: Reserved Words
+status: Stable
+owner: Product
+version: 1.0
+last_updated: 2026-07-30
+---
+
 # Termes réservés
 
-Les termes suivants sont réservés.
+Ces mots possèdent une définition officielle.
 
-Ils ne doivent pas être réutilisés avec un autre sens.
+Ils ne doivent jamais être réutilisés avec un autre sens.
 
----
-
-Advisor
-
-Le moteur de décision.
-
----
-
-Business Health
-
-Le score global de santé.
-
----
-
-Timeline
-
-La chronologie métier.
-
----
-
-Signal
-
-Une détection automatique.
-
----
-
-Insight
-
-Une information interprétée.
-
----
-
-Recommendation
-
-Une action proposée.
-
----
-
-Automation
-
-Une action exécutée automatiquement.
-
----
-
-Workspace
-
-L'entreprise utilisant Atlas.
+- Workspace
+- Client
+- Contact
+- Opportunity
+- Quote
+- Invoice
+- Payment
+- Recommendation
+- Signal
+- Timeline
+- Automation
+- Business Health

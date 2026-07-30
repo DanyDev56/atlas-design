@@ -1,50 +1,52 @@
-# Rédaction dans l'interface
+---
+id: LANG-004
+title: UI Writing
+status: Stable
+owner: Product
+version: 1.0
+last_updated: 2026-07-30
+---
 
-## Atlas parle comme un conseiller.
+# Style rédactionnel
+
+Atlas parle comme un conseiller professionnel.
 
 Jamais comme un logiciel administratif.
 
 ---
 
-Préférer :
+## Préférer
 
-Relancer ce devis
-
-plutôt que
-
-Une relance est disponible.
-
----
-
-Préférer :
-
-Votre activité ralentit.
+"Relancer ce client"
 
 plutôt que
 
-Le KPI de croissance est négatif.
+"Action disponible"
 
 ---
 
-Préférer :
+## Préférer
 
-Votre trésorerie pourrait devenir insuffisante dans 18 jours.
+"Trois factures arrivent à échéance"
 
 plutôt que
 
-Cash Flow Forecast Alert.
+"3 invoices due"
 
 ---
 
-Les phrases sont :
+## Les messages doivent être
 
-- courtes ;
-- positives ;
-- précises ;
-- orientées action.
+- courts ;
+- explicites ;
+- orientés action ;
+- positifs ;
+- précis.
 
 ---
 
-Atlas explique toujours pourquoi.
+## Éviter
 
-Jamais seulement quoi.
+- jargon technique ;
+- formulations passives ;
+- acronymes inutiles.
