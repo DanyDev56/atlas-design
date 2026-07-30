@@ -1,5 +1,3 @@
-Lead
-   │
 Opportunity
    │
 Quote

@@ -1,221 +1,390 @@
 ---
+id: CONSTITUTION-001
 title: Atlas Constitution
-status: Living Document
+status: Stable
 owner: Product
-last_updated: 2026-07-29
+version: 1.0
+last_updated: 2026-07-30
+references:
+  - vision/mission.md
+  - vision/vision.md
+  - vision/principles.md
+  - vision/anti-goals.md
 ---
 
-# Atlas Constitution
+# Constitution d’Atlas
 
 ## Préambule
 
-Cette Constitution définit les principes fondamentaux d'Atlas.
+Cette Constitution définit les règles fondamentales d’Atlas.
 
-Elle guide toutes les décisions :
+Elle guide les décisions relatives :
 
-- produit ;
-- design ;
-- développement ;
-- intelligence artificielle ;
-- architecture ;
-- support ;
-- marketing.
+- au produit ;
+- au design ;
+- au métier ;
+- à l’architecture ;
+- à l’ingénierie ;
+- à l’intelligence artificielle ;
+- aux données ;
+- à la sécurité ;
+- au marketing ;
+- au support.
 
-Toute décision qui entre en conflit avec cette Constitution doit être réévaluée.
+En cas de contradiction, la Constitution prime sur les autres documents du référentiel.
 
-Les principes ci-dessous sont permanents.
+Une décision incompatible avec cette Constitution doit être :
+
+- rejetée ;
+- modifiée ;
+- ou accompagnée d’une révision formelle de la Constitution.
 
 ---
 
 # Article 1 — Atlas aide à décider
 
-Atlas n'est pas un logiciel administratif.
+Atlas ne se limite pas à gérer ou stocker des données.
 
-Atlas aide ses utilisateurs à prendre de meilleures décisions.
+Sa finalité est d’aider l’utilisateur à prendre de meilleures décisions pour son activité.
 
-Toute fonctionnalité doit contribuer à cet objectif.
+Chaque fonctionnalité significative doit contribuer à au moins un de ces objectifs :
 
----
-
-# Article 2 — L'utilisateur garde toujours le contrôle
-
-Atlas peut :
-
-- détecter ;
-- analyser ;
-- recommander ;
-- automatiser.
-
-Atlas ne décide jamais à la place de l'utilisateur sans son accord explicite.
+- comprendre ;
+- décider ;
+- agir ;
+- mesurer.
 
 ---
 
-# Article 3 — L'IA est un amplificateur
+# Article 2 — L’utilisateur garde le contrôle
 
-L'intelligence artificielle améliore Atlas.
+Atlas ne prend pas une décision importante à la place de l’utilisateur sans son accord explicite.
 
-Elle ne remplace jamais :
+L’utilisateur doit pouvoir comprendre :
 
-- les données ;
-- les règles métier ;
-- la responsabilité de l'utilisateur.
+- ce qu’Atlas propose ;
+- ce qu’Atlas prépare ;
+- ce qu’Atlas exécute ;
+- ce qu’Atlas a déjà exécuté.
 
-Chaque résultat généré doit pouvoir être expliqué.
-
----
-
-# Article 4 — Une donnée est saisie une seule fois
-
-Atlas privilégie toujours la réutilisation des informations existantes.
-
-La duplication est un défaut de conception.
+Les automatisations doivent rester configurables et désactivables.
 
 ---
 
-# Article 5 — Les événements racontent l'histoire
+# Article 3 — Atlas est AI-first, jamais AI-only
 
-Chaque action importante produit un événement métier.
+L’intelligence artificielle peut améliorer :
 
-L'historique est une force du produit.
+- la compréhension ;
+- la classification ;
+- la prédiction ;
+- la personnalisation ;
+- la rédaction ;
+- l’automatisation.
 
-Il ne doit jamais être perdu.
+Toutefois, les fonctions essentielles doivent reposer sur des données et des règles métier fiables.
 
----
-
-# Article 6 — La simplicité est une fonctionnalité
-
-Chaque écran doit réduire la charge mentale.
-
-Ajouter une option demande une justification.
-
-Supprimer une étape est une amélioration.
+Une indisponibilité de l’intelligence artificielle ne doit pas rendre le cœur du produit inutilisable.
 
 ---
 
-# Article 7 — La confiance avant tout
+# Article 4 — Une décision automatisée doit être explicable
 
-Atlas ne cache jamais :
+Toute recommandation ou action automatisée importante doit pouvoir exposer :
 
-- l'origine d'une recommandation ;
+- son origine ;
 - les données utilisées ;
-- le niveau de confiance.
+- les règles ou facteurs déterminants ;
+- son niveau de confiance ;
+- son résultat attendu.
 
-Les utilisateurs doivent comprendre pourquoi Atlas agit.
-
----
-
-# Article 8 — Les performances font partie du produit
-
-Une fonctionnalité lente est une fonctionnalité incomplète.
-
-Les temps de réponse doivent rester prévisibles.
+Atlas ne doit pas fonctionner comme une boîte noire lorsqu’une décision affecte l’activité de l’utilisateur.
 
 ---
 
-# Article 9 — Les domaines sont indépendants
+# Article 5 — Une donnée est saisie une seule fois
 
-Chaque domaine possède :
+Atlas doit réutiliser les informations déjà disponibles.
 
-- ses règles ;
-- ses données ;
-- ses responsabilités.
+Une nouvelle saisie n’est acceptable que lorsque :
 
-Les échanges passent par des contrats publics et des événements.
+- l’information n’existe pas ;
+- l’information existante doit être confirmée ;
+- une obligation métier ou réglementaire l’exige.
+
+La duplication inutile constitue un défaut de conception.
+
+---
+
+# Article 6 — Chaque donnée demandée doit produire de la valeur
+
+Une information collectée doit avoir un usage clair.
+
+Elle doit permettre au moins l’une des actions suivantes :
+
+- éviter une future saisie ;
+- améliorer une analyse ;
+- personnaliser une recommandation ;
+- préremplir un document ;
+- déclencher une action utile ;
+- améliorer la fiabilité du produit.
+
+Atlas ne collecte pas une donnée sans finalité définie.
+
+---
+
+# Article 7 — Les événements racontent l’histoire
+
+Chaque action métier importante doit laisser une trace durable.
+
+Les événements servent à :
+
+- reconstituer l’historique ;
+- expliquer l’état actuel ;
+- déclencher des traitements ;
+- alimenter la Timeline ;
+- produire des recommandations ;
+- assurer la traçabilité.
+
+Un événement métier enregistré ne doit pas être modifié silencieusement.
+
+---
+
+# Article 8 — La simplicité est une fonctionnalité
+
+Atlas doit réduire la charge mentale.
+
+La sophistication interne ne doit pas apparaître comme une complexité inutile dans l’interface.
+
+Avant d’ajouter une étape, une option ou un paramètre, il faut rechercher une solution :
+
+- automatique ;
+- déduite ;
+- progressive ;
+- contextualisée ;
+- définie par défaut.
+
+---
+
+# Article 9 — La confiance prévaut sur la sophistication
+
+Atlas préfère une réponse simple et fiable à une réponse complexe mais incertaine.
+
+Le produit doit reconnaître explicitement :
+
+- les données manquantes ;
+- les approximations ;
+- les limites d’un calcul ;
+- les incertitudes ;
+- les erreurs.
+
+Atlas ne doit jamais donner une apparence de certitude à une information qui ne l’est pas.
 
 ---
 
 # Article 10 — Les recommandations sont actionnables
 
-Atlas ne présente jamais une recommandation sans proposer une action concrète.
+Une recommandation doit répondre clairement à trois questions :
 
-Chaque recommandation répond à trois questions :
+1. Pourquoi cette recommandation existe-t-elle ?
+2. Pourquoi mérite-t-elle l’attention maintenant ?
+3. Que peut faire l’utilisateur ?
 
-Pourquoi ?
+Une recommandation possède une action principale identifiable.
 
-Pourquoi maintenant ?
-
-Que faire ?
+Les recommandations purement décoratives ou génériques doivent être évitées.
 
 ---
 
-# Article 11 — Les automatisations restent transparentes
+# Article 11 — Les automatisations sont transparentes
 
-Toute automatisation est :
+Toute automatisation doit être :
 
-- visible ;
+- identifiable ;
 - traçable ;
+- compréhensible ;
 - configurable ;
 - désactivable.
 
-L'utilisateur peut toujours comprendre ce qui s'est produit.
+Lorsqu’une automatisation exécute une action, Atlas doit conserver :
+
+- la règle déclenchée ;
+- le contexte ;
+- l’heure d’exécution ;
+- le résultat ;
+- les éventuelles erreurs.
 
 ---
 
-# Article 12 — La cohérence prévaut
+# Article 12 — Les domaines sont responsables de leurs données
 
-Le même concept possède :
+Chaque domaine possède :
 
-- un seul nom ;
-- une seule définition ;
-- un seul comportement.
+- son vocabulaire ;
+- ses entités ;
+- ses règles ;
+- ses invariants ;
+- ses événements ;
+- ses commandes.
 
-Le Product Language fait autorité.
+Un domaine ne modifie pas directement les données internes d’un autre domaine.
+
+Les échanges passent par des contrats publics clairement définis.
 
 ---
 
-# Article 13 — Chaque évolution renforce Atlas
+# Article 13 — Le même concept possède un seul langage
+
+Un concept doit posséder :
+
+- un nom officiel ;
+- une définition officielle ;
+- un comportement cohérent.
+
+Le Product Language s’applique :
+
+- à l’interface ;
+- à la documentation ;
+- aux événements ;
+- aux API ;
+- autant que possible au code.
+
+Les synonymes non maîtrisés doivent être éliminés.
+
+---
+
+# Article 14 — La qualité fait partie du produit
+
+Une fonctionnalité n’est pas terminée si elle n’est pas suffisamment :
+
+- fiable ;
+- sécurisée ;
+- performante ;
+- observable ;
+- testée ;
+- documentée ;
+- accessible.
+
+La qualité ne constitue pas une phase séparée ajoutée après le développement.
+
+---
+
+# Article 15 — Les performances font partie de l’expérience
+
+Un comportement lent ou imprévisible dégrade la valeur du produit.
+
+Les temps de réponse doivent rester cohérents avec l’usage.
+
+Les traitements longs doivent :
+
+- être visibles ;
+- fournir un état ;
+- gérer les erreurs ;
+- pouvoir être repris lorsqu’il est pertinent de le faire.
+
+---
+
+# Article 16 — La sécurité et la confidentialité sont des exigences fondamentales
+
+Atlas doit limiter l’accès aux données selon le principe du moindre privilège.
+
+Toute fonctionnalité doit prendre en compte :
+
+- l’authentification ;
+- l’autorisation ;
+- la confidentialité ;
+- la traçabilité ;
+- la protection contre les pertes ;
+- la suppression ou l’export lorsque cela est requis.
+
+Une nouvelle capacité ne doit pas affaiblir silencieusement la sécurité.
+
+---
+
+# Article 17 — Les intégrations sont des citoyens de première classe
+
+Atlas doit pouvoir s’intégrer à l’environnement de l’utilisateur.
+
+Les intégrations doivent respecter les mêmes exigences que les fonctionnalités natives :
+
+- fiabilité ;
+- sécurité ;
+- traçabilité ;
+- observabilité ;
+- gestion des erreurs ;
+- contrôle utilisateur.
+
+Une intégration ne doit pas créer une dépendance impossible à remplacer sans justification stratégique.
+
+---
+
+# Article 18 — Chaque évolution doit renforcer Atlas
 
 Une nouvelle fonctionnalité doit :
 
-- résoudre un vrai problème ;
-- renforcer une capacité existante ;
-- ou créer une nouvelle capacité clairement identifiée.
+- résoudre un problème réel ;
+- servir une cible définie ;
+- renforcer une capability ;
+- respecter les invariants ;
+- posséder un résultat attendu.
 
-Aucune fonctionnalité n'est ajoutée uniquement pour atteindre une parité avec un concurrent.
-
----
-
-# Article 14 — La qualité est cumulative
-
-Chaque amélioration doit laisser Atlas dans un meilleur état qu'avant.
-
-Le produit progresse par petites améliorations constantes.
+Atlas ne développe pas une fonctionnalité uniquement pour augmenter le nombre de fonctionnalités disponibles.
 
 ---
 
-# Article 15 — La confiance se mérite
+# Article 19 — Le produit reste compréhensible
 
-Atlas préfère reconnaître une incertitude plutôt que fournir une réponse trompeuse.
+L’utilisateur ne doit pas avoir besoin de comprendre l’architecture interne d’Atlas.
 
-Lorsqu'une information est incomplète, le produit le signale explicitement.
+Les concepts présentés doivent rester :
 
----
+- clairs ;
+- cohérents ;
+- progressifs ;
+- contextualisés.
 
-# Article 16 — Les intégrations sont des citoyens de première classe
-
-Atlas ne doit pas considérer les intégrations (banques, messagerie, calendrier, stockage, comptabilité…) comme des fonctionnalités secondaires.
-
-Le produit est conçu pour fonctionner seul, mais il devient plus pertinent lorsqu'il est connecté à l'écosystème de l'utilisateur.
-
----
-
-# Article 17 — Chaque donnée doit produire de la valeur
-
-Si Atlas demande une information à l'utilisateur, cette information doit être réutilisée de manière visible.
-
-Exemple :
-
-- améliorer les recommandations ;
-- préremplir des documents ;
-- alimenter des tableaux de bord ;
-- éviter une nouvelle saisie.
-
-Une donnée collectée qui n'apporte aucune valeur est un coût pour l'utilisateur.
+Les termes techniques internes ne doivent pas apparaître inutilement dans l’expérience utilisateur.
 
 ---
 
-# Article 18 — Le produit reste compréhensible
+# Article 20 — La qualité est cumulative
 
-La sophistication interne ne doit jamais se refléter dans l'interface.
+Chaque modification doit laisser Atlas dans un état au moins aussi cohérent qu’avant.
 
-Même si Atlas embarque des modèles prédictifs, des automatisations et des dizaines de domaines métier, l'expérience utilisateur doit rester simple, progressive et accessible.
+Une évolution ne doit pas introduire volontairement :
+
+- une dette métier non documentée ;
+- une contradiction terminologique ;
+- une perte de traçabilité ;
+- une régression connue sans plan de résolution ;
+- une dépendance structurelle accidentelle.
+
+Les compromis temporaires doivent être explicites, suivis et limités dans le temps.
+
+---
+
+# Gouvernance de la Constitution
+
+## Modification mineure
+
+Une modification rédactionnelle qui ne change pas le sens peut être intégrée directement.
+
+## Modification majeure
+
+Une modification qui change un principe fondamental doit :
+
+1. décrire le problème ;
+2. identifier les articles concernés ;
+3. documenter les conséquences ;
+4. créer une décision formelle ;
+5. incrémenter la version majeure du document.
+
+## Statut
+
+La Constitution peut utiliser les statuts suivants :
+
+- `In Review` ;
+- `Stable` ;
+- `Deprecated`.
+
+Elle ne doit pas rester durablement en statut `Draft`.

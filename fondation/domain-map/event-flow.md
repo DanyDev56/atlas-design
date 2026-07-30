@@ -2,34 +2,38 @@
 
 Exemple :
 
-OpportunityWon
-
-↓
-
+OpportunityCreated
+        │
+        ▼
 QuoteCreated
-
-↓
-
+        │
+        ▼
+QuoteSent
+        │
+        ▼
 QuoteAccepted
-
-↓
-
+        │
+        ├──► OpportunityWon
+        │
+        ▼
+InvoiceCreated
+        │
+        ▼
 InvoiceIssued
-
-↓
-
+        │
+        ▼
 PaymentReceived
-
-↓
-
+        │
+        ▼
+InvoicePaid
+        │
+        ▼
 BusinessHealthUpdated
-
-↓
-
+        │
+        ▼
 RecommendationGenerated
-
-↓
-
+        │
+        ▼
 NotificationSent
 
 ---

@@ -1,71 +1,223 @@
 ---
+id: VISION-002
 title: Vision
-status: Draft
+status: Stable
 owner: Product
-last_updated: 2026-07-29
+version: 1.0
+last_updated: 2026-07-30
+references:
+  - mission.md
+  - principles.md
+  - ../constitution.md
 ---
 
 # Vision
 
-## Notre ambition
+## Ambition
 
-Nous voulons créer le système d'exploitation de l'activité des indépendants.
+> **Atlas doit devenir le système de pilotage quotidien des indépendants et des petites entreprises de services.**
 
-Dans cinq ans, un utilisateur ouvrira Atlas avant même sa boîte mail.
+Atlas ne se limite pas à enregistrer l’activité passée.
 
-Pourquoi ?
-
-Parce qu'il saura qu'Atlas lui dira :
-
-- ce qui a changé ;
-- ce qui mérite son attention ;
-- ce qu'il devrait faire aujourd'hui.
+Il aide l’utilisateur à comprendre le présent, anticiper la suite et choisir les actions les plus pertinentes.
 
 ---
 
-## Notre conviction
+## Vision à long terme
 
-Les données ne doivent pas uniquement produire des documents administratifs.
+À terme, un utilisateur ouvre Atlas avant sa messagerie ou son tableur parce qu’Atlas lui indique immédiatement :
 
-Elles doivent améliorer les décisions.
+- ce qui s’est produit ;
+- ce qui évolue ;
+- ce qui représente un risque ;
+- ce qui constitue une opportunité ;
+- ce qui mérite son attention aujourd’hui.
 
-Chaque devis, facture, paiement, client ou interaction représente un signal.
-
-Atlas relie ces signaux afin de produire des recommandations utiles.
+Atlas devient le point de référence de l’activité.
 
 ---
 
-## Le Digital Twin
+## Positionnement
 
-Atlas est le jumeau numérique de l'entreprise.
+Atlas n’est pas uniquement :
 
-Chaque événement réel possède son reflet numérique.
+- un logiciel de facturation ;
+- un CRM ;
+- un outil de gestion de projets ;
+- un tableau de bord ;
+- un assistant fondé sur l’intelligence artificielle.
 
-Exemples :
+Atlas relie ces fonctions autour d’un objectif commun :
 
-- un devis envoyé ;
-- une facture payée ;
-- un nouveau client ;
-- une relance effectuée.
-
-Ces événements racontent l'histoire de l'entreprise et alimentent l'intelligence du produit.
+> **transformer l’activité quotidienne en décisions utiles.**
 
 ---
 
 ## Les quatre piliers
 
-### Gérer
+### 1. Gérer
 
-Créer et organiser les données de l'entreprise.
+Atlas permet de gérer les éléments essentiels de l’activité :
 
-### Comprendre
+- clients ;
+- opportunités ;
+- devis ;
+- factures ;
+- paiements ;
+- missions ;
+- actions à réaliser.
 
-Transformer les données en informations.
+La gestion constitue la fondation du produit, mais pas sa finalité.
 
-### Décider
+---
 
-Prioriser les meilleures actions.
+### 2. Comprendre
 
-### Automatiser
+Atlas transforme les données opérationnelles en informations compréhensibles.
 
-Exécuter les actions répétitives en toute sécurité.
+Il met en évidence :
+
+- les tendances ;
+- les changements ;
+- les anomalies ;
+- les dépendances ;
+- les risques ;
+- les opportunités.
+
+---
+
+### 3. Décider
+
+Atlas aide l’utilisateur à choisir ses priorités.
+
+Il explique :
+
+- pourquoi une situation mérite de l’attention ;
+- pourquoi une action est recommandée maintenant ;
+- quel résultat peut être attendu ;
+- quel est le niveau d’incertitude.
+
+---
+
+### 4. Automatiser
+
+Atlas réduit progressivement les tâches répétitives.
+
+Les automatisations restent :
+
+- visibles ;
+- explicables ;
+- configurables ;
+- traçables ;
+- désactivables.
+
+L’utilisateur garde le contrôle.
+
+---
+
+## Digital Twin de l’activité
+
+Atlas construit progressivement une représentation numérique fidèle de l’activité de l’utilisateur.
+
+Chaque événement significatif possède une trace exploitable :
+
+- un client est créé ;
+- une opportunité est ouverte ;
+- un devis est envoyé ;
+- un devis est consulté ;
+- une facture est émise ;
+- un paiement est reçu ;
+- une recommandation est suivie ;
+- une automatisation est exécutée.
+
+Cette représentation permet à Atlas de :
+
+- reconstituer l’histoire de l’activité ;
+- comprendre son état actuel ;
+- détecter des évolutions ;
+- produire des recommandations ;
+- mesurer les effets des actions réalisées.
+
+Le Digital Twin ne constitue pas un produit séparé. Il représente la manière dont Atlas comprend l’activité.
+
+---
+
+## Progression de l’intelligence
+
+L’intelligence d’Atlas doit progresser par étapes.
+
+### Niveau 1 — Observer
+
+Atlas collecte et structure les événements métier.
+
+### Niveau 2 — Expliquer
+
+Atlas transforme les événements en informations compréhensibles.
+
+### Niveau 3 — Détecter
+
+Atlas identifie automatiquement les risques, opportunités et anomalies.
+
+### Niveau 4 — Recommander
+
+Atlas propose une action adaptée au contexte.
+
+### Niveau 5 — Anticiper
+
+Atlas estime ce qui pourrait se produire et affiche son niveau de confiance.
+
+### Niveau 6 — Automatiser
+
+Atlas exécute certaines actions avec l’accord et sous le contrôle de l’utilisateur.
+
+Chaque niveau doit rester utile même sans dépendre du niveau suivant.
+
+---
+
+## Utilisateurs visés
+
+La première cible d’Atlas est constituée des indépendants et petites structures de services, notamment :
+
+- développeurs ;
+- consultants ;
+- designers ;
+- formateurs ;
+- agences ;
+- prestataires numériques ;
+- professions de conseil.
+
+Ces activités partagent généralement :
+
+- une faible complexité de stock ;
+- une relation client directe ;
+- un cycle devis-facture-paiement ;
+- une forte dépendance au temps disponible ;
+- un besoin important de visibilité et d’anticipation.
+
+---
+
+## Vision d’expérience
+
+Malgré une grande sophistication interne, Atlas doit rester simple à utiliser.
+
+L’utilisateur ne doit pas avoir besoin de comprendre :
+
+- l’architecture événementielle ;
+- les modèles prédictifs ;
+- les moteurs de règles ;
+- les agrégations ;
+- les mécanismes techniques.
+
+Il doit seulement comprendre :
+
+- ce qui se passe ;
+- pourquoi cela compte ;
+- ce qu’il peut faire.
+
+---
+
+## Horizon
+
+À long terme, Atlas doit pouvoir accompagner l’utilisateur depuis ses premières missions jusqu’à la structuration d’une petite équipe, sans devenir un ERP généraliste.
+
+La croissance du produit doit augmenter sa pertinence, pas sa complexité apparente.

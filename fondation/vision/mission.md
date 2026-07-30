@@ -1,56 +1,99 @@
 ---
+id: VISION-001
 title: Mission
-status: Draft
+status: Stable
 owner: Product
-last_updated: 2026-07-29
+version: 1.0
+last_updated: 2026-07-30
+references:
+  - ../constitution.md
+  - principles.md
+  - anti-goals.md
 ---
 
 # Mission
 
 ## Pourquoi Atlas existe
 
-Aujourd'hui, les indépendants jonglent entre plusieurs outils :
+Les indépendants disposent de nombreux outils pour :
 
-- logiciel de devis et facturation ;
-- banque ;
-- calendrier ;
-- boîte mail ;
-- tableurs ;
-- outils d'IA.
+- créer des devis ;
+- envoyer des factures ;
+- suivre leurs clients ;
+- organiser leurs missions ;
+- consulter leurs revenus.
 
-Ces outils stockent des informations mais ne les relient pas entre elles.
+Pourtant, ils restent souvent seuls lorsqu’il faut décider :
 
-Résultat :
+- quelle action réaliser aujourd’hui ;
+- quel client relancer ;
+- quel risque surveiller ;
+- comment améliorer leur activité ;
+- quand ajuster leurs tarifs ;
+- comment anticiper une période difficile.
 
-- les décisions sont prises avec des informations incomplètes ;
-- les opportunités passent inaperçues ;
-- les risques sont détectés trop tard ;
-- l'entrepreneur passe davantage de temps à gérer son activité qu'à la développer.
+Les données existent, mais elles restent fragmentées, passives et difficiles à interpréter.
 
-Atlas existe pour résoudre ce problème.
-
----
-
-## Notre mission
-
-> Aider chaque indépendant à prendre chaque jour les meilleures décisions pour développer son activité.
-
-Notre objectif n'est pas uniquement de faire gagner du temps.
-
-Nous voulons améliorer la qualité des décisions.
-
-Le gain de temps, la croissance et la rentabilité sont les conséquences de meilleures décisions.
+Atlas existe pour transformer ces données en compréhension, puis cette compréhension en action.
 
 ---
 
-## Notre promesse
+## Mission
 
-Atlas ne se contente pas de gérer une entreprise.
+> **Aider chaque indépendant à prendre de meilleures décisions pour son activité, chaque jour.**
 
-Atlas aide son utilisateur à la faire progresser.
+Atlas centralise les informations utiles, comprend leur contexte et met en évidence les actions qui méritent réellement l’attention de l’utilisateur.
 
-Chaque interaction avec le produit doit apporter au moins une des trois valeurs suivantes :
+---
 
-- Comprendre.
-- Décider.
-- Agir.
+## Promesse
+
+Atlas aide l’utilisateur à :
+
+1. comprendre ce qui se passe dans son activité ;
+2. identifier ce qui mérite son attention ;
+3. décider de la meilleure action ;
+4. agir sans perdre de temps ;
+5. mesurer les résultats obtenus.
+
+---
+
+## Valeur fondamentale
+
+La valeur d’Atlas ne réside pas uniquement dans le temps économisé.
+
+Elle réside dans l’amélioration de la qualité des décisions.
+
+Atlas doit notamment permettre de :
+
+- réduire les oublis ;
+- limiter les risques financiers ;
+- accélérer les encaissements ;
+- sécuriser l’activité ;
+- détecter les opportunités ;
+- améliorer la rentabilité ;
+- réduire la charge mentale.
+
+---
+
+## Expérience attendue
+
+Lorsqu’un utilisateur ouvre Atlas, il doit rapidement comprendre :
+
+- ce qui a changé ;
+- pourquoi cela compte ;
+- ce qu’il devrait faire maintenant.
+
+Chaque interaction importante doit contribuer à au moins une des actions suivantes :
+
+- comprendre ;
+- décider ;
+- agir.
+
+---
+
+## Critère de réussite
+
+Atlas remplit sa mission lorsque l’utilisateur peut sincèrement déclarer :
+
+> « Atlas m’aide à voir plus clair et à agir au bon moment. »

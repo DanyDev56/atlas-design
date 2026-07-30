@@ -10,7 +10,21 @@ Elles ne doivent jamais être violées.
 
 ---
 
-## Une facture payée ne peut plus être modifiée.
+## Le contenu financier d’une facture émise est immuable.
+
+Après émission, il est interdit de modifier directement :
+
+- les lignes ;
+- les quantités ;
+- les prix ;
+- les taux de TVA ;
+- le client facturé ;
+- le numéro ;
+- la devise.
+
+Les métadonnées non fiscales peuvent être corrigées lorsqu’elles ne modifient pas la portée juridique du document.
+
+Toute correction financière passe par un avoir ou un document de remplacement.
 
 ---
 
@@ -18,7 +32,13 @@ Elles ne doivent jamais être violées.
 
 ---
 
-## Le montant payé ne peut jamais dépasser le montant restant dû.
+## Un paiement peut dépasser le solde attendu uniquement si le trop-perçu est explicitement enregistré.
+
+Le système doit distinguer :
+
+- le montant affecté à la facture ;
+- le montant non affecté ;
+- le montant à rembourser ou à utiliser comme crédit client.
 
 ---
 
