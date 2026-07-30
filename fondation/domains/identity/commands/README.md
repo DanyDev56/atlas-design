@@ -1,0 +1,462 @@
+---
+id: IDN-COMMANDS
+title: Commands
+status: Draft
+owner: Product
+version: 1.0.0
+last_updated: 2026-07-30
+
+references:
+  - ../README.md
+  - ../model.md
+  - ../aggregates.md
+  - ../relationships.md
+  - ../invariants.md
+  - ../events/
+  - ../api.md
+---
+
+# Commands
+
+Ce répertoire décrit les commandes du domaine **Identity**.
+
+Une commande représente une intention de modifier l'état du domaine.
+
+Elle exprime ce qu'un acteur souhaite accomplir, sans décrire la manière dont cette intention est implémentée.
+
+---
+
+# Principes
+
+Toutes les commandes respectent les principes suivants.
+
+- une commande exprime une intention métier ;
+- une commande cible un unique agrégat ;
+- une commande est validée avant toute modification ;
+- une commande est soit entièrement appliquée, soit entièrement refusée ;
+- une commande peut produire un ou plusieurs événements métier ;
+- une commande ne retourne jamais directement des données de lecture.
+
+---
+
+# Cycle de vie
+
+Chaque commande suit le cycle suivant.
+
+```text
+Command
+
+↓
+
+Validation
+
+↓
+
+Invariant checking
+
+↓
+
+Aggregate modification
+
+↓
+
+Domain Events
+
+↓
+
+Commit
+```
+
+Si une validation ou un invariant échoue, la commande est interrompue.
+
+Aucun changement d'état ne doit être observable.
+
+---
+
+# Structure d'une commande
+
+Chaque fichier du répertoire suit la même structure.
+
+```md
+# Nom de la commande
+
+## Objectif
+
+## Agrégat concerné
+
+## Acteur
+
+## Préconditions
+
+## Données d'entrée
+
+## Traitement métier
+
+## Résultat attendu
+
+## Invariants concernés
+
+## Événements produits
+
+## Erreurs métier
+
+## Idempotence
+
+## Décisions de conception
+```
+
+Cette structure reste identique pour toutes les commandes du domaine.
+
+---
+
+# Convention de nommage
+
+Les commandes utilisent :
+
+- un verbe ;
+- un nom métier ;
+- un vocabulaire impératif.
+
+Exemples :
+
+```text
+CreateUser
+DisableUser
+
+CreateMembership
+ChangeRole
+
+CreateInvitation
+AcceptInvitation
+
+CreateSession
+RevokeSession
+```
+
+Les commandes ne décrivent jamais une opération technique.
+
+Par exemple :
+
+❌
+
+```text
+UpdateDatabase
+SaveRole
+PersistInvitation
+```
+
+✔️
+
+```text
+CreateRole
+DisableRole
+AcceptInvitation
+```
+
+---
+
+# Responsabilités
+
+Une commande est responsable de :
+
+- vérifier ses préconditions ;
+- demander à un agrégat d'exécuter une intention ;
+- garantir les invariants concernés ;
+- produire les événements métier.
+
+Une commande n'est pas responsable :
+
+- des projections ;
+- des modèles de lecture ;
+- des notifications ;
+- des intégrations externes ;
+- de l'interface utilisateur.
+
+---
+
+# Préconditions
+
+Chaque commande doit expliciter les conditions nécessaires à son exécution.
+
+Exemple :
+
+Pour `AcceptInvitation` :
+
+- l'invitation existe ;
+- elle est active ;
+- elle n'est pas expirée ;
+- le destinataire est valide ;
+- aucun `Membership` incompatible n'existe.
+
+Une précondition ne modifie jamais le domaine.
+
+---
+
+# Invariants
+
+Une commande doit préserver tous les invariants concernés.
+
+Elle ne peut jamais produire un état invalide.
+
+Les invariants applicables doivent être référencés explicitement.
+
+Exemple :
+
+```text
+IDN-INV-001
+IDN-INV-007
+IDN-INV-009
+```
+
+---
+
+# Événements
+
+Une commande peut produire plusieurs événements.
+
+Exemple :
+
+```text
+AcceptInvitation
+
+↓
+
+MembershipCreated
+
+↓
+
+InvitationAccepted
+```
+
+Les événements sont documentés séparément dans `events/`.
+
+---
+
+# Erreurs métier
+
+Une commande doit échouer explicitement lorsqu'une règle métier ne peut pas être respectée.
+
+Les erreurs doivent exprimer une situation métier.
+
+Exemples :
+
+```text
+InvitationExpired
+
+InvitationAlreadyAccepted
+
+MembershipAlreadyExists
+
+RoleBelongsToAnotherWorkspace
+
+LastWorkspaceOwnerCannotBeRemoved
+
+UnknownPermission
+
+UserDisabled
+```
+
+Une erreur technique ne remplace jamais une erreur métier.
+
+---
+
+# Idempotence
+
+Chaque commande doit préciser son comportement lorsqu'elle est exécutée plusieurs fois.
+
+Trois comportements sont possibles.
+
+## Strictement idempotente
+
+Exemple :
+
+```text
+RevokeSession
+```
+
+Réexécuter la commande ne produit aucun effet supplémentaire.
+
+---
+
+## Idempotente avec résultat existant
+
+Exemple :
+
+```text
+AcceptInvitation
+```
+
+Une seconde exécution peut retourner le résultat déjà obtenu sans créer un nouveau `Membership`.
+
+---
+
+## Non idempotente
+
+Exemple :
+
+```text
+CreateSession
+```
+
+Chaque exécution crée une nouvelle `Session`.
+
+Le comportement attendu doit être documenté.
+
+---
+
+# Transactions
+
+Une commande ne modifie qu'un seul agrégat.
+
+Lorsqu'une opération implique plusieurs agrégats, la coordination est réalisée par :
+
+- un workflow ;
+- un process manager ;
+- un service de domaine.
+
+Une commande ne doit jamais modifier directement plusieurs agrégats.
+
+---
+
+# Autorisation
+
+Une commande ne présume jamais qu'un acteur est autorisé.
+
+Les contrôles d'autorisation sont réalisés avant son exécution ou par une politique dédiée.
+
+Les préconditions peuvent supposer que l'acteur possède les permissions nécessaires.
+
+Les permissions requises doivent être documentées lorsqu'elles sont connues.
+
+---
+
+# Validation
+
+Une commande distingue trois niveaux de validation.
+
+## Validation syntaxique
+
+Exemple :
+
+- format d'e-mail invalide ;
+- identifiant manquant.
+
+---
+
+## Validation métier
+
+Exemple :
+
+- invitation expirée ;
+- rôle supprimé.
+
+---
+
+## Validation d'invariants
+
+Exemple :
+
+- dernier propriétaire ;
+- unicité du `Membership`.
+
+---
+
+# Concurrence
+
+Les commandes doivent documenter leur comportement en cas d'exécution concurrente.
+
+Exemple :
+
+Deux appels simultanés à :
+
+```text
+AcceptInvitation
+```
+
+ne doivent jamais créer deux `Membership`.
+
+---
+
+# Événements compensatoires
+
+Les commandes ne réalisent jamais elles-mêmes une compensation.
+
+Lorsqu'un traitement transversal échoue après la modification d'un agrégat, la stratégie de compensation est définie par le workflow concerné.
+
+---
+
+# Répertoire
+
+Les commandes actuellement prévues sont :
+
+## User
+
+- `CreateUser`
+- `RenameUser`
+- `ChangeUserEmail`
+- `DisableUser`
+- `EnableUser`
+
+---
+
+## Membership
+
+- `CreateMembership`
+- `ChangeRole`
+- `SuspendMembership`
+- `RestoreMembership`
+- `RemoveMembership`
+
+---
+
+## Role
+
+- `CreateRole`
+- `RenameRole`
+- `UpdateRoleDescription`
+- `GrantPermissionToRole`
+- `RevokePermissionFromRole`
+- `DisableRole`
+- `EnableRole`
+- `DeleteRole`
+
+---
+
+## Invitation
+
+- `CreateInvitation`
+- `SendInvitation`
+- `ResendInvitation`
+- `AcceptInvitation`
+- `DeclineInvitation`
+- `RevokeInvitation`
+- `ExpireInvitation`
+
+---
+
+## Session
+
+- `CreateSession`
+- `RefreshSession`
+- `RevokeSession`
+- `RevokeAllSessions`
+
+---
+
+# Évolution
+
+L'ajout d'une nouvelle commande doit respecter les conventions de ce document.
+
+Une nouvelle commande ne doit être introduite que lorsqu'elle représente une véritable intention métier.
+
+Une différence purement technique ne justifie pas la création d'une nouvelle commande.
+
+---
+
+# Synthèse
+
+Les commandes constituent l'unique point d'entrée pour modifier le domaine `Identity`.
+
+Elles expriment des intentions métier explicites, préservent les invariants, modifient un unique agrégat et publient les événements décrivant les changements réalisés.
+
+Une commande ne décrit jamais **comment** le domaine est implémenté, mais uniquement **ce que** le domaine doit accomplir.
