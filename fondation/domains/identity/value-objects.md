@@ -1,869 +1,1423 @@
 ---
-id: IDN-VALUE-OBJECTS
+id: IDN-FOUNDATION-VALUE-OBJECTS
 title: Value Objects
 status: Draft
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 2.0.0
+last_updated: 2026-07-31
 
 references:
   - README.md
-  - model.md
   - entities.md
   - aggregates.md
   - relationships.md
   - invariants.md
-  - foundation/language/naming-rules.md
-  - foundation/language/domain-language.md
+  - permissions.md
+  - value-objects/RoleAssignmentPolicy.md
+  - value-objects/RoleTransferPolicy.md
 ---
 
 # Value Objects
 
-Ce document définit les objets de valeur du domaine **Identity**.
+## Objectif
 
-Un `Value Object` représente une valeur métier dépourvue d'identité propre.
+Ce document inventorie les principaux `Value Objects` du bounded context `Identity`.
 
-Il est défini uniquement par son contenu et reste immuable pendant toute sa durée d'utilisation.
+Un `Value Object` :
 
----
-
-# Principes
-
-Les objets de valeur du domaine respectent les principes suivants :
-
-- ils ne possèdent pas d'identité métier propre ;
-- deux objets contenant les mêmes valeurs sont considérés comme égaux ;
-- ils sont immuables ;
-- ils valident leur propre cohérence ;
-- ils ne peuvent pas exister dans un état invalide ;
-- toute modification produit une nouvelle instance ;
-- ils expriment explicitement une intention métier.
-
-Un objet de valeur ne doit pas être réduit à une chaîne de caractères ou à un identifiant primitif lorsque sa signification métier impose des règles particulières.
+- n’a pas d’identité métier propre ;
+- est défini par ses valeurs ;
+- est immuable ;
+- applique ses propres validations ;
+- peut être remplacé, mais non muté arbitrairement ;
+- protège le domaine contre les représentations primitives ambiguës.
 
 ---
 
-# Vue d'ensemble
+## Principes
 
-| Objet de valeur | Responsabilité |
-|-----------------|----------------|
-| `UserId` | Identifier un `User`. |
-| `MembershipId` | Identifier un `Membership`. |
-| `RoleId` | Identifier un `Role`. |
-| `InvitationId` | Identifier une `Invitation`. |
-| `SessionId` | Identifier une `Session`. |
-| `WorkspaceId` | Référencer un `Workspace` appartenant au domaine externe `Workspace`. |
-| `EmailAddress` | Représenter une adresse e-mail normalisée et valide. |
-| `DisplayName` | Représenter le nom visible d'un `User`. |
-| `RoleName` | Représenter le nom visible d'un `Role`. |
-| `RoleDescription` | Représenter la description facultative d'un `Role`. |
-| `SystemRoleKey` | Identifier la fonction stable d'un rôle système. |
-| `PermissionKey` | Identifier une autorisation reconnue par Atlas. |
-| `InvitationToken` | Représenter le secret permettant d'utiliser une `Invitation`. |
-| `ExpirationDate` | Représenter une échéance future. |
-| `SessionToken` | Représenter le secret associé à une `Session`. |
-| `AuthenticationContext` | Représenter les informations contextuelles d'une authentification. |
+### Égalité par valeur
+
+Deux instances sont égales lorsque leurs valeurs métier normalisées sont égales.
 
 ---
 
-# Identifiants métier
+### Immutabilité
 
-Les identifiants du domaine sont modélisés comme des objets de valeur distincts.
+Toute modification produit une nouvelle valeur.
 
-Cette séparation interdit l'utilisation accidentelle de l'identifiant d'un concept à la place d'un autre.
+```text
+PreviousValue
+↓
+NewValue
+```
 
-Par exemple, un `UserId` ne peut pas être utilisé comme un `MembershipId`, même si leurs représentations techniques sont identiques.
+---
+
+### Validation à la construction
+
+Un `Value Object` invalide ne doit pas pouvoir être créé.
+
+---
+
+### Normalisation
+
+La représentation interne doit être canonique lorsque plusieurs entrées équivalentes sont possibles.
+
+---
+
+### Absence de dépendance infrastructurelle
+
+Un `Value Object` ne dépend pas directement :
+
+- d’une base de données ;
+- d’un transport HTTP ;
+- d’une file de messages ;
+- d’un service de notification ;
+- d’une projection ;
+- d’un framework.
+
+---
+
+# Identifiants
+
+Les identifiants métier sont représentés par des types distincts.
+
+Ils ne doivent pas être échangés librement.
 
 ---
 
 ## UserId
 
-> Le `UserId` identifie de manière unique et immuable un `User`.
+Identifie un `User`.
 
-### Responsabilités
-
-Le `UserId` est responsable de :
-
-- distinguer un `User` de tous les autres ;
-- fournir une référence stable vers son identité ;
-- empêcher toute confusion avec les autres identifiants du domaine.
-
-### Règles
-
-- il est obligatoire ;
-- il est unique à l'échelle d'Atlas ;
-- il est immuable ;
-- il ne contient aucune information métier interprétable ;
-- il ne doit pas être dérivé de l'adresse e-mail du `User`.
-
-### Égalité
-
-Deux `UserId` sont égaux lorsqu'ils possèdent exactement la même valeur.
+```text
+UserId != MembershipId
+UserId != SessionId
+UserId != InvitationId
+```
 
 ---
 
 ## MembershipId
 
-> Le `MembershipId` identifie de manière unique et immuable un `Membership`.
-
-### Règles
-
-- il est obligatoire ;
-- il est unique ;
-- il est immuable ;
-- il ne révèle ni le `UserId`, ni le `WorkspaceId` ;
-- il ne doit pas être construit par concaténation d'autres identifiants.
-
-L'unicité de la relation entre un `User` et un `Workspace` est une règle métier distincte de l'identité du `Membership`.
+Identifie un `Membership`.
 
 ---
 
 ## RoleId
 
-> Le `RoleId` identifie de manière unique et immuable un `Role`.
+Identifie un `Role`.
 
-### Règles
+Le nom du rôle ne constitue pas son identité.
 
-- il est obligatoire ;
-- il est unique ;
-- il est immuable ;
-- il est indépendant du nom du `Role` ;
-- il reste inchangé lorsque le rôle est renommé ;
-- il ne constitue pas une clé système.
+---
 
-Le nom `Admin` ou `Owner` ne doit jamais être utilisé comme identifiant d'un `Role`.
+## PermissionId
+
+Identifie une `Permission` globale.
 
 ---
 
 ## InvitationId
 
-> L'`InvitationId` identifie de manière unique et immuable une `Invitation`.
+Identifie une `Invitation`.
 
-### Règles
-
-- il est obligatoire ;
-- il est unique ;
-- il est immuable ;
-- il est distinct de l'`InvitationToken` ;
-- il peut être exposé dans les contrats internes sans permettre l'utilisation de l'`Invitation`.
-
-L'`InvitationId` identifie l'entité.
-
-L'`InvitationToken` autorise une opération sensible sur cette entité.
+Il est distinct du token d’invitation.
 
 ---
 
 ## SessionId
 
-> Le `SessionId` identifie de manière unique et immuable une `Session`.
+Identifie une `Session`.
 
-### Règles
-
-- il est obligatoire ;
-- il est unique ;
-- il est immuable ;
-- il est distinct du `SessionToken` ;
-- il ne doit pas contenir de données personnelles ;
-- il ne doit pas permettre de déduire le `UserId`.
+Il est distinct du token ou du cookie de session.
 
 ---
 
 ## WorkspaceId
 
-> Le `WorkspaceId` référence un `Workspace` appartenant au domaine externe `Workspace`.
+Identifie un `Workspace` appartenant à un autre bounded context.
 
-### Responsabilités
-
-Le `WorkspaceId` permet au domaine `Identity` de référencer un `Workspace` sans dépendre de son état interne.
-
-### Règles
-
-- il est obligatoire dans tout concept rattaché à un `Workspace` ;
-- il est immuable ;
-- il ne peut pas être remplacé au cours de la vie d'un `Membership`, d'un `Role` ou d'une `Invitation` ;
-- sa validité métier doit être vérifiée auprès du domaine propriétaire lorsque cela est nécessaire.
-
-Le domaine `Identity` ne crée pas et ne modifie pas le `WorkspaceId`.
+`Identity` utilise cet identifiant comme référence externe.
 
 ---
 
-# EmailAddress
+## CorrelationId
 
-> L'`EmailAddress` représente une adresse e-mail valide et normalisée.
-
-L'adresse e-mail constitue le principal moyen d'identification et de communication d'un `User` dans le domaine `Identity`.
-
-Elle peut également identifier le destinataire d'une `Invitation` avant la création d'un `User`.
+Relie plusieurs commandes et événements appartenant à un même workflow.
 
 ---
 
-## Valeur
+## RequestId
 
-Une `EmailAddress` contient une adresse e-mail complète.
+Identifie une demande idempotente.
 
-Exemple :
+Des types spécialisés peuvent être utilisés :
 
 ```text
-daniel@example.com
+CreationRequestId
+RemovalRequestId
+TransferRequestId
+PolicyChangeRequestId
 ```
 
 ---
 
-## Normalisation
+# Tokens et preuves secrètes
 
-Avant toute comparaison ou conservation, une adresse e-mail doit être normalisée.
+Les tokens doivent rester distincts des identifiants métier.
 
-La normalisation minimale comprend :
+---
 
-- la suppression des espaces situés avant et après la valeur ;
-- la mise en minuscules de la partie domaine ;
-- la validation de la structure générale de l'adresse.
+## InvitationToken
 
-Atlas ne doit pas appliquer de transformation spécifique à un fournisseur de messagerie.
+Secret présenté lors de l’acceptation d’une invitation.
 
-Par exemple, les variantes suivantes ne doivent pas être automatiquement fusionnées :
+Il ne doit pas apparaître :
+
+- en clair dans les événements ;
+- en clair dans l’audit ;
+- dans les logs ;
+- dans les messages d’erreur ;
+- dans les URLs conservées durablement.
+
+Une empreinte cryptographique ou une valeur dérivée doit être stockée.
+
+---
+
+## SessionToken
+
+Secret permettant de retrouver ou valider une session.
+
+Il est distinct de `SessionId`.
+
+---
+
+## TokenHash
+
+Représentation persistable et non réversible d’un token.
+
+---
+
+## AuthenticationProof
+
+Preuve structurée d’une authentification ou réauthentification.
+
+Elle peut contenir :
 
 ```text
-daniel@example.com
-daniel+atlas@example.com
+AuthenticationProof
+├── AuthenticationContextId
+├── AuthenticatedAt
+├── AuthenticationLevel
+├── Factors
+├── ValidUntil
+└── SubjectId
 ```
 
-Même lorsqu'un fournisseur les distribue vers la même boîte de réception, elles restent deux valeurs distinctes pour Atlas.
+Elle ne contient jamais les secrets des facteurs.
 
 ---
 
-## Règles
-
-Une `EmailAddress` :
-
-- est obligatoire lorsqu'elle identifie un `User` ;
-- est obligatoire pour le destinataire d'une `Invitation` ;
-- doit respecter une structure d'adresse e-mail valide ;
-- ne peut pas être vide ;
-- ne peut pas contenir d'espace interne ;
-- ne doit pas être utilisée sans normalisation préalable ;
-- doit être comparée selon sa forme normalisée.
+# Temps et périodes
 
 ---
 
-## Égalité
+## Instant
 
-Deux `EmailAddress` sont égales lorsque leurs représentations normalisées sont identiques.
+Représente un instant absolu.
 
----
-
-## Confidentialité
-
-Une `EmailAddress` constitue une donnée personnelle.
-
-Elle ne doit pas :
-
-- apparaître inutilement dans les journaux techniques ;
-- être incluse en clair dans une URL ;
-- être utilisée comme secret ;
-- être exposée à un autre `Workspace` sans justification métier.
+Il doit être stocké dans une représentation non ambiguë, généralement UTC.
 
 ---
 
-# DisplayName
+## DateRange
 
-> Le `DisplayName` représente le nom visible d'un `User` dans Atlas.
-
-Le `DisplayName` est destiné à l'affichage dans l'interface et dans les échanges entre utilisateurs.
-
-Il ne constitue pas une identité unique.
-
----
-
-## Exemples
+Structure :
 
 ```text
-Daniel Goulard
-Daniel
-D. Goulard
+DateRange
+├── Start
+└── End
 ```
 
----
-
-## Règles
-
-Un `DisplayName` :
-
-- ne peut pas être vide ;
-- est nettoyé de ses espaces superflus ;
-- possède une longueur maximale définie par la plateforme ;
-- peut être partagé par plusieurs `User` ;
-- peut évoluer sans modifier l'identité du `User` ;
-- ne doit pas être utilisé comme clé de recherche unique ;
-- ne doit pas être utilisé pour déterminer des autorisations.
-
----
-
-## Égalité
-
-Deux `DisplayName` identiques ne signifient jamais qu'ils désignent le même `User`.
-
----
-
-# RoleName
-
-> Le `RoleName` représente le nom visible d'un `Role` dans un `Workspace`.
-
-Il fournit un libellé compréhensible par les membres du `Workspace`.
-
----
-
-## Exemples
+Condition :
 
 ```text
-Owner
-Admin
-Accountant
-External Contributor
+Start <= End
 ```
 
 ---
 
-## Règles
+## ValidityPeriod
 
-Un `RoleName` :
-
-- ne peut pas être vide ;
-- est nettoyé de ses espaces superflus ;
-- possède une longueur maximale ;
-- peut évoluer sans modifier le `RoleId` ;
-- n'est unique que dans le périmètre d'un `Workspace`, lorsque cette règle est retenue ;
-- ne doit jamais déterminer directement les autorisations ;
-- ne doit pas remplacer une `SystemRoleKey`.
-
-Les règles d'accès reposent sur les `Permission`, jamais sur le contenu du `RoleName`.
+Période pendant laquelle une preuve, une approbation ou une affectation est valide.
 
 ---
 
-# RoleDescription
+## Duration
 
-> La `RoleDescription` explique la fonction d'un `Role` dans un `Workspace`.
-
-Elle aide les administrateurs à comprendre l'objectif d'un rôle avant de l'attribuer.
-
----
-
-## Règles
-
-Une `RoleDescription` :
-
-- est facultative ;
-- peut être vide lorsqu'aucune description n'est nécessaire ;
-- possède une longueur maximale ;
-- ne définit aucune règle d'autorisation ;
-- peut évoluer sans affecter les `Membership` associés ;
-- ne doit pas être interprétée par le système.
-
----
-
-# SystemRoleKey
-
-> La `SystemRoleKey` identifie la fonction stable d'un rôle système fourni par Atlas.
-
-Elle permet de reconnaître un rôle protégé sans dépendre de son nom visible.
-
----
-
-## Exemples
-
-```text
-workspace_owner
-workspace_admin
-workspace_member
-workspace_viewer
-```
-
----
-
-## Règles
-
-Une `SystemRoleKey` :
-
-- est définie exclusivement par Atlas ;
-- est unique à l'échelle de la plateforme ;
-- est immuable ;
-- utilise des caractères minuscules ;
-- utilise le caractère `_` comme séparateur ;
-- ne peut pas être créée librement par un utilisateur ;
-- ne peut pas être modifiée depuis un `Workspace` ;
-- est absente pour un rôle entièrement personnalisé.
-
-Une `SystemRoleKey` ne constitue pas une `PermissionKey`.
-
-Elle identifie une fonction système particulière, tandis qu'une `PermissionKey` identifie une capacité élémentaire.
-
----
-
-# PermissionKey
-
-> La `PermissionKey` identifie une autorisation métier reconnue par Atlas.
-
-Elle constitue le contrat stable utilisé pour composer les `Role` et évaluer les accès.
-
----
-
-## Format
-
-Le format recommandé est :
-
-```text
-<resource>.<action>
-```
-
-Lorsqu'un contexte intermédiaire est nécessaire :
-
-```text
-<domain>.<resource>.<action>
-```
+Durée normalisée.
 
 Exemples :
 
 ```text
-clients.read
-quotes.send
-invoices.issue
-workspace.members.manage
-workspace.roles.manage
+10 minutes
+24 hours
+30 days
 ```
 
 ---
 
-## Règles
+## ExpirationDate
 
-Une `PermissionKey` :
+Date après laquelle une ressource n’est plus valide.
 
-- est définie exclusivement par Atlas ;
-- est unique à l'échelle de la plateforme ;
-- est immuable après publication ;
-- utilise exclusivement des termes en anglais ;
-- utilise des lettres minuscules ;
-- utilise le point comme séparateur ;
-- représente une capacité métier unique ;
-- ne dépend jamais du nom d'un `Role` ;
-- ne contient aucun identifiant de `Workspace` ;
-- ne peut pas être créée par un utilisateur.
+L’expiration métier est distincte de la suppression ou de la rétention.
 
 ---
 
-## Actions recommandées
-
-Les actions doivent utiliser un vocabulaire explicite et stable.
-
-Exemples :
-
-```text
-read
-create
-update
-delete
-manage
-send
-issue
-accept
-decline
-revoke
-```
-
-Une action générique comme `manage` doit être réservée aux cas où elle représente volontairement un ensemble cohérent d'opérations.
+# User
 
 ---
 
-## Dépréciation
+## EmailAddress
 
-Une `PermissionKey` publiée ne doit pas être renommée ou supprimée sans stratégie de migration.
+Adresse e-mail normalisée et validée.
 
-Lorsqu'elle devient obsolète, elle peut être marquée comme dépréciée puis remplacée progressivement.
-
----
-
-# InvitationToken
-
-> L'`InvitationToken` est un secret temporaire permettant d'utiliser une `Invitation`.
-
-Il permet au destinataire de prouver qu'il possède le moyen d'accès transmis avec l'`Invitation`.
+La politique de comparaison doit être explicite.
 
 ---
 
-## Responsabilités
+## DisplayName
 
-L'`InvitationToken` est responsable de :
+Nom de présentation.
 
-- rendre une `Invitation` utilisable par son destinataire ;
-- protéger l'opération d'acceptation ou de refus ;
-- empêcher l'utilisation d'une invitation sans preuve de possession.
-
----
-
-## Règles
-
-Un `InvitationToken` :
-
-- est généré de manière aléatoire et imprévisible ;
-- possède une entropie suffisante ;
-- est associé à une seule `Invitation` ;
-- ne peut pas être réutilisé après acceptation, refus, expiration ou révocation ;
-- possède une durée de validité limitée ;
-- ne doit pas être enregistré en clair lorsqu'un condensat sécurisé suffit ;
-- ne doit jamais apparaître dans les journaux ;
-- ne doit pas être transmis à un tiers ;
-- doit être comparé de manière sécurisée.
-
----
-
-## Distinction avec InvitationId
-
-| Concept | Responsabilité |
-|---------|----------------|
-| `InvitationId` | Identifier l'`Invitation`. |
-| `InvitationToken` | Autoriser l'utilisation de l'`Invitation`. |
-
-La connaissance de l'`InvitationId` ne doit pas suffire à accepter une `Invitation`.
-
----
-
-# SessionToken
-
-> Le `SessionToken` est un secret permettant de prouver l'utilisation légitime d'une `Session`.
-
-Il est distinct de l'identifiant métier `SessionId`.
-
----
-
-## Règles
-
-Un `SessionToken` :
-
-- est généré de manière aléatoire et imprévisible ;
-- possède une entropie suffisante ;
-- est associé à une seule `Session` ;
-- possède une durée de validité limitée ;
-- devient inutilisable après révocation de la `Session` ;
-- ne doit jamais être exposé dans les journaux ;
-- ne doit pas être stocké en clair lorsqu'une alternative sécurisée existe ;
-- doit être renouvelé selon la politique de sécurité d'Atlas ;
-- ne doit contenir aucune donnée personnelle lisible.
-
----
-
-## Distinction avec SessionId
-
-| Concept | Responsabilité |
-|---------|----------------|
-| `SessionId` | Identifier une `Session`. |
-| `SessionToken` | Prouver le droit d'utiliser cette `Session`. |
-
----
-
-# ExpirationDate
-
-> L'`ExpirationDate` représente la date et l'heure après lesquelles une valeur temporaire ne peut plus être utilisée.
-
-Elle est notamment utilisée par :
-
-- l'`Invitation` ;
-- la `Session` ;
-- les secrets temporaires liés à l'authentification.
-
----
-
-## Règles
-
-Une `ExpirationDate` :
-
-- représente un instant précis ;
-- utilise une référence temporelle non ambiguë ;
-- est comparée à l'heure de référence de la plateforme ;
-- ne doit pas dépendre du fuseau horaire de l'interface ;
-- doit être future au moment de la création du concept temporaire ;
-- devient définitivement dépassée lorsque cet instant est atteint.
-
-L'affichage peut être adapté au fuseau horaire de l'utilisateur, mais la valeur conservée doit rester indépendante de cet affichage.
-
----
-
-## Évaluation
-
-Une valeur temporaire est expirée lorsque :
-
-```text
-current_time >= expiration_date
-```
-
-L'expiration ne dépend pas obligatoirement de l'exécution préalable d'une commande `ExpireInvitation` ou `ExpireSession`.
-
-La commande ou le traitement d'expiration peut officialiser un changement d'état, mais l'utilisation doit déjà être refusée dès que l'échéance est atteinte.
-
----
-
-# AuthenticationContext
-
-> L'`AuthenticationContext` représente les informations contextuelles connues lors de la création ou de l'utilisation d'une `Session`.
-
-Il fournit des éléments utiles à la sécurité, à l'audit et à l'affichage des connexions actives.
-
----
-
-## Composition
-
-Un `AuthenticationContext` peut notamment contenir :
-
-- le type d'appareil ;
-- le nom du navigateur ;
-- le système d'exploitation ;
-- l'adresse IP observée ;
-- une localisation approximative dérivée ;
-- l'instant de l'authentification ;
-- la méthode d'authentification utilisée.
-
-Toutes ces informations ne sont pas nécessairement disponibles.
-
----
-
-## Règles
-
-Un `AuthenticationContext` :
-
-- est immuable pour l'événement d'authentification qu'il décrit ;
-- ne constitue jamais une preuve absolue de l'identité physique d'une personne ;
-- ne détermine pas directement les autorisations ;
-- ne doit pas contenir plus de données que nécessaire ;
-- respecte la politique de conservation des données ;
-- peut être partiellement masqué dans l'interface ;
-- ne doit pas être utilisé comme identifiant unique d'un appareil.
-
----
-
-## Utilisation
-
-L'`AuthenticationContext` peut être utilisé pour :
-
-- aider un `User` à reconnaître ses connexions ;
-- détecter une activité inhabituelle ;
-- produire des journaux d'audit ;
-- appliquer des contrôles de sécurité supplémentaires.
-
-Il ne remplace jamais la `Session`, le `User` ou les mécanismes d'authentification.
-
----
-
-# États et énumérations
-
-Les états des entités ne sont pas nécessairement des objets de valeur indépendants.
-
-Ils constituent généralement des ensembles fermés de valeurs autorisées.
+Il ne constitue pas une identité juridique ou technique.
 
 ---
 
 ## UserStatus
 
-Le `UserStatus` peut prendre les valeurs suivantes :
+Valeurs recommandées :
 
-| Valeur | Description |
-|--------|-------------|
-| `Active` | Le `User` peut utiliser Atlas. |
-| `Disabled` | Le `User` ne peut plus ouvrir ou utiliser une `Session`. |
+```text
+Active
+Disabled
+Removed
+```
 
-Un `UserStatus` ne définit aucune appartenance à un `Workspace`.
+La valeur exacte dépend du modèle de cycle de vie retenu.
+
+---
+
+## IdentityType
+
+Valeurs possibles :
+
+```text
+HumanUser
+ServiceAccount
+MachineIdentity
+ExternalUser
+GuestUser
+FederatedUser
+InternalUser
+```
+
+`IdentityType` est utilisé notamment par `RoleAssignmentPolicy`.
+
+---
+
+## AuthenticationLevel
+
+Valeurs possibles :
+
+```text
+Standard
+RecentAuthentication
+Mfa
+PhishingResistantMfa
+HardwareBacked
+```
+
+---
+
+## AuthenticationRequirement
+
+Structure recommandée :
+
+```text
+AuthenticationRequirement
+├── Level
+├── MaximumAuthenticationAge
+├── EnforcementScope
+└── RevalidationRequired
+```
+
+---
+
+## AuthenticationEnforcementScope
+
+Valeurs :
+
+```text
+AtAssignment
+Continuous
+AtAssignmentAndContinuous
+```
+
+Le terme `Assignment` peut être généralisé lorsque le même objet est utilisé dans d’autres workflows.
+
+---
+
+# Membership
 
 ---
 
 ## MembershipStatus
 
-Le `MembershipStatus` peut prendre les valeurs suivantes :
+Valeurs :
 
-| Valeur | Description |
-|--------|-------------|
-| `Active` | Le `Membership` permet l'accès au `Workspace`. |
-| `Suspended` | L'accès est temporairement interdit. |
-| `Removed` | L'appartenance est terminée. |
+```text
+Active
+Suspended
+Removed
+```
 
-Un `Membership` supprimé fonctionnellement reste conservé lorsque la traçabilité l'exige.
+---
+
+## MembershipCreationSource
+
+Valeurs recommandées :
+
+```text
+Invitation
+WorkspaceCreation
+ManualAdministration
+SystemProvisioning
+ExternalSynchronization
+AdministrativeRecovery
+Migration
+```
+
+---
+
+## MembershipRemovalSource
+
+Valeurs recommandées :
+
+```text
+ManualAdministration
+WorkspaceGovernance
+SecurityWorkflow
+ComplianceWorkflow
+ExternalSynchronization
+SystemProvisioning
+ContractTermination
+AdministrativeRecovery
+WorkspaceClosure
+```
+
+---
+
+## MembershipRemovalReason
+
+Valeurs recommandées :
+
+```text
+AccessNoLongerRequired
+EmploymentEnded
+ContractEnded
+OrganizationLeft
+PolicyViolation
+SecurityDecision
+ComplianceDecision
+ExternalDirectoryRemoved
+AdministrativeCorrection
+DuplicateResolution
+WorkspaceReorganization
+WorkspaceClosure
+Other
+```
+
+---
+
+## MembershipSuspensionReason
+
+Valeurs possibles :
+
+```text
+SecurityReview
+ComplianceReview
+TemporaryLeave
+AdministrativeDecision
+ExternalSynchronization
+AccessInvestigation
+Other
+```
+
+---
+
+## LeaveConfirmation
+
+Structure recommandée :
+
+```text
+LeaveConfirmation
+├── ConfirmationId
+├── ConfirmedAt
+├── AuthenticationContext
+├── ExpectedMembershipVersion
+└── AcknowledgedConsequences
+```
+
+---
+
+## LeaveReadiness
+
+Valeurs :
+
+```text
+Ready
+ReadyWithWarnings
+Blocked
+RequiresTransfer
+RequiresNoticePeriod
+```
+
+---
+
+## MembershipRoleAssignment
+
+Si l’historique des rôles est modélisé comme valeur :
+
+```text
+MembershipRoleAssignment
+├── RoleId
+├── AssignedAt
+├── AssignedBy
+├── AssignmentSource
+├── AssignmentPolicyVersion
+└── EndedAt
+```
+
+Le rôle courant reste porté par le `Membership`.
+
+---
+
+# Role
+
+---
+
+## RoleName
+
+Nom métier du rôle.
+
+Il doit être :
+
+- non vide ;
+- normalisable ;
+- unique dans le `Workspace` après normalisation ;
+- non trompeur ;
+- compatible avec les noms réservés.
+
+---
+
+## NormalizedRoleName
+
+Forme canonique utilisée pour les comparaisons et l’unicité.
+
+---
+
+## RoleDescription
+
+Description facultative du rôle.
+
+Elle ne doit jamais être utilisée comme règle d’autorisation.
+
+---
+
+## RoleDisplayColor
+
+Couleur de présentation contrôlée.
+
+Elle ne porte aucune sémantique d’autorisation.
+
+---
+
+## RoleIcon
+
+Clé d’icône appartenant à un catalogue autorisé.
+
+---
+
+## RoleType
+
+Valeurs :
+
+```text
+System
+Custom
+External
+TemplateDerived
+```
+
+---
+
+## RoleSystemType
+
+Valeurs :
+
+```text
+None
+Owner
+DefaultMember
+Guest
+ServiceAccount
+```
+
+`RoleSystemType` définit la fonction structurelle.
+
+L’ownership ne doit jamais être déduit du nom.
 
 ---
 
 ## RoleStatus
 
-Le `RoleStatus` peut prendre les valeurs suivantes :
+Valeurs recommandées :
 
-| Valeur | Description |
-|--------|-------------|
-| `Active` | Le `Role` peut être attribué et utilisé. |
-| `Disabled` | Le `Role` ne peut plus être attribué et son utilisation doit être encadrée. |
-| `Deleted` | Le `Role` est retiré du modèle actif. |
+```text
+Active
+Disabled
+Archived
+```
 
-La suppression fonctionnelle d'un `Role` ne doit pas rompre l'historique des actions passées.
+Un éventuel état `Removed` doit être distingué de l’archivage si le modèle le nécessite.
+
+---
+
+## RoleCreationSource
+
+Valeurs :
+
+```text
+ManualAdministration
+WorkspaceCreation
+SystemProvisioning
+ExternalSynchronization
+TemplateInstantiation
+Migration
+AdministrativeRecovery
+ProductBootstrap
+```
+
+---
+
+## RoleMetadata
+
+Structure possible :
+
+```text
+RoleMetadata
+├── Name
+├── Description
+├── DisplayColor
+├── Icon
+├── DisplayOrder
+└── DocumentationUrl
+```
+
+Les métadonnées ne modifient pas l’autorisation.
+
+---
+
+## RoleMetadataControl
+
+Valeurs :
+
+```text
+LocallyManaged
+ExternallyManaged
+TemplateManaged
+ProductManaged
+LocallyOverridable
+```
+
+---
+
+# RoleAssignmentPolicy
+
+`RoleAssignmentPolicy` décrit les conditions d’attribution d’un `Role` à un `Membership`.
+
+Document détaillé :
+
+```text
+value-objects/RoleAssignmentPolicy.md
+```
+
+Structure :
+
+```text
+RoleAssignmentPolicy
+├── AllowedSources
+├── RequiredAssignmentPermission
+├── AllowedTargetIdentityTypes
+├── RequiresHumanAssignee
+├── ActorAuthenticationRequirement
+├── TargetAuthenticationRequirement
+├── ApprovalPolicy
+├── TargetAcceptancePolicy
+├── AssignmentCapacity
+├── AssignmentDurationPolicy
+├── ContinuousRequirements
+├── AdministrationRecoveryPolicy
+├── ControlPolicy
+└── Version
+```
+
+---
+
+## RoleAssignmentSource
+
+Valeurs :
+
+```text
+ManualAdministration
+Invitation
+WorkspaceCreation
+SystemProvisioning
+ExternalSynchronization
+AdministrativeRecovery
+MembershipRestoration
+MembershipReactivation
+RoleTransfer
+Migration
+```
+
+`AssignmentMode` est supprimé.
+
+Les sources autorisées sont représentées par :
+
+```text
+Set<RoleAssignmentSource>
+```
+
+---
+
+## AssignmentCapacity
+
+Structure :
+
+```text
+AssignmentCapacity
+├── MinimumActiveAssignments
+└── MaximumActiveAssignments
+```
+
+---
+
+## Exclusivité
+
+`IsExclusive` n’est pas une valeur indépendante.
+
+Elle est dérivée de :
+
+```text
+MaximumActiveAssignments = 1
+```
+
+---
+
+## AssignmentDurationPolicy
+
+Structure possible :
+
+```text
+AssignmentDurationPolicy
+├── Mode
+├── MinimumDuration
+├── MaximumDuration
+├── EndDateRequired
+├── ReviewBeforeExpiration
+├── RenewalAllowed
+└── MaximumRenewalCount
+```
+
+---
+
+## AssignmentDurationMode
+
+Valeurs :
+
+```text
+PermanentOnly
+TemporaryOnly
+PermanentOrTemporary
+```
+
+---
+
+## ContinuousAssignmentRequirement
+
+Valeurs possibles :
+
+```text
+MfaEnabled
+HumanIdentityMaintained
+EmploymentRelationshipActive
+ExternalDirectoryMembershipPresent
+ComplianceTrainingValid
+AccountNotCompromised
+AccountNotDisabled
+```
+
+---
+
+## AssignmentPolicyVersion
+
+Version logique de la politique.
+
+Elle doit être référencée par les décisions sensibles et les workflows différés.
+
+---
+
+# RoleTransferPolicy
+
+`RoleTransferPolicy` décrit les conditions permettant de transférer un rôle entre deux memberships.
+
+Document détaillé :
+
+```text
+value-objects/RoleTransferPolicy.md
+```
+
+Structure :
+
+```text
+RoleTransferPolicy
+├── Transferability
+├── AllowedSources
+├── AllowedInitiators
+├── RequiredTransferPermission
+├── SourceConfirmationPolicy
+├── TargetAcceptancePolicy
+├── ApprovalPolicy
+├── ActorAuthenticationRequirement
+├── SourceAuthenticationRequirement
+├── TargetAuthenticationRequirement
+├── AllowedTargetIdentityTypes
+├── SourceReplacementRolePolicy
+├── InitiatorParticipationPolicy
+├── TransferWindowPolicy
+├── ContinuityPolicy
+├── AdministrationRecoveryPolicy
+├── ControlPolicy
+└── Version
+```
+
+---
+
+## Transferability
+
+Valeurs :
+
+```text
+NotTransferable
+Transferable
+```
+
+`TransferMode` est supprimé.
+
+Les conditions détaillées appartiennent à `RoleTransferPolicy`.
+
+---
+
+## RoleTransferSource
+
+Valeurs possibles :
+
+```text
+CurrentHolderInitiated
+TargetInitiated
+WorkspaceAdministration
+WorkspaceGovernance
+SecurityWorkflow
+ExternalSynchronization
+SystemProvisioning
+AdministrativeRecovery
+WorkspaceClosure
+Migration
+```
+
+---
+
+## RoleTransferInitiatorType
+
+Valeurs :
+
+```text
+CurrentHolder
+TargetMembership
+WorkspaceOwner
+AuthorizedMember
+SystemActor
+ExternalAuthority
+PlatformAdministrator
+```
+
+---
+
+## SourceReplacementRolePolicy
+
+Structure :
+
+```text
+SourceReplacementRolePolicy
+├── Required
+├── AllowedRoleIds
+├── AllowedSystemTypes
+├── ForbiddenRoleIds
+├── MustBeAssignableToSource
+├── MustRemainActive
+└── MayEqualTargetPreviousRole
+```
+
+---
+
+## TransferContinuityPolicy
+
+Structure :
+
+```text
+TransferContinuityPolicy
+├── NoTransientGapAllowed
+├── MinimumActiveAssignmentsAfterTransfer
+├── MaximumActiveAssignmentsAfterTransfer
+├── SourceMustRemainMember
+├── TargetMustAlreadyBeActive
+└── SessionsMustBeInvalidatedAtomically
+```
+
+---
+
+## TransferPolicyVersion
+
+Version logique de la politique de transfert.
+
+Elle doit être référencée par :
+
+- les confirmations ;
+- les acceptations ;
+- les approbations ;
+- les transferts planifiés ;
+- `TransferMembershipRole`.
+
+---
+
+# Approbations et consentements
+
+---
+
+## ApprovalPolicy
+
+Structure générique :
+
+```text
+ApprovalPolicy
+├── MinimumApprovalCount
+├── RequiredApproverPermission
+├── RequiredApproverSystemType
+├── SelfApprovalAllowed
+├── SameActorMayProvideMultipleApprovals
+├── RequesterMayApprove
+├── TargetMayApprove
+├── AuthenticationRequirement
+├── ValidityDuration
+├── SeparationOfDuties
+└── PolicyVersionMustMatch
+```
+
+Elle peut être utilisée par :
+
+- `RoleAssignmentPolicy` ;
+- `RoleTransferPolicy` ;
+- des workflows de sécurité ;
+- des workflows de récupération.
+
+---
+
+## ApprovalProof
+
+Structure :
+
+```text
+ApprovalProof
+├── ApprovalId
+├── ApprovedBy
+├── ApprovedAt
+├── ValidUntil
+├── Subject
+├── PolicyVersion
+├── AuthenticationContext
+└── Scope
+```
+
+---
+
+## TargetAcceptancePolicy
+
+Structure :
+
+```text
+TargetAcceptancePolicy
+├── Required
+├── AuthenticationRequirement
+├── ValidityDuration
+├── AcknowledgementType
+├── PolicyVersionMustMatch
+└── ConsequencesMustBeAcknowledged
+```
+
+---
+
+## AcceptanceProof
+
+Structure :
+
+```text
+AcceptanceProof
+├── AcceptanceId
+├── AcceptedBy
+├── AcceptedAt
+├── ValidUntil
+├── Subject
+├── PolicyVersion
+├── AuthenticationContext
+└── AcknowledgementType
+```
+
+---
+
+## SourceConfirmationPolicy
+
+Utilisée principalement par `RoleTransferPolicy`.
+
+Structure :
+
+```text
+SourceConfirmationPolicy
+├── Required
+├── AuthenticationRequirement
+├── ValidityDuration
+├── ExpectedSourceRoleVersion
+├── AcknowledgementType
+└── WaivableByRecovery
+```
+
+---
+
+## SourceConfirmationProof
+
+Structure :
+
+```text
+SourceConfirmationProof
+├── ConfirmationId
+├── ConfirmedBy
+├── ConfirmedAt
+├── ValidUntil
+├── SourceMembershipId
+├── TargetMembershipId
+├── TransferredRoleId
+├── SourceReplacementRoleId
+├── AssignmentPolicyVersion
+├── TransferPolicyVersion
+└── AuthenticationContext
+```
+
+---
+
+# Invitation
 
 ---
 
 ## InvitationStatus
 
-L'`InvitationStatus` peut prendre les valeurs suivantes :
+Valeurs recommandées :
 
-| Valeur | Description |
-|--------|-------------|
-| `Pending` | L'`Invitation` peut encore être utilisée. |
-| `Accepted` | L'`Invitation` a produit un `Membership`. |
-| `Declined` | Le destinataire a refusé l'`Invitation`. |
-| `Expired` | Sa période de validité est dépassée. |
-| `Revoked` | Elle a été annulée par un membre autorisé. |
+```text
+Draft
+Sent
+Accepted
+Declined
+Revoked
+Expired
+```
 
-Les états `Accepted`, `Declined`, `Expired` et `Revoked` sont terminaux.
+Les états suivants sont terminaux :
+
+```text
+Accepted
+Declined
+Revoked
+Expired
+```
+
+---
+
+## InvitationEmail
+
+Adresse e-mail destinataire de l’invitation.
+
+Elle peut être distincte de l’adresse définitive du `User`, selon le workflow retenu.
+
+---
+
+## InvitationExpiration
+
+Structure ou date indiquant la limite d’acceptation.
+
+Condition :
+
+```text
+CurrentTime >= ExpirationDate
+```
+
+entraîne l’expiration métier.
+
+---
+
+## InvitationAcceptanceProof
+
+Structure :
+
+```text
+InvitationAcceptanceProof
+├── InvitationId
+├── AcceptedBy
+├── AcceptedAt
+├── AuthenticationContext
+├── ExpectedInvitationVersion
+└── AcknowledgedWorkspace
+```
+
+---
+
+# Session
 
 ---
 
 ## SessionStatus
 
-Le `SessionStatus` peut prendre les valeurs suivantes :
+Valeurs possibles :
 
-| Valeur | Description |
-|--------|-------------|
-| `Active` | La `Session` est utilisable. |
-| `Expired` | Sa durée de validité est dépassée. |
-| `Revoked` | Elle a été invalidée explicitement. |
-
-Les états `Expired` et `Revoked` sont terminaux.
-
----
-
-# Objets exclus
-
-Les concepts suivants ne doivent pas être modélisés comme des objets de valeur du domaine `Identity`.
-
-## User
-
-Le `User` possède une identité et un cycle de vie propre.
-
-Il constitue une entité.
-
----
-
-## Membership
-
-Le `Membership` possède une identité, un état et un cycle de vie.
-
-Il constitue une entité.
-
----
-
-## Role
-
-Le `Role` possède une identité stable indépendante de son nom et peut évoluer dans le temps.
-
-Il constitue une entité.
-
----
-
-## Invitation
-
-L'`Invitation` possède une identité et un cycle de vie temporaire.
-
-Elle constitue une entité.
-
----
-
-## Session
-
-La `Session` possède une identité, un état et un cycle de vie.
-
-Elle constitue une entité.
-
----
-
-## Permission
-
-La `Permission` est une définition système immuable identifiée par une `PermissionKey`.
-
-Elle ne constitue pas une entité administrable du domaine.
-
-La `PermissionKey` est l'objet de valeur utilisé par les agrégats.
-
----
-
-# Règles d'implémentation
-
-La documentation ne prescrit pas une technologie particulière, mais les implémentations doivent respecter les propriétés suivantes :
-
-- construction impossible avec des données invalides ;
-- immutabilité après création ;
-- comparaison fondée sur les valeurs ;
-- absence de méthode de modification interne ;
-- sérialisation explicite ;
-- validation centralisée dans l'objet ;
-- aucune dépendance à l'infrastructure ;
-- aucune dépendance à un framework applicatif.
-
-Exemple conceptuel :
-
-```php
-final readonly class PermissionKey
-{
-    private function __construct(
-        public string $value,
-    ) {
-    }
-
-    public static function fromString(string $value): self
-    {
-        $normalized = trim($value);
-
-        if (!preg_match('/^[a-z]+(?:\.[a-z-]+)+$/', $normalized)) {
-            throw new InvalidPermissionKey();
-        }
-
-        return new self($normalized);
-    }
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
-}
+```text
+Active
+Revoked
+Expired
 ```
 
-Cet exemple illustre les propriétés attendues sans constituer un contrat d'implémentation définitif.
+---
+
+## SessionValidity
+
+Structure :
+
+```text
+SessionValidity
+├── IssuedAt
+├── ExpiresAt
+├── LastActivityAt
+├── AbsoluteExpiration
+└── IdleExpiration
+```
 
 ---
 
-# Décisions de conception
+## AuthorizationVersion
 
-Les identifiants sont modélisés comme des objets de valeur distincts afin de renforcer la sécurité de typage et d'exprimer clairement les références métier.
+Version permettant d’invalider les décisions d’autorisation déjà mises en cache.
 
-Les secrets tels que `InvitationToken` et `SessionToken` sont séparés des identifiants afin de distinguer :
+Elle peut être portée par :
 
-- l'identification d'une ressource ;
-- l'autorisation d'utiliser cette ressource.
-
-Les noms affichés sont séparés des clés système afin de permettre :
-
-- la traduction ;
-- la personnalisation ;
-- l'évolution des libellés ;
-- la stabilité des règles métier.
-
-Les états utilisent des ensembles fermés de valeurs afin d'empêcher les transitions vers des situations inconnues.
-
-Les informations contextuelles d'authentification sont regroupées dans un `AuthenticationContext` afin de ne pas disperser les données de sécurité dans l'entité `Session`.
+- le `User` ;
+- le `Membership` ;
+- la `Session` ;
+- une combinaison des trois.
 
 ---
 
-# Synthèse
+## AuthenticationContext
 
-Les objets de valeur du domaine `Identity` expriment explicitement les valeurs utilisées par les entités et les agrégats.
+Structure :
 
-Ils garantissent notamment :
+```text
+AuthenticationContext
+├── AuthenticationContextId
+├── AuthenticatedAt
+├── AuthenticationLevel
+├── Factors
+├── DeviceContext
+└── ValidUntil
+```
 
-- l'intégrité des identifiants ;
-- la validité des adresses e-mail ;
-- la stabilité des clés d'autorisation ;
-- la séparation entre identifiants et secrets ;
-- la cohérence des échéances ;
-- l'immutabilité des données métier.
+Aucun secret de facteur ne doit être stocké dans ce `Value Object`.
 
-Un objet de valeur doit toujours rendre le modèle plus explicite.
+---
 
-Lorsqu'une valeur possède des règles, un vocabulaire métier ou un risque de confusion, elle ne doit pas rester un simple type primitif.
+# Raisons et sources
+
+Les raisons et sources sont des `Value Objects` ou enums structurés.
+
+Ils doivent éviter les chaînes arbitraires lorsque les décisions métier doivent être analysées.
+
+---
+
+## ChangeReason
+
+Exemples :
+
+```text
+SecurityHardening
+OrganizationalChange
+ComplianceRequirement
+AdministrativeCorrection
+ExternalSynchronization
+Migration
+Other
+```
+
+---
+
+## ChangeSource
+
+Exemples :
+
+```text
+ManualAdministration
+WorkspaceGovernance
+SecurityPolicy
+CompliancePolicy
+ExternalSynchronization
+TemplateSynchronization
+SystemProvisioning
+Migration
+AdministrativeRecovery
+```
+
+---
+
+## CaseReference
+
+Référence un dossier administratif, de sécurité ou de conformité.
+
+Elle ne doit pas contenir le contenu confidentiel du dossier.
+
+---
+
+# Versions
+
+---
+
+## AggregateVersion
+
+Version optimiste d’un agrégat.
+
+Exemples :
+
+```text
+Role.Version
+Membership.Version
+Invitation.Version
+```
+
+---
+
+## PolicyVersion
+
+Version logique d’une politique.
+
+Exemples :
+
+```text
+AssignmentPolicyVersion
+TransferPolicyVersion
+```
+
+---
+
+## ExternalVersion
+
+Version fournie par une source externe.
+
+Elle permet de rejeter les mises à jour obsolètes.
+
+---
+
+## TemplateVersion
+
+Version du modèle ayant produit ou synchronisé une valeur.
+
+---
+
+# Idempotence
+
+---
+
+## IdempotencyKey
+
+Clé logique utilisée pour reconnaître une demande déjà traitée.
+
+Exemples :
+
+```text
+WorkspaceId + CreationRequestId
+RoleId + PolicyChangeRequestId
+MembershipId + RemovalRequestId
+```
+
+---
+
+## IdempotencyFingerprint
+
+Empreinte normalisée de l’intention.
+
+Elle doit permettre de distinguer :
+
+```text
+same request retried
+```
+
+de :
+
+```text
+same key reused for another intention
+```
+
+---
+
+# Décisions de modélisation
+
+## Les identifiants sont séparés
+
+Chaque concept possède son propre type d’identifiant.
+
+---
+
+## Les tokens ne sont pas des identifiants
+
+Les tokens sont secrets et ne doivent pas apparaître dans les événements.
+
+---
+
+## Les politiques de rôle sont des Value Objects
+
+```text
+RoleAssignmentPolicy
+RoleTransferPolicy
+```
+
+---
+
+## AssignmentMode est supprimé
+
+Il est remplacé par :
+
+```text
+AllowedSources
+```
+
+---
+
+## TransferMode est supprimé
+
+Il est remplacé par :
+
+```text
+RoleTransferPolicy
+```
+
+---
+
+## IsExclusive est dérivé
+
+```text
+MaximumActiveAssignments = 1
+```
+
+---
+
+## Les politiques sont immuables et versionnées
+
+Les approbations, acceptations et opérations différées doivent référencer une version.
+
+---
+
+## Les exigences d’authentification sont structurées
+
+Une simple valeur booléenne `RequiresMfa` serait trop limitée.
+
+---
+
+## Les raisons sont structurées
+
+Les raisons importantes ne doivent pas être uniquement du texte libre.
+
+---
+
+## Les références externes sont séparées de l’identité interne
+
+```text
+RoleId != ExternalReference
+UserId != ExternalDirectoryId
+```
+
+---
+
+# Checklist générale
+
+```text
+Value Object has no independent identity
+Value Object is immutable
+Equality is based on normalized values
+Construction validates all invariants
+Primitive values are wrapped when ambiguity exists
+Secrets are not exposed
+Identifiers are strongly separated
+External references remain distinct
+Policy versions are explicit
+Empty and absent values are distinguished
+Collections are normalized
+Order is ignored when not meaningful
+```
+
+---
+
+## Synthèse
+
+Les `Value Objects` protègent le modèle `Identity` contre :
+
+- les primitives ambiguës ;
+- les états invalides ;
+- les comparaisons incohérentes ;
+- les mélanges d’identifiants ;
+- les politiques non structurées ;
+- les tokens exposés ;
+- les décisions non versionnées.
+
+Les deux politiques centrales du `Role` sont désormais :
+
+```text
+RoleAssignmentPolicy
+RoleTransferPolicy
+```
+
+Elles remplacent les anciens concepts trop limités :
+
+```text
+AssignmentMode
+TransferMode
+IsExclusive
+```
