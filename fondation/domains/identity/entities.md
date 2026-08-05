@@ -3,7 +3,7 @@ id: IDN-ENTITIES
 title: Entities
 status: In Review
 owner: Product
-version: 2.0.1
+version: 2.0.2
 last_updated: 2026-08-05
 
 references:
@@ -572,6 +572,7 @@ crm.clients.archive
 
 billing.quotes.read
 billing.quotes.create
+billing.quotes.update-draft
 billing.quotes.send
 
 workspace.members.read
@@ -703,10 +704,9 @@ crm.clients.archive
 ```text
 billing.quotes.read
 billing.quotes.create
-billing.quotes.update
+billing.quotes.update-draft
 billing.quotes.send
-billing.quotes.accept
-billing.quotes.refuse
+billing.quotes.withdraw
 ```
 
 ### Gestion des factures
@@ -714,16 +714,33 @@ billing.quotes.refuse
 ```text
 billing.invoices.read
 billing.invoices.create
+billing.invoices.update-draft
 billing.invoices.issue
-billing.invoices.mark-paid
-billing.invoices.void
+billing.invoices.send
+billing.invoices.remind
+```
+
+### Gestion des règlements et avoirs
+
+```text
+billing.payments.read
+billing.payments.record
+billing.payments.reverse
+billing.credit-notes.read
+billing.credit-notes.create
+billing.credit-notes.issue
+billing.credit-notes.apply
 ```
 
 ### Administration du `Workspace`
 
 ```text
-workspace.settings.read
-workspace.settings.update
+workspace.profile.read
+workspace.profile.update
+workspace.preferences.read
+workspace.preferences.change
+workspace.billing-identity.read
+workspace.billing-identity.update
 workspace.members.read
 workspace.members.change-role
 workspace.roles.read

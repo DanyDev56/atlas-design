@@ -3,7 +3,7 @@ id: IDN-CMD-ELEVATE-SESSION
 title: ElevateSession
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.0.1
 last_updated: 2026-08-05
 
 aggregate: Session
@@ -644,7 +644,7 @@ L’élévation est limitée à certaines permissions.
 
 Exemple :
 
-    workspace.billing.payment.approve
+    billing.payments.reverse
     workspace.members.transfer-role
 
 L’élévation ne crée pas ces permissions.

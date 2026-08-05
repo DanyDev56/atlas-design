@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.3
+version: 1.4
 last_updated: 2026-08-05
 ---
 
@@ -218,19 +218,127 @@ CRM
 
 # Quote
 
-Proposition commerciale envoyée à un client.
+Proposition commerciale versionnée adressée à un Client, dont le contenu est
+figé avant envoi et dont la réponse est terminale.
+
+**Domaine**
+
+Billing
 
 ---
 
 # Invoice
 
-Document comptable représentant une créance.
+Document financier émis représentant une créance immuable, dont le règlement,
+le retard et la livraison sont suivis séparément.
+
+**Domaine**
+
+Billing
 
 ---
 
 # Payment
 
-Paiement associé à une facture.
+Encaissement enregistré dans une Invoice et appliqué, en tout ou partie, à son
+solde. Un Payment erroné est inversé, jamais édité.
+
+**Domaine**
+
+Billing
+
+---
+
+# CreditNote
+
+Document financier correctif émis contre une seule Invoice et applicable à son
+solde sans le rendre négatif.
+
+**Domaine**
+
+Billing
+
+---
+
+# DocumentLine
+
+Description canonique d'une prestation ou correction avec quantité, prix,
+remise et règle de taxe.
+
+**Domaine**
+
+Billing
+
+---
+
+# DocumentNumber
+
+Numéro lisible et non réutilisable alloué à un document finalisé ou émis.
+
+**Domaine**
+
+Billing
+
+---
+
+# ClientSnapshot
+
+Copie historique des données Client nécessaires à un document Billing.
+
+**Domaine**
+
+Billing
+
+---
+
+# IssuerSnapshot
+
+Copie historique de l'identité Workspace émettrice nécessaire à un document.
+
+**Domaine**
+
+Billing
+
+---
+
+# DepositInvoice
+
+Invoice d'acompte issue d'une Quote acceptée. Billing 1.0 en autorise au plus
+une par Quote.
+
+**Domaine**
+
+Billing
+
+---
+
+# FinalInvoice
+
+Invoice facturant le reliquat d'une Quote acceptée après l'éventuel acompte.
+
+**Domaine**
+
+Billing
+
+---
+
+# DueDate
+
+Date après laquelle une Invoice émise avec un solde positif devient en retard.
+
+**Domaine**
+
+Billing
+
+---
+
+# OutstandingBalance
+
+Montant restant dû après application des Payments actifs et CreditNotes.
+
+**Domaine**
+
+Billing
 
 ---
 

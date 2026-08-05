@@ -49,9 +49,13 @@ Responsable :
 
 - devis ;
 - factures ;
-- paiements.
+- paiements manuels ;
+- avoirs ;
+- numérotation, soldes, échéances et artefacts financiers immuables.
 
-Consomme les contextes publics Client et Opportunity sans modifier CRM.
+Consomme les contextes publics Client et Opportunity de CRM et l'identité de
+facturation de Workspace, puis en crée des snapshots sans modifier leurs
+sources.
 
 Produit les événements financiers.
 

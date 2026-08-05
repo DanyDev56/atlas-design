@@ -3,7 +3,7 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: Draft
 owner: Product
-version: 0.4
+version: 0.5
 last_updated: 2026-08-05
 ---
 
@@ -23,7 +23,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Product | Secondary Persona | Non | Non | Non | Non | Draft |
 | Product | Anti-personas | Oui | Non | À vérifier | Oui | In Review |
 | Product | Jobs To Be Done | Oui | Non | À vérifier | Partiel | In Review |
-| Domains | Billing | Partiel | Non | À vérifier | Non | Draft |
+| Domains | Billing | Oui | Oui | Oui | Oui | In Review |
 | Domains | CRM | Oui | Oui | Oui | Oui | In Review |
 | Domains | Advisor | Partiel | Non | À vérifier | Non | Draft |
 | Domains | Business Health | Non | Non | Non | Non | Draft |

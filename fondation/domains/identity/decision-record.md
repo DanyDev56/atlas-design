@@ -3,7 +3,7 @@ id: IDN-FOUNDATION-DECISION-RECORD
 title: Decision Record
 status: Living
 owner: Product
-version: 2.1.0
+version: 2.1.1
 last_updated: 2026-08-05
 
 references:
@@ -219,7 +219,7 @@ Les capacités telles que :
 ```text
 workspace.members.change-role
 workspace.roles.create
-workspace.billing.read
+billing.invoices.read
 ```
 
 doivent avoir une sémantique stable dans toute la plateforme.

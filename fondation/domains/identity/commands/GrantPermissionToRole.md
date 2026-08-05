@@ -3,8 +3,8 @@ id: IDN-CMD-GRANT-PERMISSION-TO-ROLE
 title: GrantPermissionToRole
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-31
+version: 1.0.1
+last_updated: 2026-08-05
 
 aggregate: Role
 
@@ -170,7 +170,7 @@ Global Permission Catalog
 ├── workspace.members.read
 ├── workspace.members.change-role
 ├── workspace.roles.create
-└── workspace.billing.read
+└── billing.invoices.read
 ```
 
 ---

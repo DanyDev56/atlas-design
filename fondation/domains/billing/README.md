@@ -1,59 +1,122 @@
 ---
+id: BIL-README
 title: Billing Domain
-status: Draft
+status: In Review
 owner: Product
+version: 1.0.0
 last_updated: 2026-08-05
+
+references:
+  - mission.md
+  - scope.md
+  - model.md
+  - entities.md
+  - aggregates.md
+  - value-objects.md
+  - relationships.md
+  - invariants.md
+  - decision-record.md
+  - permissions.md
+  - events.md
+  - api.md
+  - integrations.md
+  - workflows.md
+  - future.md
+  - glossary.md
+  - consolidation-matrix.md
+  - commands/README.md
 ---
 
 # Billing
 
-## Mission
+> Billing transforme une intention commerciale en documents financiers
+> traçables, puis en créance réglée ou corrigée.
 
-Le domaine Billing est responsable de tout ce qui concerne la transformation d'une prestation en revenu.
+Il répond à quatre questions :
 
-Il couvre :
-
-- les devis ;
-- les factures ;
-- les acomptes ;
-- les paiements ;
-- les avoirs ;
-- les échéances.
-
-Billing n'est pas responsable :
-
-- des clients ;
-- des opportunités ;
-- des recommandations ;
-- de la comptabilité.
-
-Ces domaines communiquent via leurs contrats publics.
+1. qu'a-t-on proposé au Client ;
+2. quelle créance a été légalement émise ;
+3. quels règlements ou avoirs ont réduit cette créance ;
+4. quel montant reste réellement dû.
 
 ---
 
-## Objectifs
+## Responsabilités
 
-Le domaine doit permettre :
+Billing possède :
 
-- d'être payé rapidement ;
-- d'éviter les erreurs administratives ;
-- de garantir une traçabilité parfaite ;
-- d'alimenter les autres domaines en données fiables.
+- `Quote` et son cycle de réponse ;
+- `Invoice` et son contenu financier ;
+- `Payment` enregistré dans une Invoice ;
+- `CreditNote` et son application ;
+- les numéros de documents ;
+- les échéances, soldes et faits de règlement ;
+- les demandes de livraison et de relance des documents.
+
+Billing ne possède pas :
+
+- le Client ou l'Opportunity ;
+- l'identité de l'émetteur Workspace ;
+- l'envoi technique d'un e-mail ;
+- la comptabilité générale, le compte bancaire ou le rapprochement ;
+- les recommandations et prévisions.
 
 ---
 
-## Contrats CRM consommés
+## Agrégats 1.0
 
-Lorsqu'un document part d'un Client ou d'une Opportunity, Billing consomme :
-
-```text
-getClientBillingContext(workspaceId, clientId)
-getOpportunityCommercialContext(workspaceId, opportunityId)
+```mermaid
+flowchart LR
+    Quote -->|accepted source| Invoice
+    Invoice --> Payment
+    Invoice -->|corrected by| CreditNote
+    NumberSequence[DocumentNumberSequence] --> Quote
+    NumberSequence --> Invoice
+    NumberSequence --> CreditNote
+    CRM -->|Client snapshot source| Quote
+    Workspace -->|Issuer snapshot source| Quote
 ```
 
-Billing valide la complétude requise puis copie un `ClientSnapshot` dans son
-propre agrégat. Une modification ultérieure du Client ou de l'Opportunity ne
-réécrit jamais un devis ou une facture existante.
+| Agrégat | Rôle |
+|---|---|
+| `Quote` | proposition, réponse et suivi de facturation |
+| `Invoice` | créance, Payments et solde courant |
+| `CreditNote` | document correctif rattaché à une Invoice |
+| `DocumentNumberSequence` | allocation unique et auditée des numéros |
 
-`QuoteAccepted` peut déclencher une orchestration demandant `WinOpportunity` à
-CRM. Billing ne modifie jamais directement l'Opportunity.
+---
+
+## Cycles principaux
+
+```text
+Quote:      Draft -> Sending -> Sent -> Accepted | Rejected | Withdrawn | Expired
+Invoice:    Draft -> Issued
+               \-> Discarded
+CreditNote: Draft -> Issued -> Applied
+               \-> Discarded
+Payment:    Recorded -> Reversed
+```
+
+Le règlement d'une Invoice est un état calculé depuis son solde, pas un
+remplacement de son statut documentaire.
+
+---
+
+## Contrats externes
+
+- CRM fournit `getClientBillingContext` et
+  `getOpportunityCommercialContext` ;
+- Workspace fournit l'identité de l'émetteur et les préférences ;
+- Identity autorise les intentions humaines ;
+- Communication livre les documents sans décider de leur cycle de vie ;
+- Analytics et Advisor consomment les faits financiers.
+
+Les valeurs CRM et Workspace sont copiées comme snapshots avant qu'un document
+ne devienne immuable.
+
+---
+
+## Statut
+
+Billing 1.0 est `In Review`. La couverture complète figure dans
+[`consolidation-matrix.md`](consolidation-matrix.md).

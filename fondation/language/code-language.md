@@ -3,7 +3,7 @@ id: LANG-009
 title: Code Language
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -33,6 +33,16 @@ Invoice
 
 Payment
 
+CreditNote
+
+DocumentLine
+
+DocumentNumberSequence
+
+ClientSnapshot
+
+IssuerSnapshot
+
 Recommendation
 
 BusinessHealth
@@ -58,3 +68,9 @@ Company
 Proposal
 
 Bill
+
+Credit Note
+
+Deposit
+
+Due Date

@@ -23,8 +23,7 @@ WorkspaceAccessStateChanged
 
 ## Cycle commercial
 
-Exemple :
-
+```text
 OpportunityCreated
         │
         ▼
@@ -32,6 +31,9 @@ OpportunityQualified
         │
         ▼
 QuoteCreated
+        │
+        ▼
+QuoteSendRequested
         │
         ▼
 QuoteSent
@@ -51,7 +53,12 @@ InvoiceIssued
 PaymentRecorded
         │
         ▼
-InvoicePaid
+InvoiceBalanceChanged
+        │
+        ├──► InvoicePaid
+        │
+        ▼
+InvoiceSettled
         │
         ▼
 BusinessHealthUpdated
@@ -61,6 +68,10 @@ RecommendationGenerated
         │
         ▼
 NotificationSent
+```
+
+`InvoicePaid` n'existe que si un Payment rend le solde nul. Une CreditNote peut
+produire `InvoiceSettled` sans produire `InvoicePaid`.
 
 ---
 

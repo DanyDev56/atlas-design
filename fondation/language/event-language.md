@@ -3,7 +3,7 @@ id: LANG-007
 title: Event Language
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -37,7 +37,15 @@ QuoteAccepted
 
 InvoiceIssued
 
+InvoiceBalanceChanged
+
+InvoiceSettled
+
+InvoicePaid
+
 PaymentRecorded
+
+CreditNoteIssued
 
 RecommendationGenerated
 
@@ -56,3 +64,9 @@ DoPayment
 PaidInvoice
 
 InvoiceDone
+
+`QuoteSendRequested` et `InvoiceDeliveryRequested` sont conformes : ils
+décrivent une demande déjà enregistrée, pas l'exécution implicite de l'envoi.
+
+`InvoicePaid` est réservé au règlement complet causé par un Payment ;
+`InvoiceSettled` couvre aussi un solde annulé par CreditNote.

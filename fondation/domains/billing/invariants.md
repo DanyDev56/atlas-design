@@ -1,67 +1,88 @@
+---
+id: BIL-INVARIANTS
+title: Billing Invariants
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - model.md
+  - aggregates.md
+  - value-objects.md
+  - events.md
+  - commands/README.md
+---
+
 # Invariants
 
-Les règles suivantes sont absolues.
+Les invariants suivants sont absolus pour Billing 1.0. Une commande qui ne peut
+pas tous les préserver est refusée sans événement de réussite.
 
-Elles ne doivent jamais être violées.
+## Frontière et identité
 
----
+| ID | Règle |
+|---|---|
+| `BIL-INV-001` | Tout agrégat, référence, permission et snapshot appartient à un seul `WorkspaceId`. |
+| `BIL-INV-002` | Les identifiants sont stables, uniques et jamais réattribués. |
+| `BIL-INV-003` | Aucune suppression physique ne retire un document, paiement ou fait financier de l'historique métier. |
 
-## Une facture émise ne redevient jamais un brouillon.
+## Valeurs financières et snapshots
 
----
+| ID | Règle |
+|---|---|
+| `BIL-INV-004` | Les calculs utilisent une représentation décimale exacte ; aucun flottant binaire n'est canonique. |
+| `BIL-INV-005` | Un document et toutes ses lignes utilisent une seule devise ; aucune conversion rétroactive n'est permise. |
+| `BIL-INV-006` | Sous-total, taxes, remises et total sont calculés et arrondis par une politique déterministe versionnée. |
+| `BIL-INV-007` | Les snapshots Client, émetteur et Opportunity requis sont complets avant finalisation ou émission. |
+| `BIL-INV-008` | Un snapshot figé n'est jamais réécrit par une évolution de CRM ou Workspace. |
+| `BIL-INV-009` | Un numéro de document est unique dans son espace, type, série et période ; il est monotone, audité et jamais réutilisé. |
 
-## Le contenu financier d’une facture émise est immuable.
+## Quote
 
-Après émission, il est interdit de modifier directement :
+| ID | Règle |
+|---|---|
+| `BIL-INV-010` | Les seules transitions sont `Draft -> Sending -> Sent -> Accepted | Rejected | Withdrawn | Expired`, plus `Sending -> Withdrawn`. |
+| `BIL-INV-011` | Le contenu commercial et financier d'une Quote n'est modifiable qu'en `Draft`. |
+| `BIL-INV-012` | `SendQuote` valide les données, alloue le numéro, fige les snapshots et crée une preuve d'accès avant de demander la livraison. |
+| `BIL-INV-013` | Une réponse publique exige une preuve valide, bornée au document et au Workspace ; acceptation et rejet sont mutuellement exclusifs et terminaux. |
+| `BIL-INV-014` | Une Quote n'expire qu'en `Sent`, après `ValidUntil`, sous l'autorité de l'horloge ; son retrait reste une intention explicite. |
+| `BIL-INV-015` | Seule une Quote `Accepted` peut produire une Invoice de dépôt ou finale. |
+| `BIL-INV-016` | Une Quote possède au plus une `DepositInvoice` et une `FinalInvoice` ; leur allocation cumulée n'excède jamais son total accepté. |
 
-- les lignes ;
-- les quantités ;
-- les prix ;
-- les taux de TVA ;
-- le client facturé ;
-- le numéro ;
-- la devise.
+## Invoice et règlement
 
-Les métadonnées non fiscales peuvent être corrigées lorsqu’elles ne modifient pas la portée juridique du document.
+| ID | Règle |
+|---|---|
+| `BIL-INV-017` | Les seules transitions documentaires d'une Invoice sont `Draft -> Issued` ou `Draft -> Discarded`. |
+| `BIL-INV-018` | Une Invoice `Draft` est modifiable ; après émission, son contenu financier, sa devise, son numéro et ses snapshots sont immuables. |
+| `BIL-INV-019` | Une Invoice émise possède un numéro, une date d'émission, une échéance, des snapshots complets et des totaux valides. |
+| `BIL-INV-020` | `OutstandingBalance = IssuedTotal - paiements actifs appliqués - avoirs appliqués`. |
+| `BIL-INV-021` | Le solde d'une Invoice ne devient jamais négatif. |
+| `BIL-INV-022` | `SettlementStatus` est dérivé : total si solde initial, partiel entre zéro et total, réglé si zéro. |
+| `BIL-INV-023` | Un Payment appartient à une seule Invoice émise du même Workspace et utilise sa devise. |
+| `BIL-INV-024` | `AmountReceived = AmountApplied + UnappliedAmount`, avec `AmountApplied` positif et au plus égal au solde avant application. |
+| `BIL-INV-025` | Toute somme reçue mais non appliquée porte une disposition explicite `RefundDue` ou `ClientCredit`. |
+| `BIL-INV-026` | Un Payment enregistré n'est ni édité ni supprimé ; seule une inversion complète, motivée et auditée est autorisée. |
 
-Toute correction financière passe par un avoir ou un document de remplacement.
+## CreditNote, échéance et artefact
 
----
+| ID | Règle |
+|---|---|
+| `BIL-INV-027` | Une CreditNote corrige exactement une Invoice émise du même Workspace et dans la même devise. |
+| `BIL-INV-028` | Les seules transitions d'une CreditNote sont `Draft -> Issued -> Applied` ou `Draft -> Discarded`; son contenu est immuable après émission. |
+| `BIL-INV-029` | Le total des CreditNotes émises ne dépasse pas le total brut de l'Invoice source. |
+| `BIL-INV-030` | Le montant appliqué d'une CreditNote ne dépasse ni son total ni le solde courant ; tout reliquat porte `RefundDue` ou `ClientCredit`. |
+| `BIL-INV-031` | Une Invoice est en retard seulement si elle est émise, échue et non réglée ; le fait est émis au plus une fois par passage en retard. |
+| `BIL-INV-032` | Un artefact PDF publié correspond exactement à une version immuable, identifiée par son hash ; il n'est jamais la source des calculs. |
 
-## Chaque facture possède un numéro unique.
+## Accès, livraison et fiabilité
 
----
-
-## Un paiement peut dépasser le solde attendu uniquement si le trop-perçu est explicitement enregistré.
-
-Le système doit distinguer :
-
-- le montant affecté à la facture ;
-- le montant non affecté ;
-- le montant à rembourser ou à utiliser comme crédit client.
-
----
-
-## Un paiement appartient à une seule facture.
-
----
-
-## Une facture annulée conserve son historique.
-
----
-
-## Toute action importante génère un événement métier.
-
----
-
-## Chaque changement est traçable.
-
-Aucune suppression physique des événements métier.
-
----
-
-## Les montants sont immuables.
-
-Une correction crée un nouvel événement.
-
-On ne modifie jamais l'historique.
+| ID | Règle |
+|---|---|
+| `BIL-INV-033` | Les preuves publiques sont opaques, stockées sous forme de hash, révocables, expirables et bornées à une capacité précise. |
+| `BIL-INV-034` | Une demande de livraison, son acceptation par le fournisseur et une ouverture sont trois faits distincts ; aucun ne prouve la réception humaine. |
+| `BIL-INV-035` | Toute intention humaine exige un acteur actif et une permission effective dans le même Workspace. |
+| `BIL-INV-036` | Toute mutation d'un agrégat existant compare sa révision attendue ; une opération multi-agrégats compare toutes les révisions concernées. |
+| `BIL-INV-037` | Chaque commande possède un RequestId ; une répétition identique retourne le résultat initial et une réutilisation incompatible échoue. |
+| `BIL-INV-038` | État, numéros réservés, événements et messages d'outbox sont commis atomiquement ; les consommateurs dédupliquent `EventId`. |

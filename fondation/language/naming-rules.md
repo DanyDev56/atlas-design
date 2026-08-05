@@ -3,8 +3,8 @@ id: LANG-003
 title: Naming Rules
 status: Stable
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1
+last_updated: 2026-08-05
 ---
 
 # Règles de nommage
@@ -58,6 +58,8 @@ InvoiceIssued
 QuoteAccepted
 
 PaymentRecorded
+
+CreditNoteIssued
 
 ---
 

@@ -47,7 +47,13 @@ Possède :
 
 - Quote
 - Invoice
-- Payment
+- Payment, comme entité de l'agrégat Invoice
+- CreditNote
+- DocumentNumberSequence
+
+Billing copie les données courantes de CRM et Workspace dans des snapshots,
+mais ne devient jamais propriétaire du Client, de l'Opportunity ou de l'identité
+courante du Workspace.
 
 ---
 

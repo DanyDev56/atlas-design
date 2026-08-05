@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.3
+version: 1.4
 last_updated: 2026-08-05
 ---
 
@@ -83,11 +83,37 @@ Invoice
 
 Payment
 
-Credit Note
+CreditNote
 
-Deposit
+DocumentLine
 
-Due Date
+DocumentTotals
+
+DocumentNumber
+
+DocumentNumberSequence
+
+ClientSnapshot
+
+IssuerSnapshot
+
+OpportunitySnapshot
+
+DepositInvoice
+
+FinalInvoice
+
+DueDate
+
+OutstandingBalance
+
+`Quote`, `Invoice` et `CreditNote` sont trois documents distincts. Un `Payment`
+est enregistré dans une Invoice. `DepositInvoice` et `FinalInvoice` sont des
+kinds d'Invoice, pas de nouveaux agrégats.
+
+Les libellés naturels « devis », « facture », « avoir », « acompte », « date
+d'échéance » et « solde restant dû » sont autorisés dans l'interface française,
+mais le code et les contrats emploient les noms canoniques ci-dessus.
 
 ---
 
