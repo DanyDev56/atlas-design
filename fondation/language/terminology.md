@@ -3,8 +3,8 @@ id: LANG-002
 title: Terminology Decisions
 status: Stable
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1
+last_updated: 2026-08-05
 ---
 
 # Choix de terminologie
@@ -65,3 +65,9 @@ Non retenus :
 
 - Score
 - Health Score
+
+Le bounded context produit une `BusinessHealthAssessment`. Son score global se
+nomme `OverallScore` pour le distinguer des ComponentScore et FactorScore.
+
+`PrimaryAttention` a été retenu pour la zone au déficit dominant. Le mot
+Priority est réservé à Advisor, qui décide de l'ordre des Recommendation.

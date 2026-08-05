@@ -69,7 +69,7 @@ Un utilisateur doit pouvoir :
 - score global ;
 - facteurs principaux ;
 - évolution sur une période ;
-- priorité principale.
+- zone d'attention principale, sans préjuger de l'action Advisor.
 
 ### Advisor
 

@@ -53,7 +53,7 @@ WorkloadContext
 ## Invariants concernés
 
 `ANL-INV-001`, `ANL-INV-002`, `ANL-INV-009`–`ANL-INV-019`,
-`ANL-INV-023`, `ANL-INV-026`–`ANL-INV-034`.
+`ANL-INV-023`, `ANL-INV-026`–`ANL-INV-034`, `ANL-INV-037`.
 
 ## Événements produits
 

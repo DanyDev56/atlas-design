@@ -3,7 +3,7 @@ id: ANL-CONSOLIDATION
 title: Analytics Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -52,8 +52,8 @@ references:
 |---|---|---|---|---|---|
 | `IngestSourceFact` | Workload Analytics | `analytics.facts.ingest` | 001–008, 011–022, 025, 030, 032–034 | `AnalyticsFactRecorded` | `IngestSourceFactRequestId` |
 | `StartAnalyticsProjectionRebuild` | Workload opérationnel | `analytics.projections.rebuild` | 001–002, 009–013, 017–019, 023–025, 030, 032–034 | `AnalyticsProjectionRebuildStarted` | `StartAnalyticsProjectionRebuildRequestId` |
-| `CompleteAnalyticsProjectionRebuild` | Workload opérationnel | `analytics.projections.rebuild` | 001, 009–025, 030, 032–034 | `AnalyticsProjectionRebuilt`, `AnalyticsProjectionRebuildFailed` | `CompleteAnalyticsProjectionRebuildRequestId` |
-| `PublishAnalyticsSnapshot` | Scheduler ou workload | `analytics.snapshots.publish` | 001–002, 009–019, 023, 026–034 | `AnalyticsSnapshotPublished` | `PublishAnalyticsSnapshotRequestId` |
+| `CompleteAnalyticsProjectionRebuild` | Workload opérationnel | `analytics.projections.rebuild` | 001, 009–025, 030, 032–034, 037 | `AnalyticsProjectionRebuilt`, `AnalyticsProjectionRebuildFailed` | `CompleteAnalyticsProjectionRebuildRequestId` |
+| `PublishAnalyticsSnapshot` | Scheduler ou workload | `analytics.snapshots.publish` | 001–002, 009–019, 023, 026–034, 037 | `AnalyticsSnapshotPublished` | `PublishAnalyticsSnapshotRequestId` |
 
 Les numéros abrégés désignent `ANL-INV-nnn`. Les fiches constituent la source
 normative complète.
@@ -100,6 +100,7 @@ normative complète.
 - [x] Les dimensions, périodes, devises et arrondis sont bornés.
 - [x] Les faits sources sont versionnés, minimisés et reconstructibles.
 - [x] `NoData`, fraîcheur et complétude sont contractuels.
+- [x] Les comparaisons de période conservent définition, dimensions, devise et calendrier.
 - [x] Corrections, reversals, événements en retard et rebuilds sont couverts.
 - [x] Les quatre processeurs possèdent autorité, concurrence et idempotence.
 - [x] Tous les Domain Events possèdent un producteur tracé.

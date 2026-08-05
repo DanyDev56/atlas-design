@@ -3,7 +3,7 @@ id: ANL-VALUE-OBJECTS
 title: Analytics Value Objects
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -116,6 +116,26 @@ Copie immuable d'une MetricObservation avec sa MetricKey, définition, valeur,
 période, dimensions, fraîcheur, complétude, génération et explication. Une
 référence à la cellule MetricSeries d'origine est conservée pour l'audit, jamais
 pour relire la valeur publiée.
+
+## PeriodComparison
+
+```text
+BaselinePeriod
+BaselineValue?
+AbsoluteDelta?
+RelativeDelta?
+ChangeKind: Increased | Stable | Decreased | Started | Stopped | NotComparable
+```
+
+Current et baseline partagent MetricKey, DefinitionVersion, Unit, DimensionSet,
+CurrencyCode et ReportingCalendarVersion. `RelativeDelta` exige une baseline
+strictement positive ; sinon `ChangeKind` exprime le cas sans division arbitraire.
+
+- `Started` signifie baseline disponible égale à zéro et valeur courante positive ;
+- `Stopped` signifie baseline positive et valeur courante égale à zéro ;
+- `Stable` signifie égalité exacte des deux valeurs disponibles ;
+- `Increased` ou `Decreased` conserve l'AbsoluteDelta exact ;
+- une baseline `NoData`, `Unavailable` ou absente vaut `NotComparable`.
 
 ## MetricExplanation
 

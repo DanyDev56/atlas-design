@@ -78,16 +78,23 @@ jamais leurs agrégats et ne produit ni prédiction, ni Recommendation.
 
 ## Business Health
 
-Calcule l'état global de l'entreprise.
+Responsable :
+
+- évaluations immuables de la santé récente de l'activité ;
+- politique versionnée de score et de couverture ;
+- facteurs, bandes, tendances et risques interprétés ;
+- fiabilité, preuves et zone d'attention principale.
 
 Consomme des AnalyticsSnapshot versionnés et cohérents. Ne redéfinit pas les
-formules de métriques et ne lit pas les stockages CRM ou Billing.
+formules de métriques et ne lit pas les stockages CRM ou Billing. Ne produit ni
+Recommendation, ni action, ni prédiction.
 
 ---
 
 ## Advisor
 
-Produit des recommandations.
+Produit et priorise des recommandations d'action à partir des évaluations et
+contrats publics autorisés.
 
 Ne possède aucune donnée métier.
 

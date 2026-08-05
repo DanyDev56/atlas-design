@@ -3,7 +3,7 @@ id: ANL-METRIC-CATALOG
 title: Analytics Metric Catalog
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -97,3 +97,13 @@ Les valeurs monétaires restent séparées par devise. Une population réellemen
 vide, observée avec des watermarks courants, peut être `Complete` et `NoData`.
 Le profil fixe aussi le retard maximal accepté ; le seuil est versionné avec le
 profil et non codé dans le consommateur.
+
+Chaque SnapshotMetric inclut un `PeriodComparison` lorsque la baseline est
+disponible :
+
+- les flux, ratios et durées utilisent la période adjacente immédiatement
+  précédente, de même durée ;
+- les stocks utilisent le même instant civil trente jours plus tôt ;
+- définition, dimensions, devise et calendrier restent identiques ;
+- une baseline absente ou non comparable produit `NotComparable`, jamais un
+  delta inventé.

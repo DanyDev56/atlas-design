@@ -3,7 +3,7 @@ id: LANG-005
 title: Reserved Words
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -31,3 +31,9 @@ Ils ne doivent jamais être réutilisés avec un autre sens.
 - Timeline
 - Automation
 - Business Health
+- BusinessHealthAssessment
+- HealthPolicy
+- OverallScore
+- HealthFactor
+- HealthRisk
+- PrimaryAttention

@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.5
+version: 1.6
 last_updated: 2026-08-05
 ---
 
@@ -460,6 +460,125 @@ Analytics
 
 ---
 
+# PeriodComparison
+
+Comparaison d'une MetricObservation à une baseline de même définition, période,
+dimension, devise et calendrier.
+
+**Domaine**
+
+Analytics
+
+---
+
+# BusinessHealthAssessment
+
+Interprétation immuable d'un AnalyticsSnapshot selon une HealthPolicyVersion.
+
+**Domaine**
+
+Business Health
+
+---
+
+# HealthPolicy
+
+Règles, poids, seuils et exigences globales versionnées d'une évaluation Business
+Health.
+
+**Domaine**
+
+Business Health
+
+---
+
+# ActiveHealthPolicyVersion
+
+Version de HealthPolicy sélectionnée pour les lectures courantes et les nouveaux
+snapshots après validation d'une évaluation courante.
+
+**Domaine**
+
+Business Health
+
+---
+
+# OverallScore
+
+Synthèse entière de 0 à 100 calculée à partir des HealthFactor suffisamment
+couverts.
+
+**Domaine**
+
+Business Health
+
+---
+
+# HealthBand
+
+Lecture qualitative déterministe d'un OverallScore : Strong, Stable, Watch,
+AtRisk ou Critical.
+
+**Domaine**
+
+Business Health
+
+---
+
+# HealthFactor
+
+Dimension interprétée et pondérée contribuant à une BusinessHealthAssessment.
+
+**Domaine**
+
+Business Health
+
+---
+
+# AssessmentReliability
+
+Niveau Reliable, Limited ou Insufficient décrivant la couverture de
+l'évaluation.
+
+**Domaine**
+
+Business Health
+
+---
+
+# HealthTrend
+
+Évolution Improving, Stable, Declining ou Unknown par rapport à une évaluation
+antérieure compatible.
+
+**Domaine**
+
+Business Health
+
+---
+
+# HealthRisk
+
+Condition observée déclenchée par une règle et des preuves explicites, sans
+probabilité ou action implicite.
+
+**Domaine**
+
+Business Health
+
+---
+
+# PrimaryAttention
+
+HealthFactor dont la contribution au déficit global est la plus élevée. Ce
+concept ne constitue pas une Recommendation.
+
+**Domaine**
+
+Business Health
+
+---
+
 # Recommendation
 
 Action proposée par Atlas après analyse.
@@ -474,4 +593,5 @@ Action proposée par Atlas après analyse.
 
 # Business Health
 
-Évaluation globale de la santé récente de l'activité.
+Bounded context qui produit l'évaluation globale, explicable et récente de
+l'activité.

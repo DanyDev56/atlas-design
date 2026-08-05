@@ -3,7 +3,7 @@ id: LANG-009
 title: Code Language
 status: Stable
 owner: Product
-version: 1.3
+version: 1.4
 last_updated: 2026-08-05
 ---
 
@@ -55,9 +55,29 @@ ProjectionGeneration
 
 AnalyticsSnapshot
 
-Recommendation
+PeriodComparison
 
-BusinessHealth
+BusinessHealthAssessment
+
+HealthPolicy
+
+ActiveHealthPolicyVersion
+
+OverallScore
+
+HealthBand
+
+HealthFactor
+
+AssessmentReliability
+
+HealthTrend
+
+HealthRisk
+
+PrimaryAttention
+
+Recommendation
 
 ---
 
@@ -74,6 +94,8 @@ Deal
 Advice
 
 HealthScore
+
+Factor, Trend ou Risk sans qualification Business Health
 
 Company
 

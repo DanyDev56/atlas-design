@@ -3,7 +3,7 @@ id: ANL-PUBLIC-CONTRACT
 title: Analytics Public Contract
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -46,6 +46,7 @@ MetricKey
 DefinitionVersion
 MetricValue
 ObservationPeriod
+PeriodComparison?
 DimensionSet
 DataCompleteness
 DataFreshness

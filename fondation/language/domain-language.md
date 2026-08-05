@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.5
+version: 1.6
 last_updated: 2026-08-05
 ---
 
@@ -149,15 +149,38 @@ période, fraîcheur et complétude n'est pas une MetricObservation valide.
 
 ## Business Health
 
-Business Health
+BusinessHealthAssessment
 
-Factor
+HealthPolicy
 
-Trend
+ActiveHealthPolicyVersion
 
-Risk
+OverallScore
 
-Projection
+HealthBand
+
+HealthFactor
+
+FactorScore
+
+AssessmentReliability
+
+HealthTrend
+
+HealthRisk
+
+RiskSeverity
+
+PrimaryAttention
+
+AssessmentEvidence
+
+CurrentBusinessHealth
+
+Business Health interprète un AnalyticsSnapshot selon une HealthPolicyVersion.
+PrimaryAttention désigne le facteur au déficit dominant, jamais une Action ou
+une RecommendationPriority. OverallScore est le seul nom du score global ;
+HealthScore est ambigu et interdit.
 
 ---
 

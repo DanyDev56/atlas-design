@@ -3,7 +3,7 @@ id: ANL-ENTITIES
 title: Analytics Entities
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -64,6 +64,7 @@ Une `MetricObservation` contient :
 - taille d'échantillon et couverture ;
 - source watermarks et instant de calcul ;
 - état de disponibilité et explication des exclusions.
+- comparaison optionnelle avec une baseline strictement compatible.
 
 ## ProjectionGeneration
 
@@ -88,8 +89,8 @@ Ensemble immuable de `SnapshotMetric` partageant :
 - un jeu de watermarks cohérent ;
 - une politique de complétude satisfaite.
 
-Chaque SnapshotMetric copie la valeur, la période, la devise, la complétude, la
-fraîcheur et la définition de l'observation publiée. Il ne pointe pas vers une
+Chaque SnapshotMetric copie la valeur, la période, la comparaison, la devise,
+la complétude, la fraîcheur et la définition de l'observation publiée. Il ne pointe pas vers une
 cellule mutable de MetricSeries. Le snapshot conserve des références de
 causalité vers les faits et définitions, jamais leur contenu personnel ou
 documentaire.

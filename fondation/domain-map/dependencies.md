@@ -36,7 +36,8 @@ consommer tous les domaines précédents.
 
 - Analytics consomme les événements et faits versionnés de CRM et Billing ;
 - Business Health consomme `AnalyticsSnapshotPublished` puis le snapshot exact ;
-- Advisor consomme les analyses et facteurs sans redéfinir les métriques ;
+- Advisor consomme `BusinessHealthAssessed` puis l'évaluation exacte sans
+  redéfinir les métriques ou la HealthPolicy ;
 - aucun calcul en aval n'autorise une mutation du domaine source.
 
 ---
@@ -46,6 +47,7 @@ consommer tous les domaines précédents.
 - Notifications modifiant CRM ;
 - Analytics modifiant Billing ;
 - Business Health modifiant CRM ;
+- Business Health créant ou modifiant une Recommendation ;
 - Workspace modifiant un Membership ou un Role ;
 - Identity modifiant le profil ou le cycle de vie d'un Workspace ;
 - Billing réécrivant une identité de facturation Workspace ;

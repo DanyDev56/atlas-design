@@ -3,7 +3,7 @@ id: ANL-GLOSSARY
 title: Analytics Glossary
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -27,6 +27,7 @@ references:
 | `DataFreshness` | retard et watermarks décrivant l'actualité de la projection |
 | `DataCompleteness` | couverture des données requises par une formule |
 | `ObservationPeriod` | période et calendrier exacts d'une observation |
+| `PeriodComparison` | comparaison avec une baseline strictement compatible |
 | `DimensionSet` | dimensions bornées autorisées par une MetricDefinition |
 | `ReportingCalendar` | fuseau et règles civiles versionnés du Workspace |
 | `SourceWatermark` | dernière position source durablement projetée |

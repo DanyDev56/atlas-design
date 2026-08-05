@@ -64,7 +64,7 @@ InvoiceSettled
 AnalyticsSnapshotPublished
         │
         ▼
-BusinessHealthUpdated
+BusinessHealthAssessed
         │
         ▼
 RecommendationGenerated

@@ -77,8 +77,17 @@ jamais les faits CRM ou Billing qui les alimentent.
 
 Possède :
 
-- Score
-- Factors
+- HealthPolicy
+- BusinessHealthAssessment
+- HealthFactor
+- OverallScore
+- HealthBand
+- HealthTrend
+- HealthRisk
+- PrimaryAttention
+
+Business Health possède l'interprétation versionnée des mesures, jamais leurs
+valeurs sources ni une Recommendation.
 
 ---
 

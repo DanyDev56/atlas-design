@@ -3,7 +3,7 @@ id: ANL-README
 title: Analytics Domain
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -80,6 +80,7 @@ valeurs minimales nécessaires au calcul exact de la version concernée.
 - aucune somme entre devises différentes ;
 - `NoData` n'est jamais présenté comme zéro ;
 - toute valeur expose définition, période, unité, fraîcheur et complétude ;
+- toute évolution compare des observations strictement compatibles ;
 - les corrections et reversals recalculent les périodes touchées ;
 - un snapshot publié est immuable et peut seulement être remplacé par un autre ;
 - Analytics n'envoie aucune commande vers CRM ou Billing.

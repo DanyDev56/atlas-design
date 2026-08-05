@@ -3,7 +3,7 @@ id: ANL-DECISIONS
 title: Analytics Decision Record
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -34,3 +34,4 @@ references:
 | `ANL-ADR-014` | Les métriques produit et la télémétrie ne sont pas le domaine Analytics métier. | NPS, rétention et performance restent dans leurs systèmes dédiés. |
 | `ANL-ADR-015` | Aucune prédiction en 1.0. | PipelineAmount reste une estimation déclarée, sans probabilité inventée. |
 | `ANL-ADR-016` | Les encaissements et montants facturés ne sont pas renommés revenu ou trésorerie. | Atlas évite toute promesse comptable ou bancaire implicite. |
+| `ANL-ADR-017` | Une évolution compare uniquement des périodes de même définition, dimension, devise et calendrier. | Business Health ne reçoit aucun pourcentage construit sur une baseline arbitraire. |

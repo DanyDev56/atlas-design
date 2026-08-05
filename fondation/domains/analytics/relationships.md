@@ -3,7 +3,7 @@ id: ANL-RELATIONSHIPS
 title: Analytics Relationships
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -50,7 +50,7 @@ profil d'affichage.
 ```text
 AnalyticsSnapshotPublished
   -> Business Health reads exact snapshot
-  -> BusinessHealthUpdated
+  -> BusinessHealthAssessed
 ```
 
 Business Health ne relit pas les tables de projection privées et ne redéfinit

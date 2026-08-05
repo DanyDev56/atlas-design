@@ -3,7 +3,7 @@ id: ANL-INVARIANTS
 title: Analytics Invariants
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -71,3 +71,4 @@ references:
 | `ANL-INV-034` | État, événements et outbox sont commis atomiquement ; les consommateurs dédupliquent `EventId`. |
 | `ANL-INV-035` | Une restriction Workspace refuse les lectures ordinaires sans mélanger, effacer ou republier les séries. |
 | `ANL-INV-036` | Analytics ne présente jamais PipelineAmount comme prévision, CollectedAmount comme trésorerie, ni NetInvoicedAmount comme revenu comptable. |
+| `ANL-INV-037` | Une PeriodComparison utilise la même définition, unité, dimension, devise et calendrier ; une baseline nulle ou absente n'engendre jamais un pourcentage arbitraire. |
