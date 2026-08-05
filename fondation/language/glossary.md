@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -143,13 +143,43 @@ Identity
 
 # Client
 
-Personne ou organisation recevant les prestations de l'utilisateur.
+Personne ou structure identifiée comme contrepartie d'une relation commerciale
+potentielle ou établie.
+
+**Domaine**
+
+CRM
+
+---
+
+# ClientProfile
+
+Profil commercial courant d'un Client.
+
+**Domaine**
+
+CRM
+
+---
+
+# ClientBillingProfile
+
+Données administratives courantes d'un Client, fournies à Billing comme source
+d'un snapshot sans contenir les règles du document financier.
+
+**Domaine**
+
+CRM
 
 ---
 
 # Contact
 
-Personne appartenant à un Client.
+Personne rattachée à un Client dans le cadre de la relation commerciale.
+
+**Domaine**
+
+CRM
 
 ---
 
@@ -158,6 +188,31 @@ Personne appartenant à un Client.
 Possibilité réelle de conclure une vente.
 
 Ne devient jamais un "Lead".
+
+**Domaine**
+
+CRM
+
+---
+
+# Activity
+
+Interaction commerciale passée enregistrée dans CRM, par exemple une note, un
+appel, une réunion ou un e-mail.
+
+**Domaine**
+
+CRM
+
+---
+
+# Pipeline
+
+Projection des Opportunity selon leur statut courant.
+
+**Domaine**
+
+CRM
 
 ---
 

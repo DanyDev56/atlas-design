@@ -1,9 +1,13 @@
-Opportunity
+Opportunity Open
    │
-Quote
+   ▼
+Opportunity Qualified
    │
-Accepted
+   ▼
+Quote Accepted
+   ├──► Opportunity Won
    │
+   ▼
 Invoice
    │
 Payment

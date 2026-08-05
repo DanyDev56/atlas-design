@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -54,6 +54,10 @@ jamais être remplacé dans le modèle par Company, Organisation, Tenant ou Acco
 
 Client
 
+ClientProfile
+
+ClientBillingProfile
+
 Contact
 
 Opportunity
@@ -61,6 +65,13 @@ Opportunity
 Activity
 
 Pipeline
+
+`Client` désigne la contrepartie stable d'une relation commerciale potentielle
+ou établie. `Opportunity` porte la vente potentielle ; Atlas ne crée pas
+d'entité Lead ou Prospect séparée.
+
+`Activity` désigne une interaction commerciale passée. `Pipeline` est une
+projection des Opportunity, pas une entité métier indépendante.
 
 ---
 

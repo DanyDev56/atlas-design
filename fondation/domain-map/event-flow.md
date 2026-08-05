@@ -28,6 +28,9 @@ Exemple :
 OpportunityCreated
         │
         ▼
+OpportunityQualified
+        │
+        ▼
 QuoteCreated
         │
         ▼

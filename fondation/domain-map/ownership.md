@@ -35,6 +35,9 @@ Possède :
 - Client
 - Contact
 - Opportunity
+- Activity
+
+`Pipeline` est une projection CRM, pas une entité possédée.
 
 ---
 

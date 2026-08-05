@@ -35,9 +35,11 @@ Responsable :
 
 - clients ;
 - contacts ;
-- opportunités.
+- opportunités ;
+- activités commerciales.
 
-Produit des événements.
+Le pipeline est une projection des opportunités. CRM produit les faits
+commerciaux et fournit à Billing des contextes Client et Opportunity versionnés.
 
 ---
 
@@ -49,7 +51,7 @@ Responsable :
 - factures ;
 - paiements.
 
-Consomme les opportunités.
+Consomme les contextes publics Client et Opportunity sans modifier CRM.
 
 Produit les événements financiers.
 

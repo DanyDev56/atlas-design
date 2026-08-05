@@ -3,7 +3,7 @@ id: IDN-ENTITIES
 title: Entities
 status: In Review
 owner: Product
-version: 2.0.0
+version: 2.0.1
 last_updated: 2026-08-05
 
 references:
@@ -566,8 +566,9 @@ Exemples :
 ```text
 crm.clients.read
 crm.clients.create
-crm.clients.update
-crm.clients.delete
+crm.clients.update-profile
+crm.clients.update-billing-profile
+crm.clients.archive
 
 billing.quotes.read
 billing.quotes.create
@@ -692,8 +693,9 @@ Exemples :
 ```text
 crm.clients.read
 crm.clients.create
-crm.clients.update
-crm.clients.delete
+crm.clients.update-profile
+crm.clients.update-billing-profile
+crm.clients.archive
 ```
 
 ### Gestion des devis

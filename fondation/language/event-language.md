@@ -3,8 +3,8 @@ id: LANG-007
 title: Event Language
 status: Stable
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1
+last_updated: 2026-08-05
 ---
 
 # Convention des événements
@@ -23,7 +23,13 @@ WorkspaceCreated
 
 ClientCreated
 
+ClientArchived
+
 OpportunityQualified
+
+OpportunityWon
+
+ActivityRecorded
 
 QuoteSent
 

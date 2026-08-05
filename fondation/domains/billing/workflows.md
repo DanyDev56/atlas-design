@@ -2,7 +2,7 @@
 
 ## Vente classique
 
-Prospect
+Opportunity Qualified
 
 ↓
 
