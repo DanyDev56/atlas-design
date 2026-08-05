@@ -93,10 +93,16 @@ Recommendation, ni action, ni prédiction.
 
 ## Advisor
 
-Produit et priorise des recommandations d'action à partir des évaluations et
-contrats publics autorisés.
+Responsable :
 
-Ne possède aucune donnée métier.
+- politique versionnée de génération et de rang ;
+- évaluations déterministes des sources Business Health ;
+- recommandations, preuves, priorités et actions principales ;
+- cycle Completed, Dismissed ou Expired ;
+- priorité principale et alternatives courantes.
+
+Consomme BusinessHealthAssessed puis l'évaluation exacte. Ne lit ni Analytics,
+CRM ou Billing en 1.0 et n'exécute aucune action à la place de l'utilisateur.
 
 ---
 

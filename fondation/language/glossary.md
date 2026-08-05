@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.6
+version: 1.7
 last_updated: 2026-08-05
 ---
 
@@ -581,7 +581,155 @@ Business Health
 
 # Recommendation
 
-Action proposée par Atlas après analyse.
+Proposition d'action durable, priorisée et expliquée par Advisor à partir d'une
+BusinessHealthAssessment.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationPolicy
+
+Règles, rangs, actions, templates et limites globales versionnées de génération
+des Recommendation.
+
+**Domaine**
+
+Advisor
+
+---
+
+# ActiveRecommendationPolicyVersion
+
+Version de RecommendationPolicy utilisée pour les évaluations et lectures
+courantes après convergence de la source Business Health courante.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationEvaluation
+
+Rapport durable des règles Advisor appliquées à une BusinessHealthAssessment
+exacte, y compris lorsqu'aucune Recommendation n'est créée.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationStatus
+
+État Generated, Completed, Dismissed ou Expired d'une Recommendation. Seul
+Generated est actif.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationPriority
+
+Niveau Critical, High, Medium ou Low dérivé du RecommendationRankScore et
+exprimant l'ordre conseillé de l'action.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationRankScore
+
+Score interne déterministe de 0 à 100 combinant impact, urgence, confiance et
+facilité pour ordonner les Recommendation.
+
+**Domaine**
+
+Advisor
+
+---
+
+# PrimaryRecommendation
+
+Première Recommendation de l'ordre canonique courant. Elle constitue la
+priorité d'action principale sans remplacer PrimaryAttention Business Health.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationAction
+
+Parcours allowlisté constituant l'unique action principale d'une Recommendation.
+Le domaine cible autorise et traite toute intention réelle.
+
+**Domaine**
+
+Advisor
+
+---
+
+# ExpectedImpact
+
+Objectif et niveau qualitatifs associés à une Recommendation, sans gain ou
+effet causal garanti.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationConfidence
+
+Qualité High, Moderate ou Low de la justification d'une Recommendation, sans
+probabilité de succès implicite.
+
+**Domaine**
+
+Advisor
+
+---
+
+# RecommendationEvidenceRevision
+
+Révision immuable de la source, des observations et de l'explication ayant
+généré ou réaffirmé une Recommendation.
+
+**Domaine**
+
+Advisor
+
+---
+
+# EstimatedEffort
+
+Effort Small, Medium, Large ou Unknown estimé par la politique pour ordonner une
+Recommendation.
+
+**Domaine**
+
+Advisor
+
+---
+
+# AdvisorOverview
+
+Projection contenant la PrimaryRecommendation et au plus deux alternatives
+Generated d'un Workspace.
+
+**Domaine**
+
+Advisor
 
 ---
 

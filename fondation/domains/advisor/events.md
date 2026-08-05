@@ -1,35 +1,93 @@
+---
+id: ADV-EVENTS
+title: Advisor Domain Events
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - model.md
+  - recommendation-lifecycle.md
+  - invariants.md
+  - commands/README.md
+  - processors/README.md
+  - integrations.md
+---
+
 # Domain Events
 
-## Événements de cycle de vie
+## Enveloppe commune
 
-| Événement | Signification |
+| Champ | Description |
 |---|---|
-| `RecommendationGenerated` | Une recommandation a satisfait les règles de génération. |
-| `RecommendationExecuted` | L'action principale a été accomplie ou confirmée. |
-| `RecommendationDismissed` | L'utilisateur a explicitement rejeté la recommandation. |
-| `RecommendationExpired` | Le contexte ou la fenêtre d'action n'est plus valide. |
+| `EventId` | identifiant unique de déduplication |
+| `EventName` | nom canonique |
+| `SchemaVersion` | version du contrat |
+| `OccurredAt` | instant du fait |
+| `AggregateType`, `AggregateId` | racine Advisor concernée |
+| `AggregateVersion` | révision après commit |
+| `WorkspaceId` | frontière d'isolation |
+| `CorrelationId`, `CausationId` | chaîne depuis Business Health ou l'intention humaine |
+| `ActorReference` | acteur ou workload minimal auditable |
+| `Data` | charge utile minimale sans preuve détaillée |
 
-`RecommendationExecuted`, `RecommendationDismissed` et
-`RecommendationExpired` correspondent à des transitions terminales exclusives.
+## Catalogue
 
----
+| Événement | Producteur | Visibilité | Fait minimum |
+|---|---|---|---|
+| `RecommendationEvaluationCompleted` | `EvaluateRecommendations` | public | Les cinq règles et l'AdvisorOverview ont convergé pour une source et une politique. |
+| `RecommendationGenerated` | `EvaluateRecommendations` | public | Une proposition classée dans le top trois est devenue active. |
+| `RecommendationReaffirmed` | `EvaluateRecommendations` | interne | Une source plus récente a confirmé le même TriggerFingerprint. |
+| `RecommendationCompleted` | `CompleteRecommendation` | public | Un utilisateur a confirmé avoir accompli l'action. |
+| `RecommendationDismissed` | `DismissRecommendation` | public | Un utilisateur a explicitement rejeté la proposition. |
+| `RecommendationExpired` | `EvaluateRecommendations`, `ExpireRecommendation` | public | La proposition n'est plus active pour une raison structurée. |
 
-## Événements d'interaction
+## Contrat public de génération
 
-| Événement | Signification |
-|---|---|
-| `RecommendationDisplayed` | La recommandation a été affichée à l'utilisateur. |
-| `RecommendationOpened` | L'utilisateur a consulté son détail. |
+`RecommendationGenerated` contient seulement :
 
-Ces événements ne changent pas l'état métier de la recommandation.
+```text
+RecommendationId
+RecommendationKey
+RecommendationPolicyVersion
+BusinessHealthAssessmentId
+RecommendationPriority
+RecommendationActionKind
+TargetModule
+ValidUntil
+```
 
----
+Un consommateur autorisé relit la Recommendation exacte avec
+`advisor.recommendations.consume`. L'explication et les preuves ne sont pas
+dupliquées dans l'événement.
 
-## Régénération
+## Contrat public d'évaluation
 
-Une recommandation terminale n'est jamais réactivée.
+`RecommendationEvaluationCompleted` contient :
 
-Lorsqu'un nouveau fait justifie une action similaire, Atlas crée une nouvelle
-`Recommendation` et produit `RecommendationGenerated`. La relation avec une
-recommandation antérieure est portée par une référence de causalité, et non par
-un événement `RecommendationRegenerated` ambigu.
+```text
+RecommendationEvaluationId
+BusinessHealthAssessmentId
+RecommendationPolicyVersion
+SourceEligibility
+PrimaryRecommendationId?
+PublishedRecommendationIds[0..3]
+```
+
+Notifications utilise ce fait, et non chaque RecommendationGenerated, pour
+évaluer une diffusion après stabilisation de l'ordre complet.
+
+## Contrats terminaux
+
+Completed, Dismissed et Expired contiennent RecommendationId, ancien statut,
+nouveau statut, instant terminal et raison ou confirmation structurée. Ils ne
+contiennent ni texte libre, ni outcome supposé.
+
+## Publication
+
+- état, Domain Events et outbox sont atomiques par agrégat ;
+- les consommateurs dédupliquent EventId ;
+- les événements suivent AggregateVersion ;
+- un process manager reprend les décisions non confirmées sans doubler les faits ;
+- Displayed, Opened, Clicked et Ignored ne sont jamais publiés par Advisor.

@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.6
+version: 1.7
 last_updated: 2026-08-05
 ---
 
@@ -188,13 +188,36 @@ HealthScore est ambigu et interdit.
 
 Recommendation
 
-Signal
+RecommendationPolicy
 
-Confidence
+ActiveRecommendationPolicyVersion
 
-Priority
+RecommendationEvaluation
 
-Action
+RecommendationStatus
+
+RecommendationPriority
+
+RecommendationRankScore
+
+PrimaryRecommendation
+
+RecommendationAction
+
+ExpectedImpact
+
+RecommendationConfidence
+
+EstimatedEffort
+
+RecommendationEvidenceRevision
+
+AdvisorOverview
+
+Advisor transforme une BusinessHealthAssessment en zéro à trois Recommendation.
+PrimaryRecommendation est l'action la mieux classée ; elle ne doit pas être
+confondue avec PrimaryAttention. Completed confirme l'action humaine sans
+signifier Executed ni prouver un outcome.
 
 ---
 

@@ -3,7 +3,7 @@ id: LANG-007
 title: Event Language
 status: Stable
 owner: Product
-version: 1.4
+version: 1.5
 last_updated: 2026-08-05
 ---
 
@@ -51,9 +51,17 @@ AnalyticsSnapshotPublished
 
 BusinessHealthAssessed
 
+RecommendationEvaluationCompleted
+
 RecommendationGenerated
 
+RecommendationReaffirmed
+
+RecommendationCompleted
+
 RecommendationDismissed
+
+RecommendationExpired
 
 ---
 
@@ -74,3 +82,7 @@ décrivent une demande déjà enregistrée, pas l'exécution implicite de l'envo
 
 `InvoicePaid` est réservé au règlement complet causé par un Payment ;
 `InvoiceSettled` couvre aussi un solde annulé par CreditNote.
+
+`RecommendationCompleted` signifie que l'utilisateur confirme avoir accompli
+l'action. `RecommendationExecuted` est interdit tant qu'Advisor n'exécute pas
+lui-même une action source vérifiable.

@@ -3,7 +3,7 @@ id: LANG-009
 title: Code Language
 status: Stable
 owner: Product
-version: 1.4
+version: 1.5
 last_updated: 2026-08-05
 ---
 
@@ -79,6 +79,32 @@ PrimaryAttention
 
 Recommendation
 
+RecommendationPolicy
+
+ActiveRecommendationPolicyVersion
+
+RecommendationEvaluation
+
+RecommendationStatus
+
+RecommendationPriority
+
+RecommendationRankScore
+
+PrimaryRecommendation
+
+RecommendationAction
+
+ExpectedImpact
+
+RecommendationConfidence
+
+EstimatedEffort
+
+RecommendationEvidenceRevision
+
+AdvisorOverview
+
 ---
 
 ## À éviter
@@ -92,6 +118,12 @@ Prospect
 Deal
 
 Advice
+
+Suggestion ou Insight pour Recommendation
+
+RecommendationExecuted
+
+Confidence, Priority ou Action sans qualification Advisor
 
 HealthScore
 

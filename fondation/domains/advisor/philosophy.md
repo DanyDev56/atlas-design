@@ -1,37 +1,46 @@
+---
+id: ADV-PHILOSOPHY
+title: Advisor Philosophy
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - mission.md
+  - scope.md
+  - recommendation-policy.md
+  - ../../vision/principles.md
+---
+
 # Philosophie
 
-Atlas ne remplace pas l'utilisateur.
+## L'action avant le volume
 
-Atlas amplifie sa capacité de décision.
+Une Recommendation doit réduire la charge mentale. Advisor montre une priorité
+principale et au plus deux alternatives ; un quatrième candidat reste dans le
+rapport d'évaluation sans être publié.
 
-Chaque recommandation doit respecter quatre principes.
+## L'explication avant l'assurance
 
----
+Chaque proposition expose source, règle, observations, limites et raison du
+rang. Une confiance qualitative ne signifie jamais une probabilité de succès.
 
-## Être utile
+## Le contrôle avant l'autonomie
 
-Une recommandation inutile ne doit jamais être affichée.
+Advisor ne réutilise jamais l'autorité de l'utilisateur pour modifier un domaine
+source. L'action ouvre un parcours CRM, Billing ou Business Health ; le domaine
+cible réauthentifie, autorise et valide l'intention.
 
----
+## L'honnêteté avant l'optimisme
 
-## Être explicable
+`ExpectedImpact` décrit un objectif qualitatif. Advisor 1.0 ne promet ni revenu,
+ni temps gagné, ni effet causal chiffré. `Completed` signifie seulement que
+l'utilisateur confirme avoir accompli l'action.
 
-Chaque recommandation explique :
+## La mesure sans confusion
 
-- pourquoi elle existe ;
-- quelles données ont été utilisées ;
-- quel bénéfice est attendu.
-
----
-
-## Être actionnable
-
-Chaque recommandation doit permettre une action immédiate.
-
-L'utilisateur ne doit jamais devoir chercher où agir.
-
----
-
-## Être mesurable
-
-Après exécution, Atlas doit pouvoir mesurer son efficacité.
+Les transitions métier permettent de mesurer adoption et délai
+d'accomplissement. Les impressions, ouvertures et clics relèvent de la
+télémétrie produit. L'amélioration réelle de l'activité nécessite une méthode
+d'outcome distincte et future.

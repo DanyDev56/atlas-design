@@ -67,7 +67,7 @@ AnalyticsSnapshotPublished
 BusinessHealthAssessed
         │
         ▼
-RecommendationGenerated
+RecommendationEvaluationCompleted
         │
         ▼
 NotificationSent
@@ -75,6 +75,21 @@ NotificationSent
 
 `InvoicePaid` n'existe que si un Payment rend le solde nul. Une CreditNote peut
 produire `InvoiceSettled` sans produire `InvoicePaid`.
+
+---
+
+## Cycle d'une Recommendation
+
+```text
+RecommendationGenerated
+        ├──► RecommendationReaffirmed ──► Generated
+        ├──► RecommendationCompleted
+        ├──► RecommendationDismissed
+        └──► RecommendationExpired
+```
+
+Reaffirmed conserve l'état Generated. Completed, Dismissed et Expired sont
+terminaux et mutuellement exclusifs.
 
 ---
 

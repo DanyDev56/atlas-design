@@ -3,7 +3,7 @@ id: LANG-005
 title: Reserved Words
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -27,6 +27,18 @@ Ils ne doivent jamais être réutilisés avec un autre sens.
 - Invoice
 - Payment
 - Recommendation
+- RecommendationPolicy
+- ActiveRecommendationPolicyVersion
+- RecommendationEvaluation
+- RecommendationStatus
+- RecommendationPriority
+- RecommendationRankScore
+- PrimaryRecommendation
+- RecommendationAction
+- ExpectedImpact
+- RecommendationConfidence
+- EstimatedEffort
+- AdvisorOverview
 - Signal
 - Timeline
 - Automation

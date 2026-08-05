@@ -38,6 +38,10 @@ consommer tous les domaines précédents.
 - Business Health consomme `AnalyticsSnapshotPublished` puis le snapshot exact ;
 - Advisor consomme `BusinessHealthAssessed` puis l'évaluation exacte sans
   redéfinir les métriques ou la HealthPolicy ;
+- Advisor fournit des actions de navigation allowlistées, mais CRM et Billing
+  réautorisent toujours l'utilisateur et traitent leurs propres commandes ;
+- Notifications consomme `RecommendationEvaluationCompleted` afin de considérer
+  une priorité déjà stabilisée ;
 - aucun calcul en aval n'autorise une mutation du domaine source.
 
 ---
@@ -48,6 +52,8 @@ consommer tous les domaines précédents.
 - Analytics modifiant Billing ;
 - Business Health modifiant CRM ;
 - Business Health créant ou modifiant une Recommendation ;
+- Advisor lisant directement Analytics, CRM ou Billing ;
+- Advisor exécutant une RecommendationAction dans un domaine source ;
 - Workspace modifiant un Membership ou un Role ;
 - Identity modifiant le profil ou le cycle de vie d'un Workspace ;
 - Billing réécrivant une identité de facturation Workspace ;
@@ -57,10 +63,11 @@ consommer tous les domaines précédents.
 
 ## Advisor peut consommer :
 
-- des événements ;
-- des projections ;
-- des read models ;
-- des capacités publiques.
+- `BusinessHealthAssessed` ;
+- `getBusinessHealthAssessment` ;
+- `getLatestBusinessHealthAssessment` ;
+- `getWorkspaceAccessContext` ;
+- des décisions d'autorisation Identity.
 
 ## Advisor ne peut pas :
 

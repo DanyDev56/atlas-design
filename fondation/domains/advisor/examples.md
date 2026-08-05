@@ -1,67 +1,65 @@
+---
+id: ADV-EXAMPLES
+title: Advisor Examples
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - recommendation-policy.md
+  - actions.md
+  - recommendation-score.md
+---
+
 # Exemples
 
-## Relance commerciale
+## Créances en retard
 
-Contexte
+Source : Business Health publie `OverdueExposureRisk = High`, avec une preuve
+montrant que les montants échus représentent 38 % des créances restantes.
 
-Le devis #2026-041 est consulté trois fois en deux jours.
+Recommendation : « Examiner et relancer les factures en retard aujourd'hui. »
 
-Recommandation
+Action : Billing / `OverdueInvoices`. Advisor ouvre la vue filtrée ; l'utilisateur
+choisit les Invoices et Billing autorise chaque relance.
 
-Relancer ce prospect aujourd'hui.
+Pourquoi : règle `CollectOverdueInvoices`, impact Major, urgence Today,
+confiance issue de la fiabilité de l'évaluation.
 
-Pourquoi
+## Concentration Client
 
-Les devis consultés plusieurs fois sont généralement en phase de décision.
+Source : `ClientConcentrationRisk = High`, car 76 % des encaissements observés
+sur la période proviennent du premier Client.
 
-Impact estimé
+Recommendation : « Créer une nouvelle opportunité pour diversifier le
+portefeuille. »
 
-Opportunité de reprendre contact pendant une phase probable de décision.
+Action : CRM / `NewOpportunity`. Aucun nom de Client ni chiffre d'affaires
+comptable n'est inventé.
 
-Atlas n'affiche un gain chiffré que si celui-ci repose sur un modèle calibré et
-sur des données suffisantes. Dans le cas contraire, l'impact reste qualitatif et
-l'incertitude est explicite.
+## Pipeline commercial
 
----
+Source : `CommercialMomentumRisk = Medium`, avec un pipeline en baisse selon la
+comparaison Analytics conservée dans Business Health.
 
-## Dépendance client
+Recommendation : « Ajouter une opportunité qualifiée au pipeline cette
+semaine. »
 
-Contexte
+Action : CRM / `NewOpportunity`. Advisor ne prédit ni signature ni revenu.
 
-47 % du chiffre d'affaires provient d'un seul client.
+## Aucun candidat
 
-Recommandation
+Une BusinessHealthAssessment Strong, sans HealthRisk et avec des données
+fiables, peut produire zéro Recommendation. Advisor ne crée pas une alerte pour
+remplir l'interface.
 
-Diversifier votre portefeuille.
+## Cas futurs, non supportés en 1.0
 
-Pourquoi
+- augmenter un tarif à partir d'un taux d'acceptation élevé ;
+- relancer une Quote précise à partir de ses consultations ;
+- annoncer un gain monétaire attendu ;
+- prédire le chiffre d'affaires ou la réponse d'un Client.
 
-La concentration dépasse le seuil documenté par la règle de risque utilisée.
-
-Impact
-
-Réduction possible du risque financier. L'évolution de la concentration client
-permettra de mesurer le résultat.
-
----
-
-## Augmentation tarifaire
-
-Contexte
-
-Votre taux de signature est de 93 % depuis six mois.
-
-Recommandation
-
-Tester une augmentation de 5 % sur les prochains devis.
-
-Pourquoi
-
-Votre marché semble accepter vos prix actuels.
-
-Impact
-
-Hypothèse d'augmentation de la marge à tester sur un nombre limité de devis.
-
-Atlas mesure ensuite l'évolution du taux de signature avant de proposer une
-généralisation.
+Ces cas exigent des contrats, populations et modèles absents de la politique
+1.0.

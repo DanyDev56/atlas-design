@@ -95,7 +95,16 @@ valeurs sources ni une Recommendation.
 
 Possède :
 
+- RecommendationPolicy
+- RecommendationEvaluation
 - Recommendation
+- RecommendationEvidenceRevision
+- RecommendationPriority
+- RecommendationAction
+- AdvisorOverview
+
+Advisor possède la décision proposée et son explication, jamais les faits
+Business Health ou l'exécution de l'action dans le domaine cible.
 
 ---
 

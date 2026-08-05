@@ -76,7 +76,7 @@ Un utilisateur doit pouvoir :
 - recommandations déterministes ;
 - explication ;
 - action principale ;
-- clôture ou rejet d’une recommandation.
+- confirmation d'accomplissement ou rejet d'une recommandation.
 
 ### Notifications
 

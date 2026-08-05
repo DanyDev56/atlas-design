@@ -1,42 +1,98 @@
 ---
+id: ADV-README
 title: Advisor Domain
-status: Draft
+status: In Review
 owner: Product
-last_updated: 2026-07-29
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - mission.md
+  - scope.md
+  - philosophy.md
+  - recommendation-policy.md
+  - recommendation-engine.md
+  - recommendation-score.md
+  - priorities.md
+  - actions.md
+  - recommendation-lifecycle.md
+  - model.md
+  - entities.md
+  - aggregates.md
+  - value-objects.md
+  - relationships.md
+  - invariants.md
+  - decision-record.md
+  - permissions.md
+  - events.md
+  - api.md
+  - integrations.md
+  - workflows.md
+  - examples.md
+  - future.md
+  - glossary.md
+  - consolidation-matrix.md
+  - commands/README.md
+  - processors/README.md
 ---
 
 # Advisor
 
-## Mission
+> Advisor transforme une évaluation Business Health fiable en un petit nombre
+> d'actions prioritaires, explicables et laissées au contrôle de l'utilisateur.
 
-L'Advisor est le cerveau d'Atlas.
+Il répond à cinq questions :
 
-Son objectif n'est pas de produire des statistiques.
-
-Son objectif est de produire les meilleures décisions possibles.
-
-Chaque recommandation doit aider l'utilisateur à :
-
-- gagner du temps ;
-- gagner de l'argent ;
-- réduire un risque ;
-- améliorer son activité.
-
----
+1. quelle action mérite la priorité maintenant ;
+2. pourquoi cette action est-elle proposée ;
+3. quels faits et quelle règle la justifient ;
+4. quels impact, urgence, confiance et effort ont déterminé son rang ;
+5. jusqu'à quand son contexte reste-t-il valide.
 
 ## Responsabilités
 
-L'Advisor :
+Advisor possède :
 
-- observe les événements métier ;
-- comprend leur contexte ;
-- détecte les opportunités ;
-- détecte les risques ;
-- priorise les actions ;
-- explique ses recommandations.
+- la `RecommendationPolicy` globale, immuable et versionnée ;
+- les `RecommendationEvaluation` et `Recommendation` historisées ;
+- la priorité, le rang, la confiance et l'impact qualitatif ;
+- la `RecommendationAction` principale et sa capacité requise ;
+- le cycle `Generated | Completed | Dismissed | Expired` ;
+- l'explication et les révisions de preuve de chaque recommandation.
 
-Il ne modifie jamais directement les données métier.
+Advisor ne possède pas :
 
-Il recommande.
+- les métriques Analytics ou évaluations Business Health ;
+- les Clients, Opportunities, Quotes, Invoices ou Payments ;
+- l'exécution d'une action CRM ou Billing ;
+- les notifications, automatisations ou mesures de télémétrie produit ;
+- les prédictions, gains chiffrés ou décisions autonomes.
 
-L'utilisateur agit.
+## Flux 1.0
+
+```mermaid
+flowchart LR
+    Health[BusinessHealthAssessment] --> Evaluation[RecommendationEvaluation]
+    Policy[RecommendationPolicy] --> Evaluation
+    Evaluation --> Recommendations[0..3 Recommendation]
+    Recommendations --> User[User decision]
+    User -->|acts through public domain UI| Source[CRM or Billing]
+```
+
+La Recommendation propose. L'utilisateur décide et agit par le domaine
+propriétaire. Une clôture confirme l'action ; elle ne prouve pas son résultat.
+
+## Garanties essentielles
+
+- aucune recommandation sans source exacte, règle et explication ;
+- aucune lecture directe d'Analytics, CRM ou Billing en 1.0 ;
+- au plus trois recommandations `Generated`, dont une priorité principale ;
+- aucune action source exécutée avec l'autorité d'Advisor ;
+- aucune confiance présentée comme probabilité ;
+- aucun impact financier chiffré sans modèle calibré ;
+- aucune réactivation d'une Recommendation terminale.
+
+## Statut
+
+Advisor 1.0 est `In Review`. Sa couverture complète figure dans
+[`consolidation-matrix.md`](consolidation-matrix.md).

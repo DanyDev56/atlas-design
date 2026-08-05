@@ -3,7 +3,7 @@ id: LANG-002
 title: Terminology Decisions
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -54,6 +54,13 @@ Non retenus :
 - Advice
 - Suggestion
 - Insight
+
+La priorité d'action se nomme `RecommendationPriority`. La première de l'ordre
+canonique est `PrimaryRecommendation`.
+
+`Completed` signifie que l'utilisateur confirme avoir accompli l'action.
+`Executed` n'est pas retenu, car Advisor n'exécute aucune commande CRM ou
+Billing et la completion ne prouve pas un résultat.
 
 ---
 

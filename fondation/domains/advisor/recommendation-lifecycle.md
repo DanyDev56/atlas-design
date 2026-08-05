@@ -1,110 +1,78 @@
+---
+id: ADV-RECOMMENDATION-LIFECYCLE
+title: Recommendation Lifecycle
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-05
+
+references:
+  - model.md
+  - invariants.md
+  - commands/README.md
+  - processors/README.md
+  - events.md
+---
+
 # Cycle de vie d'une Recommendation
 
-Le cycle de vie décrit l'état métier d'une `Recommendation`.
-
-Il ne doit pas être confondu avec les interactions de l'utilisateur, comme
-l'affichage ou l'ouverture de la recommandation.
-
-Le cycle durable de la `Recommendation` commence à `Generated`. `Draft`
-représente le candidat interne évalué par le moteur avant la création de
-l'identité métier.
-
 ```text
-Draft
-  │
-  ▼
-Generated
-  ├──► Executed
-  ├──► Dismissed
-  └──► Expired
+Candidate (transient)
+        │ policy satisfied
+        ▼
+    Generated
+      ├──► Completed
+      ├──► Dismissed
+      └──► Expired
 ```
 
-`Executed`, `Dismissed` et `Expired` sont des états terminaux concurrents.
-
-Une même recommandation ne peut donc jamais être successivement exécutée,
-rejetée puis expirée.
-
----
-
-## Draft
-
-La recommandation est en cours d'évaluation interne.
-
-Elle n'est pas visible par l'utilisateur et ne peut pas encore être exécutée.
-
-Un brouillon qui ne satisfait pas les règles de génération est abandonné sans
-devenir une recommandation métier.
-
----
+`Candidate` est un résultat transitoire de RecommendationEvaluation, sans
+identité métier. `Generated` est le seul état actif. Les trois autres sont
+terminaux et mutuellement exclusifs.
 
 ## Generated
 
-La recommandation a satisfait les règles de génération.
+La Recommendation a satisfait la politique, possède une preuve, une
+explication, une priorité, une fenêtre de validité et une action principale.
 
-Elle possède notamment :
+Une nouvelle source avec le même TriggerFingerprint peut ajouter une
+EvidenceRevision et produire `RecommendationReaffirmed`. L'état reste Generated
+et l'historique des preuves précédentes est conservé.
 
-- une cause ;
-- une priorité ;
-- une explication ;
-- un niveau de confiance ;
-- une action principale.
+## Completed
 
-`Generated` est le seul état non terminal exposable à l'utilisateur.
+L'utilisateur confirme avoir accompli l'action principale. Cette confirmation :
 
----
-
-## Executed
-
-L'action principale a été exécutée ou confirmée comme accomplie.
-
-Le résultat attendu et le résultat observé peuvent ensuite être mesurés sans
-modifier cet état terminal.
-
----
+- ne prouve pas que CRM ou Billing a été modifié ;
+- ne prouve aucun résultat ou impact causal ;
+- n'est pas appelée Executed ;
+- ne peut pas être annulée ou transformée en un autre état terminal.
 
 ## Dismissed
 
-L'utilisateur a explicitement choisi de ne pas suivre la recommandation.
-
-Le motif du rejet peut être conservé afin d'améliorer la pertinence future.
-
----
+L'utilisateur rejette explicitement la Recommendation avec un motif structuré.
+Advisor respecte ce choix et ne régénère pas le même TriggerFingerprint tant
+que le prédicat n'a pas disparu ou matériellement changé.
 
 ## Expired
 
-Le contexte qui justifiait la recommandation n'est plus valide ou sa fenêtre
-d'action est terminée.
+La Recommendation expire lorsque :
 
-L'expiration est déterminée à partir de faits observables, jamais uniquement parce
-que la recommandation n'a pas été ouverte.
+- `ValidUntil` est atteint ;
+- une nouvelle BusinessHealthAssessment invalide son prédicat ;
+- elle sort des trois priorités publiables ;
+- son TriggerFingerprint change matériellement ;
+- sa RecommendationPolicyVersion est remplacée.
 
----
+## Interactions produit
 
-## Interactions sans changement d'état
+Affichage, ouverture et clic ne sont ni des états ni des Domain Events Advisor.
+Ils appartiennent à Product Analytics. Ignorer une recommandation ne vaut pas
+Dismissed sans intention explicite.
 
-Les interactions suivantes ne sont pas des états du cycle de vie :
+## Nouvelle Recommendation
 
-- `Displayed` indique que la recommandation a été affichée ;
-- `Opened` indique que l'utilisateur a consulté son détail.
-
-Elles produisent des événements d'interaction, mais la recommandation reste
-`Generated`.
-
-```text
-Generated
-  ├── RecommendationDisplayed
-  ├── RecommendationOpened
-  └── Generated
-```
-
----
-
-## Nouvelle recommandation après un état terminal
-
-Une recommandation terminale ne revient jamais à `Generated`.
-
-Si un nouvel événement métier justifie de proposer de nouveau une action
-similaire, Atlas crée une nouvelle `Recommendation` possédant sa propre identité.
-Elle peut référencer la recommandation précédente pour expliquer sa continuité.
-
-Toutes les transitions et interactions significatives sont historisées.
+Une Recommendation terminale n'est jamais réactivée. Une nouvelle identité est
+autorisée uniquement après disparition puis retour du prédicat, ou après un
+TriggerFingerprint matériellement nouveau. La causalité peut référencer la
+Recommendation précédente.
