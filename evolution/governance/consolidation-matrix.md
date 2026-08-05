@@ -3,8 +3,8 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: Draft
 owner: Product
-version: 0.1
-last_updated: 2026-07-30
+version: 0.2
+last_updated: 2026-08-05
 ---
 
 # Matrice de consolidation
@@ -13,11 +13,11 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 
 | Zone | Document | Présent | Normalisé | Cohérent | Complet | Statut cible |
 |---|---|---:|---:|---:|---:|---|
-| Vision | Mission | Oui | Non | À vérifier | Oui | Stable |
-| Vision | Vision | Oui | Non | À vérifier | Oui | Stable |
-| Vision | Principles | Oui | Non | À vérifier | Oui | Stable |
-| Vision | Anti-goals | Oui | Non | À vérifier | Oui | Stable |
-| Vision | Constitution | Oui | Non | À vérifier | Oui | Stable |
+| Vision | Mission | Oui | Oui | Oui | Oui | Stable |
+| Vision | Vision | Oui | Oui | Oui | Oui | Stable |
+| Vision | Principles | Oui | Oui | Oui | Oui | Stable |
+| Vision | Anti-goals | Oui | Oui | Oui | Oui | Stable |
+| Vision | Constitution | Oui | Oui | Oui | Oui | Stable |
 | Product | Product Strategy | Oui | Non | À vérifier | Partiel | In Review |
 | Product | Primary Persona | Oui | Non | À vérifier | Oui | In Review |
 | Product | Secondary Persona | Non | Non | Non | Non | Draft |
@@ -27,11 +27,11 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Domains | CRM | Non | Non | Non | Non | Draft |
 | Domains | Advisor | Partiel | Non | À vérifier | Non | Draft |
 | Domains | Business Health | Non | Non | Non | Non | Draft |
-| Domains | Identity | Non | Non | Non | Non | Draft |
+| Domains | Identity | Oui | Partiel | À vérifier | Partiel | Draft |
 | Domains | Workspace | Non | Non | Non | Non | Draft |
 | Domains | Notifications | Non | Non | Non | Non | Draft |
 | Domains | Automation | Non | Non | Non | Non | Draft |
-| Language | Glossary | Oui | Non | À vérifier | Partiel | In Review |
+| Language | Glossary | Oui | Oui | À vérifier | Partiel | In Review |
 | Domain Map | Context Map | Oui | Non | À vérifier | Partiel | Draft |
 | Blueprint | Product Map | Oui | Non | À vérifier | Partiel | Draft |
 | Decisions | ADR catalogue | Partiel | Non | À vérifier | Non | Draft |

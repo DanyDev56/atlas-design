@@ -52,4 +52,12 @@ Business Health → CRM
 
 ---
 
-Les domaines communiquent uniquement via des événements.
+Les domaines communiquent uniquement via leurs contrats publics.
+
+- les faits sont diffusés par des événements ;
+- les intentions de modification passent par des commandes ou API publiques ;
+- les besoins de lecture passent par des projections, read models ou interfaces
+  de lecture publiques.
+
+Aucun domaine n'accède directement au stockage ou au modèle interne d'un autre
+domaine.

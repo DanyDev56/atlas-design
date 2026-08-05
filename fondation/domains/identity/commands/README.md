@@ -12,8 +12,6 @@ references:
   - ../aggregates.md
   - ../relationships.md
   - ../invariants.md
-  - ../events/
-  - ../api.md
 ---
 
 # Commands
@@ -30,12 +28,16 @@ Elle exprime ce qu'un acteur souhaite accomplir, sans décrire la manière dont 
 
 Toutes les commandes respectent les principes suivants.
 
-- une commande exprime une intention métier ;
-- une commande cible un unique agrégat ;
+- une commande exprime une intention métier unique ;
 - une commande est validée avant toute modification ;
 - une commande est soit entièrement appliquée, soit entièrement refusée ;
 - une commande peut produire un ou plusieurs événements métier ;
 - une commande ne retourne jamais directement des données de lecture.
+
+La majorité des commandes modifient un seul agrégat. Une intention atomique peut
+toutefois coordonner plusieurs instances lorsque l'invariant métier ne peut pas
+être préservé autrement. Cette exception doit documenter explicitement sa
+frontière transactionnelle, sa concurrence et son mode de reprise.
 
 ---
 
@@ -75,7 +77,7 @@ Aucun changement d'état ne doit être observable.
 
 # Structure d'une commande
 
-Chaque fichier du répertoire suit la même structure.
+Chaque fichier du répertoire couvre au minimum la structure suivante.
 
 ```md
 # Nom de la commande
@@ -105,7 +107,8 @@ Chaque fichier du répertoire suit la même structure.
 ## Décisions de conception
 ```
 
-Cette structure reste identique pour toutes les commandes du domaine.
+Des sections supplémentaires peuvent être ajoutées lorsque la sécurité, la
+concurrence ou la coordination le justifient.
 
 ---
 
@@ -262,9 +265,8 @@ Une erreur technique ne remplace jamais une erreur métier.
 
 # Idempotence
 
-Chaque commande doit préciser son comportement lorsqu'elle est exécutée plusieurs fois.
-
-Trois comportements sont possibles.
+Chaque commande doit préciser son comportement lorsqu'une même intention est
+soumise plusieurs fois.
 
 ## Strictement idempotente
 
@@ -290,7 +292,10 @@ Une seconde exécution peut retourner le résultat déjà obtenu sans créer un 
 
 ---
 
-## Non idempotente
+## Nouvelle intention
+
+Deux demandes possédant des clés d'idempotence différentes représentent deux
+intentions distinctes et peuvent produire deux résultats.
 
 Exemple :
 
@@ -298,15 +303,17 @@ Exemple :
 CreateSession
 ```
 
-Chaque exécution crée une nouvelle `Session`.
+Le retry utilisant le même `CreateSessionRequestId` retourne la session initiale.
+Une nouvelle demande utilisant une autre clé peut créer une nouvelle `Session`.
 
-Le comportement attendu doit être documenté.
+La clé, l'empreinte de l'intention et la durée de conservation du résultat
+doivent être documentées.
 
 ---
 
 # Transactions
 
-Une commande ne modifie qu'un seul agrégat.
+Une commande modifie par défaut un seul agrégat.
 
 Lorsqu'une opération implique plusieurs agrégats, la coordination est réalisée par :
 
@@ -314,7 +321,10 @@ Lorsqu'une opération implique plusieurs agrégats, la coordination est réalis�
 - un process manager ;
 - un service de domaine.
 
-Une commande ne doit jamais modifier directement plusieurs agrégats.
+Une coordination atomique multi-agrégats est admise uniquement lorsqu'elle fait
+partie du contrat métier, comme le transfert simultané d'un rôle entre deux
+`Membership`. La commande doit alors rendre impossible tout état intermédiaire
+invalide.
 
 ---
 
@@ -387,38 +397,38 @@ Lorsqu'un traitement transversal échoue après la modification d'un agrégat, l
 
 # Répertoire
 
-Les commandes actuellement prévues sont :
+Les commandes actuellement documentées sont :
 
 ## User
 
-- `CreateUser`
-- `RenameUser`
-- `ChangeUserEmail`
-- `DisableUser`
-- `EnableUser`
+Aucune commande centrée sur le cycle de vie du `User` n'est encore consolidée.
 
 ---
 
 ## Membership
 
 - `CreateMembership`
-- `ChangeRole`
+- `ChangeMembershipRole`
+- `TransferMembershipRole`
 - `SuspendMembership`
+- `ReactivateMembership`
 - `RestoreMembership`
 - `RemoveMembership`
+- `LeaveWorkspace`
 
 ---
 
 ## Role
 
 - `CreateRole`
-- `RenameRole`
-- `UpdateRoleDescription`
+- `UpdateRoleMetadata`
 - `GrantPermissionToRole`
 - `RevokePermissionFromRole`
+- `ChangeRoleAssignmentPolicy`
+- `ChangeRoleTransferPolicy`
 - `DisableRole`
 - `EnableRole`
-- `DeleteRole`
+- `ArchiveRole`
 
 ---
 
@@ -438,8 +448,10 @@ Les commandes actuellement prévues sont :
 
 - `CreateSession`
 - `RefreshSession`
+- `ElevateSession`
+- `ExpireSession`
 - `RevokeSession`
-- `RevokeAllSessions`
+- `RevokeAllUserSessions`
 
 ---
 
@@ -457,6 +469,8 @@ Une différence purement technique ne justifie pas la création d'une nouvelle c
 
 Les commandes constituent l'unique point d'entrée pour modifier le domaine `Identity`.
 
-Elles expriment des intentions métier explicites, préservent les invariants, modifient un unique agrégat et publient les événements décrivant les changements réalisés.
+Elles expriment des intentions métier explicites, préservent les invariants,
+documentent leur frontière transactionnelle et publient les événements décrivant
+les changements réalisés.
 
 Une commande ne décrit jamais **comment** le domaine est implémenté, mais uniquement **ce que** le domaine doit accomplir.

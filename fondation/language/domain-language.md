@@ -3,21 +3,39 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1
+last_updated: 2026-08-05
 ---
 
 # Vocabulaire par domaine
 
 ## Identity
 
-Workspace
+User
 
-Member
+Membership
 
 Role
 
 Permission
+
+Invitation
+
+Session
+
+`Membership` est le concept métier officiel représentant l'appartenance d'un
+`User` à un `Workspace`.
+
+Le mot « membre » peut être utilisé comme libellé naturel dans l'interface pour
+désigner un utilisateur disposant d'un `Membership`. Il ne constitue ni une
+entité distincte, ni un synonyme utilisable dans le code, les API ou les
+événements.
+
+---
+
+## Workspace
+
+Workspace
 
 ---
 

@@ -133,10 +133,10 @@ Le `User` participe notamment aux commandes suivantes :
 
 Le `User` peut produire les événements suivants :
 
-- `events/UserCreated.md`
-- `events/UserUpdated.md`
-- `events/UserDisabled.md`
-- `events/UserEnabled.md`
+- `UserCreated`
+- `UserUpdated`
+- `UserDisabled`
+- `UserEnabled`
 
 ---
 
@@ -246,10 +246,13 @@ Le `Membership` participe notamment aux commandes suivantes :
 
 - `commands/CreateMembership.md`
 - `commands/AcceptInvitation.md`
-- `commands/ChangeRole.md`
+- `commands/ChangeMembershipRole.md`
+- `commands/TransferMembershipRole.md`
 - `commands/SuspendMembership.md`
+- `commands/ReactivateMembership.md`
 - `commands/RestoreMembership.md`
 - `commands/RemoveMembership.md`
+- `commands/LeaveWorkspace.md`
 
 ---
 
@@ -257,12 +260,14 @@ Le `Membership` participe notamment aux commandes suivantes :
 
 Le `Membership` peut produire les événements suivants :
 
-- `events/MembershipCreated.md`
-- `events/MembershipActivated.md`
-- `events/MembershipRoleChanged.md`
-- `events/MembershipSuspended.md`
-- `events/MembershipRestored.md`
-- `events/MembershipRemoved.md`
+- `MembershipCreated`
+- `MembershipRoleChanged`
+- `MembershipRoleTransferCompleted`
+- `MembershipSuspended`
+- `MembershipReactivated`
+- `MembershipRestored`
+- `MembershipRemoved`
+- `MembershipLeft`
 
 ---
 
@@ -437,13 +442,14 @@ Un `Role` utilisé par un ou plusieurs `Membership` ne peut pas être supprimé 
 Le `Role` participe notamment aux commandes suivantes :
 
 - `commands/CreateRole.md`
-- `commands/RenameRole.md`
-- `commands/UpdateRoleDescription.md`
+- `commands/UpdateRoleMetadata.md`
 - `commands/GrantPermissionToRole.md`
 - `commands/RevokePermissionFromRole.md`
+- `commands/ChangeRoleAssignmentPolicy.md`
+- `commands/ChangeRoleTransferPolicy.md`
 - `commands/DisableRole.md`
 - `commands/EnableRole.md`
-- `commands/DeleteRole.md`
+- `commands/ArchiveRole.md`
 
 Les rôles système peuvent également être créés par une opération interne lors de la création d’un `Workspace`.
 
@@ -453,14 +459,15 @@ Les rôles système peuvent également être créés par une opération interne 
 
 Le `Role` peut produire les événements suivants :
 
-- `events/RoleCreated.md`
-- `events/RoleRenamed.md`
-- `events/RoleDescriptionUpdated.md`
-- `events/PermissionGrantedToRole.md`
-- `events/PermissionRevokedFromRole.md`
-- `events/RoleDisabled.md`
-- `events/RoleEnabled.md`
-- `events/RoleDeleted.md`
+- `RoleCreated`
+- `RoleMetadataUpdated`
+- `RolePermissionGranted`
+- `RolePermissionRevoked`
+- `RoleAssignmentPolicyChanged`
+- `RoleTransferPolicyChanged`
+- `RoleDisabled`
+- `RoleEnabled`
+- `RoleArchived`
 
 ---
 
@@ -747,8 +754,8 @@ La `Permission` ne produit pas directement d’événement métier dans le cadre
 
 Les changements d’association entre un `Role` et une `Permission` peuvent produire :
 
-- `events/PermissionGrantedToRole.md`
-- `events/PermissionRevokedFromRole.md`
+- `RolePermissionGranted`
+- `RolePermissionRevoked`
 
 L’introduction ou la dépréciation d’une `Permission` peut faire l’objet d’événements techniques ou de plateforme, sans appartenir au cycle de vie métier d’un `Workspace`.
 
@@ -907,13 +914,14 @@ L'`Invitation` participe notamment aux commandes suivantes :
 
 L'`Invitation` peut produire les événements suivants :
 
-- `events/InvitationCreated.md`
-- `events/InvitationSent.md`
-- `events/InvitationResent.md`
-- `events/InvitationAccepted.md`
-- `events/InvitationDeclined.md`
-- `events/InvitationRevoked.md`
-- `events/InvitationExpired.md`
+- `InvitationCreated`
+- `InvitationSendRequested`
+- `InvitationSent`
+- `InvitationResendRequested`
+- `InvitationAccepted`
+- `InvitationDeclined`
+- `InvitationRevoked`
+- `InvitationExpired`
 
 ---
 
@@ -1052,8 +1060,10 @@ La `Session` participe notamment aux commandes suivantes :
 
 - `commands/CreateSession.md`
 - `commands/RefreshSession.md`
+- `commands/ElevateSession.md`
+- `commands/ExpireSession.md`
 - `commands/RevokeSession.md`
-- `commands/RevokeAllSessions.md`
+- `commands/RevokeAllUserSessions.md`
 
 ---
 
@@ -1061,10 +1071,13 @@ La `Session` participe notamment aux commandes suivantes :
 
 La `Session` peut produire les événements suivants :
 
-- `events/SessionCreated.md`
-- `events/SessionRefreshed.md`
-- `events/SessionRevoked.md`
-- `events/SessionExpired.md`
+- `SessionCreated`
+- `SessionRefreshed`
+- `SessionElevated`
+- `SessionElevationExpired`
+- `SessionExpired`
+- `SessionRevoked`
+- `AllUserSessionsRevoked`
 
 ---
 

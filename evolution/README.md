@@ -21,4 +21,5 @@ Il couvre notamment :
 
 Ces documents peuvent évoluer fréquemment.
 
-Ils doivent toutefois rester compatibles avec les règles définies dans `foundation/`.
+Ils doivent toutefois rester compatibles avec les règles définies dans
+[`fondation/`](../fondation/README.md).

@@ -3,8 +3,8 @@ id: DOMAIN-IDENTITY-README
 title: Identity Domain
 status: Draft
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1
+last_updated: 2026-08-05
 
 references:
   - ../../vision/mission.md
@@ -46,7 +46,7 @@ Tous les autres domaines s'appuient sur **Identity** pour savoir **qui effectue 
 | Type | Core Domain |
 | Criticité | Critique |
 | Inclus dans le MVP | Oui |
-| Dépend de | Aucun domaine métier |
+| Dépend de | Contrat public de `Workspace` |
 | Utilisé par | Tous les domaines |
 
 ---
@@ -75,21 +75,27 @@ Ils doivent être utilisés tels quels dans :
 
 ## Commands
 
-- `CreateUser`
-- `InviteMember`
-- `AcceptInvitation`
-- `DeclineInvitation`
-- `AssignRole`
-- `RevokeSession`
+Le catalogue des commandes actuellement documentées se trouve dans
+[`commands/README.md`](commands/README.md).
+
+Une commande utilise le nom `Membership` lorsqu'elle modifie l'appartenance ou
+le rôle contextuel d'un utilisateur.
 
 ## Events
 
-- `UserCreated`
-- `MemberInvited`
-- `InvitationAccepted`
-- `InvitationDeclined`
-- `RoleAssigned`
-- `SessionRevoked`
+Les événements décrivent des faits passés avec le vocabulaire officiel.
+
+Exemples :
+
+- `MembershipCreated` ;
+- `MembershipRoleChanged` ;
+- `InvitationAccepted` ;
+- `RolePermissionGranted` ;
+- `SessionCreated` ;
+- `SessionRevoked`.
+
+Dans l'attente d'un catalogue d'événements dédié, leur contrat est documenté
+dans la commande qui les produit.
 
 ---
 
@@ -163,21 +169,24 @@ Cette modélisation permet notamment :
 
 # Dépendances
 
-Le domaine **Identity** ne dépend d'aucun domaine métier.
+Le domaine **Identity** ne dépend d'aucune donnée opérationnelle de CRM, Billing,
+Advisor ou Business Health.
 
-Tous les autres domaines utilisent ses informations.
+Il utilise toutefois le contrat public de `Workspace` pour valider qu'un espace
+référencé existe et reste utilisable. Il ne possède jamais son cycle de vie.
+
+Les autres domaines utilisent le contrat public d'Identity pour authentifier un
+acteur et évaluer ses autorisations.
 
 ```mermaid
 flowchart TD
 
-Identity
-
-Identity --> Workspace
-Identity --> CRM
-Identity --> Billing
-Identity --> Advisor
-Identity --> Notifications
-Identity --> BusinessHealth
+Identity --> WorkspaceContract["Workspace public contract"]
+CRM --> Identity
+Billing --> Identity
+Advisor --> Identity
+Notifications --> Identity
+BusinessHealth --> Identity
 ```
 
 ---
@@ -233,32 +242,30 @@ Si une fonctionnalité nécessite de connaître des informations comme un `Clien
 
 | Document | Description |
 |----------|-------------|
-| `mission.md` | Explique pourquoi le domaine existe. |
-| `scope.md` | Définit précisément son périmètre. |
-| `model.md` | Présente le modèle métier du domaine. |
-| `glossary.md` | Définit les concepts officiels. |
-| `entities.md` | Décrit les entités métier. |
-| `aggregates.md` | Définit les agrégats. |
-| `value-objects.md` | Décrit les objets valeur. |
-| `commands.md` | Liste les commandes acceptées. |
-| `events.md` | Décrit les événements produits. |
-| `workflows.md` | Présente les principaux processus métier. |
-| `invariants.md` | Regroupe les règles métier immuables. |
-| `permissions.md` | Décrit le modèle d'autorisation. |
-| `integrations.md` | Documente les interactions avec les autres domaines. |
-| `api.md` | Présente les contrats d'échange. |
-| `edge-cases.md` | Liste les cas limites connus. |
-| `decision-record.md` | Explique les décisions de conception. |
-| `future.md` | Documente les évolutions envisagées. |
-| `checklist.md` | Vérifie la complétude du domaine. |
+| [`mission.md`](mission.md) | Explique pourquoi le domaine existe. |
+| [`scope.md`](scope.md) | Définit précisément son périmètre. |
+| [`model.md`](model.md) | Présente le modèle métier du domaine. |
+| [`glossary/`](glossary/) | Définit les concepts officiels. |
+| [`entities.md`](entities.md) | Décrit les entités métier. |
+| [`aggregates.md`](aggregates.md) | Définit les agrégats. |
+| [`relationships.md`](relationships.md) | Documente les relations et cardinalités. |
+| [`value-objects.md`](value-objects.md) | Catalogue les objets valeur. |
+| [`value-objects/`](value-objects/) | Détaille les politiques de rôle complexes. |
+| [`commands/`](commands/) | Décrit les commandes actuellement spécifiées. |
+| [`invariants.md`](invariants.md) | Regroupe les règles métier immuables. |
+| [`decision-record.md`](decision-record.md) | Explique les décisions de conception. |
+
+Les catalogues d'événements, de permissions, de workflows et de contrats API
+restent à consolider. Ils ne sont pas présentés comme disponibles tant que leur
+document canonique n'existe pas.
 
 ---
 
 # Références
 
-- `mission.md`
-- `scope.md`
-- `model.md`
-- `glossary.md`
-- `../../constitution.md`
-- `../../language/glossary.md`
+- [`mission.md`](mission.md)
+- [`scope.md`](scope.md)
+- [`model.md`](model.md)
+- [`glossary/`](glossary/)
+- [`../../constitution.md`](../../constitution.md)
+- [`../../language/glossary.md`](../../language/glossary.md)

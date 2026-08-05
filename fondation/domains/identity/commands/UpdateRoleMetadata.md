@@ -48,8 +48,8 @@ sans modifier :
 - `Status` ;
 - les `Permission` associées ;
 - les `Membership` utilisant le rôle ;
-- `AssignmentMode` ;
-- `TransferMode` ;
+- `RoleAssignmentPolicy` ;
+- `RoleTransferPolicy` ;
 - les contraintes d’attribution ;
 - les exigences d’authentification ;
 - les politiques de sécurité ;
@@ -117,10 +117,10 @@ Les propriétés suivantes ne sont pas des métadonnées :
 RoleType
 SystemType
 Status
-AssignmentMode
-TransferMode
+RoleAssignmentPolicy
+RoleTransferPolicy
 IsPrivileged
-IsExclusive
+IsExclusive (derived)
 MinimumActiveAssignments
 MaximumActiveAssignments
 RequiresHumanAssignee
@@ -1331,15 +1331,19 @@ Role
 
 ---
 
-## Invariants concernés
+## Règles locales préservées
 
-### `IDN-INV-ROLE-001`
+Les règles suivantes sont des postconditions locales de la commande. Elles ne
+portent pas d'identifiant `IDN-INV-*` tant qu'elles ne sont pas enregistrées dans
+le catalogue canonique des invariants.
 
-Le rôle appartient toujours au même `Workspace`.
+### Appartenance stable
+
+Le `Role` appartient toujours au même `Workspace`.
 
 ---
 
-### `IDN-INV-ROLE-002`
+### Nom normalisé unique
 
 Le nom normalisé reste unique dans le `Workspace`.
 
@@ -1349,33 +1353,35 @@ UNIQUE(WorkspaceId, NormalizedRoleName)
 
 ---
 
-### `IDN-INV-ROLE-003`
+### Identité stable
 
 Le `RoleId` reste stable.
 
 ---
 
-### `IDN-INV-ROLE-004`
+### Signification structurelle stable
 
 Le `SystemType` reste inchangé.
 
 ---
 
-### `IDN-INV-ROLE-006`
+### Politiques inchangées
 
 Les politiques d’attribution restent inchangées.
 
 ---
 
-### `IDN-INV-ROLE-007`
-
-Les limites d’attribution restent inchangées.
+La `RoleTransferPolicy` et les limites portées par la
+`RoleAssignmentPolicy` restent également inchangées.
 
 ---
 
-### `IDN-INV-010`
+### Autorisations inchangées
 
-Les permissions effectives ne changent pas.
+Les affectations de permissions et les permissions effectives ne changent pas.
+
+La commande préserve notamment `IDN-INV-004`, `IDN-INV-005` et `IDN-INV-011`
+sans modifier les concepts couverts par ces invariants.
 
 ---
 
@@ -1958,7 +1964,7 @@ with same NormalizedRoleName
 ```
 
 ```text
-metadata command changed AssignmentMode
+metadata command changed RoleAssignmentPolicy
 ```
 
 ```text

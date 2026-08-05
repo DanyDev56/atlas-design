@@ -22,7 +22,7 @@ InvoiceCreated
 InvoiceIssued
         │
         ▼
-PaymentReceived
+PaymentRecorded
         │
         ▼
 InvoicePaid

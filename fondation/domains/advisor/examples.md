@@ -16,7 +16,11 @@ Les devis consultés plusieurs fois sont généralement en phase de décision.
 
 Impact estimé
 
-+18 % de probabilité de signature.
+Opportunité de reprendre contact pendant une phase probable de décision.
+
+Atlas n'affiche un gain chiffré que si celui-ci repose sur un modèle calibré et
+sur des données suffisantes. Dans le cas contraire, l'impact reste qualitatif et
+l'incertitude est explicite.
 
 ---
 
@@ -32,11 +36,12 @@ Diversifier votre portefeuille.
 
 Pourquoi
 
-La dépendance dépasse le seuil recommandé.
+La concentration dépasse le seuil documenté par la règle de risque utilisée.
 
 Impact
 
-Réduction du risque financier.
+Réduction possible du risque financier. L'évolution de la concentration client
+permettra de mesurer le résultat.
 
 ---
 
@@ -56,4 +61,7 @@ Votre marché semble accepter vos prix actuels.
 
 Impact
 
-Augmentation potentielle de la marge sans perte significative de conversion.
+Hypothèse d'augmentation de la marge à tester sur un nombre limité de devis.
+
+Atlas mesure ensuite l'évolution du taux de signature avant de proposer une
+généralisation.

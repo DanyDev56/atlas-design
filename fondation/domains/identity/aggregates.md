@@ -174,21 +174,25 @@ Les autorisations sont déterminées au moment où une action est exécutée.
 
 # Frontières transactionnelles
 
-Chaque commande métier ne modifie qu'un seul agrégat.
+Une commande métier exprime une seule intention atomique.
+
+Dans le cas courant, cette intention modifie un seul agrégat. Lorsqu'un
+invariant transversal l'exige, la commande peut coordonner plusieurs agrégats en
+documentant explicitement la frontière transactionnelle.
 
 Exemples :
 
 | Commande | Agrégat |
 |-----------|----------|
-| `CreateUser` | `User` |
-| `DisableUser` | `User` |
 | `CreateRole` | `Role` |
-| `RenameRole` | `Role` |
-| `AcceptInvitation` | `Invitation` |
-| `ChangeRole` | `Membership` |
+| `UpdateRoleMetadata` | `Role` |
+| `ChangeMembershipRole` | `Membership` |
 | `RevokeSession` | `Session` |
+| `AcceptInvitation` | `Invitation` et coordination du `Membership` |
+| `TransferMembershipRole` | Deux agrégats `Membership` |
 
-Lorsqu'une opération nécessite plusieurs agrégats, elle est orchestrée par un processus métier.
+Une coordination multi-agrégats doit garantir l'atomicité ou décrire le workflow
+et les compensations qui empêchent tout état métier invalide.
 
 ---
 
