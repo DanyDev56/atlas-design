@@ -3,7 +3,7 @@ id: BIL-PERMISSIONS
 title: Billing Permissions
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -74,6 +74,7 @@ politique produit du Workspace.
 | `billing.invoices.confirm-sent` | Confirmer la remise d'une Invoice au fournisseur. |
 | `billing.invoices.record-view` | Matérialiser une ouverture publique vérifiée. |
 | `billing.invoices.mark-overdue` | Matérialiser le passage en retard. |
+| `billing.analytics-facts.read` | Lire une révision financière minimale pour Analytics. |
 
 Ces clés ne peuvent pas être accordées à un rôle de Workspace.
 

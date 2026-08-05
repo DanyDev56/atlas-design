@@ -15,16 +15,13 @@ Une recommandation possède toujours :
 
 ## Sources
 
-Les recommandations peuvent être générées à partir :
+Advisor consomme en priorité :
 
-- des devis ;
-- des factures ;
-- des paiements ;
-- des clients ;
-- des projets ;
-- du calendrier ;
-- des notifications ;
-- du Business Health ;
-- des habitudes utilisateur.
+- les `AnalyticsSnapshot` publiés ;
+- les facteurs et tendances de Business Health ;
+- des faits publics ciblés lorsque l'action doit référencer une ressource ;
+- à terme, les contextes projets et calendrier explicitement contractés.
 
-Une recommandation peut utiliser plusieurs sources simultanément.
+Il ne relit pas les stockages CRM ou Billing et ne recalcule pas leurs agrégats.
+Une Recommendation peut citer plusieurs sources versionnées, mais sa preuve doit
+conserver les métriques, périodes, fraîcheur et complétude utilisées.

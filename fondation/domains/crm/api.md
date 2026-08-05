@@ -3,7 +3,7 @@ id: CRM-PUBLIC-CONTRACT
 title: CRM Public Contract
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -108,6 +108,30 @@ ContactId?
 
 Ces lectures ne promettent pas la conformité d'une Quote. Billing vérifie ses
 propres préconditions et copie un snapshot.
+
+---
+
+## Contrat fourni à Analytics
+
+```text
+getOpportunityAnalyticsFact(workspaceId, opportunityId, aggregateVersion)
+→
+WorkspaceId
+OpportunityId
+AggregateVersion
+ClientId
+Status
+EstimatedAmount?
+CreatedAt
+QualifiedAt?
+ClosedAt?
+ExpectedDecisionDate?
+FactHash
+```
+
+La lecture exige `crm.analytics-facts.read`. Elle retourne exactement la version
+signalée par l'événement ou `NotFound` si cette version n'est plus disponible.
+Elle exclut profil Client, description, `NextAction`, notes et coordonnées.
 
 ---
 

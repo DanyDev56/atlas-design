@@ -3,7 +3,7 @@ id: CRM-README
 title: CRM Domain
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -98,7 +98,8 @@ une nouvelle Opportunity ou Activity au lieu de réécrire l'histoire.
 | `Identity` | autorise chaque intention dans le Workspace |
 | `Workspace` | fournit l'état d'accès et les préférences par défaut |
 | `Billing` | consomme les contextes Client et Opportunity, puis publie ses propres faits |
-| `Analytics` / `Advisor` | consomment événements et projections sans modifier CRM |
+| `Analytics` | consomme les événements Opportunity et leurs faits versionnés minimaux |
+| `Business Health` / `Advisor` | consomment les analyses en aval sans lire le stockage CRM |
 
 Les contrats sont définis dans [`api.md`](api.md) et
 [`integrations.md`](integrations.md).

@@ -3,7 +3,7 @@ id: BIL-CONSOLIDATION
 title: Billing Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -113,6 +113,7 @@ produit réellement.
 - [x] Tous les Domain Events possèdent un producteur tracé.
 - [x] Toutes les permissions utilisées figurent dans le catalogue.
 - [x] Les contrats CRM et Workspace sont symétriques.
+- [x] Les contrats Analytics exposent des révisions financières minimales et sans PII.
 - [x] L'émission est distincte de la livraison et de l'ouverture.
 - [x] Les paiements partiels, trop-perçus, inversions et avoirs sont couverts.
 - [x] Les références inter-workspaces sont refusées.

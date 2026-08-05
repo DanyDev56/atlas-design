@@ -61,8 +61,15 @@ courante du Workspace.
 
 Possède :
 
-- Metrics
-- Aggregates
+- AnalyticsFact
+- MetricDefinition
+- MetricSeries
+- MetricObservation
+- ProjectionGeneration
+- AnalyticsSnapshot
+
+Analytics possède les mesures dérivées et leur méthode de calcul. Il ne possède
+jamais les faits CRM ou Billing qui les alimentent.
 
 ---
 

@@ -3,7 +3,7 @@ id: CRM-INTEGRATIONS
 title: CRM Integrations
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -13,6 +13,7 @@ references:
   - ../identity/api.md
   - ../workspace/api.md
   - ../billing/README.md
+  - ../analytics/integrations.md
 ---
 
 # Intégrations
@@ -61,16 +62,18 @@ continuer avec une proposition révisée.
 
 ## Analytics, Business Health et Advisor
 
-Ces domaines consomment événements et read models pour calculer :
+Analytics consomme les événements Opportunity puis relit :
 
-- taux de transformation ;
-- valeur et âge du pipeline ;
-- inactivité Client ;
-- concentration et récurrence ;
-- besoins de relance.
+```text
+getOpportunityAnalyticsFact(workspaceId, opportunityId, aggregateVersion)
+```
 
-Ils ne modifient jamais CRM. Une recommandation exécutée demande une commande
-publique avec l'autorité de l'utilisateur.
+La capacité `crm.analytics-facts.read` est SystemActorOnly. Le fait versionné
+exclut toute donnée personnelle ou note libre. Business Health et Advisor
+consomment les sorties Analytics ; ils ne lisent pas le stockage CRM.
+
+Ces domaines ne modifient jamais CRM. Une Recommendation exécutée demande une
+commande publique avec l'autorité de l'utilisateur.
 
 ---
 

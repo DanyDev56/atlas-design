@@ -3,7 +3,7 @@ id: LANG-003
 title: Naming Rules
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -60,6 +60,8 @@ QuoteAccepted
 PaymentRecorded
 
 CreditNoteIssued
+
+AnalyticsSnapshotPublished
 
 ---
 

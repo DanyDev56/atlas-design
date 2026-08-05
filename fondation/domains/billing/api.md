@@ -3,7 +3,7 @@ id: BIL-PUBLIC-CONTRACT
 title: Billing Public Contract
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -93,6 +93,41 @@ getPublicDocumentArtifact(publicDocumentProof, artifactVersion)
 
 Une preuve donne uniquement accès au document, à la capacité et à la durée
 prévus. Aucun échec ne confirme l'existence d'une autre ressource.
+
+## Contrats fournis à Analytics
+
+```text
+getQuoteAnalyticsFact(workspaceId, quoteId, aggregateVersion)
+→
+WorkspaceId, QuoteId, AggregateVersion, ClientId, OpportunityId?, Status,
+GrossAmount, CurrencyCode, CreatedAt, SentAt?, RespondedAt?, TerminalAt?,
+ValidUntil, FactHash
+
+getInvoiceAnalyticsFact(workspaceId, invoiceId, aggregateVersion)
+→
+WorkspaceId, InvoiceId, AggregateVersion, ClientId, Kind, DocumentStatus,
+GrossAmount, CurrencyCode, IssuedAt?, DueDate?, OutstandingBalance,
+SettlementStatus, PaidAt?, FactHash
+
+getPaymentAnalyticsFact(workspaceId, invoiceId, paymentId, aggregateVersion)
+→
+WorkspaceId, InvoiceId, PaymentId, AggregateVersion, ClientId, Status,
+AmountApplied, CurrencyCode, ReceivedAt, ReversedAt?, FactHash
+
+getCreditNoteAnalyticsFact(workspaceId, creditNoteId, aggregateVersion)
+→
+WorkspaceId, CreditNoteId, AggregateVersion, InvoiceId, ClientId, Status,
+GrossAmount, CurrencyCode, IssuedAt?, FactHash
+```
+
+Chaque fait contient uniquement les identifiants, statuts, montants, devise et
+instants nécessaires à Analytics, avec `ClientId`, `AggregateVersion` et
+`FactHash`. La lecture exige `billing.analytics-facts.read` et exclut lignes,
+snapshots, adresses, références de paiement et preuves publiques.
+
+`PaidAt` existe seulement lorsqu'un Payment a rendu le solde nul à cette
+révision. Il redevient absent après `InvoiceSettlementReopened` jusqu'à un
+nouveau règlement complet par Payment.
 
 ## Erreurs publiques
 

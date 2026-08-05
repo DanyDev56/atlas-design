@@ -65,11 +65,14 @@ Produit les événements financiers.
 
 Responsable :
 
-- indicateurs ;
-- agrégations ;
-- statistiques.
+- faits analytiques normalisés ;
+- définitions et séries de métriques ;
+- agrégations déterministes ;
+- fraîcheur et complétude ;
+- snapshots cohérents destinés à Business Health.
 
-Ne crée jamais de données métier.
+Consomme les événements puis les faits versionnés de CRM et Billing. Ne modifie
+jamais leurs agrégats et ne produit ni prédiction, ni Recommendation.
 
 ---
 
@@ -77,7 +80,8 @@ Ne crée jamais de données métier.
 
 Calcule l'état global de l'entreprise.
 
-Consomme les données de plusieurs domaines.
+Consomme des AnalyticsSnapshot versionnés et cohérents. Ne redéfinit pas les
+formules de métriques et ne lit pas les stockages CRM ou Billing.
 
 ---
 

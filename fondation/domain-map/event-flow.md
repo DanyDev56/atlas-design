@@ -61,6 +61,9 @@ InvoiceBalanceChanged
 InvoiceSettled
         │
         ▼
+AnalyticsSnapshotPublished
+        │
+        ▼
 BusinessHealthUpdated
         │
         ▼

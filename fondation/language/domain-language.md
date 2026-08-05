@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.4
+version: 1.5
 last_updated: 2026-08-05
 ---
 
@@ -114,6 +114,36 @@ kinds d'Invoice, pas de nouveaux agrégats.
 Les libellés naturels « devis », « facture », « avoir », « acompte », « date
 d'échéance » et « solde restant dû » sont autorisés dans l'interface française,
 mais le code et les contrats emploient les noms canoniques ci-dessus.
+
+---
+
+## Analytics
+
+AnalyticsFact
+
+MetricDefinition
+
+MetricSeries
+
+MetricObservation
+
+ProjectionGeneration
+
+AnalyticsSnapshot
+
+DataFreshness
+
+DataCompleteness
+
+ObservationPeriod
+
+ReportingCalendar
+
+SourceWatermark
+
+Analytics transforme des faits versionnés en mesures. Il ne possède ni KPI
+libre, ni BusinessHealth, ni Recommendation. Une valeur sans définition,
+période, fraîcheur et complétude n'est pas une MetricObservation valide.
 
 ---
 

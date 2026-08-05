@@ -3,7 +3,7 @@ id: CRM-CONSOLIDATION
 title: CRM Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -103,6 +103,7 @@ normative complète.
 - [x] Toutes les permissions utilisées figurent dans le catalogue.
 - [x] Pipeline ne contourne aucune commande Opportunity.
 - [x] Le contrat Billing repose sur des snapshots non rétroactifs.
+- [x] Le contrat Analytics expose une révision Opportunity minimale et sans PII.
 - [x] QuoteAccepted et OpportunityWon restent deux faits distincts.
 - [x] Activity ne duplique pas les événements des autres domaines.
 - [x] Les références inter-workspaces sont refusées.

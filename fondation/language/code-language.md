@@ -3,7 +3,7 @@ id: LANG-009
 title: Code Language
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -43,6 +43,18 @@ ClientSnapshot
 
 IssuerSnapshot
 
+AnalyticsFact
+
+MetricDefinition
+
+MetricSeries
+
+MetricObservation
+
+ProjectionGeneration
+
+AnalyticsSnapshot
+
 Recommendation
 
 BusinessHealth
@@ -74,3 +86,9 @@ Credit Note
 Deposit
 
 Due Date
+
+KPI sans définition versionnée
+
+Revenue pour un simple montant facturé ou encaissé
+
+RealTimeMetric sans garantie de fraîcheur

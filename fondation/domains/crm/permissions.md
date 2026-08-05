@@ -3,7 +3,7 @@ id: CRM-PERMISSIONS
 title: CRM Permissions
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -67,8 +67,9 @@ rôles et résout leur efficacité dans le Workspace.
 | Clé | Usage |
 |---|---|
 | `crm.opportunities.win-from-quote` | demander un gain après `QuoteAccepted` authentique |
+| `crm.analytics-facts.read` | lire une révision Opportunity minimale pour Analytics |
 
-Cette clé ne peut pas être accordée à un rôle humain.
+Ces clés ne peuvent pas être accordées à un rôle humain.
 
 ---
 

@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.4
+version: 1.5
 last_updated: 2026-08-05
 ---
 
@@ -339,6 +339,124 @@ Montant restant dû après application des Payments actifs et CreditNotes.
 **Domaine**
 
 Billing
+
+---
+
+# AnalyticsFact
+
+Observation normalisée, minimale et immuable d'une révision CRM ou Billing
+utilisée pour construire une mesure.
+
+**Domaine**
+
+Analytics
+
+---
+
+# MetricDefinition
+
+Contrat versionné décrivant la formule, l'unité, les sources, périodes,
+dimensions et règles de complétude d'une métrique.
+
+**Domaine**
+
+Analytics
+
+---
+
+# MetricSeries
+
+Suite d'observations partageant une définition, une génération, une devise et
+un ensemble de dimensions cohérents.
+
+**Domaine**
+
+Analytics
+
+---
+
+# MetricObservation
+
+Valeur calculée pour une période ou un instant, accompagnée de sa fraîcheur, sa
+complétude, son échantillon et son explication.
+
+**Domaine**
+
+Analytics
+
+---
+
+# ProjectionGeneration
+
+Ensemble isolé de projections Analytics construit avec les mêmes définitions,
+calendrier et checkpoints sources.
+
+**Domaine**
+
+Analytics
+
+---
+
+# AnalyticsSnapshot
+
+Ensemble immuable de MetricObservations cohérentes au même instant, publié à un
+consommateur comme Business Health.
+
+**Domaine**
+
+Analytics
+
+---
+
+# DataFreshness
+
+État mesurant le retard d'une projection au moyen de ses instants et watermarks
+sources.
+
+**Domaine**
+
+Analytics
+
+---
+
+# DataCompleteness
+
+État décrivant la couverture des données requises par une MetricDefinition.
+
+**Domaine**
+
+Analytics
+
+---
+
+# ObservationPeriod
+
+Période ou instant non ambigu auquel une MetricObservation s'applique.
+
+**Domaine**
+
+Analytics
+
+---
+
+# ReportingCalendar
+
+Fuseau et règles civiles versionnés utilisés pour construire les périodes d'un
+Workspace.
+
+**Domaine**
+
+Analytics
+
+---
+
+# SourceWatermark
+
+Dernière position d'une source durablement intégrée dans une projection.
+
+**Domaine**
+
+Analytics
 
 ---
 

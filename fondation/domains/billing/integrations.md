@@ -3,7 +3,7 @@ id: BIL-INTEGRATIONS
 title: Billing Integrations
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -13,6 +13,7 @@ references:
   - ../crm/api.md
   - ../workspace/api.md
   - ../identity/api.md
+  - ../analytics/integrations.md
 ---
 
 # Intégrations
@@ -68,9 +69,19 @@ d'horloge. Billing relit l'agrégat et reste seul juge des préconditions.
 
 ## Analytics et Advisor
 
-Ils consomment notamment `QuoteSent`, `QuoteViewed`, `QuoteAccepted`,
-`QuoteRejected`, `InvoiceIssued`, `InvoiceOverdue`, `InvoiceBalanceChanged`,
-`InvoiceSettled` et `PaymentRecorded`. Ils ne mutent aucun agrégat Billing.
+Analytics consomme les événements supportés puis relit la révision exacte par :
+
+```text
+getQuoteAnalyticsFact(workspaceId, quoteId, aggregateVersion)
+getInvoiceAnalyticsFact(workspaceId, invoiceId, aggregateVersion)
+getPaymentAnalyticsFact(workspaceId, invoiceId, paymentId, aggregateVersion)
+getCreditNoteAnalyticsFact(workspaceId, creditNoteId, aggregateVersion)
+```
+
+La capacité `billing.analytics-facts.read` est SystemActorOnly. Les faits
+excluent données personnelles, contenu de document, références de paiement et
+preuves publiques. Advisor consomme les analyses en aval au lieu de recalculer
+les agrégats Billing. Aucun de ces domaines ne mute Billing.
 
 ## Hors 1.0
 

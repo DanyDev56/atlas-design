@@ -3,7 +3,7 @@ id: BIL-README
 title: Billing Domain
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -109,7 +109,8 @@ remplacement de son statut documentaire.
 - Workspace fournit l'identité de l'émetteur et les préférences ;
 - Identity autorise les intentions humaines ;
 - Communication livre les documents sans décider de leur cycle de vie ;
-- Analytics et Advisor consomment les faits financiers.
+- Analytics consomme des faits financiers versionnés et minimisés ;
+- Business Health et Advisor consomment les analyses en aval.
 
 Les valeurs CRM et Workspace sont copiées comme snapshots avant qu'un document
 ne devienne immuable.

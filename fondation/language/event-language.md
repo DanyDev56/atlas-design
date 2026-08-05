@@ -3,7 +3,7 @@ id: LANG-007
 title: Event Language
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -46,6 +46,8 @@ InvoicePaid
 PaymentRecorded
 
 CreditNoteIssued
+
+AnalyticsSnapshotPublished
 
 RecommendationGenerated
 

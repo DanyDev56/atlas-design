@@ -34,6 +34,11 @@ CRM -> Billing -> Analytics -> Business Health -> Advisor -> Notifications
 Cette chaîne exprime un flux principal, pas l'obligation pour un domaine de
 consommer tous les domaines précédents.
 
+- Analytics consomme les événements et faits versionnés de CRM et Billing ;
+- Business Health consomme `AnalyticsSnapshotPublished` puis le snapshot exact ;
+- Advisor consomme les analyses et facteurs sans redéfinir les métriques ;
+- aucun calcul en aval n'autorise une mutation du domaine source.
+
 ---
 
 ## Dépendances interdites
