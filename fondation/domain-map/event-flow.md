@@ -1,5 +1,28 @@
 # Flux d'événements
 
+## Fondation d'un Workspace
+
+```text
+WorkspaceCreated
+        │
+        ▼
+Bootstrap orchestrator
+        │
+        ├──► Identity commands
+        │
+        ▼
+WorkspaceActivated
+        │
+        ▼
+WorkspaceAccessStateChanged
+        ├──► Identity authorization
+        └──► domain access projections
+```
+
+---
+
+## Cycle commercial
+
 Exemple :
 
 OpportunityCreated

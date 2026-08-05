@@ -1,5 +1,17 @@
 # Modules
 
+## Identity
+
+Authentification, appartenance et autorisation.
+
+---
+
+## Workspace
+
+Contexte, profil et cycle de vie de l'activité.
+
+---
+
 ## Dashboard
 
 Vue synthétique de l'activité.

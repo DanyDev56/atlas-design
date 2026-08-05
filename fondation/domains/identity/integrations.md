@@ -3,7 +3,7 @@ id: IDN-INTEGRATIONS
 title: Identity Integrations
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.0.1
 last_updated: 2026-08-05
 
 references:
@@ -55,9 +55,14 @@ Le modèle métier ne reçoit que des preuves ou références validées.
 ## Workspace
 
 Identity consulte uniquement le contrat public d'accès et de gouvernance défini
-dans [`api.md`](api.md).
+dans [`api.md`](api.md), désormais confirmé par le contrat public de Workspace.
 
 Il ne lit jamais le stockage de Workspace et ne modifie jamais son cycle de vie.
+
+Identity fournit en retour `getWorkspaceOwnerReadiness` aux workflows de
+bootstrap et de restauration. Cette preuve minimale confirme uniquement
+l'existence d'un owner actif ; elle n'expose pas le modèle interne des rôles ou
+memberships.
 
 ---
 

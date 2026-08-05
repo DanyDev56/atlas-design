@@ -1,38 +1,50 @@
 # Dépendances
 
-## Dépendances autorisées
+Une flèche `A → B` signifie que B peut consommer un contrat public de A. Elle
+n'autorise jamais B à lire le stockage de A.
 
-CRM
+## Contextes de fondation
 
-↓
+```text
+Identity  <---- partenariat versionné ---->  Workspace
+    |                                         |
+    +-------------------+---------------------+
+                        |
+                        v
+             Contextes métier Atlas
+```
 
-Billing
+- les contextes métier consomment Identity pour l'authentification et
+  l'autorisation ;
+- ils consomment Workspace pour l'isolation, l'état d'accès et les données de
+  profil strictement nécessaires ;
+- Identity consomme `getWorkspaceAccessContext` ;
+- le workflow Workspace consomme `getWorkspaceOwnerReadiness` ;
+- ce partenariat reste limité à ces contrats et ne crée aucune propriété
+  partagée.
 
-↓
+---
 
-Analytics
+## Chaîne métier autorisée
 
-↓
+```text
+CRM -> Billing -> Analytics -> Business Health -> Advisor -> Notifications
+```
 
-Business Health
-
-↓
-
-Advisor
-
-↓
-
-Notifications
+Cette chaîne exprime un flux principal, pas l'obligation pour un domaine de
+consommer tous les domaines précédents.
 
 ---
 
 ## Dépendances interdites
 
-Notifications → CRM
-
-Analytics → Billing
-
-Business Health → CRM
+- Notifications modifiant CRM ;
+- Analytics modifiant Billing ;
+- Business Health modifiant CRM ;
+- Workspace modifiant un Membership ou un Role ;
+- Identity modifiant le profil ou le cycle de vie d'un Workspace ;
+- Billing réécrivant une identité de facturation Workspace ;
+- tout contexte accédant au stockage privé d'un autre.
 
 ---
 

@@ -1,5 +1,34 @@
 # Context Map
 
+## Identity
+
+Responsable :
+
+- utilisateurs et authentification ;
+- memberships et invitations ;
+- rôles, permissions et décisions d'autorisation.
+
+Consomme le contexte public d'accès de Workspace.
+
+---
+
+## Workspace
+
+Responsable :
+
+- identité de l'activité ;
+- profil commercial et identité de facturation déclarée ;
+- préférences principales ;
+- cycle de vie et état d'accès du Workspace.
+
+Consomme une preuve minimale d'owner actif fournie par Identity pour
+l'activation et la restauration.
+
+Identity et Workspace forment un partenariat contractuel explicite. Aucun des
+deux ne lit le stockage ou ne modifie le modèle de l'autre.
+
+---
+
 ## CRM
 
 Responsable :
@@ -58,4 +87,4 @@ Ne possède aucune donnée métier.
 
 Diffuse les événements importants.
 
-Ne prend aucune décision.
+Ne prend aucune décision métier à la place du domaine source.

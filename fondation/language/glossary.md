@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -36,6 +36,39 @@ Workspace
 - Company
 - Tenant
 - Account
+
+---
+
+# WorkspaceProfile
+
+Profil commercial courant d'un `Workspace`, destiné à l'affichage et à la
+réutilisation par les domaines autorisés.
+
+**Domaine**
+
+Workspace
+
+---
+
+# BillingIdentity
+
+Coordonnées administratives déclarées d'un `Workspace`, servant de source aux
+snapshots créés par Billing sans contenir les règles financières.
+
+**Domaine**
+
+Workspace
+
+---
+
+# WorkspacePreferences
+
+Locale, fuseau horaire, devise et pays utilisés comme valeurs par défaut sans
+effet rétroactif sur les faits existants.
+
+**Domaine**
+
+Workspace
 
 ---
 

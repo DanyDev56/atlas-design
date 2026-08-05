@@ -3,47 +3,36 @@
 Atlas est organisé autour de plusieurs domaines indépendants.
 
 ```text
-                 +------------------+
-                 |      CRM         |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 |   Opportunity    |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 |     Billing      |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 |    Analytics     |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 | Business Health  |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 |     Advisor      |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 | Recommendations  |
-                 +------------------+
-                          │
-                          ▼
-                 +------------------+
-                 |  Notifications   |
-                 +------------------+
+           +------------------+     +------------------+
+           |     Identity     |<--->|    Workspace     |
+           +------------------+     +------------------+
+                    |                       |
+                    +-----------+-----------+
+                                |
+                                v
+                 +-----------------------------+
+                 |        CRM -> Billing       |
+                 +-----------------------------+
+                                |
+                                v
+                 +-----------------------------+
+                 |          Analytics          |
+                 +-----------------------------+
+                                |
+                                v
+                 +-----------------------------+
+                 | Business Health -> Advisor  |
+                 +-----------------------------+
+                                |
+                                v
+                 +-----------------------------+
+                 |        Notifications        |
+                 +-----------------------------+
 ```
 
-Chaque domaine enrichit progressivement la compréhension de l'activité.
+Identity établit qui agit. Workspace établit dans quelle activité et sous quel
+contexte l'action se déroule. Les domaines métier enrichissent ensuite
+progressivement la compréhension de cette activité.
 
 Les domaines ne se remplacent pas.
 

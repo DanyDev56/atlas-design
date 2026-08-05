@@ -43,7 +43,7 @@ Un utilisateur doit pouvoir :
 
 - création du Workspace ;
 - informations commerciales ;
-- paramètres de facturation ;
+- identité de facturation réutilisable ;
 - préférences principales.
 
 ### CRM

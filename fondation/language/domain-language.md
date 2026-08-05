@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.1
+version: 1.2
 last_updated: 2026-08-05
 ---
 
@@ -36,6 +36,17 @@ entité distincte, ni un synonyme utilisable dans le code, les API ou les
 ## Workspace
 
 Workspace
+
+WorkspaceProfile
+
+BillingIdentity
+
+WorkspacePreferences
+
+WorkspaceAccessContext
+
+`Workspace` représente une activité professionnelle utilisant Atlas. Il ne doit
+jamais être remplacé dans le modèle par Company, Organisation, Tenant ou Account.
 
 ---
 

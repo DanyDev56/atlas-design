@@ -4,6 +4,8 @@ L'API est organisée par domaine.
 
 Exemples :
 
+/workspaces
+
 /clients
 
 /opportunities

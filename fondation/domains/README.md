@@ -2,7 +2,7 @@
 title: Domain Driven Design
 status: Draft
 owner: Product
-last_updated: 2026-07-29
+last_updated: 2026-08-05
 ---
 
 # Les domaines métier
@@ -24,17 +24,19 @@ Cette séparation permet de maintenir un modèle cohérent au fil des années.
 
 Un domaine ne doit jamais dépendre des détails d'implémentation d'un autre domaine.
 
-Les interactions passent toujours par des événements métier clairement identifiés.
+Les interactions passent toujours par des contrats publics clairement
+identifiés : événements, commandes ou interfaces de lecture.
 
 ---
 
 ## Liste actuelle
 
+- Identity
+- Workspace
 - Billing
 - CRM
 - Advisor
 - Business Health
 - Automation
 - Notifications
-- Identity
 - Analytics

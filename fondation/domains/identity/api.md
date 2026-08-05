@@ -3,7 +3,7 @@ id: IDN-PUBLIC-CONTRACT
 title: Identity Public Contract
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.0.1
 last_updated: 2026-08-05
 
 references:
@@ -11,6 +11,7 @@ references:
   - events.md
   - permissions.md
   - workflows.md
+  - ../workspace/api.md
 ---
 
 # Contrat public d'Identity
@@ -198,9 +199,29 @@ Identity consomme également un fait versionné lorsque cet état change :
 WorkspaceAccessStateChanged
 ```
 
-Ce contrat est provisoirement défini ici pour fermer Identity. Le bounded context
-Workspace devra le confirmer sans transférer à Identity la propriété de son cycle
+Ce contrat est confirmé par le bounded context Workspace dans son
+[`api.md`](../workspace/api.md). Workspace reste seul propriétaire de son cycle
 de vie.
+
+---
+
+## Contrat de gouvernance fourni à Workspace
+
+Le bootstrap et la restauration d'un Workspace peuvent demander une preuve
+minimale de readiness :
+
+```text
+getWorkspaceOwnerReadiness(workspaceId)
+→
+WorkspaceId
+HasActiveOwner
+IdentityGovernanceVersion
+AssessedAt
+ValidUntil
+```
+
+Cette lecture est réservée à un workflow de confiance borné au Workspace. Elle
+ne révèle aucun `UserId`, `MembershipId`, `RoleId` ni détail de permission.
 
 ---
 
