@@ -74,9 +74,10 @@ pas l'évaluation et conserve ses références de preuve.
 
 ## CRM, Billing et Notifications
 
-Business Health ne dépend d'aucun contrat CRM ou Billing direct. Notifications
-peut consommer un événement en aval selon sa propre politique, mais Business
-Health ne choisit ni canal, ni destinataire, ni moment d'envoi.
+Business Health ne dépend d'aucun contrat CRM ou Billing direct. En 1.0,
+Notifications reçoit la décision en aval via Advisor et ne consomme aucun
+BusinessHealthAssessed direct. Business Health ne choisit ni canal,
+destinataire ou moment d'envoi.
 
 ## Garanties
 

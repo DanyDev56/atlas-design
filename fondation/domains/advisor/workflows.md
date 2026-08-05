@@ -3,7 +3,7 @@ id: ADV-WORKFLOWS
 title: Advisor Workflows
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -30,7 +30,8 @@ references:
 7. Il évalue les cinq règles et calcule tous les candidats.
 8. Il ordonne les candidats et conserve au plus les trois premiers.
 9. Pour chaque règle, il génère, réaffirme, expire ou supprime le candidat.
-10. Il reconstruit AdvisorOverview après convergence.
+10. Il reconstruit AdvisorOverview après convergence et avance
+    AdvisorOverviewVersion par compare-and-set.
 11. Il marque l'évaluation Completed et publie
     `RecommendationEvaluationCompleted`.
 

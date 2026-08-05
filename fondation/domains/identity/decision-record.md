@@ -3,7 +3,7 @@ id: IDN-FOUNDATION-DECISION-RECORD
 title: Decision Record
 status: Living
 owner: Product
-version: 2.1.1
+version: 2.2.0
 last_updated: 2026-08-05
 
 references:
@@ -1687,6 +1687,31 @@ restreint.
 
 ---
 
+# IDN-ADR-050 — L'audience Notifications est minimale et revalidée
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+Identity fournit à Notifications une résolution bornée des Users autorisés et
+une revalidation avant effet externe. Une adresse vérifiée n'est exposée que par
+une référence d'endpoint opaque et versionnée.
+
+## Conséquences
+
+- Notifications ne lit ni User, Membership, Role ou Permission dans le stockage
+  Identity ;
+- l'audience ne devient jamais un export générique du répertoire ;
+- une réduction de privilège empêche le dispatch encore annulable ;
+- Identity garde adresse, vérification et communications sensibles ;
+- Notifications garde préférences, fréquence et contenu produit.
+
+---
+
 # Décisions dépréciées
 
 ## AssignmentMode
@@ -1848,4 +1873,5 @@ Identity 1.0 creates HumanUser only
 Role Archived state is terminal
 Fine-grained permission keys are canonical
 Workspace is consumed through a minimal public contract
+Notification audience is minimal, opaque and revalidated
 ```

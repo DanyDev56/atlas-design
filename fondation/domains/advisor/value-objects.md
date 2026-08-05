@@ -3,7 +3,7 @@ id: ADV-VALUE-OBJECTS
 title: Advisor Value Objects
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -28,6 +28,13 @@ references:
 Pointeur global vers la politique appliquée aux nouvelles évaluations et aux
 lectures courantes. Son activation attend une évaluation de la source courante
 et l'expiration contrôlée des Recommendations de l'ancienne version.
+
+## AdvisorOverviewVersion
+
+Entier strictement croissant par Workspace à chaque convergence Eligible
+appliquée à AdvisorOverview. Une source historique conserve la version courante.
+La version ordonne les publications à travers les changements de
+RecommendationPolicyVersion sans devenir une AggregateVersion.
 
 ## BusinessHealthAssessmentReference
 

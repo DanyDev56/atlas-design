@@ -3,7 +3,7 @@ id: LANG-002
 title: Terminology Decisions
 status: Stable
 owner: Product
-version: 1.2
+version: 1.3
 last_updated: 2026-08-05
 ---
 
@@ -78,3 +78,21 @@ nomme `OverallScore` pour le distinguer des ComponentScore et FactorScore.
 
 `PrimaryAttention` a été retenu pour la zone au déficit dominant. Le mot
 Priority est réservé à Advisor, qui décide de l'ordre des Recommendation.
+
+---
+
+## Notifications
+
+`Notification` est retenu pour un message produit durable dérivé d'un fait déjà
+décidé. Alert n'est pas retenu comme synonyme générique, car il impliquerait un
+niveau d'urgence absent de nombreuses Notifications.
+
+Trois dimensions sont nommées séparément :
+
+- `NotificationStatus` pour la pertinence ;
+- `NotificationReadState` pour la lecture personnelle ;
+- `DeliveryStatus` pour le transport externe.
+
+`Accepted` signifie que le fournisseur a pris en charge une soumission.
+`Delivered` exige une preuve authentique ultérieure. Le terme `Sent` n'est pas
+retenu car il ne permet pas de savoir lequel de ces faits est réellement prouvé.

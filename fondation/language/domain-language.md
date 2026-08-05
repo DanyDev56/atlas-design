@@ -3,7 +3,7 @@ id: LANG-006
 title: Domain Language
 status: Stable
 owner: Product
-version: 1.7
+version: 1.8
 last_updated: 2026-08-05
 ---
 
@@ -214,6 +214,8 @@ RecommendationEvidenceRevision
 
 AdvisorOverview
 
+AdvisorOverviewVersion
+
 Advisor transforme une BusinessHealthAssessment en zéro à trois Recommendation.
 PrimaryRecommendation est l'action la mieux classée ; elle ne doit pas être
 confondue avec PrimaryAttention. Completed confirme l'action humaine sans
@@ -225,8 +227,35 @@ signifier Executed ni prouver un outcome.
 
 Notification
 
-Channel
+NotificationPolicy
 
-Delivery
+NotificationPlan
 
-Read Status
+NotificationTopicCursor
+
+NotificationPreference
+
+NotificationTopic
+
+NotificationThreadKey
+
+NotificationStatus
+
+NotificationTerminalReason
+
+NotificationReadState
+
+NotificationChannel
+
+NotificationDelivery
+
+DeliveryStatus
+
+DeliveryAttempt
+
+DeliveryEndpointReference
+
+Notifications remet un fait déjà décidé par Advisor. NotificationStatus décrit
+la pertinence ; NotificationReadState décrit la lecture personnelle ;
+DeliveryStatus décrit le transport externe. Accepted signifie prise en charge
+par le fournisseur, jamais Delivered.

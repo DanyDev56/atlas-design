@@ -3,7 +3,7 @@ id: ADV-AGGREGATES
 title: Advisor Aggregates
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -71,8 +71,9 @@ expiration concurrente gagne uniquement par compare-and-set ; le perdant relit
 l'état et retourne le résultat compatible ou un conflit.
 
 Une contrainte unique empêche deux Recommendation Generated pour la même
-DeduplicationKey. L'AdvisorOverview est remplacé atomiquement après convergence
-de l'évaluation, jamais avant.
+DeduplicationKey. L'AdvisorOverview et sa version monotone sont remplacés
+atomiquement après convergence Eligible de l'évaluation, jamais avant. Une
+source historique conserve la version déjà publiée.
 
 ## Nouvelle politique
 

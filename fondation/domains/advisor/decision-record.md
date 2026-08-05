@@ -3,7 +3,7 @@ id: ADV-DECISIONS
 title: Advisor Decision Record
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -38,3 +38,4 @@ references:
 | `ADV-ADR-018` | Une évaluation durable existe même sans candidat. | L'absence de recommandation reste auditée et explicable. |
 | `ADV-ADR-019` | Une Recommendation terminale n'est jamais réactivée. | Un nouveau contexte reçoit une nouvelle identité. |
 | `ADV-ADR-020` | Notifications réagit à RecommendationEvaluationCompleted, pas à chaque génération isolée. | La diffusion voit la priorité stabilisée et reste séparée de la décision. |
+| `ADV-ADR-021` | AdvisorOverviewVersion ordonne chaque convergence Eligible appliquée. | Les consommateurs refusent une publication livrée hors ordre, même après un changement de politique. |

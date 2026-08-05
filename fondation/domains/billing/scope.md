@@ -72,7 +72,8 @@ references:
 | Client, Contact et Opportunity | `CRM` |
 | identité et préférences du Workspace | `Workspace` |
 | membres, rôles et permissions | `Identity` |
-| transport d'e-mails et notifications | `Notifications` / Communication |
+| transport des documents et relances Billing | Communication de `Billing` |
+| notifications produit issues d'Advisor | `Notifications` |
 | comptabilité, écritures et déclarations | intégration comptable future |
 | réception bancaire et rapprochement | intégration bancaire future |
 | recommandations de relance | `Advisor` |

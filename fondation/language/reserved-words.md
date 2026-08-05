@@ -3,7 +3,7 @@ id: LANG-005
 title: Reserved Words
 status: Stable
 owner: Product
-version: 1.3
+version: 1.4
 last_updated: 2026-08-05
 ---
 
@@ -39,6 +39,22 @@ Ils ne doivent jamais être réutilisés avec un autre sens.
 - RecommendationConfidence
 - EstimatedEffort
 - AdvisorOverview
+- AdvisorOverviewVersion
+- Notification
+- NotificationPolicy
+- NotificationPlan
+- NotificationTopicCursor
+- NotificationPreference
+- NotificationTopic
+- NotificationThreadKey
+- NotificationStatus
+- NotificationTerminalReason
+- NotificationReadState
+- NotificationChannel
+- NotificationDelivery
+- DeliveryStatus
+- DeliveryAttempt
+- DeliveryEndpointReference
 - Signal
 - Timeline
 - Automation

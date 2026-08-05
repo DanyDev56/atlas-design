@@ -56,7 +56,7 @@ Recommandations.
 
 ## Notifications
 
-Alertes.
+Inbox personnelle, préférences et remise des priorités Advisor importantes.
 
 ---
 

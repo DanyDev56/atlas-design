@@ -3,7 +3,7 @@ id: ADV-INVARIANTS
 title: Advisor Invariants
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -81,7 +81,7 @@ references:
 
 | ID | Règle |
 |---|---|
-| `ADV-INV-040` | Pour une même politique, le dernier SourceOrder traité ne régresse jamais. |
+| `ADV-INV-040` | Le dernier SourceOrder traité ne régresse jamais pour une même politique ; AdvisorOverviewVersion augmente à chaque convergence Eligible appliquée et ne régresse jamais dans un Workspace. |
 | `ADV-INV-041` | Une source historique est enregistrée mais ne réaffirme, ne génère et n'expire aucune Recommendation courante. |
 | `ADV-INV-042` | Une nouvelle ActiveRecommendationPolicyVersion n'est activée qu'après évaluation courante et expiration explicite de l'ancienne politique. |
 | `ADV-INV-043` | Lecture, completion et dismissal exigent un acteur actif, le même Workspace et la capacité Advisor exacte. |

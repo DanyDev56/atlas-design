@@ -3,7 +3,7 @@ id: ADV-EVENTS
 title: Advisor Domain Events
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -70,6 +70,8 @@ dupliquées dans l'événement.
 RecommendationEvaluationId
 BusinessHealthAssessmentId
 RecommendationPolicyVersion
+AdvisorOverviewVersion
+SourceOrder: (AsOf, SourcePublishedAt, BusinessHealthAssessmentId)
 SourceEligibility
 PrimaryRecommendationId?
 PublishedRecommendationIds[0..3]

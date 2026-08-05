@@ -3,7 +3,7 @@ id: ADV-MODEL
 title: Advisor Domain Model
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -43,7 +43,9 @@ classDiagram
     class RecommendationEvidenceRevision
     class RecommendationAction
     class RecommendationRuleState
-    class AdvisorOverview
+    class AdvisorOverview {
+      AdvisorOverviewVersion
+    }
 
     RecommendationPolicy --> RecommendationEvaluation
     RecommendationEvaluation *-- CandidateDecision
@@ -84,8 +86,11 @@ résultat explicable, pas un échec.
 le dernier fingerprint terminal et la dernière disparition du prédicat.
 
 `AdvisorOverview` contient au plus trois Recommendation `Generated`, triées par
-l'ordre canonique. La première est `PrimaryRecommendation`. Ces projections
-sont reconstructibles à partir des agrégats et événements Advisor.
+l'ordre canonique. La première est `PrimaryRecommendation`.
+AdvisorOverviewVersion augmente à chaque convergence Eligible appliquée, y
+compris lorsque la même priorité est réaffirmée. Une source historique conserve
+la version courante. Ces projections sont reconstructibles à partir des
+agrégats et événements Advisor.
 
 ## Temps et événements tardifs
 

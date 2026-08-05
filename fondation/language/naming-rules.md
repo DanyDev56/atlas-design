@@ -3,7 +3,7 @@ id: LANG-003
 title: Naming Rules
 status: Stable
 owner: Product
-version: 1.4
+version: 1.5
 last_updated: 2026-08-05
 ---
 
@@ -72,6 +72,14 @@ RecommendationCompleted
 RecommendationDismissed
 
 RecommendationExpired
+
+NotificationCreated
+
+NotificationMarkedRead
+
+NotificationDeliveryAccepted
+
+NotificationDeliveryConfirmed
 
 ---
 

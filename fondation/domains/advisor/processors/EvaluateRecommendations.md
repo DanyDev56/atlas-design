@@ -3,7 +3,7 @@ id: ADV-PROC-EVALUATE-RECOMMENDATIONS
 title: EvaluateRecommendations
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -58,7 +58,8 @@ de règle dérive son propre RequestId de l'évaluation et de RuleKey.
 - création ou reprise de RecommendationEvaluation ;
 - éligibilité, cinq règles, scoring, ordre total et limite top trois ;
 - génération, réaffirmation, expiration ou suppression idempotente ;
-- reconstruction AdvisorOverview puis completion du process manager.
+- reconstruction AdvisorOverview, avance atomique d'AdvisorOverviewVersion puis
+  completion du process manager.
 
 Une source inéligible ou historique termine l'évaluation avec une
 SourceEligibility structurée sans modifier les Recommendation courantes.
@@ -82,6 +83,9 @@ publié qu'après convergence de toutes les décisions.
 Les Recommendation existantes sont mutées par ExpectedRevision et
 compare-and-set. Une contrainte unique protège DeduplicationKey. Après conflit,
 le processeur relit l'état et réapplique seulement la décision encore valide.
+La publication de l'overview utilise également compare-and-set : une évaluation
+qui perd contre une version issue d'un SourceOrder supérieur devient historique
+et ne peut pas faire régresser la projection.
 
 ## Erreurs métier
 

@@ -3,7 +3,7 @@ id: IDN-PERMISSIONS
 title: Identity Permissions
 status: In Review
 owner: Product
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-05
 
 references:
@@ -147,6 +147,7 @@ Les capacités suivantes ne peuvent pas être accordées à un `Role` de workspa
 | `identity.sessions.impersonate` | Session d'impersonation strictement auditée. |
 | `identity.sessions.revoke` | Révocation d'une session appartenant à un autre sujet. |
 | `identity.sessions.revoke-all` | Révocation globale pour un autre sujet. |
+| `identity.notification-audience.read` | Résoudre et revalider une audience Notifications bornée sans exposer d'adresse brute. |
 
 L'autorisation de ces capacités provient d'une politique de plateforme ou d'un
 workflow de sécurité de confiance. Les rôles globaux de plateforme restent hors

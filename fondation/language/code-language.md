@@ -3,7 +3,7 @@ id: LANG-009
 title: Code Language
 status: Stable
 owner: Product
-version: 1.5
+version: 1.6
 last_updated: 2026-08-05
 ---
 
@@ -105,6 +105,38 @@ RecommendationEvidenceRevision
 
 AdvisorOverview
 
+AdvisorOverviewVersion
+
+Notification
+
+NotificationPolicy
+
+NotificationPlan
+
+NotificationTopicCursor
+
+NotificationPreference
+
+NotificationTopic
+
+NotificationThreadKey
+
+NotificationStatus
+
+NotificationTerminalReason
+
+NotificationReadState
+
+NotificationChannel
+
+NotificationDelivery
+
+DeliveryStatus
+
+DeliveryAttempt
+
+DeliveryEndpointReference
+
 ---
 
 ## À éviter
@@ -146,3 +178,9 @@ KPI sans définition versionnée
 Revenue pour un simple montant facturé ou encaissé
 
 RealTimeMetric sans garantie de fraîcheur
+
+Channel, Delivery ou ReadStatus sans qualification Notifications
+
+NotificationSent
+
+Delivered lorsqu'une soumission est seulement Accepted

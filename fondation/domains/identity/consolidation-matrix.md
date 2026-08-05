@@ -3,7 +3,7 @@ id: IDN-CONSOLIDATION-MATRIX
 title: Identity Consolidation Matrix
 status: Living Document
 owner: Product
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-05
 
 references:
@@ -197,6 +197,7 @@ récupération, la modification des credentials et `RevokeAllUserSessions`.
 | Permissions directes | Interdites sur User et Membership |
 | Autorisation | Toujours résolue dans un Workspace actif et pour un Membership actif |
 | Workspace | Référence externe validée par contrat public minimal |
+| Audience Notifications | Résolution bornée et revalidation avec endpoint opaque |
 
 ---
 
@@ -212,6 +213,7 @@ récupération, la modification des credentials et `RevokeAllUserSessions`.
 - [x] Les secrets sont absents des événements et journaux.
 - [x] Les effets externes utilisent une outbox ou un contrat de reprise explicite.
 - [x] Le contrat minimal de Workspace est documenté.
+- [x] Le contrat d'audience Notifications n'expose aucune adresse brute.
 - [x] Aucun nom déprécié n'est utilisé comme concept courant.
 - [x] Aucun lien ou `reference` ne cible une ressource absente.
 - [x] Les questions ouvertes restantes sont toutes classées dans `future.md`.

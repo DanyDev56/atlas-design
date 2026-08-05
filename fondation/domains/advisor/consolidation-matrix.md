@@ -3,7 +3,7 @@ id: ADV-CONSOLIDATION
 title: Advisor Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -101,6 +101,7 @@ normatives complètes.
 | Impact | qualitatif, sans gain garanti |
 | Preuve | révisions immuables, source et règle exactes |
 | Déduplication | fingerprint réaffirmé ou nouvelle identité si changement matériel |
+| Ordre public | AdvisorOverviewVersion monotone par Workspace |
 | Cycle | Generated vers Completed, Dismissed ou Expired |
 | Completion | confirmation humaine, pas exécution ni outcome |
 | Télémétrie | affichage, ouverture et clic hors du domaine |
@@ -113,6 +114,7 @@ normatives complètes.
 - [x] Les cinq règles possèdent déclencheur, action, validité et rang explicites.
 - [x] Le score de rang, ses poids, seuils et arrondi sont déterministes.
 - [x] L'overview contient une priorité principale et au plus deux alternatives.
+- [x] Chaque convergence Eligible appliquée avance AdvisorOverviewVersion.
 - [x] Une source insuffisante ou historique ne génère aucun fallback ancien.
 - [x] Chaque Recommendation possède une action allowlistée et une preuve.
 - [x] Réaffirmation, changement matériel et suppression sont distingués.

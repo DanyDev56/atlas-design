@@ -108,6 +108,16 @@ CRM ou Billing en 1.0 et n'exécute aucune action à la place de l'utilisateur.
 
 ## Notifications
 
-Diffuse les événements importants.
+Responsable :
 
-Ne prend aucune décision métier à la place du domaine source.
+- politique versionnée de diffusion des priorités Advisor ;
+- plans idempotents par événement source et destinataire ;
+- inbox personnelle et état lu/non lu ;
+- préférences InApp et Email ;
+- déduplication, fréquence et remplacement des messages ;
+- livraisons Email et distinction Accepted/Delivered.
+
+Consomme l'AdvisorOverview stabilisé, une audience Identity autorisée et le
+contexte public Workspace. Ne lit ni CRM, Billing, Analytics ou Business Health,
+ne transporte pas les communications sensibles Identity ou les documents
+Billing, et n'exécute aucune RecommendationAction.

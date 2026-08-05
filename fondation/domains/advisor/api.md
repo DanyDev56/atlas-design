@@ -3,7 +3,7 @@ id: ADV-PUBLIC-CONTRACT
 title: Advisor Public Contract
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -25,7 +25,8 @@ indépendantes du transport.
 
 ```text
 getAdvisorOverview(workspaceId)
-→ PrimaryRecommendation? + AlternativeRecommendations[0..2]
+→ AdvisorOverviewVersion + PrimaryRecommendation?
+  + AlternativeRecommendations[0..2]
 
 getRecommendation(workspaceId, recommendationId)
 → Recommendation
@@ -85,9 +86,40 @@ getAdvisorOverviewForNotification(workspaceId, recommendationEvaluationId)
 → NotificationAdvisorOverview
 ```
 
-La lecture exige `advisor.recommendations.consume` et retourne uniquement titre,
-résumé, Priority, ValidUntil et destination allowlistée. Elle ne révèle aucune
-preuve plus sensible que l'événement sans contrat explicite.
+La lecture exige `advisor.recommendations.consume`. Les réponses minimales sont :
+
+```text
+NotificationAdvisorOverview
+  RecommendationEvaluationId
+  AdvisorOverviewVersion
+  SourceOrder: (AsOf, SourcePublishedAt, BusinessHealthAssessmentId)
+  SourceEligibility
+  PrimaryRecommendation?
+    RecommendationId
+    RecommendationStatus
+    RecommendationPriority
+    NotificationTemplateKey
+    NotificationTemplateVersion
+    NotificationTemplateData
+    RecommendationAction
+    ValidUntil
+
+NotificationRecommendationView
+  RecommendationId
+  RecommendationStatus
+  RecommendationPriority
+  NotificationTemplateKey
+  NotificationTemplateVersion
+  NotificationTemplateData
+  RecommendationAction
+  ValidUntil
+  TerminalDecision?
+```
+
+NotificationTemplateData est typée, allowlistée et sans preuve détaillée. Le
+contrat ne retourne ni EvidenceReference, score interne, montant, Client ou
+document. RecommendationAction conserve sa RouteKey et ses capacités requises ;
+Notifications ne peut ni l'altérer ni l'exécuter.
 
 ## Intentions système internes
 

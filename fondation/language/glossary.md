@@ -3,7 +3,7 @@ id: LANG-001
 title: Glossary
 status: Stable
 owner: Product
-version: 1.7
+version: 1.8
 last_updated: 2026-08-05
 ---
 
@@ -730,6 +730,182 @@ Generated d'un Workspace.
 **Domaine**
 
 Advisor
+
+---
+
+# AdvisorOverviewVersion
+
+Ordre strictement croissant des convergences Eligible appliquées à
+AdvisorOverview dans un Workspace.
+
+**Domaine**
+
+Advisor
+
+---
+
+# Notification
+
+Message durable et personnel dérivé d'un fait métier déjà décidé, soumis à une
+politique de pertinence, de canal et de fréquence.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationPolicy
+
+Règles globales et versionnées définissant sources, audience requise,
+déduplication, canaux, fréquence et contenu minimal.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationPlan
+
+Process manager durable garantissant qu'un événement source reçoit une décision
+complète et idempotente pour toute son audience.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationTopicCursor
+
+Racine interne sérialisant les plans d'un NotificationTopic et empêchant la
+régression d'AdvisorOverviewVersion.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationPreference
+
+Choix et consentement de canaux d'un User dans un Workspace, sans contenir son
+endpoint de livraison.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationTopic
+
+Famille sémantique versionnée utilisée pour regrouper, remplacer et limiter la
+fréquence de Notifications comparables.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationThreadKey
+
+Clé opaque garantissant au plus une Notification Active par Workspace,
+destinataire et NotificationTopic.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationStatus
+
+État Active, Resolved, Superseded ou Expired décrivant la pertinence du message,
+indépendamment de sa lecture et de sa livraison.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationTerminalReason
+
+Raison structurée et compatible avec Resolved, Superseded ou Expired expliquant
+pourquoi une Notification n'est plus Active.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationReadState
+
+État Unread, Read ou NotApplicable décrivant la décision de lecture personnelle,
+indépendamment de NotificationStatus.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationDelivery
+
+Remise externe d'une Notification sur un NotificationChannel, avec endpoint
+opaque, clé fournisseur stable et tentatives immuables.
+
+**Domaine**
+
+Notifications
+
+---
+
+# NotificationChannel
+
+Canal allowlisté utilisé par une Notification. Notifications 1.0 reconnaît
+InApp et Email.
+
+**Domaine**
+
+Notifications
+
+---
+
+# DeliveryStatus
+
+État Pending, Dispatching, Accepted, Delivered, Failed, Suppressed ou Cancelled
+d'une NotificationDelivery. Accepted ne constitue pas une preuve de Delivered.
+
+**Domaine**
+
+Notifications
+
+---
+
+# DeliveryAttempt
+
+Tentative immuable d'une NotificationDelivery, numérotée et corrélée à la même
+ProviderIdempotencyKey.
+
+**Domaine**
+
+Notifications
+
+---
+
+# DeliveryEndpointReference
+
+Référence Identity opaque, versionnée et bornée vers un endpoint vérifié ; elle
+ne révèle jamais l'adresse brute à Notifications.
+
+**Domaine**
+
+Identity, consommée par Notifications
 
 ---
 

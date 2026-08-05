@@ -42,6 +42,10 @@ consommer tous les domaines précédents.
   réautorisent toujours l'utilisateur et traitent leurs propres commandes ;
 - Notifications consomme `RecommendationEvaluationCompleted` afin de considérer
   une priorité déjà stabilisée ;
+- Notifications relit l'AdvisorOverview exact, résout son audience auprès
+  d'Identity et vérifie état d'accès et locale auprès de Workspace ;
+- Identity ne lui fournit qu'une `DeliveryEndpointReference` opaque et
+  revalide le destinataire avant un dispatch ;
 - aucun calcul en aval n'autorise une mutation du domaine source.
 
 ---
@@ -49,6 +53,8 @@ consommer tous les domaines précédents.
 ## Dépendances interdites
 
 - Notifications modifiant CRM ;
+- Notifications lisant directement CRM, Billing, Analytics ou Business Health ;
+- Notifications transportant les tokens Identity ou les documents Billing ;
 - Analytics modifiant Billing ;
 - Business Health modifiant CRM ;
 - Business Health créant ou modifiant une Recommendation ;

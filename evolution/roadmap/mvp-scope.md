@@ -3,8 +3,8 @@ id: ROADMAP-001
 title: Atlas MVP Scope
 status: Draft
 owner: Product
-version: 0.1
-last_updated: 2026-07-30
+version: 0.2
+last_updated: 2026-08-05
 ---
 
 # Atlas MVP
@@ -81,7 +81,7 @@ Un utilisateur doit pouvoir :
 ### Notifications
 
 - notifications internes ;
-- emails importants ;
+- emails importants après consentement explicite ;
 - état lu ou non lu.
 
 ---

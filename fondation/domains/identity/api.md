@@ -3,7 +3,7 @@ id: IDN-PUBLIC-CONTRACT
 title: Identity Public Contract
 status: In Review
 owner: Product
-version: 1.0.1
+version: 1.1.0
 last_updated: 2026-08-05
 
 references:
@@ -12,6 +12,7 @@ references:
   - permissions.md
   - workflows.md
   - ../workspace/api.md
+  - ../notifications/integrations.md
 ---
 
 # Contrat public d'Identity
@@ -177,6 +178,52 @@ AuthorizationVersion
 Les autres domaines peuvent consulter les identifiants, clés, statuts et
 versions publiques du catalogue. Ils ne peuvent pas modifier une affectation de
 rôle sans passer par une commande Identity.
+
+---
+
+## Contrat d'audience fourni à Notifications
+
+Un workload Notifications borné peut résoudre les destinataires actuellement
+autorisés à recevoir un topic produit :
+
+```text
+resolveWorkspaceNotificationAudience(workspaceId, requiredPermissionKeys[],
+                                     audiencePurpose)
+→
+AudienceSnapshot
+  WorkspaceId
+  AudienceVersion
+  ResolvedAt
+  Recipients[]
+    UserId
+    MembershipId
+    DeliveryEndpointReference?
+```
+
+Chaque Recipient possède User, Membership et Role actifs et toutes les
+permissions demandées dans le même Workspace. `audiencePurpose` est allowlisté ;
+il n'autorise aucune extraction générique du répertoire.
+
+Avant un effet externe, Notifications revalide le destinataire :
+
+```text
+revalidateNotificationRecipient(workspaceId, userId,
+                                requiredPermissionKeys[], audienceVersion?,
+                                deliveryEndpointReference?)
+→
+NotificationRecipientValidation
+  Authorized
+  CurrentAudienceVersion
+  DeliveryEndpointReferenceValid?
+  DenialCategory?
+  ValidatedAt
+```
+
+Ces lectures exigent `identity.notification-audience.read`. La référence
+d'endpoint est opaque, versionnée, bornée au User et inutilisable hors du port
+de livraison autorisé. Identity ne retourne jamais l'adresse brute, les détails
+du Role ou le graphe des permissions. Une réduction de privilèges invalide
+immédiatement la revalidation.
 
 ---
 

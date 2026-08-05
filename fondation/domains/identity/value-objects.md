@@ -3,7 +3,7 @@ id: IDN-FOUNDATION-VALUE-OBJECTS
 title: Value Objects
 status: In Review
 owner: Product
-version: 2.1.0
+version: 2.2.0
 last_updated: 2026-08-05
 
 references:
@@ -1451,6 +1451,28 @@ Les raisons importantes ne doivent pas être uniquement du texte libre.
 RoleId != ExternalReference
 UserId != ExternalDirectoryId
 ```
+
+---
+
+## DeliveryEndpointReference
+
+Handle opaque, immuable et versionné vers l'adresse principale vérifiée d'un
+User pour un purpose de livraison autorisé.
+
+```text
+DeliveryEndpointReference
+  EndpointReferenceId
+  UserId
+  Channel: Email
+  VerificationVersion
+  Purpose
+  ValidUntil?
+```
+
+Le contrat public ne sérialise que le handle opaque. UserId, adresse normalisée,
+preuve et version interne restent dans Identity. La référence devient invalide
+après changement d'adresse, retrait de vérification, désactivation du User ou
+révocation du purpose.
 
 ---
 

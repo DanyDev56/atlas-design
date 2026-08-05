@@ -3,7 +3,7 @@ id: DOMAIN-IDENTITY-SCOPE
 title: Identity Scope
 status: In Review
 owner: Product
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-05
 
 references:
@@ -187,9 +187,9 @@ Le domaine ne génère jamais de `Recommendation`.
 
 ## Notifications
 
-Le domaine peut produire des événements.
-
-Il ne décide jamais de la manière dont les notifications sont envoyées.
+Identity fournit une audience autorisée et des références d'endpoint opaques.
+Il ne choisit jamais topic, contenu, canal, fréquence ou moment de diffusion.
+Ses propres communications de sécurité restent dans son port spécialisé.
 
 ---
 
@@ -253,7 +253,7 @@ et par des contrats publics versionnés.
 | CRM | Vérifie les autorisations avant toute opération. |
 | Billing | Vérifie les autorisations avant toute opération. |
 | Advisor | Vérifie les autorisations avant toute opération. |
-| Notifications | Consomme les événements produits par Identity. |
+| Notifications | Consomme une audience autorisée et revalidée, jamais les événements sensibles Identity en 1.0. |
 
 ---
 

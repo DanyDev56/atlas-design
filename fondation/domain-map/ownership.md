@@ -112,4 +112,14 @@ Business Health ou l'exécution de l'action dans le domaine cible.
 
 Possède :
 
+- NotificationPolicy
+- NotificationTopicCursor
+- NotificationPlan
 - Notification
+- NotificationPreference
+- NotificationDelivery
+- DeliveryAttempt
+
+Notifications possède la décision de diffusion, le message et sa remise. Il ne
+possède jamais Recommendation, audience, adresse e-mail, Workspace ou action du
+domaine cible.
