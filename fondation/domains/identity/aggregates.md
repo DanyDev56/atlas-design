@@ -1,10 +1,10 @@
 ---
 id: IDN-AGGREGATES
 title: Aggregates
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -12,6 +12,8 @@ references:
   - entities.md
   - value-objects.md
   - invariants.md
+  - workflows.md
+  - events.md
 ---
 
 # Aggregates
@@ -31,10 +33,12 @@ Les agrégats communiquent entre eux uniquement par leurs identifiants ou par de
 Les agrégats du domaine respectent les principes suivants.
 
 - Un agrégat possède une unique racine (`Aggregate Root`).
-- Une transaction ne modifie qu'un seul agrégat.
+- Une transaction modifie un seul agrégat par défaut.
 - Les autres agrégats sont référencés uniquement par leur identifiant.
 - Les règles métier locales sont garanties à l'intérieur de l'agrégat.
 - Les règles métier transversales sont assurées par des processus métier ou des événements.
+- Une intention atomique multi-agrégats est admise lorsque l'invariant ne peut
+  tolérer aucun état intermédiaire.
 
 ---
 
@@ -68,12 +72,8 @@ Garantir la cohérence de l'identité d'une personne.
 
 - `User`
 
-## Référence
-
-- `MembershipId`
-- `SessionId`
-
-Le `User` ne contient jamais directement les `Membership` ni les `Session`.
+Les `Membership` et `Session` sont retrouvés par `UserId`. Le `User` ne contient
+ni leurs entités ni une liste transactionnelle de leurs identifiants.
 
 ---
 
@@ -118,7 +118,7 @@ Garantir la cohérence d'un ensemble de `Permission`.
 ## Référence
 
 - `WorkspaceId`
-- `PermissionKey`
+- `PermissionId`
 
 Le `Role` référence des `Permission`, mais ne les possède pas.
 

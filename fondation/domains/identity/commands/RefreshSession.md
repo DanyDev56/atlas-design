@@ -1,12 +1,20 @@
 ---
 id: IDN-CMD-REFRESH-SESSION
 title: RefreshSession
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Session
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-013
+  - IDN-INV-017
+  - IDN-INV-018
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,8 +24,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/SessionRefreshed.md
-  - ../events/SessionRefreshRejected.md
+  - ../events.md
   - CreateSession.md
   - RevokeSession.md
   - RevokeAllUserSessions.md
@@ -484,20 +491,17 @@ Recommandation :
     Active
     → refresh allowed
 
-    Pending
+    PendingVerification
     → refresh only for restricted activation Session
-
-    Suspended
-    → refresh forbidden
-
-    Locked
-    → refresh forbidden
 
     Disabled
     → refresh forbidden
 
     Removed
     → refresh forbidden
+
+Un `AuthenticationLockStatus = TemporarilyLocked` interdit également le refresh,
+mais ne constitue pas un statut métier du `User`.
 
 ---
 
@@ -1317,17 +1321,14 @@ L'événement ne doit jamais contenir :
 
 ---
 
-## 57. Événement de sécurité
+## 57. Signal de sécurité
 
 En cas de rejeu :
 
-    SessionRefreshRejected
-
-ou :
-
     RefreshTokenReplayDetected
 
-peut être produit.
+peut être enregistré dans le flux de sécurité restreint. Ce signal n'est pas un
+Domain Event et un refus ne change pas l'état métier.
 
 Contenu recommandé :
 
@@ -1456,13 +1457,13 @@ La session est révoquée.
 
 Le User n'existe plus.
 
-### UserSuspended
+### UserDisabled
 
-Le User est suspendu.
+Le User est désactivé.
 
-### UserLocked
+### AuthenticationTemporarilyLocked
 
-Le User est verrouillé.
+Le point d'authentification du User est temporairement verrouillé.
 
 ### UserDisabled
 
@@ -1862,21 +1863,12 @@ L'idempotence doit également traiter le problème du résultat contenant un cre
 
 Le système ne doit pas stocker le refresh token brut dans l'enregistrement d'idempotence.
 
-Deux stratégies sont possibles.
-
-### Strategy A — secure credential recovery
-
-Stocker uniquement :
+Le résultat d'idempotence stocke uniquement :
 
     CredentialId
 
-et permettre au client de récupérer le credential via un canal sécurisé si la reprise est autorisée.
-
-### Strategy B — request-bound replay
-
-Associer le résultat à une empreinte de requête et conserver le secret dans un composant sécurisé avec durée de vie très courte.
-
-Décision recommandée :
+Le client récupère le secret via un canal sécurisé, lié à l'empreinte de la
+requête et de très courte durée. Le contrat canonique est :
 
     Secret material is handled outside the domain
     and never stored in ordinary idempotency records.
@@ -2000,9 +1992,9 @@ La validité doit être vérifiée au moment de l'opération transactionnelle.
 
 ### User suspendu pendant le refresh
 
-Si la suspension gagne :
+Si la désactivation gagne :
 
-    UserSuspended
+    UserDisabled
 
 ### User change son mot de passe pendant le refresh
 

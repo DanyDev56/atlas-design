@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-SESSION
 title: Session
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -36,6 +36,10 @@ La `Session` représente une authentification valide d'un `User`.
 Elle matérialise une connexion active à Atlas et permet d'identifier le `User` lors de ses interactions avec le système.
 
 Une même personne peut disposer de plusieurs `Session` simultanément, par exemple depuis plusieurs appareils.
+
+Une session part de `Active` et se termine par `Expired` ou `Revoked`. Ces états
+sont terminaux. Une élévation temporaire augmente son assurance sans créer de
+permission et sans changer ce cycle de vie.
 
 ---
 

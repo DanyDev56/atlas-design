@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-CHANGE-MEMBERSHIP-ROLE
 title: ChangeMembershipRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipRoleChanged.md
+  - ../events.md
   - CreateMembership.md
   - RestoreMembership.md
   - SuspendMembership.md
@@ -153,29 +153,13 @@ L’acteur doit toujours être identifiable.
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.change-role
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.members.manage
-```
-
-Dans un modèle plus fin, les permissions suivantes peuvent être distinguées :
-
-```text
-workspace.members.promote
-workspace.members.demote
-workspace.members.assign-role
-workspace.owners.assign
-workspace.owners.remove
-```
-
-L’autorisation ne doit pas dépendre uniquement de la possession d’une permission générique.
+La possession de cette permission est nécessaire mais non suffisante.
 
 Elle doit également tenir compte de :
 
@@ -189,6 +173,10 @@ Workspace
 ChangeType
 ChangeSource
 ```
+
+Les promotions, rétrogradations et changements impliquant le rôle owner sont
+des cas de politique contextuelle ; ils n'introduisent pas de clés de permission
+supplémentaires en 1.0.
 
 ---
 
@@ -715,10 +703,11 @@ Le système vérifie que l’acteur peut attribuer le rôle cible.
 
 Modèles possibles :
 
-#### Permission dédiée
+#### Permission canonique et politique contextuelle
 
 ```text
-workspace.owners.assign
+Actor has workspace.members.change-role
+AND assignment policy allows TargetRoleId
 ```
 
 #### Liste de rôles assignables
@@ -1384,13 +1373,8 @@ ServiceAccount
 BillingSystem
 ```
 
-Le rôle peut exposer une propriété telle que :
-
-```text
-AssignmentMode
-```
-
-Valeurs possibles :
+Le rôle expose une `RoleAssignmentPolicy` dont `AllowedSources` peut notamment
+contenir :
 
 ```text
 Manual
@@ -1399,7 +1383,7 @@ InvitationOnly
 SynchronizationOnly
 ```
 
-La commande doit respecter ce mode.
+La commande doit respecter la politique complète et sa version courante.
 
 ---
 
@@ -1480,26 +1464,17 @@ Cette approche permet de modéliser des règles non linéaires.
 
 ---
 
-## Permission d’attribution
+## Permission et politique d'attribution
 
-Une autre approche consiste à protéger chaque rôle par une permission.
-
-Exemple :
+Tous les changements utilisent la permission canonique :
 
 ```text
-TargetRole.RequiredAssignmentPermission
+workspace.members.change-role
 ```
 
-Valeurs :
-
-```text
-workspace.roles.assign-owner
-workspace.roles.assign-admin
-workspace.roles.assign-manager
-workspace.roles.assign-member
-```
-
-Cette stratégie peut être combinée avec un graphe de délégation.
+Le graphe de délégation et `TargetRole.RoleAssignmentPolicy` déterminent ensuite
+si l'acteur peut attribuer le rôle cible. Identity 1.0 n'introduit pas une clé de
+permission par rôle.
 
 ---
 
@@ -2264,15 +2239,15 @@ Il peut violer l’invariant.
 
 ---
 
-## Commande spécialisée recommandée
+## Commande de transfert retenue
 
-Pour un transfert structurant, une commande dédiée peut être introduite :
+Pour un transfert structurant, Identity utilise :
 
 ```text
-TransferWorkspaceOwnership
+TransferMembershipRole
 ```
 
-Elle réaliserait atomiquement :
+Elle réalise atomiquement :
 
 ```text
 promote new Owner
@@ -2280,7 +2255,8 @@ promote new Owner
 optionally demote previous Owner
 ```
 
-Cependant, `ChangeMembershipRole` reste valide pour les changements unitaires.
+`ChangeMembershipRole` reste réservé aux changements unitaires qui ne forment pas
+une décision de transfert indissociable.
 
 ---
 
@@ -2959,7 +2935,8 @@ lorsque le membre rejoint à nouveau le `Workspace`.
 
 ### Les changements d’ownership complexes peuvent utiliser une commande dédiée
 
-`TransferWorkspaceOwnership` peut coordonner atomiquement une promotion et une rétrogradation.
+`TransferMembershipRole` coordonne atomiquement la promotion du nouvel owner et
+le rôle de remplacement de l'ancien owner.
 
 ---
 

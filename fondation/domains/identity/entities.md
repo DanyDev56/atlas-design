@@ -1,10 +1,10 @@
 ---
 id: IDN-ENTITIES
 title: Entities
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 2.0.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -38,7 +38,7 @@ Les définitions présentes dans ce document constituent la référence de modé
 | Identifiant | `UserId` |
 | Cycle de vie | Indépendant |
 | Création | `CreateUser` |
-| Suppression | Non (désactivation uniquement) |
+| Suppression | Logique par `RemoveUser` |
 
 ---
 
@@ -74,11 +74,17 @@ Il ne change jamais pendant toute la durée de vie du `User`.
 
 Le `User` possède notamment :
 
-- son identifiant ;
-- son adresse e-mail ;
-- son nom d'affichage ;
-- son état ;
-- ses dates de création et de mise à jour.
+- `UserId` ;
+- `PrimaryEmailAddress` ;
+- `EmailVerificationStatus` ;
+- `DisplayName` ;
+- `UserStatus` ;
+- `IdentityType` ;
+- `AuthenticationLockStatus` ;
+- `UserSecurityVersion` ;
+- ses dates de création et de mise à jour ;
+- les dates et raisons structurées de désactivation ou de retrait lorsqu'elles
+  existent.
 
 Les détails techniques de stockage ne sont pas définis dans ce document.
 
@@ -98,13 +104,19 @@ Les détails techniques de stockage ne sont pas définis dans ce document.
 
 Le cycle de vie d'un `User` est indépendant des autres entités.
 
-Un `User` peut :
+```text
+PendingVerification
+  └──► Active
+        ├──► Disabled ──► Active
+        └──► Removed
 
-- être créé ;
-- être authentifié ;
-- rejoindre un ou plusieurs `Workspace` ;
-- quitter tous les `Workspace` ;
-- rester présent dans Atlas sans appartenir à aucun `Workspace`.
+Disabled ──► Removed
+```
+
+`Removed` est terminal.
+
+Un `User` actif peut rejoindre ou quitter plusieurs `Workspace`. Il peut rester
+actif sans posséder aucun `Membership`.
 
 ---
 
@@ -114,7 +126,13 @@ Le `User` ne représente jamais une appartenance.
 
 Toutes les autorisations sont déterminées par les `Membership` associés au `User`.
 
-La suppression physique d'un `User` n'est pas autorisée afin de préserver l'intégrité des données historiques.
+La suppression physique d'un `User` n'est pas une transition métier. Le retrait
+logique préserve les identifiants et les références d'audit. L'effacement ou
+l'anonymisation de données personnelles relève d'une politique de confidentialité
+distincte.
+
+Un `User` `PendingVerification`, `Disabled` ou `Removed` ne possède aucune
+permission effective.
 
 ---
 
@@ -123,9 +141,12 @@ La suppression physique d'un `User` n'est pas autorisée afin de préserver l'in
 Le `User` participe notamment aux commandes suivantes :
 
 - `commands/CreateUser.md`
-- `commands/UpdateUser.md`
+- `commands/VerifyUserEmail.md`
+- `commands/UpdateUserProfile.md`
+- `commands/ChangeUserEmail.md`
 - `commands/DisableUser.md`
 - `commands/EnableUser.md`
+- `commands/RemoveUser.md`
 
 ---
 
@@ -134,9 +155,13 @@ Le `User` participe notamment aux commandes suivantes :
 Le `User` peut produire les événements suivants :
 
 - `UserCreated`
-- `UserUpdated`
+- `UserEmailVerified`
+- `UserActivated`
+- `UserProfileUpdated`
+- `UserEmailChanged`
 - `UserDisabled`
 - `UserEnabled`
+- `UserRemoved`
 
 ---
 
@@ -499,10 +524,10 @@ Les fonctions particulières d’un rôle système sont identifiées par une cl�
 |----------|--------|
 | Type | System concept |
 | Nature | Immutable definition |
-| Identifiant | `PermissionKey` |
+| Identifiant | `PermissionId` |
 | Périmètre | Global à Atlas |
-| Cycle de vie | Géré par la plateforme |
-| Création | Définie par Atlas |
+| Cycle de vie | Défini par `OwningDomain`, enregistré par Identity |
+| Création | Déclarée par un domaine Atlas |
 | Suppression | Non, uniquement dépréciation |
 
 ---
@@ -533,24 +558,25 @@ Elle permet également de séparer :
 
 ## Identité
 
-L’identité d’une `Permission` est portée par une `PermissionKey` unique et immuable.
+L'identité technique stable d'une `Permission` est portée par `PermissionId`.
+Sa `PermissionKey` unique et immuable constitue son contrat fonctionnel.
 
 Exemples :
 
 ```text
-clients.read
-clients.create
-clients.update
-clients.delete
+crm.clients.read
+crm.clients.create
+crm.clients.update
+crm.clients.delete
 
-quotes.read
-quotes.create
-quotes.send
+billing.quotes.read
+billing.quotes.create
+billing.quotes.send
 
 workspace.members.read
-workspace.members.manage
+workspace.members.change-role
 workspace.roles.read
-workspace.roles.manage
+workspace.roles.create
 ```
 
 La clé constitue le contrat stable de la `Permission`.
@@ -563,13 +589,7 @@ Son libellé ou sa description peuvent évoluer sans modifier son identité.
 
 Une `PermissionKey` suit une structure hiérarchique explicite.
 
-Format recommandé :
-
-```text
-<resource>.<action>
-```
-
-ou, lorsqu’un contexte intermédiaire est nécessaire :
+Format canonique :
 
 ```text
 <domain>.<resource>.<action>
@@ -578,10 +598,10 @@ ou, lorsqu’un contexte intermédiaire est nécessaire :
 Exemples :
 
 ```text
-clients.read
-invoices.issue
-workspace.members.manage
-workspace.roles.manage
+crm.clients.read
+billing.invoices.issue
+workspace.members.change-role
+workspace.roles.create
 ```
 
 La clé utilise :
@@ -598,6 +618,7 @@ La clé utilise :
 
 Une définition de `Permission` possède notamment :
 
+- son `PermissionId` ;
 - sa clé ;
 - son nom lisible ;
 - sa description ;
@@ -639,7 +660,8 @@ Sa dépréciation doit prévoir une stratégie de migration explicite.
 
 ## Règles métier
 
-Une `Permission` est toujours définie par Atlas.
+Une `Permission` est définie par son `OwningDomain` et enregistrée dans le
+catalogue global opéré par Identity.
 
 Un `Workspace` ne peut pas créer sa propre `Permission`.
 
@@ -668,31 +690,31 @@ Exemples :
 ### Gestion des clients
 
 ```text
-clients.read
-clients.create
-clients.update
-clients.delete
+crm.clients.read
+crm.clients.create
+crm.clients.update
+crm.clients.delete
 ```
 
 ### Gestion des devis
 
 ```text
-quotes.read
-quotes.create
-quotes.update
-quotes.send
-quotes.accept
-quotes.refuse
+billing.quotes.read
+billing.quotes.create
+billing.quotes.update
+billing.quotes.send
+billing.quotes.accept
+billing.quotes.refuse
 ```
 
 ### Gestion des factures
 
 ```text
-invoices.read
-invoices.create
-invoices.issue
-invoices.mark-paid
-invoices.void
+billing.invoices.read
+billing.invoices.create
+billing.invoices.issue
+billing.invoices.mark-paid
+billing.invoices.void
 ```
 
 ### Administration du `Workspace`
@@ -701,9 +723,9 @@ invoices.void
 workspace.settings.read
 workspace.settings.update
 workspace.members.read
-workspace.members.manage
+workspace.members.change-role
 workspace.roles.read
-workspace.roles.manage
+workspace.roles.create
 ```
 
 Ces regroupements sont pédagogiques et n’affectent pas l’identité des `Permission`.
@@ -742,9 +764,9 @@ Elle intervient néanmoins dans les commandes suivantes :
 - `commands/GrantPermissionToRole.md`
 - `commands/RevokePermissionFromRole.md`
 - `commands/CreateRole.md`
-- `commands/UpdateRolePermissions.md`
 
-Les opérations d’introduction ou de dépréciation d’une `Permission` relèvent de l’évolution interne de la plateforme Atlas.
+Les opérations d'introduction ou de dépréciation d'une `Permission` relèvent du
+domaine propriétaire et du workflow interne de mise à jour du catalogue.
 
 ---
 
@@ -1061,6 +1083,8 @@ La `Session` participe notamment aux commandes suivantes :
 - `commands/CreateSession.md`
 - `commands/RefreshSession.md`
 - `commands/ElevateSession.md`
+- `commands/ExpireSessionElevation.md`
+- `commands/TerminateSessionElevation.md`
 - `commands/ExpireSession.md`
 - `commands/RevokeSession.md`
 - `commands/RevokeAllUserSessions.md`
@@ -1075,6 +1099,7 @@ La `Session` peut produire les événements suivants :
 - `SessionRefreshed`
 - `SessionElevated`
 - `SessionElevationExpired`
+- `SessionElevationTerminated`
 - `SessionExpired`
 - `SessionRevoked`
 - `AllUserSessionsRevoked`

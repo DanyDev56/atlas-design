@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-SEND-INVITATION
 title: SendInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -16,8 +16,7 @@ references:
   - ../invariants.md
   - ../permissions.md
   - ../integrations.md
-  - ../events/InvitationSendRequested.md
-  - ../events/InvitationSent.md
+  - ../events.md
   - CreateInvitation.md
   - ResendInvitation.md
 ---
@@ -73,16 +72,10 @@ Son identité ou son origine doit rester traçable.
 
 ## Permission requise
 
-Lorsqu’elle est demandée par un `User`, la permission recommandée est :
+Lorsqu'elle est demandée par un `User`, la permission canonique est :
 
 ```text
 workspace.members.invite
-```
-
-ou, si le catalogue retient une permission plus générale :
-
-```text
-workspace.members.manage
 ```
 
 Lorsqu’elle est déclenchée automatiquement après `InvitationCreated`, l’autorisation découle du workflow ayant déjà validé la création.
@@ -468,6 +461,10 @@ Il peut contenir :
 Le `ProviderMessageId` est une référence technique facultative.
 
 Il ne devient pas l’identité métier de l’`Invitation`.
+
+`InvitationSendRequested` est un flux interne restreint : l'adresse brute y est
+admise uniquement parce que le canal de communication en a besoin. Elle est
+exclue de toute exposition publique et soumise à la rétention minimale.
 
 ---
 

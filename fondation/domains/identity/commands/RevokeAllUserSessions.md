@@ -1,12 +1,19 @@
 ---
 id: IDN-CMD-REVOKE-ALL-USER-SESSIONS
 title: RevokeAllUserSessions
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-08-05
 
 aggregate: User
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-013
+  - IDN-INV-018
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,8 +23,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/AllUserSessionsRevoked.md
-  - ../events/UserSessionRevocationRejected.md
+  - ../events.md
   - CreateSession.md
   - RefreshSession.md
   - ElevateSession.md
@@ -153,9 +159,9 @@ La granularité est différente.
 
 ---
 
-## 6. Distinction avec UserSuspended
+## 6. Distinction avec DisableUser
 
-Suspendre un compte signifie :
+Désactiver un compte signifie :
 
     future authentications forbidden
 
@@ -163,7 +169,7 @@ mais les politiques peuvent également imposer :
 
     revoke every current Session
 
-La suspension peut donc appeler :
+`DisableUser` peut donc orchestrer :
 
     RevokeAllUserSessions
 
@@ -171,7 +177,7 @@ mais les deux commandes restent indépendantes.
 
 ---
 
-## 7. Distinction avec UserLocked
+## 7. Distinction avec AuthenticationLockStatus
 
 Le verrouillage empêche généralement une nouvelle authentification.
 
@@ -996,8 +1002,8 @@ Exemples :
     AccountCompromised
     DeviceCompromised
     RefreshCredentialReplay
-    UserSuspended
-    UserLocked
+    UserDisabled
+    AuthenticationTemporarilyLocked
     UserRemoved
     AdministrativeRevocation
     IdentityProviderLogout
@@ -1106,16 +1112,14 @@ Le User reste la racine logique de la commande.
 
 ## 68. États possibles du User
 
-Exemples :
+Identity 1.0 définit :
 
+    PendingVerification
     Active
-    Pending
-    Suspended
-    Locked
     Disabled
     Removed
 
-Toutes les politiques ne permettent pas les mêmes comportements.
+La révocation de sessions reste autorisée dans chacun de ces états.
 
 ---
 
@@ -1127,23 +1131,15 @@ La commande peut poursuivre normalement.
 
 ---
 
-## 70. User Suspended
+## 70. User PendingVerification
 
-La révocation est généralement autorisée.
+Les éventuelles sessions restreintes d'activation peuvent être révoquées.
 
-Elle accompagne souvent la suspension.
-
----
-
-## 71. User Locked
-
-Même logique.
-
-Le verrouillage n'empêche pas la révocation.
+La révocation n'active jamais le `User`.
 
 ---
 
-## 72. User Disabled
+## 71. User Disabled
 
 Les sessions restantes peuvent être terminées.
 
@@ -1151,25 +1147,21 @@ La commande reste valide.
 
 ---
 
-## 73. User Removed
+## 72. User Removed
 
-Deux stratégies existent.
-
-### Refus
-
-Le User n'existe plus.
-
-ou
-
-### Acceptation
-
-Les sessions résiduelles sont nettoyées.
-
-La politique du projet doit être explicite.
+La commande accepte le `User` retiré afin de terminer les sessions résiduelles.
+Ce cas est nécessaire au workflow `RemoveUser` et ne réactive aucun accès.
 
 ---
 
-## 74. Recommandation
+## 73. Verrouillage d'authentification
+
+Un `AuthenticationLockStatus = TemporarilyLocked` ne change pas le statut
+métier du `User` et n'empêche jamais la révocation.
+
+---
+
+## 74. Décision
 
 Pour Atlas :
 
@@ -1565,15 +1557,8 @@ Si une session possède :
 
     Active Elevation
 
-celle-ci devient immédiatement :
-
-    Revoked
-
-ou
-
-    Ineffective
-
-selon le modèle retenu.
+celle-ci devient immédiatement inefficace avec la révocation de sa session. Une
+fin anticipée indépendante utilise `TerminateSessionElevation`.
 
 ---
 

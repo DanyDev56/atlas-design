@@ -1,12 +1,23 @@
 ---
 id: IDN-CMD-REVOKE-PERMISSION-FROM-ROLE
 title: RevokePermissionFromRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-004
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-011
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -16,7 +27,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RolePermissionRevoked.md
+  - ../events.md
   - CreateRole.md
   - GrantPermissionToRole.md
   - ChangeRoleAssignmentPolicy.md
@@ -140,7 +151,7 @@ ExplicitPermissionSet
 ## Exemple d’implication
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 ```
 
 implique :
@@ -152,7 +163,7 @@ workspace.members.read
 Le rôle possède explicitement :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 workspace.members.read
 ```
 
@@ -166,14 +177,14 @@ Après révocation :
 
 ```text
 ExplicitPermissionSet:
-- workspace.members.manage
+- workspace.members.change-role
 ```
 
 mais :
 
 ```text
 EffectivePermissionSet:
-- workspace.members.manage
+- workspace.members.change-role
 - workspace.members.read
 ```
 
@@ -313,28 +324,16 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.revoke-permission
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires :
-
-```text
-workspace.roles.revoke-privileged-permission
-workspace.roles.revoke-security-permission
-workspace.roles.revoke-owner-permission
-workspace.roles.revoke-system-permission
-workspace.roles.override-external-permissions
-workspace.roles.override-template-permissions
-```
+La sensibilité de la permission cible, le type de rôle et sa source de contrôle
+sont évalués par des politiques contextuelles. Une approbation, une séparation
+des responsabilités ou une réauthentification peut être exigée sans introduire
+de clé de révocation alternative en 1.0.
 
 ---
 
@@ -346,18 +345,15 @@ Une `Permission` peut définir :
 Permission.RequiredRevokePermission
 ```
 
-Exemple :
-
-```text
-workspace.security.revoke-critical-permission
-```
+La valeur doit référencer une permission active du catalogue. En 1.0, une
+permission critique peut conserver `workspace.roles.revoke-permission` comme
+autorité et ajouter une approbation ou une séparation des responsabilités.
 
 La condition devient :
 
 ```text
-Actor has general RevokePermissionFromRole permission
-AND
-Actor has Permission.RequiredRevokePermission
+Actor has workspace.roles.revoke-permission
+AND Actor satisfies Permission.RequiredRevokePermission when distinct
 ```
 
 ---
@@ -402,8 +398,8 @@ Exemple :
 
 ```text
 Actor holds Role A
-Role A is the only Role with workspace.roles.manage
-Actor revokes workspace.roles.manage from Role A
+Role A is the only Role with workspace.roles.change-assignment-policy
+Actor revokes workspace.roles.change-assignment-policy from Role A
 ```
 
 Le `Workspace` peut perdre toute capacité locale d’administration des rôles.
@@ -647,17 +643,9 @@ La révocation doit rester possible afin de nettoyer les références obsolètes
 
 Si l’affectation existe encore mais que la définition de permission est introuvable, le domaine est incohérent.
 
-Deux stratégies existent :
-
-### Refus strict
-
-```text
-PermissionDefinitionNotFound
-```
-
-### Révocation de récupération
-
-Autoriser une révocation administrative en utilisant le `PermissionId` historique.
+La commande ordinaire échoue avec `PermissionDefinitionNotFound`. Un
+`SystemActor` de récupération peut retirer l'affectation orpheline à partir du
+`PermissionId` historique afin de restaurer `IDN-INV-004`.
 
 ---
 
@@ -699,7 +687,7 @@ Même si la permission est effective par implication, elle ne peut pas être ré
 Exemple :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 implies
 workspace.members.read
 ```
@@ -707,7 +695,7 @@ workspace.members.read
 Le rôle ne possède explicitement que :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 ```
 
 Une demande de révocation de :
@@ -769,9 +757,9 @@ SystemType = Owner
 Exemples conceptuels :
 
 ```text
-workspace.members.manage
-workspace.roles.manage
-workspace.ownership.transfer
+workspace.members.change-role
+workspace.roles.change-assignment-policy
+workspace.members.transfer-role
 ```
 
 La liste exacte appartient à la politique produit.
@@ -879,31 +867,13 @@ LocallyManaged assignment -> local revocation allowed
 
 ## Dépendances inverses
 
-Une permission peut être requise par une autre permission explicitement présente.
+Une permission peut être requise par une autre permission explicitement
+présente. Identity 1.0 n'en déclare aucune dans son propre catalogue, mais la
+commande traite ce graphe pour les permissions enregistrées par les autres
+domaines et les évolutions futures.
 
-Exemple :
-
-```text
-workspace.members.manage
-requires
-workspace.members.read
-```
-
-Le rôle possède les deux explicitement.
-
-Révoquer :
-
-```text
-workspace.members.read
-```
-
-rendrait :
-
-```text
-workspace.members.manage
-```
-
-invalide.
+Lorsqu'une telle relation est déclarée, la permission requise ne peut pas être
+révoquée tant que la permission dépendante reste explicitement affectée.
 
 ---
 
@@ -1480,7 +1450,7 @@ Avant exécution :
 - le rôle existe ;
 - le workspace existe ;
 - le rôle appartient au workspace ;
-- le rôle n’est ni archivé ni supprimé ;
+- le rôle n'est pas archivé ;
 - la permission est explicitement affectée ;
 - l’acteur ou le workflow est autorisé ;
 - la source de révocation contrôle l’affectation ;
@@ -2062,7 +2032,7 @@ Elle ne signifie pas que plusieurs affectations explicites ont été retirées.
 
 ---
 
-## Événements secondaires possibles
+## Signaux secondaires possibles
 
 ```text
 RoleEffectivePermissionLost
@@ -2073,7 +2043,8 @@ RoleAuthorizationCacheInvalidationRequested
 RoleSessionsReevaluationRequested
 ```
 
-Ils sont produits uniquement si leur condition métier est satisfaite.
+Ils sont enregistrés uniquement si leur condition est satisfaite et ne font pas
+partie des Domain Events 1.0.
 
 ---
 
@@ -2350,8 +2321,8 @@ La continuité administrative peut dépendre de plusieurs rôles.
 Exemple :
 
 ```text
-Role A has workspace.roles.manage
-Role B has workspace.roles.manage
+Role A has workspace.roles.change-assignment-policy
+Role B has workspace.roles.change-assignment-policy
 ```
 
 Deux révocations concurrentes peuvent retirer la permission des deux rôles.
@@ -2649,12 +2620,6 @@ Le workspace n’autorise pas l’opération.
 ### RoleArchived
 
 Le rôle archivé est immuable.
-
----
-
-### RoleRemoved
-
-Le rôle supprimé ne peut pas être modifié.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-LEAVE-WORKSPACE
 title: LeaveWorkspace
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -17,7 +17,7 @@ references:
   - ../invariants.md
   - ../workflows.md
   - ../permissions.md
-  - ../events/MembershipLeft.md
+  - ../events.md
   - CreateMembership.md
   - RestoreMembership.md
   - SuspendMembership.md
@@ -238,13 +238,8 @@ AND
 Membership.Status = Active
 ```
 
-Une capability explicite peut néanmoins être utilisée :
-
-```text
-workspace.members.leave
-```
-
-Cette capability doit être implicitement accordée au membre actif et ne pas dépendre d’un `Role` administrable ordinaire.
+Cette capacité est intrinsèque au membre actif et ne dépend pas d'un `Role`
+administrable ordinaire.
 
 ---
 
@@ -1128,7 +1123,7 @@ La commande ne produit pas :
 MembershipRemoved
 MembershipSuspended
 MembershipRoleChanged
-UserDeleted
+UserRemoved
 SessionRevoked
 WorkspaceClosed
 ```

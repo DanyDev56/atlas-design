@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-SUSPEND-MEMBERSHIP
 title: SuspendMembership
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipSuspended.md
+  - ../events.md
   - CreateMembership.md
   - RestoreMembership.md
   - ReactivateMembership.md
@@ -175,16 +175,10 @@ AdministrativeOperator
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.suspend
-```
-
-À défaut, une permission plus générale peut être utilisée :
-
-```text
-workspace.members.manage
 ```
 
 L’autorisation doit tenir compte de :
@@ -535,11 +529,8 @@ ou une politique plus explicite fondée sur les permissions.
 
 La hiérarchie ne doit pas être supposée si le modèle de rôles ne la définit pas.
 
-Une permission dédiée peut être nécessaire pour suspendre un owner :
-
-```text
-workspace.owners.suspend
-```
+La suspension d'un owner utilise toujours `workspace.members.suspend`, complété
+par la politique d'ownership et la protection du dernier owner actif.
 
 ---
 
@@ -1144,7 +1135,7 @@ La suppression ne doit pas être appliquée à partir d’une version obsolète 
 
 ### SuspendMembership contre ChangeMembershipRole
 
-Deux stratégies sont possibles.
+Les commandes concurrentes sont sérialisées par la version du `Membership`.
 
 #### Suspension gagne en premier
 

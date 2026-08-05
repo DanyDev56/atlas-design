@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-REVOKE-INVITATION
 title: RevokeInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -15,7 +15,7 @@ references:
   - ../relationships.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/InvitationRevoked.md
+  - ../events.md
   - CreateInvitation.md
   - SendInvitation.md
   - ResendInvitation.md
@@ -70,22 +70,10 @@ L’acteur doit être identifié ou représenté par un `SystemActor` explicite.
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.invite
-```
-
-ou, selon la granularité retenue :
-
-```text
-workspace.members.manage
-```
-
-Une permission plus spécifique peut être introduite :
-
-```text
-workspace.invitations.revoke
 ```
 
 La permission doit être évaluée dans le `Workspace` de l’`Invitation`.
@@ -867,7 +855,7 @@ Lorsqu’une invitation a déjà été acceptée, l’accès doit être géré p
 ```text
 SuspendMembership
 RemoveMembership
-ChangeRole
+ChangeMembershipRole
 ```
 
 Une révocation ne doit jamais contourner les règles propres au cycle de vie de `Membership`.

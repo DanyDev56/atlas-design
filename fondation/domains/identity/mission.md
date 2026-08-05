@@ -1,10 +1,10 @@
 ---
 id: DOMAIN-IDENTITY-MISSION
 title: Identity Mission
-status: Draft
+status: In Review
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -63,7 +63,7 @@ Le domaine est responsable de répondre aux questions suivantes.
 À partir d'une identité, Identity est capable de déterminer :
 
 - son existence ;
-- son état (actif, suspendu...) ;
+- son état (`PendingVerification`, `Active`, `Disabled` ou `Removed`) ;
 - ses informations d'authentification.
 
 ---
@@ -88,11 +88,13 @@ Le rôle détermine les autorisations accordées dans un `Workspace`.
 
 ## Quelles actions sont autorisées ?
 
-Identity vérifie les `Permission` associées au `Role`.
+Identity résout les `Permission` associées au `Role` dans le contexte du
+`Workspace` demandé.
 
 Les autres domaines peuvent alors déterminer si une opération est autorisée.
 
-Ils ne définissent jamais eux-mêmes les permissions.
+Chaque domaine définit les capacités qu'il possède ; Identity enregistre leurs
+clés, les associe aux rôles et résout leur efficacité.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 id: IDN-VO-ROLE-TRANSFER-POLICY
 title: RoleTransferPolicy
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31

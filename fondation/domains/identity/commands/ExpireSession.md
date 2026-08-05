@@ -1,12 +1,17 @@
 ---
 id: IDN-CMD-EXPIRE-SESSION
 title: ExpireSession
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-08-05
 
 aggregate: Session
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,11 +21,12 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/SessionExpired.md
-  - ../events/SessionElevationExpired.md
+  - ../events.md
   - CreateSession.md
   - RefreshSession.md
   - ElevateSession.md
+  - ExpireSessionElevation.md
+  - TerminateSessionElevation.md
   - RevokeSession.md
   - RevokeAllUserSessions.md
   - ../workflows.md
@@ -685,9 +691,10 @@ La session peut conserver :
 
 Si une élévation est active :
 
-    Session.Elevation.Status = Expired
+    Session.Elevation.Status = Terminated
+    Session.Elevation.TerminationReason = SessionExpired
 
-ou elle devient automatiquement inefficace.
+Elle devient immédiatement inefficace avec sa session parente.
 
 ### 38.14 Expirer la famille de refresh tokens
 
@@ -889,18 +896,21 @@ L'événement ne doit pas contenir :
 
 ---
 
-## 44. Événements secondaires possibles
+## 44. Événements, effets et signaux secondaires
 
 Après commit :
 
     SessionAccessCredentialInvalidationRequested
     SessionRefreshTokenFamilyExpired
-    SessionElevationExpired
     UserSessionIndexUpdateRequested
     SessionSecurityProjectionUpdated
     ImpersonationEnded
     RecoverySessionEnded
     SessionCleanupRequested
+
+L'expiration de la session rend son élévation inefficace par définition. Une
+échéance indépendante utilise `ExpireSessionElevation`. Les noms ci-dessus sont
+des signaux internes ou des demandes d'intégration.
 
 ---
 

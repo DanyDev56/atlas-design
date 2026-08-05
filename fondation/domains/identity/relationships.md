@@ -1,10 +1,10 @@
 ---
 id: IDN-RELATIONSHIPS
 title: Relationships
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -20,7 +20,7 @@ references:
   - glossary/Permission.md
   - glossary/Invitation.md
   - glossary/Session.md
-  - ../workspace/README.md
+  - api.md
 ---
 
 # Relationships
@@ -35,7 +35,8 @@ Il précise :
 - les frontières de propriété ;
 - les relations directes et indirectes.
 
-Il ne décrit ni les séquences d'actions, ni les transitions d'état. Ces comportements sont documentés dans `workflows.md`, `commands/` et `events/`.
+Il ne décrit ni les séquences d'actions, ni les transitions d'état. Ces
+comportements sont documentés dans `workflows.md`, `commands/` et `events.md`.
 
 ---
 
@@ -54,7 +55,7 @@ flowchart TD
     User -->|"0..* memberships"| Membership
     Membership -->|"1 workspace"| Workspace
     Membership -->|"1 role"| Role
-    Role -->|"1..* permissions"| Permission
+    Role -->|"0..* permissions"| Permission
 
     Invitation -->|"1 workspace"| Workspace
     Invitation -->|"1 intended role"| Role
@@ -77,7 +78,7 @@ Le `Membership` constitue le point de liaison principal entre l'identité d'un `
 | `Membership` | `Workspace` | * → 1 | Référence externe obligatoire | Chaque `Membership` représente une appartenance à un unique `Workspace`. |
 | `Membership` | `Role` | * → 1 | Référence obligatoire | Chaque `Membership` reçoit un unique `Role`. |
 | `Role` | `Workspace` | * → 1 | Référence externe obligatoire | Chaque `Role` est défini dans un unique `Workspace`. |
-| `Role` | `Permission` | * → 1..* | Composition fonctionnelle | Un `Role` regroupe plusieurs `Permission`. |
+| `Role` | `Permission` | * → 0..* | Composition fonctionnelle | Un `Role` regroupe zéro ou plusieurs `Permission`. |
 | `Invitation` | `Workspace` | * → 1 | Référence externe obligatoire | Chaque `Invitation` concerne un unique `Workspace`. |
 | `Invitation` | `Role` | * → 1 | Référence obligatoire | Chaque `Invitation` prépare l'attribution d'un `Role`. |
 | `Invitation` | `User` | * → 0..1 | Référence facultative | Le destinataire peut déjà correspondre à un `User`. |
@@ -238,7 +239,7 @@ erDiagram
     ROLE }o--o{ PERMISSION : "regroupe"
 ```
 
-Un `Role` regroupe une ou plusieurs `Permission`.
+Un `Role` regroupe zéro ou plusieurs `Permission`.
 
 Une `Permission` peut être utilisée par plusieurs `Role`, dans plusieurs `Workspace`.
 
@@ -247,7 +248,7 @@ La `Permission` est définie globalement par Atlas. Elle n'appartient pas au `Ro
 ## Cardinalité
 
 ```text
-Role * ───────── 1..* Permission
+Role * ───────── 0..* Permission
 Permission * ─── 0..* Role
 ```
 
@@ -449,7 +450,7 @@ L'absence de l'un de ces éléments entraîne un refus d'accès.
 | `User` | `Identity` | Oui | Oui |
 | `Membership` | `Identity` | Oui | Oui |
 | `Role` | `Identity` | Oui | Oui |
-| `Permission` | Plateforme Atlas | Oui | Non |
+| `Permission` | Domaine déclaré par `OwningDomain` ; registre Identity | Oui | Registre seulement |
 | `Invitation` | `Identity` | Oui | Oui |
 | `Session` | `Identity` | Oui | Oui |
 | `Workspace` | `Workspace` | Oui | Non |
@@ -464,7 +465,7 @@ Les références entre agrégats suivent les règles suivantes :
 
 - `Membership` référence `User`, `Workspace` et `Role` par leurs identifiants ;
 - `Role` référence `Workspace` par son identifiant ;
-- `Role` référence les `Permission` par leur `PermissionKey` ;
+- `Role` référence les `Permission` par leur `PermissionId` ;
 - `Invitation` référence `Workspace`, `Role` et éventuellement `User` par leurs identifiants ;
 - `Session` référence `User` par son identifiant ;
 - aucun agrégat ne contient directement un autre agrégat.
@@ -476,7 +477,7 @@ flowchart LR
     Membership --> RoleId
 
     Role --> WorkspaceId
-    Role --> PermissionKey
+    Role --> PermissionId
 
     Invitation --> WorkspaceId
     Invitation --> RoleId

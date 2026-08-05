@@ -1,10 +1,10 @@
 ---
 id: IDN-INVARIANTS
 title: Invariants
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 2.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -15,7 +15,7 @@ references:
   - value-objects.md
   - workflows.md
   - commands/
-  - events/
+  - events.md
 ---
 
 # Invariants
@@ -75,6 +75,13 @@ Les invariants sont classés selon leur portée.
 | `IDN-INV-013` | La désactivation d'un `User` invalide son accès à Atlas. |
 | `IDN-INV-014` | Les opérations sensibles doivent être autorisées dans le contexte d'un `Workspace`. |
 | `IDN-INV-015` | Toute référence externe vers un `Workspace` doit désigner un `Workspace` existant et utilisable. |
+| `IDN-INV-016` | Une adresse e-mail principale normalisée identifie au maximum un `User` non retiré. |
+| `IDN-INV-017` | Un `User` actif possède une adresse e-mail principale vérifiée. |
+| `IDN-INV-018` | Un `User` retiré ne peut jamais redevenir actif. |
+| `IDN-INV-019` | Un `Role` archivé est terminal et ne participe plus aux autorisations courantes. |
+| `IDN-INV-020` | Le graphe de permissions explicites d'un `Role` reste valide. |
+| `IDN-INV-021` | Les politiques d'attribution et de transfert d'un `Role` restent valides. |
+| `IDN-INV-022` | Une `Session` expirée ou révoquée est terminale. |
 
 ---
 
@@ -169,6 +176,63 @@ Cet invariant doit être vérifié :
 
 ---
 
+## IDN-INV-016 — Unicité de l'adresse e-mail principale
+
+> Une adresse e-mail principale normalisée identifie au maximum un `User` non
+> retiré.
+
+La comparaison utilise la valeur normalisée d'`EmailAddress`.
+
+```text
+UNIQUE(NormalizedPrimaryEmailAddress)
+WHERE UserStatus != Removed
+```
+
+Une politique de rétention peut continuer à réserver l'adresse après retrait
+afin d'empêcher une réutilisation abusive. Cette politique doit être explicite.
+
+### Application
+
+- `CreateUser` ;
+- `ChangeUserEmail` ;
+- fusion ou import d'identités.
+
+---
+
+## IDN-INV-017 — Adresse principale vérifiée
+
+> Un `User` actif possède une adresse e-mail principale dont la propriété a été
+> prouvée.
+
+```text
+User.Status = Active
+implies
+User.EmailVerificationStatus = Verified
+```
+
+La création commence en `PendingVerification`. Seule une preuve valide permet la
+transition initiale vers `Active`.
+
+---
+
+## IDN-INV-018 — Retrait terminal du User
+
+> Un `User` retiré ne peut jamais redevenir actif.
+
+Le retrait :
+
+- rend toutes les sessions inutilisables ;
+- interdit toute nouvelle authentification ;
+- interdit toute nouvelle appartenance ;
+- conserve l'identité technique nécessaire à l'audit ;
+- ne restaure jamais automatiquement les anciens memberships.
+
+Une nouvelle inscription après la fin de la politique de rétention crée une
+nouvelle identité selon une décision explicite. Elle ne réactive pas le `User`
+retiré.
+
+---
+
 # Invariants du Membership
 
 ## IDN-INV-002 — Cohérence des références
@@ -234,7 +298,7 @@ Invariant local au `Membership`, avec validation externe du `Role`.
 Cet invariant doit être vérifié lors de :
 
 - `CreateMembership`
-- `ChangeRole`
+- `ChangeMembershipRole`
 - `AcceptInvitation`
 - `RestoreMembership`
 
@@ -327,7 +391,8 @@ Cet invariant doit être vérifié lors de :
 
 - `CreateRole`
 - `GrantPermissionToRole`
-- `UpdateRolePermissions`
+- `GrantPermissionToRole`
+- `RevokePermissionFromRole`
 - importations de rôles
 - migrations de permissions
 
@@ -359,17 +424,71 @@ doit toujours conserver les capacités minimales nécessaires à la propriété 
 
 ---
 
-## Suppression d'un Role utilisé
+## Archivage d'un Role utilisé
 
-> Un `Role` utilisé par un ou plusieurs `Membership` ne peut pas être supprimé sans traitement préalable.
+> Un `Role` utilisé par un ou plusieurs `Membership` courants ne peut pas être
+> archivé sans traitement préalable.
 
-Avant la suppression, les `Membership` concernés doivent être :
+Avant l'archivage, les `Membership` concernés doivent être :
 
 - réaffectés à un autre `Role` ;
 - suspendus selon une règle explicite ;
 - supprimés dans le cadre d'un workflow autorisé.
 
-La suppression ne doit jamais laisser de référence orpheline.
+L'archivage conserve les références historiques mais ne doit laisser aucun
+`Membership` courant dépendre du rôle.
+
+---
+
+## IDN-INV-019 — Archivage terminal du Role
+
+> Un `Role` archivé ne peut plus être attribué, transféré, activé ou modifié et
+> ne fournit plus aucune permission effective.
+
+```text
+Role.Status = Archived
+implies
+EffectivePermissions = empty
+```
+
+L'archivage conserve l'identité, les métadonnées, les affectations historiques
+et les événements du rôle. Identity 1.0 ne possède pas d'état `Deleted` ou
+`Removed` pour le `Role`.
+
+### Application
+
+- `ArchiveRole` ;
+- `EnableRole` et `DisableRole` ;
+- toutes les commandes de modification du `Role` ;
+- résolution des permissions.
+
+---
+
+## IDN-INV-020 — Graphe de permissions valide
+
+> Les permissions explicites d'un `Role` forment toujours un ensemble valide
+> vis-à-vis du catalogue global.
+
+L'ensemble doit respecter :
+
+- les dépendances obligatoires ;
+- les incompatibilités ;
+- les permissions minimales imposées aux rôles système ;
+- l'état `Active` de chaque permission utilisée ;
+- les règles de source de contrôle.
+
+`GrantPermissionToRole` et `RevokePermissionFromRole` recalculent et valident
+l'ensemble complet avant commit. Aucune cascade implicite n'est autorisée.
+
+---
+
+## IDN-INV-021 — Politiques du Role valides
+
+> Tout `Role` possède une `RoleAssignmentPolicy` et une `RoleTransferPolicy`
+> valides et compatibles avec son type, son état et sa source de contrôle.
+
+Les politiques sont fournies dès `CreateRole`. Une modification remplace une
+politique complète de manière atomique ; aucun état partiel n'est observable.
 
 ---
 
@@ -567,6 +686,17 @@ L'échec d'une seule condition suffit à refuser l'accès.
 
 ---
 
+## IDN-INV-022 — Terminalité de la Session
+
+> Une `Session` `Expired` ou `Revoked` ne peut jamais redevenir `Active`, être
+> rafraîchie ou être élevée.
+
+Une nouvelle authentification crée une nouvelle `SessionId`. L'expiration
+temporelle est effective même avant la matérialisation asynchrone de l'état
+`Expired`.
+
+---
+
 ## Révocation immédiate
 
 > Une `Session` révoquée devient immédiatement inutilisable.
@@ -664,7 +794,7 @@ PermissionKey
 Un `User` possédant :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 ```
 
 dans le `Workspace A` ne peut pas gérer les membres du `Workspace B` sans `Membership` autorisé dans ce second espace.
@@ -750,11 +880,15 @@ Le comportement exact doit être coordonné par une intégration explicite.
 Transitions conceptuelles autorisées :
 
 ```text
-Active -> Disabled
-Disabled -> Active
+PendingVerification -> Active
+Active              -> Disabled
+Disabled            -> Active
+Active              -> Removed
+Disabled            -> Removed
 ```
 
 La réactivation est possible uniquement si la politique de sécurité l'autorise.
+`Removed` est terminal.
 
 ---
 
@@ -782,13 +916,14 @@ Transitions conceptuelles autorisées :
 ```text
 Active -> Disabled
 Disabled -> Active
-Active -> Deleted
-Disabled -> Deleted
+Active -> Archived
+Disabled -> Archived
 ```
 
-Un `Role` supprimé ne redevient pas actif.
+Un `Role` archivé ne redevient pas actif.
 
-Une recréation éventuelle produit un nouveau `RoleId`.
+Une recréation éventuelle produit un nouveau `RoleId`. Identity 1.0 ne définit
+pas d'état `Deleted` ou `Removed` pour le `Role`.
 
 ---
 

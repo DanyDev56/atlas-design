@@ -3,8 +3,8 @@ id: IDN-FOUNDATION-DECISION-RECORD
 title: Decision Record
 status: Living
 owner: Product
-version: 2.0.0
-last_updated: 2026-07-31
+version: 2.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -217,7 +217,7 @@ Accepted
 Les capacités telles que :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 workspace.roles.create
 workspace.billing.read
 ```
@@ -312,15 +312,17 @@ Introduire :
 RoleSystemType
 ```
 
-avec notamment :
+avec les valeurs 1.0 :
 
 ```text
 None
 Owner
 DefaultMember
 Guest
-ServiceAccount
 ```
+
+`ServiceAccount` est réservé à l'extension des identités non humaines décrite
+dans `future.md`.
 
 L’ownership dépend de :
 
@@ -1480,6 +1482,211 @@ ou des versions spécialisées lorsque nécessaire.
 
 ---
 
+# IDN-ADR-041 — Le cycle de vie User 1.0 possède quatre états
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+```text
+PendingVerification -> Active <-> Disabled -> Removed
+Active ------------------------------------> Removed
+```
+
+`Removed` est terminal. Aucun état `Suspended`, `Locked`, `Deleted` ou
+`PendingDeletion` n'appartient à `UserStatus` 1.0.
+
+## Conséquences
+
+- toutes les commandes utilisent le même vocabulaire ;
+- l'activation initiale est distincte de la réactivation ;
+- le retrait ne peut pas être annulé.
+
+---
+
+# IDN-ADR-042 — Le verrouillage d'authentification est séparé du statut User
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+`AuthenticationLockStatus = Unlocked | TemporarilyLocked` protège le point
+d'authentification sans modifier `UserStatus`.
+
+## Conséquences
+
+- un verrou temporaire ne déclenche pas un faux cycle de vie métier ;
+- la désactivation globale reste portée par `DisableUser` ;
+- les sessions peuvent être révoquées sans inventer un statut de compte.
+
+---
+
+# IDN-ADR-043 — L'adresse principale est unique et vérifiée avant activation
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+Une adresse normalisée identifie au maximum un `User` non retiré. Un `User`
+`Active` possède obligatoirement une adresse principale `Verified`.
+
+## Conséquences
+
+- `CreateUser` commence en `PendingVerification` ;
+- `VerifyUserEmail` réalise la première activation ;
+- `ChangeUserEmail` ne commit qu'une nouvelle adresse déjà prouvée ;
+- la concurrence est protégée par une contrainte d'unicité.
+
+---
+
+# IDN-ADR-044 — Identity 1.0 crée uniquement des HumanUser
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+`IdentityType = HumanUser` est la seule valeur créable en 1.0. Les comptes de
+service, machines, intégrations et agents sont réservés dans `future.md`.
+
+## Conséquences
+
+- aucune identité technique n'hérite implicitement des sessions humaines ;
+- `ServiceAccount` n'est pas un acteur créable par les commandes 1.0 ;
+- une extension future devra définir son propre cycle de vie et ses preuves.
+
+---
+
+# IDN-ADR-045 — RemoveUser est logique, terminal et distinct de l'effacement
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+`RemoveUser` retire logiquement l'identité après suppression de ses accès
+courants. L'anonymisation, la rétention et l'effacement des données personnelles
+relèvent d'un workflow légal séparé.
+
+## Conséquences
+
+- les références d'audit restent stables ;
+- aucune restauration du `User` n'est possible ;
+- le retrait révoque toutes les sessions ;
+- l'effacement ne doit pas casser l'intégrité des événements historiques.
+
+---
+
+# IDN-ADR-046 — Archived est l'unique état terminal du Role
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+`RoleStatus = Active | Disabled | Archived`. Identity 1.0 ne définit pas
+`Deleted` ou `Removed` pour un rôle.
+
+## Conséquences
+
+- un rôle archivé est immuable et ne fournit plus de permission effective ;
+- les références historiques sont conservées ;
+- une recréation produit un nouveau `RoleId`.
+
+---
+
+# IDN-ADR-047 — Le catalogue 1.0 utilise des permissions fines
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+Les commandes sensibles possèdent une clé canonique distincte. Les clés
+génériques `workspace.members.manage` et `workspace.roles.manage` ne font pas
+partie du catalogue 1.0.
+
+Les variantes owner, système, externes ou privilégiées sont traitées par des
+politiques contextuelles et des approbations, pas par une explosion de clés.
+
+## Conséquences
+
+- moindre privilège explicite ;
+- catalogue stable et testable ;
+- une seule clé requise par intention ;
+- le rôle owner conserve le socle complet des permissions Identity de workspace.
+
+---
+
+# IDN-ADR-048 — Identity dépend d'un contrat public minimal de Workspace
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+Identity ne lit pas le modèle interne de `Workspace`. Il consomme uniquement le
+contrat versionné `getWorkspaceAccessContext` et le fait public
+`WorkspaceAccessStateChanged` définis dans `api.md`.
+
+## Conséquences
+
+- les références sont validées sans couplage de modèle ;
+- l'autorisation refuse par défaut un contexte absent ou inutilisable ;
+- la fermeture et les changements de gouvernance invalident les décisions en
+  cache.
+
+---
+
+# IDN-ADR-049 — Un refus de commande n'est pas un Domain Event de réussite
+
+## Statut
+
+```text
+Accepted
+```
+
+## Décision
+
+Une commande refusée avant commit ne publie aucun événement métier de cycle de
+vie. Une tentative sensible peut produire un signal d'audit ou de sécurité
+restreint.
+
+## Conséquences
+
+- les consommateurs ne confondent pas tentative et changement d'état ;
+- les signaux de sécurité restent séparés du catalogue `events.md` ;
+- les erreurs publiques ne divulguent aucun secret.
+
+---
+
 # Décisions dépréciées
 
 ## AssignmentMode
@@ -1590,64 +1797,10 @@ Remplacé par des commandes explicites.
 
 ---
 
-# Questions ouvertes
+# Évolutions reportées
 
-Les sujets suivants restent susceptibles d’évoluer.
-
-## Multi-rôles par Membership
-
-Le modèle actuel utilise un rôle courant unique.
-
-Un futur besoin pourrait introduire :
-
-```text
-RoleGrant
-AdditionalRoleAssignment
-TemporaryPrivilegeGrant
-```
-
----
-
-## Rôles globaux de plateforme
-
-Les rôles actuels appartiennent à un workspace.
-
-Les responsabilités globales de plateforme pourraient relever d’un autre modèle.
-
----
-
-## Politique de localisation
-
-Il reste à décider si les noms et descriptions localisés appartiennent :
-
-- au rôle ;
-- à une projection ;
-- à un catalogue produit ;
-- à un mécanisme de surcharge.
-
----
-
-## Historique complet des politiques
-
-Il reste à décider si l’historique est reconstruit uniquement depuis les événements ou également stocké dans des projections dédiées.
-
----
-
-## Application continue des exigences
-
-Il reste à préciser quels moteurs réévaluent :
-
-```text
-ContinuousRequirements
-```
-
-et à quelle fréquence.
-
----
-
-## Remédiation
-
-Il reste à décider si les plans de remédiation appartiennent à `Identity` ou à un bounded context de gouvernance.
+Les questions non arbitrées ne font pas partie du contrat 1.0. Elles sont
+classées avec leurs contraintes dans [`future.md`](future.md).
 
 ---
 
@@ -1689,4 +1842,10 @@ Role creation grants no Permission
 Role creation assigns no Membership
 Commands express explicit business intentions
 Events and state commit atomically
+User lifecycle is PendingVerification, Active, Disabled, Removed
+Authentication lock is separate from UserStatus
+Identity 1.0 creates HumanUser only
+Role Archived state is terminal
+Fine-grained permission keys are canonical
+Workspace is consumed through a minimal public contract
 ```

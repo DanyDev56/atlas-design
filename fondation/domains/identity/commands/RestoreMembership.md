@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-RESTORE-MEMBERSHIP
 title: RestoreMembership
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipRestored.md
+  - ../events.md
   - CreateMembership.md
   - SuspendMembership.md
   - ReactivateMembership.md
@@ -156,13 +156,7 @@ La restauration corrige une suppression erronée ou un incident opérationnel.
 
 ## Permission requise
 
-Lorsqu’un `User` demande la restauration, la permission recommandée est :
-
-```text
-workspace.members.manage
-```
-
-Une permission plus spécifique peut être introduite :
+Lorsqu'un `User` demande la restauration, la permission canonique est :
 
 ```text
 workspace.members.restore
@@ -470,13 +464,12 @@ Le `UserId` ne peut pas être modifié pendant la restauration.
 
 Le `User` doit être dans un état compatible avec une nouvelle appartenance.
 
-Les états incompatibles peuvent inclure :
+Les états incompatibles sont :
 
 ```text
+PendingVerification
 Disabled
-Deleted
-Blocked
-PendingDeletion
+Removed
 ```
 
 La restauration ne doit pas contourner une désactivation du compte.
@@ -1386,11 +1379,8 @@ Lorsqu’un ancien membre possède plusieurs invitations actives pour le même `
 
 Une seule invitation doit autoriser l’opération.
 
-Les autres doivent ensuite être :
-
-- révoquées ;
-- marquées obsolètes ;
-- ou rendues inutilisables selon la politique retenue.
+Le conflit bloque la commande. Un workflow de remédiation conserve une seule
+invitation et révoque explicitement les autres avant de rejouer la restauration.
 
 La restauration ne doit pas produire plusieurs effets.
 

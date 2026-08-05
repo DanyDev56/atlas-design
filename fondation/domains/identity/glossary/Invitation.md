@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-INVITATION
 title: Invitation
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -14,7 +14,7 @@ references:
   - ../entities.md
   - User.md
   - Membership.md
-  - Workspace.md
+  - ../../../language/glossary.md
 ---
 
 # Invitation
@@ -38,6 +38,9 @@ L'`Invitation` représente une demande adressée à une personne afin qu'elle re
 Une `Invitation` peut être destinée à un `User` existant ou à une personne qui créera son compte lors de son acceptation.
 
 Lorsqu'une `Invitation` est acceptée, elle donne naissance à un `Membership`.
+
+Elle part de `Pending` et se termine par `Accepted`, `Declined`, `Expired` ou
+`Revoked`. Tous ces états terminaux sont irréversibles et conservés pour l'audit.
 
 ---
 

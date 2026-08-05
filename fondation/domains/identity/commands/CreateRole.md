@@ -1,12 +1,21 @@
 ---
 id: IDN-CMD-CREATE-ROLE
 title: CreateRole
-status: Draft
+status: In Review
 owner: Product
 version: 2.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-004
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -18,7 +27,7 @@ references:
   - ../value-objects/RoleTransferPolicy.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RoleCreated.md
+  - ../events.md
   - UpdateRoleMetadata.md
   - ChangeRoleAssignmentPolicy.md
   - ChangeRoleTransferPolicy.md
@@ -150,27 +159,15 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.create
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires pour créer certains rôles :
-
-```text
-workspace.roles.create-privileged
-workspace.roles.create-system
-workspace.roles.create-external
-workspace.roles.create-template-derived
-workspace.owners.create-role
-```
+La création d'un rôle owner, système, externe ou issu d'un modèle reste soumise
+aux politiques de gouvernance et aux approbations correspondantes. Aucune clé
+spécialisée supplémentaire n'est introduite en 1.0.
 
 ---
 
@@ -650,7 +647,7 @@ Elle définit notamment :
 Voir :
 
 ```text
-value-objects/RoleAssignmentPolicy.md
+../value-objects/RoleAssignmentPolicy.md
 ```
 
 ---

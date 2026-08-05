@@ -1,12 +1,23 @@
 ---
 id: IDN-CMD-ARCHIVE-ROLE
 title: ArchiveRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-004
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-011
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -18,7 +29,7 @@ references:
   - ../value-objects/RoleTransferPolicy.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RoleArchived.md
+  - ../events.md
   - CreateRole.md
   - EnableRole.md
   - DisableRole.md
@@ -179,12 +190,12 @@ Une désactivation préalable n’est donc pas obligatoire.
 
 ---
 
-## RoleLifecycleState
+## RoleStatus
 
 Le cycle de vie du rôle doit être exprimé par un concept explicite :
 
 ```text
-RoleLifecycleState
+RoleStatus
 ```
 
 Valeurs :
@@ -231,7 +242,7 @@ Un rôle `Archived` :
 Après succès :
 
 ```text
-Role.LifecycleState = Archived
+Role.Status = Archived
 ```
 
 Le rôle devient immuable pour les commandes ordinaires.
@@ -317,7 +328,7 @@ Elle consulte également :
 Un rôle archivé ne doit plus être utilisé par un membership actif.
 
 ```text
-Role.LifecycleState = Archived
+Role.Status = Archived
 ⇒
 no Active Membership references RoleId
 ```
@@ -538,27 +549,16 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.archive
 ```
 
-Une permission générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires :
-
-```text
-workspace.roles.archive-privileged
-workspace.roles.archive-system
-workspace.roles.archive-external
-workspace.roles.archive-template
-workspace.roles.archive-service-account
-```
+Cette clé est nécessaire mais ne contourne pas les protections portant sur les
+rôles owner, système, externes ou issus d'un modèle. Ces protections sont des
+politiques contextuelles et des exigences d'approbation, pas des permissions
+alternatives.
 
 ---
 
@@ -762,9 +762,10 @@ RoleAlreadyArchived
 
 ---
 
-## Rôle supprimé
+## Rôle introuvable
 
-Un rôle supprimé physiquement ou dans un état `Removed` ne peut pas être archivé.
+L'absence du rôle produit `RoleNotFound`. Identity 1.0 ne définit pas d'état
+`Removed` pour le `Role`.
 
 ---
 
@@ -977,7 +978,7 @@ L’archivage peut réussir si aucune session ne possède encore une autorisatio
 
 Les claims historiques seuls ne bloquent pas l’archivage si :
 
-- le moteur vérifie `RoleLifecycleState` ;
+- le moteur vérifie `RoleStatus` ;
 - la version d’autorisation est invalidée ;
 - aucune permission ne reste effective.
 
@@ -1595,13 +1596,6 @@ Archived
 → RoleAlreadyArchived
 ```
 
-```text
-Removed
-→ RemovedRoleCannotBeArchived
-```
-
----
-
 ### 5. Charger le Workspace
 
 Le système vérifie :
@@ -1916,7 +1910,7 @@ La projection des références doit correspondre à la version utilisée pour la
 ### 33. Modifier le lifecycle state
 
 ```text
-Role.LifecycleState = Archived
+Role.Status = Archived
 ```
 
 ---
@@ -1988,7 +1982,7 @@ Role
 ├── same RoleId
 ├── same WorkspaceId
 ├── same Metadata
-├── LifecycleState: Archived
+├── Status: Archived
 ├── ArchivedAt: set
 ├── same AssignmentPolicy
 ├── same TransferPolicy
@@ -2239,9 +2233,9 @@ L’événement ne doit pas contenir :
 
 ---
 
-## Événements secondaires possibles
+## Effets et signaux secondaires possibles
 
-Après commit :
+Après commit, l'orchestration peut demander les effets suivants :
 
 ```text
 ArchivedRoleRemovedFromAssignmentCatalog
@@ -2624,7 +2618,7 @@ Cette protection complète la validation applicative.
 Le même commit doit contenir :
 
 ```text
-Role.LifecycleState = Archived
+Role.Status = Archived
 +
 ArchivedAt
 +
@@ -2642,7 +2636,7 @@ RoleArchived event
 ## États interdits
 
 ```text
-Role.LifecycleState = Archived
+Role.Status = Archived
 AND
 RoleArchived event missing
 ```
@@ -2888,12 +2882,6 @@ Le workspace n’autorise pas l’archivage.
 ### RoleAlreadyArchived
 
 Le rôle est déjà archivé.
-
----
-
-### RemovedRoleCannotBeArchived
-
-Un rôle supprimé ne peut pas être archivé.
 
 ---
 
@@ -3471,7 +3459,7 @@ Avant commit :
 Role exists
 Workspace exists
 Role belongs to Workspace
-Role LifecycleState is Active or Disabled
+Role.Status is Active or Disabled
 Role is not already Archived
 Actor or SystemActor is authorized
 ArchiveSource controls Role lifecycle
@@ -3548,7 +3536,7 @@ Le résultat final est :
 Role
 ├── same identity
 ├── same Workspace
-├── LifecycleState: Archived
+├── Status: Archived
 ├── ArchivedAt: set
 ├── same metadata
 ├── same PermissionAssignments

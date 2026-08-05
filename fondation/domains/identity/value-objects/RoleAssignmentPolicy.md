@@ -1,7 +1,7 @@
 ---
 id: IDN-VO-ROLE-ASSIGNMENT-POLICY
 title: RoleAssignmentPolicy
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31

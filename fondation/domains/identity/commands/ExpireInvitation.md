@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-EXPIRE-INVITATION
 title: ExpireInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -15,7 +15,7 @@ references:
   - ../relationships.md
   - ../invariants.md
   - ../workflows.md
-  - ../events/InvitationExpired.md
+  - ../events.md
   - CreateInvitation.md
   - SendInvitation.md
   - ResendInvitation.md

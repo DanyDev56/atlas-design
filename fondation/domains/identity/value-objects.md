@@ -1,10 +1,10 @@
 ---
 id: IDN-FOUNDATION-VALUE-OBJECTS
 title: Value Objects
-status: Draft
+status: In Review
 owner: Product
-version: 2.0.0
-last_updated: 2026-07-31
+version: 2.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -300,24 +300,70 @@ Il ne constitue pas une identité juridique ou technique.
 
 ## UserStatus
 
-Valeurs recommandées :
+Valeurs Identity 1.0 :
 
 ```text
+PendingVerification
 Active
 Disabled
 Removed
 ```
 
-La valeur exacte dépend du modèle de cycle de vie retenu.
+Transitions autorisées :
+
+```text
+PendingVerification → Active
+Active              → Disabled
+Disabled            → Active
+Active              → Removed
+Disabled            → Removed
+```
+
+`Removed` est terminal.
+
+Un verrouillage temporaire lié à l'authentification n'est pas un `UserStatus`.
+
+---
+
+## EmailVerificationStatus
+
+Valeurs :
+
+```text
+Pending
+Verified
+```
+
+Un `User` ne devient `Active` qu'après preuve de propriété de son adresse e-mail
+principale.
+
+---
+
+## AuthenticationLockStatus
+
+Valeurs :
+
+```text
+Unlocked
+TemporarilyLocked
+```
+
+Un verrouillage temporaire protège l'authentification sans modifier le cycle de
+vie métier du `User`.
 
 ---
 
 ## IdentityType
 
-Valeurs possibles :
+Valeur prise en charge par Identity 1.0 :
 
 ```text
 HumanUser
+```
+
+Valeurs réservées pour de futures versions :
+
+```text
 ServiceAccount
 MachineIdentity
 ExternalUser
@@ -326,7 +372,10 @@ FederatedUser
 InternalUser
 ```
 
-`IdentityType` est utilisé notamment par `RoleAssignmentPolicy`.
+Une commande 1.0 doit refuser la création d'un type d'identité réservé.
+
+`IdentityType` peut être utilisé notamment par `RoleAssignmentPolicy` pour
+préparer la compatibilité future.
 
 ---
 
@@ -341,6 +390,23 @@ Mfa
 PhishingResistantMfa
 HardwareBacked
 ```
+
+---
+
+## SessionElevationStatus
+
+Valeurs Identity 1.0 :
+
+```text
+Active
+Expired
+Terminated
+```
+
+L'absence d'élévation est représentée par l'absence du `SessionElevation`, pas
+par un statut `None`. `Expired` correspond à son échéance propre.
+`Terminated` couvre toute fin anticipée ou la terminaison de la session parente.
+Ces deux états sont terminaux.
 
 ---
 
@@ -568,15 +634,17 @@ TemplateDerived
 
 ## RoleSystemType
 
-Valeurs :
+Valeurs Identity 1.0 :
 
 ```text
 None
 Owner
 DefaultMember
 Guest
-ServiceAccount
 ```
+
+`ServiceAccount` est réservé pour une version prenant en charge les identités
+non humaines.
 
 `RoleSystemType` définit la fonction structurelle.
 
@@ -586,7 +654,7 @@ L’ownership ne doit jamais être déduit du nom.
 
 ## RoleStatus
 
-Valeurs recommandées :
+Valeurs Identity 1.0 :
 
 ```text
 Active
@@ -594,7 +662,17 @@ Disabled
 Archived
 ```
 
-Un éventuel état `Removed` doit être distingué de l’archivage si le modèle le nécessite.
+Transitions autorisées :
+
+```text
+Active   → Disabled
+Disabled → Active
+Active   → Archived
+Disabled → Archived
+```
+
+`Archived` est terminal. Aucun état `Removed` ou `Deleted` n'appartient au
+cycle de vie 1.0 du `Role`.
 
 ---
 

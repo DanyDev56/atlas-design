@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-UPDATE-ROLE-METADATA
 title: UpdateRoleMetadata
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RoleMetadataUpdated.md
+  - ../events.md
   - CreateRole.md
   - ChangeMembershipRole.md
   - TransferMembershipRole.md
@@ -244,29 +244,15 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.update-metadata
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions plus fines peuvent être introduites si nécessaire :
-
-```text
-workspace.roles.rename
-workspace.roles.edit-description
-workspace.roles.customize-display
-workspace.roles.update-system-metadata
-workspace.roles.override-external-metadata
-```
-
-La granularité doit refléter un besoin réel d’autorisation.
+La source de contrôle du rôle et la sensibilité des champs modifiés sont des
+conditions contextuelles. Elles peuvent imposer une approbation mais ne créent
+pas de clés supplémentaires en 1.0.
 
 ---
 
@@ -437,7 +423,7 @@ Avant l’exécution, les conditions suivantes doivent être satisfaites :
 - le `Role` existe ;
 - le `Workspace` existe ;
 - le rôle appartient au `Workspace` attendu ;
-- le rôle n’est pas supprimé ;
+- le rôle n'est pas archivé ;
 - son état autorise une modification de métadonnées ;
 - l’acteur ou le workflow est autorisé ;
 - au moins une métadonnée est réellement modifiée ;
@@ -1482,11 +1468,7 @@ L’événement ne doit contenir que les champs effectivement modifiés.
 
 ---
 
-## Événements spécialisés
-
-Deux stratégies sont possibles.
-
-### Événement unique
+## Événement canonique
 
 ```text
 RoleMetadataUpdated
@@ -1494,7 +1476,7 @@ RoleMetadataUpdated
 
 Tous les consommateurs utilisent la structure des changements.
 
-### Événements spécialisés dérivés
+### Projections dérivées
 
 Les projections peuvent dériver :
 
@@ -1504,7 +1486,8 @@ RoleDescriptionChanged
 RoleDisplayChanged
 ```
 
-La recommandation est de conserver un événement métier principal unique si le domaine traite réellement ces propriétés comme une seule catégorie.
+Ces noms sont des libellés de projection et ne sont pas publiés comme Domain
+Events. `RoleMetadataUpdated` est l'unique fait canonique 1.0.
 
 ---
 
@@ -1848,19 +1831,14 @@ et :
 DisplayColor -> indigo
 ```
 
-Deux stratégies sont possibles :
-
-#### Concurrence stricte d’agrégat
+La concurrence stricte d'agrégat est appliquée :
 
 Une seule modification gagne.
 
 La seconde recharge puis rejoue son patch.
 
-#### Fusion optimiste par champ
-
-Le système détecte que les champs ne se chevauchent pas et peut les fusionner.
-
-La recommandation initiale est la concurrence stricte, plus simple et plus sûre.
+Le système ne fusionne pas automatiquement des patches concurrents, même
+lorsqu'ils ciblent des champs différents.
 
 ---
 

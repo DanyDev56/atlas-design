@@ -1,10 +1,10 @@
 ---
 id: DOMAIN-IDENTITY-MODEL
 title: Identity Model
-status: Draft
+status: In Review
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
@@ -12,6 +12,9 @@ references:
   - scope.md
   - entities.md
   - aggregates.md
+  - permissions.md
+  - workflows.md
+  - future.md
 ---
 
 # Modèle métier
@@ -39,13 +42,14 @@ Il constitue la référence de conception avant toute implémentation.
 
 # Vue d'ensemble
 
-Le modèle repose sur six concepts principaux :
+Le modèle repose sur sept concepts principaux :
 
 - `User`
 - `Membership`
 - `Workspace` (référence)
 - `Role`
 - `Permission`
+- `Invitation`
 - `Session`
 
 Le point central du modèle est le `Membership`.
@@ -136,18 +140,19 @@ Le `Membership` devient donc naturellement une entité métier.
 
 Le domaine Identity ne connaît qu'une référence vers un `Workspace`.
 
-Il ne connaît jamais :
+Il ne connaît jamais le modèle interne du workspace, notamment :
 
 - son nom ;
 - ses paramètres ;
 - son abonnement ;
 - son fuseau horaire ;
-- son propriétaire ;
 - sa configuration.
 
 Toutes ces informations appartiennent au domaine **Workspace**.
 
-Identity sait uniquement qu'un `Membership` est associé à un `Workspace`.
+Identity consomme seulement son contrat public d'accès et de gouvernance. Il
+représente l'ownership d'accès par les rôles et memberships sans posséder le
+cycle de vie ni les données métier du `Workspace`.
 
 ---
 
@@ -173,7 +178,8 @@ Cela présente plusieurs avantages :
 - facilité d'administration ;
 - évolutivité.
 
-Une éventuelle surcharge de permissions pourra être étudiée plus tard, mais ne fait pas partie du MVP.
+Une éventuelle surcharge de permissions pourra être étudiée plus tard, mais ne
+fait pas partie d'Identity 1.0.
 
 ---
 
@@ -184,8 +190,10 @@ Une éventuelle surcharge de permissions pourra être étudiée plus tard, mais 
 Un `User` peut posséder :
 
 - plusieurs `Membership` ;
-- plusieurs `Session` ;
-- plusieurs `Invitation`.
+- plusieurs `Session`.
+
+Il peut être relié à plusieurs `Invitation` comme destinataire connu, sans que
+ces invitations appartiennent à l'agrégat `User`.
 
 ---
 
@@ -215,11 +223,12 @@ Une `Permission` décrit une autorisation élémentaire.
 
 Exemple :
 
-- `clients.read`
-- `clients.create`
-- `billing.update`
+- `workspace.members.read` ;
+- `workspace.roles.create` ;
+- `billing.invoices.issue`.
 
-Les permissions ne possèdent aucun état.
+Une permission possède une identité et un statut de catalogue (`Active` ou
+`Deprecated`). Son sens est défini par son domaine propriétaire.
 
 ---
 
@@ -227,7 +236,8 @@ Les permissions ne possèdent aucun état.
 
 Une `Invitation` permet de créer un futur `Membership`.
 
-Elle disparaît de la chaîne métier une fois acceptée ou expirée.
+Elle reste conservée dans un état terminal après acceptation, refus, expiration
+ou révocation afin de préserver l'audit et l'idempotence.
 
 ---
 

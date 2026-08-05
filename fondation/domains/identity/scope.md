@@ -1,15 +1,18 @@
 ---
 id: DOMAIN-IDENTITY-SCOPE
 title: Identity Scope
-status: Draft
+status: In Review
 owner: Product
-version: 1.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - README.md
   - mission.md
   - model.md
+  - api.md
+  - permissions.md
+  - future.md
 ---
 
 # Périmètre
@@ -41,7 +44,8 @@ Le domaine **Identity** est responsable des concepts suivants.
 
 Gestion de l'identité d'un utilisateur.
 
-Le domaine est propriétaire :
+Identity 1.0 prend en charge exclusivement une identité humaine. Le domaine est
+propriétaire :
 
 - des informations d'identité ;
 - des informations d'authentification ;
@@ -75,14 +79,12 @@ Le domaine est responsable :
 
 ## `Permission`
 
-Définition des autorisations.
+Catalogue et résolution des autorisations.
 
-Le domaine décide :
-
-- quelles permissions existent ;
-- quels rôles les possèdent.
-
-Il ne décide jamais comment ces permissions sont utilisées dans les règles métier.
+- chaque domaine fonctionnel définit les capacités correspondant à ses actions ;
+- Identity enregistre leur identité stable et leurs métadonnées communes ;
+- Identity décide quels rôles possèdent quelles permissions ;
+- le domaine propriétaire applique ensuite ses règles métier.
 
 ---
 
@@ -234,9 +236,12 @@ Ces éléments restent strictement internes au domaine.
 
 # Dépendances
 
-Le domaine **Identity** ne dépend d'aucun domaine métier.
+Identity dépend du contrat public minimal de `Workspace` pour vérifier
+l'existence, l'état d'accès et la gouvernance du contexte ciblé. Il ne dépend
+jamais de son modèle interne.
 
-Il peut utiliser des composants techniques (base de données, fournisseur OAuth, serveur SMTP…), mais aucun autre domaine fonctionnel.
+Les autres collaborations passent par les ports définis dans `integrations.md`
+et par des contrats publics versionnés.
 
 ---
 
@@ -244,7 +249,7 @@ Il peut utiliser des composants techniques (base de données, fournisseur OAuth,
 
 | Domaine | Relation |
 |----------|----------|
-| `Workspace` | Référence un `Workspace` via un `Membership`. |
+| `Workspace` | Fournit le contexte public minimal référencé par les memberships, rôles et invitations. |
 | CRM | Vérifie les autorisations avant toute opération. |
 | Billing | Vérifie les autorisations avant toute opération. |
 | Advisor | Vérifie les autorisations avant toute opération. |

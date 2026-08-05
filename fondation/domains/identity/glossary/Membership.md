@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-MEMBERSHIP
 title: Membership
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -13,7 +13,7 @@ references:
   - ../model.md
   - ../entities.md
   - User.md
-  - Workspace.md
+  - ../../../language/glossary.md
   - Role.md
   - Permission.md
 ---
@@ -39,6 +39,10 @@ Le `Membership` matérialise la relation entre un `User` et un `Workspace`.
 Il représente la présence d'un `User` au sein d'un espace de travail et porte toutes les informations liées à cette appartenance.
 
 Un `User` possède un `Membership` différent pour chaque `Workspace` auquel il appartient.
+
+Un `Membership` actif porte exactement un `Role` courant dans le même
+`Workspace`. Ses statuts 1.0 sont `Active`, `Suspended` et `Removed`. Une sortie
+de `Removed` exige `RestoreMembership` ; elle n'est jamais implicite.
 
 Le `Membership` constitue le point central de la collaboration entre les utilisateurs d'un même `Workspace`.
 

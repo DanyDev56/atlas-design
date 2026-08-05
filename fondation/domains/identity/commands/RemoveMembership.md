@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-REMOVE-MEMBERSHIP
 title: RemoveMembership
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipRemoved.md
+  - ../events.md
   - CreateMembership.md
   - RestoreMembership.md
   - SuspendMembership.md
@@ -30,17 +30,7 @@ references:
 
 La commande `RemoveMembership` met fin à l’appartenance effective d’un `User` à un `Workspace`.
 
-Elle fait passer le `Membership` de :
-
-```text
-Active
-```
-
-ou, selon la politique retenue :
-
-```text
-Suspended
-```
+Elle fait passer le `Membership` depuis `Active` ou `Suspended` :
 
 vers :
 
@@ -272,25 +262,10 @@ AdministrativeOperator
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.remove
-```
-
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.members.manage
-```
-
-Des permissions plus fines peuvent distinguer :
-
-```text
-workspace.members.remove-standard
-workspace.members.remove-admin
-workspace.owners.remove
-workspace.members.force-remove
 ```
 
 L’autorisation doit tenir compte de :
@@ -304,6 +279,10 @@ Workspace
 RemovalReason
 RemovalSource
 ```
+
+Le niveau du rôle cible, l'ownership, les protections et un éventuel retrait
+forcé sont des conditions contextuelles ; aucune clé supplémentaire n'est créée
+pour ces variantes en 1.0.
 
 Le droit de retirer un membre ordinaire ne signifie pas automatiquement le droit de retirer :
 
@@ -766,11 +745,9 @@ Le domaine peut interdire qu’un acteur retire :
 - un membre de sécurité ;
 - un représentant légal.
 
-Une permission dédiée peut être nécessaire :
-
-```text
-workspace.owners.remove
-```
+Le retrait d'un owner utilise toujours `workspace.members.remove`, complété par
+la politique d'ownership, la protection du dernier owner et, si nécessaire, une
+approbation renforcée.
 
 ---
 
@@ -1153,12 +1130,7 @@ Le `Membership` conserve ses références identitaires.
 Transitions autorisées :
 
 ```text
-Active -> Removed
-```
-
-et, selon la politique retenue :
-
-```text
+Active    -> Removed
 Suspended -> Removed
 ```
 
@@ -1734,7 +1706,7 @@ La commande ne produit pas :
 MembershipSuspended
 MembershipRoleChanged
 MembershipRestored
-UserDeleted
+UserRemoved
 SessionRevoked
 WorkspaceClosed
 ```

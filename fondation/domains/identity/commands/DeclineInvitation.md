@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-DECLINE-INVITATION
 title: DeclineInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -14,7 +14,7 @@ references:
   - ../aggregates.md
   - ../relationships.md
   - ../invariants.md
-  - ../events/InvitationDeclined.md
+  - ../events.md
   - AcceptInvitation.md
   - RevokeInvitation.md
   - ExpireInvitation.md
@@ -474,7 +474,7 @@ L’événement peut contenir :
 
 - `InvitationId`
 - `WorkspaceId`
-- `RecipientEmail`, uniquement si nécessaire
+- `RecipientEmailFingerprint`, uniquement si nécessaire
 - `DeclinedBy`
 - `DeclinedAt`
 - `Reason`

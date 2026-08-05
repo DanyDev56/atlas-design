@@ -1,12 +1,20 @@
 ---
 id: IDN-CMD-CHANGE-ROLE-TRANSFER-POLICY
 title: ChangeRoleTransferPolicy
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-021
 
 references:
   - README.md
@@ -14,7 +22,7 @@ references:
   - ../invariants.md
   - ../value-objects/RoleAssignmentPolicy.md
   - ../value-objects/RoleTransferPolicy.md
-  - ../events/RoleTransferPolicyChanged.md
+  - ../events.md
   - CreateRole.md
   - ChangeRoleAssignmentPolicy.md
   - TransferMembershipRole.md
@@ -63,19 +71,15 @@ La commande peut être initiée par :
 
 ## Permission
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.change-transfer-policy
 ```
 
-Permissions renforcées possibles :
-
-```text
-workspace.roles.change-privileged-transfer-policy
-workspace.owners.change-transfer-policy
-workspace.security.change-role-policy
-```
+La sensibilité du rôle et de la nouvelle politique est traitée par les règles
+contextuelles, les approbations et la réauthentification, sans clé alternative
+en 1.0.
 
 ---
 
@@ -104,7 +108,7 @@ workspace.security.change-role-policy
 ## Préconditions
 
 - le rôle existe ;
-- le rôle n’est ni archivé ni supprimé ;
+- le rôle n'est pas archivé ;
 - l’acteur ou le workflow est autorisé ;
 - la source contrôle la politique ;
 - la nouvelle politique est valide ;
@@ -294,7 +298,7 @@ Contenu recommandé :
 
 ---
 
-## Événements secondaires possibles
+## Signaux secondaires possibles
 
 ```text
 PendingRoleTransferInvalidated
@@ -302,6 +306,8 @@ PendingRoleTransferReapprovalRequired
 PendingRoleTransferReconfirmationRequired
 PendingRoleTransferReacceptanceRequired
 ```
+
+Ces signaux internes ne font pas partie des Domain Events 1.0.
 
 ---
 
@@ -389,7 +395,7 @@ IdempotencyConflict
 Les erreurs détaillées de structure sont documentées dans :
 
 ```text
-value-objects/RoleTransferPolicy.md
+../value-objects/RoleTransferPolicy.md
 ```
 
 ---

@@ -1,9 +1,9 @@
 ---
 id: DOMAIN-IDENTITY-README
 title: Identity Domain
-status: Draft
+status: In Review
 owner: Product
-version: 1.1
+version: 1.3.0
 last_updated: 2026-08-05
 
 references:
@@ -48,6 +48,11 @@ Tous les autres domaines s'appuient sur **Identity** pour savoir **qui effectue 
 | Inclus dans le MVP | Oui |
 | Dépend de | Contrat public de `Workspace` |
 | Utilisé par | Tous les domaines |
+
+Le contrat documentaire Identity 1.0 est `In Review`. Ses quality gates et sa
+traçabilité complète sont publiées dans
+[`consolidation-matrix.md`](consolidation-matrix.md). Le passage à `Stable`
+attend une implémentation et des tests de domaine conformes.
 
 ---
 
@@ -94,8 +99,8 @@ Exemples :
 - `SessionCreated` ;
 - `SessionRevoked`.
 
-Dans l'attente d'un catalogue d'événements dédié, leur contrat est documenté
-dans la commande qui les produit.
+Le catalogue normatif et les règles de confidentialité sont définis dans
+[`events.md`](events.md).
 
 ---
 
@@ -106,9 +111,12 @@ Le domaine **Identity** est propriétaire de :
 - `User`
 - `Membership`
 - `Role`
-- `Permission`
 - `Invitation`
 - `Session`
+
+Il opère le registre global des `Permission` et leurs affectations aux `Role`.
+Chaque domaine fonctionnel reste propriétaire du sens des capacités qu'il
+déclare.
 
 Il est également responsable de :
 
@@ -199,7 +207,7 @@ Le domaine **Identity** est la source officielle concernant :
 
 - les utilisateurs ;
 - les rôles ;
-- les permissions ;
+- le registre des permissions et leurs affectations ;
 - les sessions.
 
 Aucun autre domaine ne doit dupliquer ces informations.
@@ -252,12 +260,15 @@ Si une fonctionnalité nécessite de connaître des informations comme un `Clien
 | [`value-objects.md`](value-objects.md) | Catalogue les objets valeur. |
 | [`value-objects/`](value-objects/) | Détaille les politiques de rôle complexes. |
 | [`commands/`](commands/) | Décrit les commandes actuellement spécifiées. |
+| [`events.md`](events.md) | Catalogue les faits métier produits. |
+| [`permissions.md`](permissions.md) | Définit le catalogue et l'évaluation des permissions. |
+| [`workflows.md`](workflows.md) | Décrit les orchestrations transversales. |
+| [`api.md`](api.md) | Définit le contrat public d'Identity. |
+| [`integrations.md`](integrations.md) | Documente les ports et garanties externes. |
 | [`invariants.md`](invariants.md) | Regroupe les règles métier immuables. |
 | [`decision-record.md`](decision-record.md) | Explique les décisions de conception. |
-
-Les catalogues d'événements, de permissions, de workflows et de contrats API
-restent à consolider. Ils ne sont pas présentés comme disponibles tant que leur
-document canonique n'existe pas.
+| [`future.md`](future.md) | Isole les extensions hors Identity 1.0. |
+| [`consolidation-matrix.md`](consolidation-matrix.md) | Suit les quality gates du domaine. |
 
 ---
 
@@ -267,5 +278,9 @@ document canonique n'existe pas.
 - [`scope.md`](scope.md)
 - [`model.md`](model.md)
 - [`glossary/`](glossary/)
+- [`events.md`](events.md)
+- [`permissions.md`](permissions.md)
+- [`workflows.md`](workflows.md)
+- [`api.md`](api.md)
 - [`../../constitution.md`](../../constitution.md)
 - [`../../language/glossary.md`](../../language/glossary.md)

@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-CREATE-MEMBERSHIP
 title: CreateMembership
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipCreated.md
+  - ../events.md
   - AcceptInvitation.md
   - RestoreMembership.md
   - SuspendMembership.md
@@ -121,13 +121,7 @@ Cette source nécessite une politique d’intégration et de réconciliation dé
 
 ## Permission requise
 
-Lorsqu’un `User` demande directement la création, la permission recommandée est :
-
-```text
-workspace.members.manage
-```
-
-Une permission plus précise peut être utilisée :
+Lorsqu'un `User` demande directement la création, la permission canonique est :
 
 ```text
 workspace.members.create
@@ -413,16 +407,13 @@ Si le `User` n’existe pas, la commande échoue.
 
 Le `User` doit pouvoir rejoindre un `Workspace`.
 
-Les états incompatibles peuvent inclure :
+Les états incompatibles sont :
 
 ```text
+PendingVerification
 Disabled
-Deleted
-Blocked
-PendingDeletion
+Removed
 ```
-
-La liste exacte dépend du modèle retenu pour `User`.
 
 ---
 
@@ -1190,7 +1181,7 @@ CreateMembership as initial Owner
 MembershipCreated
 ```
 
-Le `Role` attribué doit conférer la qualité d’owner selon le modèle retenu.
+Le `Role` attribué doit avoir `RoleSystemType = Owner`.
 
 Le workflow ne doit jamais laisser durablement un `Workspace` sans propriétaire actif.
 

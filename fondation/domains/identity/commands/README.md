@@ -1,10 +1,10 @@
 ---
 id: IDN-COMMANDS
 title: Commands
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.3.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -127,7 +127,7 @@ CreateUser
 DisableUser
 
 CreateMembership
-ChangeRole
+ChangeMembershipRole
 
 CreateInvitation
 AcceptInvitation
@@ -231,7 +231,10 @@ MembershipCreated
 InvitationAccepted
 ```
 
-Les événements sont documentés séparément dans `events/`.
+Les événements sont documentés séparément dans [`../events.md`](../events.md).
+Ce catalogue est normatif : les noms suggérés dans une section d'effets
+secondaires sont des signaux internes ou des demandes d'intégration, sauf s'ils
+y figurent explicitement.
 
 ---
 
@@ -401,57 +404,65 @@ Les commandes actuellement documentées sont :
 
 ## User
 
-Aucune commande centrée sur le cycle de vie du `User` n'est encore consolidée.
+- [`CreateUser`](CreateUser.md)
+- [`VerifyUserEmail`](VerifyUserEmail.md)
+- [`UpdateUserProfile`](UpdateUserProfile.md)
+- [`ChangeUserEmail`](ChangeUserEmail.md)
+- [`DisableUser`](DisableUser.md)
+- [`EnableUser`](EnableUser.md)
+- [`RemoveUser`](RemoveUser.md)
 
 ---
 
 ## Membership
 
-- `CreateMembership`
-- `ChangeMembershipRole`
-- `TransferMembershipRole`
-- `SuspendMembership`
-- `ReactivateMembership`
-- `RestoreMembership`
-- `RemoveMembership`
-- `LeaveWorkspace`
+- [`CreateMembership`](CreateMembership.md)
+- [`ChangeMembershipRole`](ChangeMembershipRole.md)
+- [`TransferMembershipRole`](TransferMembershipRole.md)
+- [`SuspendMembership`](SuspendMembership.md)
+- [`ReactivateMembership`](ReactivateMembership.md)
+- [`RestoreMembership`](RestoreMembership.md)
+- [`RemoveMembership`](RemoveMembership.md)
+- [`LeaveWorkspace`](LeaveWorkspace.md)
 
 ---
 
 ## Role
 
-- `CreateRole`
-- `UpdateRoleMetadata`
-- `GrantPermissionToRole`
-- `RevokePermissionFromRole`
-- `ChangeRoleAssignmentPolicy`
-- `ChangeRoleTransferPolicy`
-- `DisableRole`
-- `EnableRole`
-- `ArchiveRole`
+- [`CreateRole`](CreateRole.md)
+- [`UpdateRoleMetadata`](UpdateRoleMetadata.md)
+- [`GrantPermissionToRole`](GrantPermissionToRole.md)
+- [`RevokePermissionFromRole`](RevokePermissionFromRole.md)
+- [`ChangeRoleAssignmentPolicy`](ChangeRoleAssignmentPolicy.md)
+- [`ChangeRoleTransferPolicy`](ChangeRoleTransferPolicy.md)
+- [`DisableRole`](DisableRole.md)
+- [`EnableRole`](EnableRole.md)
+- [`ArchiveRole`](ArchiveRole.md)
 
 ---
 
 ## Invitation
 
-- `CreateInvitation`
-- `SendInvitation`
-- `ResendInvitation`
-- `AcceptInvitation`
-- `DeclineInvitation`
-- `RevokeInvitation`
-- `ExpireInvitation`
+- [`CreateInvitation`](CreateInvitation.md)
+- [`SendInvitation`](SendInvitation.md)
+- [`ResendInvitation`](ResendInvitation.md)
+- [`AcceptInvitation`](AcceptInvitation.md)
+- [`DeclineInvitation`](DeclineInvitation.md)
+- [`RevokeInvitation`](RevokeInvitation.md)
+- [`ExpireInvitation`](ExpireInvitation.md)
 
 ---
 
 ## Session
 
-- `CreateSession`
-- `RefreshSession`
-- `ElevateSession`
-- `ExpireSession`
-- `RevokeSession`
-- `RevokeAllUserSessions`
+- [`CreateSession`](CreateSession.md)
+- [`RefreshSession`](RefreshSession.md)
+- [`ElevateSession`](ElevateSession.md)
+- [`ExpireSessionElevation`](ExpireSessionElevation.md)
+- [`TerminateSessionElevation`](TerminateSessionElevation.md)
+- [`ExpireSession`](ExpireSession.md)
+- [`RevokeSession`](RevokeSession.md)
+- [`RevokeAllUserSessions`](RevokeAllUserSessions.md)
 
 ---
 

@@ -1,12 +1,21 @@
 ---
 id: IDN-CMD-DISABLE-ROLE
 title: DisableRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -18,7 +27,7 @@ references:
   - ../value-objects/RoleTransferPolicy.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RoleDisabled.md
+  - ../events.md
   - CreateRole.md
   - EnableRole.md
   - ArchiveRole.md
@@ -278,29 +287,15 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.disable
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires :
-
-```text
-workspace.roles.disable-privileged
-workspace.roles.disable-critical
-workspace.roles.disable-system
-workspace.roles.disable-owner
-workspace.roles.emergency-disable
-workspace.roles.override-external-status
-workspace.roles.override-template-status
-```
+La sensibilité du rôle, son origine et le mode d'urgence sont évalués par des
+politiques contextuelles et peuvent exiger une approbation ou une
+réauthentification. Ils ne créent pas de permissions alternatives en 1.0.
 
 ---
 
@@ -535,9 +530,7 @@ ArchivedRoleCannotBeDisabled
 
 ---
 
-## Rôle supprimé
-
-Un éventuel rôle `Removed` ne peut pas être désactivé.
+Identity 1.0 ne définit aucun état `Removed` pour le `Role`.
 
 ---
 
@@ -987,25 +980,10 @@ Cette opération permet la remédiation.
 
 ## Remediation Role
 
-La désactivation peut nécessiter un rôle de remplacement pour les détenteurs actuels.
+`DisableRole` ne réattribue jamais les memberships. Ils conservent le rôle
+désactivé et n'en reçoivent plus aucune permission effective.
 
-Deux stratégies existent.
-
-### Désactivation pure
-
-Les memberships conservent le rôle désactivé et perdent leurs permissions.
-
-### Remplacement coordonné
-
-Une orchestration déplace les memberships vers un autre rôle.
-
----
-
-## Recommandation
-
-`DisableRole` ne doit pas réattribuer les memberships.
-
-Un workflow distinct peut orchestrer :
+Lorsqu'un rôle de remplacement est requis, un workflow distinct orchestre :
 
 ```text
 ChangeMembershipRole
@@ -1113,13 +1091,12 @@ OwnerRoleCannotBeDisabled
 
 ## Dernier chemin d’administration
 
-Un rôle non-owner peut néanmoins être le dernier rôle possédant :
+Un rôle non-owner peut néanmoins être le dernier rôle possédant les capacités
+critiques d'administration, par exemple :
 
 ```text
-workspace.roles.manage
+workspace.roles.change-assignment-policy
 ```
-
-ou une capacité équivalente.
 
 La désactivation pourrait rendre le workspace non administrable.
 
@@ -1378,7 +1355,7 @@ Exemple :
 ```text
 Actor disables own Role
 ↓
-Actor loses workspace.roles.manage
+Actor loses workspace.roles.change-assignment-policy
 ↓
 Actor cannot enable Role again
 ```
@@ -1494,13 +1471,6 @@ Disabled
 Archived
 → ArchivedRoleCannotBeDisabled
 ```
-
-```text
-Removed
-→ RemovedRoleCannotBeDisabled
-```
-
----
 
 ### 5. Charger le Workspace
 
@@ -1984,13 +1954,7 @@ Contenu recommandé :
 
 Toutes les permissions effectives du rôle peuvent être considérées comme perdues par ses détenteurs actifs.
 
-Pour éviter des événements trop volumineux, deux stratégies sont possibles.
-
-### Liste complète
-
-Appropriée si le nombre de permissions est faible et borné.
-
-### Résumé
+L'événement utilise un résumé borné :
 
 ```text
 EffectivePermissionCountLost
@@ -2002,8 +1966,6 @@ avec détail disponible dans une projection d’audit.
 
 ---
 
-## Recommandation
-
 Inclure :
 
 ```text
@@ -2012,7 +1974,7 @@ CriticalPermissionCountLost
 PrivilegedPermissionCountLost
 ```
 
-et éventuellement les identifiants si le volume reste borné.
+Les identifiants détaillés restent dans une projection d'audit protégée.
 
 ---
 
@@ -2032,7 +1994,7 @@ L’événement ne doit pas contenir :
 
 ---
 
-## Événements secondaires possibles
+## Effets et signaux secondaires possibles
 
 ```text
 RoleAuthorizationDisabled
@@ -2043,6 +2005,9 @@ RolePendingAssignmentsBlocked
 RoleIntegrationsSuspensionRequested
 RoleDisabledForSecurityIncident
 ```
+
+Ces noms représentent des signaux internes ou des demandes d'intégration, pas
+des Domain Events 1.0.
 
 ---
 
@@ -2310,9 +2275,9 @@ Deux désactivations concurrentes peuvent chacune sembler préserver la continui
 Pour les capacités critiques :
 
 ```text
-workspace.roles.manage
-workspace.members.manage
-workspace.ownership.transfer
+workspace.roles.change-assignment-policy
+workspace.members.change-role
+workspace.members.transfer-role
 ```
 
 la validation doit être protégée à l’échelle du workspace.
@@ -2602,12 +2567,6 @@ Le rôle est déjà désactivé.
 ### ArchivedRoleCannotBeDisabled
 
 Le rôle archivé ne peut pas être désactivé.
-
----
-
-### RemovedRoleCannotBeDisabled
-
-Le rôle supprimé ne peut pas être désactivé.
 
 ---
 

@@ -1,12 +1,20 @@
 ---
 id: IDN-CMD-CREATE-SESSION
 title: CreateSession
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Session
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-013
+  - IDN-INV-017
+  - IDN-INV-018
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,8 +24,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/SessionCreated.md
-  - ../events/UserAuthenticated.md
+  - ../events.md
   - RevokeSession.md
   - RevokeAllUserSessions.md
   - ExpireSession.md
@@ -853,13 +860,8 @@ Pour une création administrative exceptionnelle :
 identity.sessions.create-for-user
 ```
 
-Pour une session privilégiée :
-
-```text
-identity.sessions.elevate
-```
-
-peut être exigée en complément de la preuve d’authentification.
+L'élévation de sa propre session relève de `ElevateSession` et d'une preuve
+d'authentification forte ; elle n'est pas accordée par un rôle de workspace.
 
 ---
 
@@ -912,32 +914,24 @@ Avant exécution :
 
 ## États du User
 
-Un modèle explicite peut définir :
+Identity 1.0 définit :
 
 ```text
 UserStatus
-- Pending
+- PendingVerification
 - Active
-- Suspended
-- Locked
 - Disabled
 - Removed
 ```
 
-Règles recommandées :
+Règles :
 
 ```text
 Active
 → session allowed
 
-Pending
+PendingVerification
 → only restricted activation or verification Session
-
-Suspended
-→ ordinary Session forbidden
-
-Locked
-→ ordinary Session forbidden
 
 Disabled
 → Session forbidden
@@ -948,7 +942,7 @@ Removed
 
 ---
 
-## Pending User
+## PendingVerification User
 
 Un `User` en attente peut recevoir uniquement une session restreinte lorsque celle-ci est nécessaire pour :
 
@@ -962,23 +956,26 @@ Cette session ne doit pas donner accès aux fonctionnalités ordinaires.
 
 ---
 
-## Suspended User
+## Disabled User
 
-La suspension du `User` doit empêcher toute nouvelle session ordinaire.
+La désactivation globale du `User` empêche toute nouvelle session ordinaire.
 
 Erreur :
 
 ```text
-UserSuspended
+UserDisabled
 ```
 
-Une session de recours ou de récupération peut être autorisée par une politique distincte.
+Une session de recours ou de récupération peut être autorisée par une politique
+distincte sans rendre le `User` actif.
 
 ---
 
-## Locked User
+## Verrouillage d'authentification
 
-Un verrouillage de sécurité empêche la création d’une session jusqu’à :
+`AuthenticationLockStatus = TemporarilyLocked` est distinct de `UserStatus`.
+
+Il empêche la création d’une session jusqu’à :
 
 - expiration du verrouillage ;
 - récupération ;
@@ -1684,9 +1681,9 @@ L’événement ne doit pas contenir :
 
 ---
 
-## Événements secondaires possibles
+## Effets et signaux secondaires possibles
 
-Après commit :
+Après commit, l'orchestration peut demander les effets suivants :
 
 ```text
 SessionCredentialIssuanceRequested
@@ -1854,15 +1851,16 @@ ou le résultat idempotent si la demande est identique.
 
 ---
 
-### Création contre suspension du User
+### Création contre désactivation du User
 
-Si la suspension gagne avant le commit :
+Si la désactivation gagne avant le commit :
 
 ```text
-UserSuspended
+UserDisabled
 ```
 
-Si la création gagne avant la suspension, la suspension doit invalider la session par :
+Si la création gagne avant la désactivation, `UserStatus = Disabled` rend la
+session immédiatement inutilisable et l'orchestration la révoque.
 
 - incrément de `UserSecurityVersion` ;
 - révocation explicite ;
@@ -1978,7 +1976,7 @@ for Removed User
 
 ```text
 Active ordinary Session
-for Suspended User
+for Disabled User
 ```
 
 ```text
@@ -2181,15 +2179,15 @@ Le `User` n’est pas encore autorisé à ouvrir une session ordinaire.
 
 ---
 
-### UserSuspended
+### UserDisabled
 
-Le `User` est suspendu.
+Le `User` est désactivé.
 
 ---
 
-### UserLocked
+### AuthenticationTemporarilyLocked
 
-Le `User` est verrouillé.
+Le point d'authentification du `User` est temporairement verrouillé.
 
 ---
 

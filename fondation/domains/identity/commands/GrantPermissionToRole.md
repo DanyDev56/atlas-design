@@ -1,12 +1,23 @@
 ---
 id: IDN-CMD-GRANT-PERMISSION-TO-ROLE
 title: GrantPermissionToRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-004
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-011
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -16,7 +27,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RolePermissionGranted.md
+  - ../events.md
   - CreateRole.md
   - RevokePermissionFromRole.md
   - ChangeRoleAssignmentPolicy.md
@@ -157,7 +168,7 @@ Les permissions appartiennent au catalogue global :
 ```text
 Global Permission Catalog
 ├── workspace.members.read
-├── workspace.members.manage
+├── workspace.members.change-role
 ├── workspace.roles.create
 └── workspace.billing.read
 ```
@@ -171,7 +182,7 @@ La `Permission` définit la capacité globale.
 Exemple :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 ```
 
 L’affectation au rôle peut être modélisée comme une simple référence :
@@ -327,28 +338,16 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.grant-permission
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires :
-
-```text
-workspace.roles.grant-privileged-permission
-workspace.roles.grant-security-permission
-workspace.roles.grant-owner-permission
-workspace.roles.grant-system-permission
-workspace.roles.override-external-permissions
-workspace.roles.override-template-permissions
-```
+La sensibilité de la permission cible, le type de rôle et sa source de contrôle
+sont évalués par des politiques contextuelles. Une approbation, une séparation
+des responsabilités ou une réauthentification peut être exigée sans introduire
+de clé d'octroi alternative en 1.0.
 
 ---
 
@@ -362,18 +361,15 @@ Exemple :
 Permission.RequiredGrantPermission
 ```
 
-avec :
-
-```text
-workspace.security.grant-critical-permission
-```
+La valeur doit référencer une permission active du catalogue. En 1.0, une
+permission critique peut conserver `workspace.roles.grant-permission` comme
+autorité et ajouter une approbation ou une séparation des responsabilités.
 
 La condition devient :
 
 ```text
-Actor has general GrantPermissionToRole permission
-AND
-Actor has Permission.RequiredGrantPermission
+Actor has workspace.roles.grant-permission
+AND Actor satisfies Permission.RequiredGrantPermission when distinct
 ```
 
 ---
@@ -743,7 +739,7 @@ et non uniquement par sa clé textuelle.
 Une clé telle que :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 ```
 
 peut être un identifiant fonctionnel unique, mais le contrat doit être explicite.
@@ -887,7 +883,7 @@ TargetRole.SystemType = Owner
 Exemple conceptuel :
 
 ```text
-workspace.ownership.transfer
+workspace.members.transfer-role
 ```
 
 À l’inverse, certaines permissions peuvent être interdites au rôle owner pour préserver une séparation des devoirs.
@@ -1019,31 +1015,13 @@ L’incompatibilité dépend :
 
 ## RequiredPermissions
 
-Une permission peut dépendre d’autres permissions.
+Une permission peut dépendre d'autres permissions. Identity 1.0 n'en déclare
+aucune dans son catalogue ; cette structure reste disponible pour les
+permissions enregistrées par d'autres domaines ou une évolution future.
 
-Exemple :
-
-```text
-workspace.members.update
-requires
-workspace.members.read
-```
-
-Deux stratégies existent.
-
-### Stratégie implicite
-
-Accorder la permission principale accorde automatiquement ses dépendances.
-
-### Stratégie explicite
-
-Toutes les dépendances doivent déjà être présentes ou être accordées par des commandes distinctes.
-
----
-
-## Recommandation
-
-Préférer la stratégie explicite :
+Identity 1.0 utilise exclusivement la stratégie explicite : toutes les
+dépendances doivent déjà être présentes ou être accordées par des commandes
+distinctes.
 
 ```text
 Required Permission assignments must already exist
@@ -1067,7 +1045,7 @@ Une permission peut logiquement en impliquer une autre au moment de l’évaluat
 Exemple :
 
 ```text
-workspace.members.manage
+workspace.members.change-role
 implies
 workspace.members.read
 ```
@@ -1380,19 +1358,9 @@ alors que le rôle devient propriétaire d’une capacité critique.
 
 ## Politiques de sécurité dérivées
 
-Deux stratégies sont possibles.
-
-### Validation bloquante
-
-L’octroi échoue tant que les politiques du rôle ne sont pas suffisamment protectrices.
-
-### Remédiation coordonnée
-
-Un workflow modifie d’abord les politiques puis accorde la permission.
-
----
-
-## Recommandation
+L'octroi échoue tant que les politiques du rôle ne sont pas suffisamment
+protectrices. Un workflow peut les mettre en conformité avant de rejouer la
+commande, mais `GrantPermissionToRole` ne les modifie jamais.
 
 Pour une permission privilégiée ou critique :
 
@@ -1510,33 +1478,15 @@ Le moteur d’autorisation compare la version utilisée par la session ou le cac
 
 ## AuthorizationVersion des Memberships
 
-Deux stratégies existent.
-
-### Incrémenter chaque Membership.AuthorizationVersion
-
-Avantage :
-
-- invalidation ciblée et explicite.
-
-Inconvénient :
-
-- modification de nombreux agrégats ;
-- transaction potentiellement lourde.
-
-### Versionner le Role Permission Set
-
-Avantage :
-
-- un seul agrégat modifié ;
-- tous les memberships héritent de la nouvelle version.
-
-Recommandation :
+La commande versionne l'ensemble de permissions du `Role` :
 
 ```text
 Role.PermissionSetVersion
 ```
 
-et composition dans la décision d’autorisation.
+Cette version participe à chaque décision d'autorisation. Aucun
+`Membership.AuthorizationVersion` n'est incrémenté individuellement par cette
+commande.
 
 ---
 
@@ -1563,7 +1513,7 @@ Avant l’exécution, les conditions suivantes doivent être satisfaites :
 - le rôle existe ;
 - le workspace existe ;
 - le rôle appartient au workspace ;
-- le rôle n’est ni archivé ni supprimé ;
+- le rôle n'est pas archivé ;
 - la permission existe ;
 - la permission est active ;
 - la permission est compatible avec le scope du rôle ;
@@ -2148,7 +2098,7 @@ L’événement ne doit pas contenir :
 
 ---
 
-## Événements secondaires possibles
+## Signaux secondaires possibles
 
 Selon l’impact :
 
@@ -2160,7 +2110,8 @@ RoleHoldersBecameNonCompliant
 RoleAuthorizationCacheInvalidationRequested
 ```
 
-Ces événements ne sont produits que si leur condition métier est satisfaite.
+Ces signaux internes ne sont enregistrés que si leur condition est satisfaite.
+Ils ne font pas partie des Domain Events 1.0.
 
 ---
 
@@ -2385,7 +2336,9 @@ Même principe pour la politique de transfert.
 
 L’octroi peut réussir avant ou après la désactivation selon l’ordre de commit.
 
-Si la désactivation gagne en premier, l’octroi peut rester autorisé selon la politique retenue.
+Si la désactivation gagne en premier, l'octroi reste autorisé : un rôle
+`Disabled` peut être préparé avant sa réactivation, sans rendre la permission
+effective immédiatement.
 
 ---
 
@@ -2703,12 +2656,6 @@ Le workspace n’autorise pas l’opération.
 ### RoleArchived
 
 Le rôle archivé est immuable.
-
----
-
-### RoleRemoved
-
-Le rôle supprimé ne peut pas recevoir de permission.
 
 ---
 

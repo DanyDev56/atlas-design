@@ -1,12 +1,21 @@
 ---
 id: IDN-CMD-ENABLE-ROLE
 title: EnableRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
+
+invariants:
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-020
+  - IDN-INV-021
 
 references:
   - README.md
@@ -18,7 +27,7 @@ references:
   - ../value-objects/RoleTransferPolicy.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/RoleEnabled.md
+  - ../events.md
   - CreateRole.md
   - DisableRole.md
   - ArchiveRole.md
@@ -270,27 +279,15 @@ L’acteur doit être identifiable et auditable.
 
 ## Permission requise
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.enable
 ```
 
-Une permission plus générale peut être utilisée :
-
-```text
-workspace.roles.manage
-```
-
-Des permissions renforcées peuvent être nécessaires :
-
-```text
-workspace.roles.enable-privileged
-workspace.roles.enable-system
-workspace.roles.enable-owner
-workspace.roles.override-external-status
-workspace.roles.override-template-status
-```
+La sensibilité du rôle et son origine sont évaluées par des politiques
+contextuelles et peuvent exiger une approbation ou une réauthentification. Elles
+ne créent pas de permissions alternatives en 1.0.
 
 ---
 
@@ -483,9 +480,7 @@ ArchivedRoleCannotBeEnabled
 
 ---
 
-## Rôle supprimé
-
-Si le modèle introduit ultérieurement un état `Removed`, il ne peut pas être activé.
+Identity 1.0 ne définit aucun état `Removed` pour le `Role`.
 
 ---
 
@@ -1421,13 +1416,6 @@ Archived
 → ArchivedRoleCannotBeEnabled
 ```
 
-```text
-Removed
-→ RemovedRoleCannotBeEnabled
-```
-
----
-
 ### 5. Charger le Workspace
 
 Le système vérifie :
@@ -1917,7 +1905,7 @@ L’événement ne doit pas contenir :
 
 ---
 
-## Événements secondaires possibles
+## Effets et signaux secondaires possibles
 
 Selon le contexte :
 
@@ -1929,6 +1917,9 @@ RoleEnabledWithWarnings
 RoleEnableRemediationRequired
 ExternalRoleActivationConfirmed
 ```
+
+Ces noms représentent des signaux internes ou des demandes d'intégration, pas
+des Domain Events 1.0.
 
 ---
 
@@ -2466,12 +2457,6 @@ Le rôle est déjà actif.
 ### ArchivedRoleCannotBeEnabled
 
 Un rôle archivé ne peut pas être activé.
-
----
-
-### RemovedRoleCannotBeEnabled
-
-Un rôle supprimé ne peut pas être activé.
 
 ---
 

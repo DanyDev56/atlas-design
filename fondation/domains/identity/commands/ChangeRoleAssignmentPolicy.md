@@ -1,19 +1,27 @@
 ---
 id: IDN-CMD-CHANGE-ROLE-ASSIGNMENT-POLICY
 title: ChangeRoleAssignmentPolicy
-status: Draft
+status: In Review
 owner: Product
 version: 2.0.0
 last_updated: 2026-07-31
 
 aggregate: Role
 
+invariants:
+  - IDN-INV-005
+  - IDN-INV-006
+  - IDN-INV-014
+  - IDN-INV-015
+  - IDN-INV-019
+  - IDN-INV-021
+
 references:
   - README.md
   - ../aggregates.md
   - ../invariants.md
   - ../value-objects/RoleAssignmentPolicy.md
-  - ../events/RoleAssignmentPolicyChanged.md
+  - ../events.md
   - CreateRole.md
   - ChangeMembershipRole.md
   - TransferMembershipRole.md
@@ -60,19 +68,15 @@ La commande peut être initiée par :
 
 ## Permission
 
-Permission recommandée :
+Permission canonique :
 
 ```text
 workspace.roles.change-assignment-policy
 ```
 
-Permissions renforcées possibles :
-
-```text
-workspace.roles.change-privileged-assignment-policy
-workspace.owners.change-assignment-policy
-workspace.security.change-role-policy
-```
+La sensibilité du rôle et de la nouvelle politique est traitée par les règles
+contextuelles, les approbations et la réauthentification, sans clé alternative
+en 1.0.
 
 ---
 
@@ -131,7 +135,7 @@ La commande réussit uniquement si un plan valide couvre les non-conformités.
 
 - le rôle existe ;
 - le `Workspace` existe ;
-- le rôle n’est ni archivé ni supprimé ;
+- le rôle n'est pas archivé ;
 - l’acteur est autorisé ;
 - la source contrôle cette politique ;
 - la nouvelle politique est valide ;
@@ -298,7 +302,7 @@ Contenu recommandé :
 
 ---
 
-## Événements secondaires possibles
+## Signaux secondaires possibles
 
 ```text
 RoleAssignmentsBecameNonCompliant
@@ -306,7 +310,8 @@ RoleAssignmentRemediationRequired
 RoleAssignmentPolicyComplianceReviewRequested
 ```
 
-Ils ne sont produits que lorsque leur condition métier est satisfaite.
+Ces signaux internes ne sont enregistrés que lorsque leur condition est
+satisfaite. Ils ne font pas partie des Domain Events 1.0.
 
 ---
 
@@ -382,7 +387,7 @@ IdempotencyConflict
 Les erreurs détaillées de structure de politique sont définies dans :
 
 ```text
-value-objects/RoleAssignmentPolicy.md
+../value-objects/RoleAssignmentPolicy.md
 ```
 
 ---

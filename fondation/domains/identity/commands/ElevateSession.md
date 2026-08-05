@@ -1,12 +1,19 @@
 ---
 id: IDN-CMD-ELEVATE-SESSION
 title: ElevateSession
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-08-05
 
 aggregate: Session
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-013
+  - IDN-INV-014
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,13 +23,13 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/SessionElevated.md
-  - ../events/SessionElevationExpired.md
-  - ../events/SessionElevationRejected.md
+  - ../events.md
   - CreateSession.md
   - RefreshSession.md
   - RevokeSession.md
   - RevokeAllUserSessions.md
+  - ExpireSessionElevation.md
+  - TerminateSessionElevation.md
   - ExpireSession.md
   - ../workflows.md
   - ../decision-record.md
@@ -282,10 +289,11 @@ Une session révoquée ou expirée ne peut pas être réactivée par `ElevateSes
 L’élévation peut être représentée par un état indépendant :
 
     SessionElevationStatus
-    ├── None
     ├── Active
     ├── Expired
-    └── Revoked
+    └── Terminated
+
+L'absence d'élévation est modélisée par l'absence de la valeur, pas par `None`.
 
 La session principale peut rester :
 
@@ -637,7 +645,7 @@ L’élévation est limitée à certaines permissions.
 Exemple :
 
     workspace.billing.payment.approve
-    workspace.ownership.transfer
+    workspace.members.transfer-role
 
 L’élévation ne crée pas ces permissions.
 
@@ -693,7 +701,8 @@ L’élévation ne peut autoriser qu’une seule action sensible.
 Après consommation :
 
     RemainingActionCount = 0
-    Elevation.Status = Expired or Consumed
+    Elevation.Status = Terminated
+    TerminationReason = ScopeConsumed
 
 Cette stratégie est recommandée pour certaines opérations critiques.
 
@@ -862,24 +871,21 @@ Avant exécution :
 
 ## 38. États du User
 
-Règles recommandées :
+Règles Identity 1.0 :
 
     Active
     → elevation allowed
 
-    Pending
+    PendingVerification
     → only for restricted activation workflow
-
-    Suspended
-    → elevation forbidden
-
-    Locked
-    → elevation forbidden
 
     Disabled
     → elevation forbidden
 
     Removed
+    → elevation forbidden
+
+    AuthenticationLockStatus = TemporarilyLocked
     → elevation forbidden
 
 Une élévation ne doit jamais contourner l’état de sécurité du compte.
@@ -1209,7 +1215,7 @@ Même après élévation :
 Exemple :
 
     Session elevated to VeryHigh
-    but Role lacks workspace.ownership.transfer
+    but Role lacks workspace.members.transfer-role
             ↓
     transfer denied
 
@@ -2020,7 +2026,7 @@ L’événement ne doit pas contenir :
 
 ---
 
-## 80. Événements secondaires possibles
+## 80. Effets et signaux secondaires possibles
 
 Après succès :
 
@@ -2034,15 +2040,15 @@ Lors du remplacement d’une élévation précédente :
 
     PreviousSessionElevationTerminated
 
-Lors d’une tentative refusée :
-
-    SessionElevationRejected
+Lors d'une tentative refusée, un signal de sécurité restreint peut être
+enregistré sans Domain Event.
 
 ---
 
-## 81. SessionElevationRejected
+## 81. Tentative d'élévation refusée
 
-Un événement de sécurité peut être produit lorsque l’échec est significatif.
+Un signal de sécurité ou un enregistrement d'audit peut être produit lorsque
+l'échec est significatif. Il ne fait pas partie des Domain Events.
 
 Exemples :
 
@@ -2079,15 +2085,8 @@ Aucun secret.
 
 l’élévation devient inefficace.
 
-Deux stratégies existent.
-
-### Évaluation temporelle dynamique
-
-Le moteur considère l’élévation comme expirée sans modifier immédiatement l’agrégat.
-
-### Transition explicite
-
-Un scheduler ou une commande produit :
+L'évaluation temporelle rend immédiatement l'élévation inefficace, même avant
+la matérialisation persistante. Un traitement temporel produit ensuite :
 
     SessionElevationExpired
 
@@ -2141,11 +2140,8 @@ Une élévation peut être révoquée avant son expiration en raison :
 - d’une modification d’appareil ;
 - d’une décision administrative.
 
-Une commande dédiée peut être introduite :
-
-    RevokeSessionElevation
-
-ou la révocation peut être intégrée à `RevokeSession`.
+`ExpireSessionElevation` matérialise l'échéance. `TerminateSessionElevation`
+porte toute fin anticipée sans révocation obligatoire de la session.
 
 ---
 
@@ -2464,9 +2460,9 @@ Si `User.SecurityVersion` change avant le commit :
 
 ### 106.7 Elevate contre suspension du User
 
-Si la suspension gagne :
+Si la désactivation gagne :
 
-    UserSuspended
+    UserDisabled
 
 ---
 
@@ -2559,7 +2555,7 @@ Le même commit logique doit garantir :
     Removed User
     → Session elevated
 
-    Suspended User
+    Disabled User
     → ordinary Session elevated
 
     AuthenticationProof belongs to another User
@@ -2782,15 +2778,15 @@ Le `User` ne peut utiliser qu’un workflow restreint.
 
 ---
 
-### UserSuspended
+### UserDisabled
 
-Le `User` est suspendu.
+Le `User` est désactivé.
 
 ---
 
-### UserLocked
+### AuthenticationTemporarilyLocked
 
-Le `User` est verrouillé.
+Le point d'authentification du `User` est temporairement verrouillé.
 
 ---
 

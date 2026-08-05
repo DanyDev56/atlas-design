@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-CREATE-INVITATION
 title: CreateInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -15,7 +15,7 @@ references:
   - ../relationships.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/InvitationCreated.md
+  - ../events.md
   - SendInvitation.md
 ---
 
@@ -53,19 +53,11 @@ L’acteur doit être identifié.
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.invite
 ```
-
-Une permission plus générale peut être retenue si le catalogue Atlas utilise :
-
-```text
-workspace.members.manage
-```
-
-Le choix définitif doit rester cohérent avec la granularité globale du catalogue de `Permission`.
 
 ---
 
@@ -98,6 +90,7 @@ La politique concernant les invitations concurrentes doit être appliquée avant
 | `RoleId` | `RoleId` | Oui | `Role` prévu pour le futur `Membership`. |
 | `InvitedBy` | `UserId` | Oui | `User` à l’origine de l’`Invitation`. |
 | `ExpirationDate` | `ExpirationDate` | Oui | Date limite d’utilisation de l’`Invitation`. |
+| `CreateInvitationRequestId` | `RequestId` | Oui | Clé d'idempotence de l'intention. |
 | `RequestedAt` | Instant | Oui | Instant auquel la commande est demandée. |
 
 Selon les besoins du produit, la commande peut également recevoir :
@@ -380,13 +373,14 @@ Il peut notamment contenir :
 
 - `InvitationId`
 - `WorkspaceId`
-- `RecipientEmail`
+- `RecipientEmailFingerprint`
 - `RoleId`
 - `InvitedBy`
 - `CreatedAt`
 - `ExpirationDate`
 
-Il ne doit pas contenir l’`InvitationToken` brut.
+Il ne doit contenir ni l'`InvitationToken` brut ni l'adresse e-mail brute. Le
+workflow d'envoi relit l'adresse depuis un port protégé.
 
 ---
 
@@ -486,7 +480,7 @@ L’`InvitationId` demandé est déjà utilisé.
 
 ## Idempotence
 
-`CreateInvitation` n’est pas naturellement idempotente lorsque chaque exécution reçoit un nouvel `InvitationId`.
+`CreateInvitation` utilise `CreateInvitationRequestId` comme clé d'idempotence.
 
 Deux exécutions identiques pourraient théoriquement créer deux entités différentes.
 
@@ -496,13 +490,15 @@ Cependant, le domaine doit protéger l’unicité métier suivante :
 RecipientEmail + WorkspaceId + ActiveStatus
 ```
 
-Le comportement recommandé est le suivant :
+Le comportement canonique est le suivant :
 
-- une seconde demande portant la même clé d’idempotence retourne le résultat initial ;
+- une seconde demande portant le même `CreateInvitationRequestId` et la même
+  empreinte retourne le résultat initial ;
 - une demande sans clé d’idempotence est refusée lorsqu’une invitation active équivalente existe ;
 - aucune seconde `Invitation` active n’est créée silencieusement.
 
-Une clé d’idempotence technique peut être portée par le contrat applicatif sans devenir un concept métier de l’agrégat.
+La clé reste une métadonnée de commande et ne devient pas l'identité métier de
+l'agrégat.
 
 ---
 
@@ -535,12 +531,12 @@ exactly one active Invitation
 
 Le droit d’inviter un membre ne signifie pas nécessairement le droit d’attribuer tous les `Role`.
 
-La politique d’autorisation peut distinguer :
+La politique d'autorisation combine :
 
 ```text
-workspace.members.invite
-workspace.roles.assign
-workspace.ownership.transfer
+Actor has workspace.members.invite
+AND TargetRole.RoleAssignmentPolicy allows Invitation
+AND ownership policy allows TargetRole when it is Owner
 ```
 
 Exemple de règle :
@@ -549,7 +545,8 @@ Exemple de règle :
 - un `Admin` ne peut pas inviter un `Owner` ;
 - seul un `Owner` peut accorder la propriété du `Workspace`.
 
-Ces règles doivent être définies dans `permissions.md`.
+Ces règles sont des politiques contextuelles ; elles ne créent pas de clés de
+permission supplémentaires.
 
 ---
 

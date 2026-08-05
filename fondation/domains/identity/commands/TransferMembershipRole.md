@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-TRANSFER-MEMBERSHIP-ROLE
 title: TransferMembershipRole
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -18,7 +18,7 @@ references:
   - ../invariants.md
   - ../workflows.md
   - ../permissions.md
-  - ../events/MembershipRoleTransferCompleted.md
+  - ../events.md
   - ChangeMembershipRole.md
   - RemoveMembership.md
   - LeaveWorkspace.md
@@ -244,9 +244,10 @@ La commande de transfert est pertinente lorsque les deux changements sont indiss
 
 ---
 
-## Différence avec TransferWorkspaceOwnership
+## Ownership comme cas d'usage
 
-`TransferWorkspaceOwnership` serait spécialisé sur le rôle owner.
+Une commande spécialisée d'ownership a été rejetée au profit de ce contrat
+générique.
 
 `TransferMembershipRole` généralise la décision :
 
@@ -255,17 +256,9 @@ Ownership transfer
     = transfer of an Owner Role
 ```
 
-Le cas owner reste soumis à des politiques renforcées, mais ne nécessite pas une commande structurellement différente.
-
-Une façade applicative nommée :
-
-```text
-TransferWorkspaceOwnership
-```
-
-peut éventuellement appeler `TransferMembershipRole` avec des paramètres contraints.
-
-Le modèle de domaine principal reste générique.
+Le cas owner reste soumis à des politiques renforcées, mais ne nécessite pas une
+commande de domaine structurellement différente. L'interface peut présenter un
+parcours dédié sans créer un second contrat métier.
 
 ---
 
@@ -424,22 +417,13 @@ CompleteMembershipRoleTransfer
 
 ## Permission requise
 
-Permission générale recommandée :
+Permission canonique :
 
 ```text
 workspace.members.transfer-role
 ```
 
-Permissions spécialisées possibles :
-
-```text
-workspace.owners.transfer
-workspace.roles.transfer-privileged
-workspace.roles.transfer-exclusive
-workspace.members.transfer-own-role
-```
-
-La possession d’une permission générale ne suffit pas nécessairement.
+La possession de cette permission est nécessaire mais non suffisante.
 
 L’autorisation doit vérifier :
 
@@ -454,6 +438,10 @@ Actor may assign TransferredRole to TargetMembership
 AND
 Actor may assign SourceReplacementRole to SourceMembership
 ```
+
+Le transfert d'ownership, d'un rôle privilégié ou exclusif, ou du propre rôle de
+l'acteur est gouverné par les politiques contextuelles et les approbations ; ces
+cas ne créent pas de permissions supplémentaires en 1.0.
 
 ---
 
@@ -625,13 +613,8 @@ Le motif doit exprimer la décision métier.
 
 ## Rôle transférable
 
-Le rôle peut exposer une politique :
-
-```text
-TransferMode
-```
-
-Valeurs possibles :
+Le rôle expose une `RoleTransferPolicy` dont la propriété `Transferability` peut
+notamment valoir :
 
 ```text
 NotTransferable
@@ -642,15 +625,17 @@ TransferableOnlyBySystem
 TransferableOnlyByOwner
 ```
 
-Le rôle peut également indiquer :
+La politique et la `RoleAssignmentPolicy` peuvent également imposer :
 
 ```text
-IsExclusive
 MaximumActiveAssignments
 RequiresHumanAssignee
 RequiredAuthenticationLevel
 RequiredAcceptance
 ```
+
+L'exclusivité est dérivée de `MaximumActiveAssignments = 1` et n'est jamais une
+seconde source de vérité.
 
 ---
 
@@ -956,7 +941,8 @@ Le système vérifie que l’acteur peut attribuer le rôle transféré au membr
 Exemple pour owner :
 
 ```text
-Actor has workspace.owners.transfer
+Actor has workspace.members.transfer-role
+AND ownership policy allows the transfer
 ```
 
 ---
@@ -1520,24 +1506,9 @@ these two Role changes are one atomic transfer
 
 ---
 
-## Événements secondaires
+## Événements dérivés
 
-Le domaine peut également exposer, selon les besoins :
-
-```text
-MembershipRoleChanged
-```
-
-pour chaque membre, mais ces événements doivent être rattachés au même :
-
-```text
-TransferRequestId
-CorrelationId
-```
-
-Deux stratégies sont possibles.
-
-### Stratégie A — événement de transfert uniquement
+### Stratégie canonique — événement de transfert uniquement
 
 Les projections interprètent directement :
 
@@ -1545,27 +1516,15 @@ Les projections interprètent directement :
 MembershipRoleTransferCompleted
 ```
 
-### Stratégie B — événement de transfert et événements unitaires
-
-Le système produit :
-
-```text
-MembershipRoleTransferCompleted
-MembershipRoleChanged for Source
-MembershipRoleChanged for Target
-```
-
-La stratégie A est plus sobre.
-
-La stratégie B facilite la compatibilité avec des consommateurs génériques.
-
-La décision doit être uniforme.
+Les projections internes peuvent dériver deux changements unitaires, sans
+publier de `MembershipRoleChanged` supplémentaire. Le fait public conserve ainsi
+l'atomicité sémantique du transfert.
 
 ---
 
 ## Recommandation événementielle
 
-Produire l’événement métier principal :
+Produire l'événement métier unique :
 
 ```text
 MembershipRoleTransferCompleted

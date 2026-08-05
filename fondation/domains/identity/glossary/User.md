@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-USER
 title: User
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -42,6 +42,16 @@ Son existence est indépendante de tout `Workspace`. Un `User` peut exister avan
 L'appartenance à un `Workspace` n'est jamais portée par le `User`. Elle est toujours représentée par un `Membership`.
 
 Le `User` constitue uniquement l'identité de la personne dans Atlas.
+
+Identity 1.0 représente uniquement un `HumanUser`. Son cycle de vie est :
+
+```text
+PendingVerification -> Active <-> Disabled -> Removed
+Active ------------------------------------> Removed
+```
+
+`Removed` est terminal. Un verrouillage temporaire d'authentification est porté
+par `AuthenticationLockStatus`, jamais par `UserStatus`.
 
 ---
 

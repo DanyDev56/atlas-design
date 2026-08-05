@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-ROLE
 title: Role
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -37,6 +37,9 @@ Le `Role` représente un niveau de responsabilité au sein d'un `Workspace`.
 Il regroupe un ensemble cohérent de `Permission` afin de simplifier la gestion des autorisations.
 
 Un même `Role` peut être attribué à plusieurs `Membership`.
+
+Un rôle peut contenir zéro ou plusieurs permissions explicites. Ses statuts 1.0
+sont `Active`, `Disabled` et `Archived` ; `Archived` est terminal.
 
 ---
 

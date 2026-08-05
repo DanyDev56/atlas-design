@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-RESEND-INVITATION
 title: ResendInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -16,8 +16,7 @@ references:
   - ../invariants.md
   - ../permissions.md
   - ../integrations.md
-  - ../events/InvitationResendRequested.md
-  - ../events/InvitationSent.md
+  - ../events.md
   - SendInvitation.md
   - RevokeInvitation.md
   - ExpireInvitation.md
@@ -66,16 +65,10 @@ L’origine de la demande doit être traçable.
 
 ## Permission requise
 
-Lorsqu’elle est initiée par un `User`, la permission recommandée est :
+Lorsqu'elle est initiée par un `User`, la permission canonique est :
 
 ```text
 workspace.members.invite
-```
-
-ou, selon le catalogue Atlas :
-
-```text
-workspace.members.manage
 ```
 
 Une relance automatique doit être exécutée par un processus système identifié et limité à ce cas d’usage.

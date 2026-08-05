@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-REACTIVATE-MEMBERSHIP
 title: ReactivateMembership
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-31
@@ -16,7 +16,7 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/MembershipReactivated.md
+  - ../events.md
   - CreateMembership.md
   - RestoreMembership.md
   - SuspendMembership.md
@@ -50,7 +50,8 @@ La réactivation conserve :
 - l’historique de la suspension ;
 - la continuité de l’appartenance.
 
-Le `Role` peut être conservé ou remplacé explicitement selon la politique retenue.
+Le `Role` est conservé lorsque `RoleId` est absent. Un `RoleId` fourni le
+remplace atomiquement pendant la réactivation.
 
 ---
 
@@ -156,16 +157,10 @@ L’acteur ou le workflow doit être explicitement identifiable.
 
 ## Permission requise
 
-La permission recommandée est :
+La permission canonique est :
 
 ```text
 workspace.members.reactivate
-```
-
-À défaut, une permission plus générale peut être utilisée :
-
-```text
-workspace.members.manage
 ```
 
 L’autorisation doit tenir compte de :
@@ -405,11 +400,11 @@ Le `ReactivationRequestId` doit :
 
 ### RoleId
 
-Deux stratégies sont possibles.
+Deux formes d'entrée font partie du contrat.
 
 #### Conserver le Role actuel
 
-`RoleId` peut être omis si la politique autorise la conservation du rôle suspendu.
+`RoleId` est omis lorsque le rôle suspendu reste actif et attribuable.
 
 Le système utilise alors :
 
@@ -610,14 +605,12 @@ Le `UserId` ne peut pas être modifié.
 
 Le `User` doit être compatible avec une réactivation.
 
-États potentiellement incompatibles :
+États incompatibles :
 
 ```text
+PendingVerification
 Disabled
-Deleted
-Blocked
-PendingDeletion
-Compromised
+Removed
 ```
 
 Un `Membership` ne peut pas redevenir effectif si le `User` reste globalement indisponible.

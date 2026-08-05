@@ -1,10 +1,10 @@
 ---
 id: IDN-GLS-PERMISSION
 title: Permission
-status: Draft
+status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-07-30
+version: 1.1.0
+last_updated: 2026-08-05
 
 references:
   - ../README.md
@@ -32,11 +32,16 @@ Cette définition est utilisée de manière uniforme dans la documentation, le c
 
 # Définition
 
-La `Permission` représente une capacité précise pouvant être accordée à un utilisateur.
+La `Permission` représente une capacité précise qui peut devenir effective pour
+un utilisateur par l'intermédiaire de son `Role` de workspace.
 
 Chaque `Permission` décrit une seule autorisation fonctionnelle.
 
 Les `Permission` sont regroupées dans un `Role`, qui est ensuite attribué à un `Membership`.
+
+`PermissionId` porte l'identité stable et `PermissionKey` le contrat fonctionnel
+immuable. Chaque capacité déclare son `OwningDomain` ; Identity opère le registre
+global et les affectations aux rôles.
 
 ---
 

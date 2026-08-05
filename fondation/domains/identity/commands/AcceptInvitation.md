@@ -1,7 +1,7 @@
 ---
 id: IDN-CMD-ACCEPT-INVITATION
 title: AcceptInvitation
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-07-30
@@ -17,9 +17,7 @@ references:
   - ../invariants.md
   - ../permissions.md
   - ../workflows.md
-  - ../events/InvitationAccepted.md
-  - ../events/MembershipCreated.md
-  - ../events/MembershipRestored.md
+  - ../events.md
   - CreateInvitation.md
   - DeclineInvitation.md
   - ExpireInvitation.md
@@ -908,23 +906,15 @@ elle doit échouer, même si la tâche d’expiration n’a pas encore persisté
 
 ## Atomicité
 
-L’acceptation implique deux agrégats distincts.
-
-Plusieurs stratégies techniques sont possibles :
-
-- transaction locale commune ;
-- saga orchestrée ;
-- process manager ;
-- réservation puis confirmation ;
-- boîte d’envoi transactionnelle avec reprise.
-
-La stratégie choisie doit garantir qu’aucun état incohérent durable ne subsiste.
+L'acceptation implique deux agrégats distincts mais constitue une seule décision
+atomique. Identity 1.0 exige une visibilité tout-ou-rien du `Membership` actif et
+de l'`Invitation` acceptée.
 
 ---
 
-## Stratégie transactionnelle recommandée
+## Stratégie transactionnelle
 
-Lorsque `Invitation` et `Membership` partagent la même base transactionnelle, la stratégie recommandée est :
+Le traitement canonique est :
 
 1. verrouiller ou versionner l’`Invitation` ;
 2. vérifier son état et son token ;
@@ -942,31 +932,9 @@ UNIQUE(UserId, WorkspaceId)
 
 ---
 
-## Stratégie distribuée
-
-Lorsque les agrégats ne partagent pas une transaction locale, le workflow doit utiliser des états intermédiaires ou une orchestration fiable.
-
-Exemple conceptuel :
-
-```text
-InvitationAcceptanceStarted
-
-↓
-
-CreateMembership requested
-
-↓
-
-MembershipCreated
-
-↓
-
-InvitationAccepted
-```
-
-Une reprise doit être possible après chaque étape.
-
-Le processus ne doit pas déclarer l’`Invitation` acceptée avant d’avoir une preuve fiable de l’existence du `Membership`.
+Une implémentation distribuée doit fournir une garantie d'atomicité observable
+équivalente. Elle ne publie aucun événement intermédiaire public et ne rend
+jamais visible un seul des deux états finaux.
 
 ---
 

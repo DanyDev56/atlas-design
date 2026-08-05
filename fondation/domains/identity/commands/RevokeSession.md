@@ -1,12 +1,17 @@
 ---
 id: IDN-CMD-REVOKE-SESSION
 title: RevokeSession
-status: Draft
+status: In Review
 owner: Product
 version: 1.0.0
 last_updated: 2026-08-05
 
 aggregate: Session
+
+invariants:
+  - IDN-INV-010
+  - IDN-INV-012
+  - IDN-INV-022
 
 references:
   - README.md
@@ -16,11 +21,11 @@ references:
   - ../value-objects.md
   - ../invariants.md
   - ../permissions.md
-  - ../events/SessionRevoked.md
-  - ../events/SessionRevocationRejected.md
+  - ../events.md
   - CreateSession.md
   - RefreshSession.md
   - ElevateSession.md
+  - TerminateSessionElevation.md
   - RevokeAllUserSessions.md
   - ExpireSession.md
   - ../workflows.md
@@ -462,19 +467,15 @@ Condition recommandée :
 
 ## 25. Révocation administrative
 
-Un administrateur peut révoquer la session d’un autre `User` uniquement avec une permission dédiée.
+Un administrateur peut révoquer la session d'un autre `User` uniquement au
+travers d'un `SystemActor` possédant la capacité dédiée.
 
 Permission possible :
 
     identity.sessions.revoke
 
-Pour une session privilégiée :
-
-    identity.sessions.revoke-privileged
-
-Pour une session d’impersonation :
-
-    identity.sessions.revoke-impersonation
+Le caractère privilégié ou d'impersonation de la session renforce la politique,
+l'audit et les approbations ; il ne change pas la clé canonique.
 
 ---
 
@@ -597,9 +598,8 @@ Valeurs recommandées pour `SessionRevocationReason` :
     PasswordChanged
     AuthenticationFactorChanged
     AccountRecovered
-    UserSuspended
-    UserLocked
     UserDisabled
+    AuthenticationTemporarilyLocked
     UserRemoved
     IdentityProviderSessionEnded
     PolicyViolation
@@ -1160,13 +1160,9 @@ La session peut conserver :
 
 Si une élévation est active :
 
-    Session.Elevation.Status = Revoked
-
-ou :
-
+    Session.Elevation.Status = Terminated
     Session.Elevation.TerminatedAt = RevokedAt
-
-selon le modèle.
+    Session.Elevation.TerminationReason = SessionRevocation
 
 ---
 
@@ -1422,13 +1418,12 @@ L’événement ne doit pas contenir :
 
 ---
 
-## 69. Événements secondaires possibles
+## 69. Événements, effets et signaux secondaires
 
 Après commit :
 
     SessionAccessCredentialInvalidationRequested
     SessionRefreshTokenFamilyRevoked
-    SessionElevationTerminated
     SessionSecurityProjectionUpdated
     UserSessionIndexUpdateRequested
     SessionRevocationNotificationRequested
@@ -1436,11 +1431,16 @@ Après commit :
     RecoverySessionEnded
     ServiceIntegrationInterruptionRequested
 
+La révocation de la session rend son élévation inefficace par définition. Une
+fin anticipée indépendante utilise `TerminateSessionElevation`. Les noms
+ci-dessus sont des signaux internes ou des demandes d'intégration.
+
 ---
 
-## 70. SessionRevocationRejected
+## 70. Tentative de révocation refusée
 
-Une tentative refusée peut produire un événement de sécurité lorsque pertinent.
+Une tentative refusée peut produire un signal de sécurité ou un enregistrement
+d'audit lorsque pertinent. Elle ne produit pas de Domain Event.
 
 Exemples :
 
@@ -1467,8 +1467,8 @@ Contenu recommandé :
 
 La commande ne produit pas :
 
-    UserSuspended
-    UserLocked
+    UserDisabled
+    AuthenticationTemporarilyLocked
     UserRemoved
     MembershipSuspended
     MembershipRemoved
