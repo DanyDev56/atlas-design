@@ -17,6 +17,7 @@ Il couvre notamment :
 - les métriques ;
 - les priorités ;
 - le Blueprint courant ;
+- les fixtures de référence exécutables ;
 - la gouvernance produit.
 
 Ces documents peuvent évoluer fréquemment.

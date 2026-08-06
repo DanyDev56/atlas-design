@@ -43,10 +43,11 @@ d'implémentation définitifs.
 8. [Périmètre du MVP](evolution/roadmap/mvp-scope.md)
 9. [Acceptation de bout en bout du MVP](evolution/roadmap/mvp-acceptance.md)
 10. [Product Blueprint](evolution/blueprint/README.md)
-11. [Product Language](fondation/language/README.md)
-12. [Domain Map](fondation/domain-map/README.md)
-13. [Architecture Decision Records](fondation/decisions/README.md)
-14. [Security Foundation](fondation/security/README.md)
+11. [Fixtures de référence du MVP](evolution/reference-fixtures/README.md)
+12. [Product Language](fondation/language/README.md)
+13. [Domain Map](fondation/domain-map/README.md)
+14. [Architecture Decision Records](fondation/decisions/README.md)
+15. [Security Foundation](fondation/security/README.md)
 
 ---
 

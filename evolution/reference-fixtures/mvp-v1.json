@@ -1,0 +1,821 @@
+{
+  "fixture_set_id": "atlas.mvp.reference-fixtures",
+  "fixture_schema_version": "1.0.0",
+  "fixture_set_version": "1.0.0",
+  "as_of": "2026-06-30T00:00:00Z",
+  "reporting_time_zone": "UTC",
+  "reporting_calendar_version": "1.0.0",
+  "currency": "EUR",
+  "money_unit": "minor",
+  "policy_versions": {
+    "analytics_metric_catalog_document": "1.1.0",
+    "analytics_metric_definition": "1.0",
+    "analytics_snapshot_profile_key": "BusinessHealthBaselineV1",
+    "analytics_snapshot_profile_version": null,
+    "business_health": "1.0.0",
+    "advisor": "1.0.0",
+    "notifications": "1.0.0"
+  },
+  "known_contract_gaps": [
+    "analytics.snapshot-profile-version-unassigned"
+  ],
+  "metric_keys": [
+    "analytics.pipeline.open-amount",
+    "analytics.quotes.pending-amount",
+    "analytics.quotes.acceptance-rate",
+    "analytics.quotes.average-response-time",
+    "analytics.billing.net-invoiced-amount",
+    "analytics.billing.collected-amount",
+    "analytics.receivables.outstanding-amount",
+    "analytics.receivables.overdue-amount",
+    "analytics.receivables.overdue-count",
+    "analytics.receivables.due-soon-amount",
+    "analytics.payments.average-time-to-payment",
+    "analytics.payments.on-time-rate",
+    "analytics.clients.top-collection-share"
+  ],
+  "cases": [
+    {
+      "fixture_id": "FIX-001",
+      "scenario_key": "empty-activity",
+      "title": "Activité vide",
+      "purpose": "Distinguer une population observée vide d'une valeur nulle et d'une panne.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "pending_quotes": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "quote_decisions_rolling_90_days": {"current": null, "baseline": null},
+        "net_invoiced_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "collected_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "receivables": {"current": null, "baseline": null},
+        "settlements_rolling_90_days": {"current": null, "baseline": null},
+        "collections_rolling_365_days": {"current": null, "baseline": null}
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.acceptance-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.quotes.average-response-time": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.billing.net-invoiced-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.billing.collected-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.outstanding-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-count": {"state": "NoData", "unit": "Count", "change_kind": "NotComparable"},
+            "analytics.receivables.due-soon-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.payments.average-time-to-payment": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.payments.on-time-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.clients.top-collection-share": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "InsufficientData",
+          "reliability": "Insufficient",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "NoData"},
+            "pipeline_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "net_invoiced_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "collected_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "overdue_load": {"status": "Unavailable", "reason": "NoData"},
+            "on_time_payment": {"status": "Unavailable", "reason": "NoData"},
+            "top_client_share": {"status": "Unavailable", "reason": "NoData"}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "BillingMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "ReceivablesDiscipline": {"status": "Unavailable", "coverage_percent": 0},
+            "ClientDiversification": {"status": "Unavailable", "coverage_percent": 0}
+          },
+          "global_coverage_percent": 0,
+          "overall_score": null,
+          "health_band": null,
+          "primary_attention": null,
+          "risks": []
+        },
+        "advisor": {"source_eligibility": "InsufficientAssessment", "recommendations": [], "primary_recommendation_key": null},
+        "notifications": {"plan_decision": "SourceIgnored", "channels": [], "notification_state": "Absent", "email_delivery_state": "Absent", "provider_submission_count": 0}
+      }
+    },
+    {
+      "fixture_id": "FIX-002",
+      "scenario_key": "opportunity-without-quote",
+      "title": "Opportunité sans devis",
+      "purpose": "Prouver Started sans transformer l'absence des autres populations en zéro.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 1200000, "baseline_amount_minor": 0},
+        "pending_quotes": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "quote_decisions_rolling_90_days": {"current": null, "baseline": null},
+        "net_invoiced_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "collected_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "receivables": {"current": null, "baseline": null},
+        "settlements_rolling_90_days": {"current": null, "baseline": null},
+        "collections_rolling_365_days": {"current": null, "baseline": null}
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Started"},
+            "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.acceptance-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.quotes.average-response-time": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.billing.net-invoiced-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.billing.collected-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.outstanding-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-count": {"state": "NoData", "unit": "Count", "change_kind": "NotComparable"},
+            "analytics.receivables.due-soon-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.payments.average-time-to-payment": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.payments.on-time-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.clients.top-collection-share": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "InsufficientData",
+          "reliability": "Insufficient",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "NoData"},
+            "pipeline_evolution": {"status": "Available", "score": 80},
+            "net_invoiced_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "collected_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "overdue_load": {"status": "Unavailable", "reason": "NoData"},
+            "on_time_payment": {"status": "Unavailable", "reason": "NoData"},
+            "top_client_share": {"status": "Unavailable", "reason": "NoData"}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 80, "coverage_percent": 40},
+            "BillingMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "ReceivablesDiscipline": {"status": "Unavailable", "coverage_percent": 0},
+            "ClientDiversification": {"status": "Unavailable", "coverage_percent": 0}
+          },
+          "global_coverage_percent": 30,
+          "overall_score": null,
+          "health_band": null,
+          "primary_attention": null,
+          "risks": []
+        },
+        "advisor": {"source_eligibility": "InsufficientAssessment", "recommendations": [], "primary_recommendation_key": null},
+        "notifications": {"plan_decision": "SourceIgnored", "channels": [], "notification_state": "Absent", "email_delivery_state": "Absent", "provider_submission_count": 0}
+      }
+    },
+    {
+      "fixture_id": "FIX-003",
+      "scenario_key": "accepted-quote-without-payment",
+      "title": "Devis accepté sans paiement",
+      "purpose": "Conserver un risque observé même lorsque la couverture globale reste insuffisante.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 0, "baseline_amount_minor": 1000000},
+        "pending_quotes": {"current_amount_minor": 0, "baseline_amount_minor": null},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 1, "rejected": 0, "expired": 0, "response_seconds_total": 172800, "response_sample_size": 1},
+          "baseline": null
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "collected_rolling_30_days": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "receivables": {"current": null, "baseline": null},
+        "settlements_rolling_90_days": {"current": null, "baseline": null},
+        "collections_rolling_365_days": {"current": null, "baseline": null}
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stopped"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 1, "denominator": 1, "sample_size": 1, "change_kind": "NotComparable"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 172800, "sample_size": 1, "change_kind": "NotComparable"},
+            "analytics.billing.net-invoiced-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.billing.collected-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.outstanding-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-count": {"state": "NoData", "unit": "Count", "change_kind": "NotComparable"},
+            "analytics.receivables.due-soon-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.payments.average-time-to-payment": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.payments.on-time-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.clients.top-collection-share": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "InsufficientData",
+          "reliability": "Insufficient",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "SampleBelowMinimum"},
+            "pipeline_evolution": {"status": "Available", "score": 0},
+            "net_invoiced_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "collected_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "overdue_load": {"status": "Unavailable", "reason": "NoData"},
+            "on_time_payment": {"status": "Unavailable", "reason": "NoData"},
+            "top_client_share": {"status": "Unavailable", "reason": "NoData"}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 0, "coverage_percent": 40},
+            "BillingMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "ReceivablesDiscipline": {"status": "Unavailable", "coverage_percent": 0},
+            "ClientDiversification": {"status": "Unavailable", "coverage_percent": 0}
+          },
+          "global_coverage_percent": 30,
+          "overall_score": null,
+          "health_band": null,
+          "primary_attention": null,
+          "risks": [{"risk_key": "CommercialMomentumRisk", "severity": "High"}]
+        },
+        "advisor": {"source_eligibility": "InsufficientAssessment", "recommendations": [], "primary_recommendation_key": null},
+        "notifications": {"plan_decision": "SourceIgnored", "channels": [], "notification_state": "Absent", "email_delivery_state": "Absent", "provider_submission_count": 0}
+      }
+    },
+    {
+      "fixture_id": "FIX-004",
+      "scenario_key": "partial-payment",
+      "title": "Paiement partiel",
+      "purpose": "Prouver la charge échue, la couverture partielle et l'ordre de deux Recommendations.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "pending_quotes": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "quote_decisions_rolling_90_days": {"current": null, "baseline": null},
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 1000000, "baseline_amount_minor": 0},
+        "collected_rolling_30_days": {"current_amount_minor": 400000, "baseline_amount_minor": 0},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 600000, "overdue_amount_minor": 600000, "overdue_count": 1, "due_soon_amount_minor": 0},
+          "baseline": null
+        },
+        "settlements_rolling_90_days": {"current": null, "baseline": null},
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 400000, "by_client_minor": {"CLIENT-A": 400000}},
+          "baseline": null
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.acceptance-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.quotes.average-response-time": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Started"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 400000, "currency": "EUR", "change_kind": "Started"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 600000, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 600000, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 1, "change_kind": "NotComparable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.payments.average-time-to-payment": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.payments.on-time-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 400000, "denominator": 400000, "sample_size": 1, "change_kind": "NotComparable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Limited",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "NoData"},
+            "pipeline_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "net_invoiced_evolution": {"status": "Available", "score": 80},
+            "collected_evolution": {"status": "Available", "score": 80},
+            "overdue_load": {"status": "Available", "score": 0},
+            "on_time_payment": {"status": "Unavailable", "reason": "NoData"},
+            "top_client_share": {"status": "Available", "score": 5}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "BillingMomentum": {"status": "Available", "score": 80, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 0, "coverage_percent": 60},
+            "ClientDiversification": {"status": "Available", "score": 5, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 70,
+          "overall_score": 24,
+          "health_band": "AtRisk",
+          "primary_attention": {"factor_key": "ReceivablesDiscipline", "deficit_contribution": 35},
+          "risks": [
+            {"risk_key": "OverdueExposureRisk", "severity": "Critical"},
+            {"risk_key": "ClientConcentrationRisk", "severity": "Critical"}
+          ]
+        },
+        "advisor": {
+          "source_eligibility": "Eligible",
+          "recommendations": [
+            {"rule_key": "CollectOverdueInvoices", "recommendation_key": "advisor.collect-overdue-invoices", "action_module": "Billing", "route_key": "OverdueInvoices", "impact": "Major", "urgency": "Immediate", "confidence": "Moderate", "effort": "Small", "rank_score": 92, "priority": "Critical", "valid_until": "2026-07-07T00:00:00Z"},
+            {"rule_key": "ReduceClientConcentration", "recommendation_key": "advisor.reduce-client-concentration", "action_module": "CRM", "route_key": "NewOpportunity", "impact": "Major", "urgency": "Immediate", "confidence": "Moderate", "effort": "Medium", "rank_score": 88, "priority": "Critical", "valid_until": "2026-07-30T00:00:00Z"}
+          ],
+          "primary_recommendation_key": "advisor.collect-overdue-invoices"
+        },
+        "notifications": {
+          "plan_decision": "NotificationCreated",
+          "audience_at_plan": "Authorized",
+          "audience_at_dispatch": "Authorized",
+          "email_mode": "Disabled",
+          "channels": ["InApp"],
+          "notification_state": "Active",
+          "email_delivery_state": "SuppressedByPreference",
+          "provider_submission_count": 0
+        }
+      }
+    },
+    {
+      "fixture_id": "FIX-005",
+      "scenario_key": "settled-invoice",
+      "title": "Facture soldée",
+      "purpose": "Distinguer une facture soldée d'un échantillon de paiement suffisant pour la santé.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "pending_quotes": {"current_amount_minor": null, "baseline_amount_minor": null},
+        "quote_decisions_rolling_90_days": {"current": null, "baseline": null},
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 1000000, "baseline_amount_minor": 0},
+        "collected_rolling_30_days": {"current_amount_minor": 1000000, "baseline_amount_minor": 0},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0},
+          "baseline": null
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 1, "on_time_count": 1, "duration_seconds_total": 1123200},
+          "baseline": null
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 1000000, "by_client_minor": {"CLIENT-A": 1000000}},
+          "baseline": null
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
+            "analytics.quotes.acceptance-rate": {"state": "NoData", "unit": "Ratio", "change_kind": "NotComparable"},
+            "analytics.quotes.average-response-time": {"state": "NoData", "unit": "Duration", "change_kind": "NotComparable"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Started"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Started"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "NotComparable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 1123200, "sample_size": 1, "change_kind": "NotComparable"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 1, "denominator": 1, "sample_size": 1, "change_kind": "NotComparable"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 1000000, "denominator": 1000000, "sample_size": 1, "change_kind": "NotComparable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Limited",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "NoData"},
+            "pipeline_evolution": {"status": "Unavailable", "reason": "NoData"},
+            "net_invoiced_evolution": {"status": "Available", "score": 80},
+            "collected_evolution": {"status": "Available", "score": 80},
+            "overdue_load": {"status": "Available", "score": 100},
+            "on_time_payment": {"status": "Unavailable", "reason": "SampleBelowMinimum"},
+            "top_client_share": {"status": "Available", "score": 5}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "BillingMomentum": {"status": "Available", "score": 80, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 100, "coverage_percent": 60},
+            "ClientDiversification": {"status": "Available", "score": 5, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 70,
+          "overall_score": 74,
+          "health_band": "Stable",
+          "primary_attention": {"factor_key": "ClientDiversification", "deficit_contribution": 14.25},
+          "risks": [{"risk_key": "ClientConcentrationRisk", "severity": "Critical"}]
+        },
+        "advisor": {
+          "source_eligibility": "Eligible",
+          "recommendations": [
+            {"rule_key": "ReduceClientConcentration", "recommendation_key": "advisor.reduce-client-concentration", "action_module": "CRM", "route_key": "NewOpportunity", "impact": "Major", "urgency": "Immediate", "confidence": "Moderate", "effort": "Medium", "rank_score": 88, "priority": "Critical", "valid_until": "2026-07-30T00:00:00Z"}
+          ],
+          "primary_recommendation_key": "advisor.reduce-client-concentration"
+        },
+        "notifications": {
+          "plan_decision": "NotificationCreated",
+          "audience_at_plan": "Authorized",
+          "audience_at_dispatch": "Authorized",
+          "email_mode": "Disabled",
+          "channels": ["InApp"],
+          "notification_state": "Active",
+          "email_delivery_state": "SuppressedByPreference",
+          "provider_submission_count": 0
+        }
+      }
+    },
+    {
+      "fixture_id": "FIX-006",
+      "scenario_key": "dominant-client",
+      "title": "Client dominant",
+      "purpose": "Faire émerger une concentration forte malgré une santé globale Strong.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 1000000, "baseline_amount_minor": 1000000},
+        "pending_quotes": {"current_amount_minor": 500000, "baseline_amount_minor": 500000},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 3, "rejected": 1, "expired": 0, "response_seconds_total": 691200, "response_sample_size": 4},
+          "baseline": {"accepted": 3, "rejected": 1, "expired": 0, "response_seconds_total": 691200, "response_sample_size": 4}
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 1000000, "baseline_amount_minor": 1000000},
+        "collected_rolling_30_days": {"current_amount_minor": 1000000, "baseline_amount_minor": 1000000},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0},
+          "baseline": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0}
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 4, "on_time_count": 4, "duration_seconds_total": 3456000},
+          "baseline": {"settled_count": 4, "on_time_count": 4, "duration_seconds_total": 3456000}
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 10000000, "by_client_minor": {"CLIENT-A": 8000000, "CLIENT-B": 1000000, "CLIENT-C": 500000, "CLIENT-D": 500000}},
+          "baseline": {"total_amount_minor": 10000000, "by_client_minor": {"CLIENT-A": 8000000, "CLIENT-B": 1000000, "CLIENT-C": 500000, "CLIENT-D": 500000}}
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 500000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0.75, "numerator": 3, "denominator": 4, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 172800, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "Stable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 864000, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 4, "denominator": 4, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 0.8, "numerator": 8000000, "denominator": 10000000, "sample_size": 4, "change_kind": "Stable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Reliable",
+          "components": {
+            "quote_acceptance": {"status": "Available", "score": 100},
+            "pipeline_evolution": {"status": "Available", "score": 80},
+            "net_invoiced_evolution": {"status": "Available", "score": 80},
+            "collected_evolution": {"status": "Available", "score": 80},
+            "overdue_load": {"status": "Available", "score": 100},
+            "on_time_payment": {"status": "Available", "score": 100},
+            "top_client_share": {"status": "Available", "score": 20}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 92, "coverage_percent": 100},
+            "BillingMomentum": {"status": "Available", "score": 80, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 100, "coverage_percent": 100},
+            "ClientDiversification": {"status": "Available", "score": 20, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 100,
+          "overall_score": 82,
+          "health_band": "Strong",
+          "primary_attention": {"factor_key": "ClientDiversification", "deficit_contribution": 12},
+          "risks": [{"risk_key": "ClientConcentrationRisk", "severity": "High"}]
+        },
+        "advisor": {
+          "source_eligibility": "Eligible",
+          "recommendations": [
+            {"rule_key": "ReduceClientConcentration", "recommendation_key": "advisor.reduce-client-concentration", "action_module": "CRM", "route_key": "NewOpportunity", "impact": "Major", "urgency": "Today", "confidence": "High", "effort": "Medium", "rank_score": 89, "priority": "Critical", "valid_until": "2026-07-30T00:00:00Z"}
+          ],
+          "primary_recommendation_key": "advisor.reduce-client-concentration"
+        },
+        "notifications": {
+          "plan_decision": "NotificationCreated",
+          "audience_at_plan": "Authorized",
+          "audience_at_dispatch": "Authorized",
+          "email_mode": "Disabled",
+          "channels": ["InApp"],
+          "notification_state": "Active",
+          "email_delivery_state": "SuppressedByPreference",
+          "provider_submission_count": 0
+        }
+      }
+    },
+    {
+      "fixture_id": "FIX-007",
+      "scenario_key": "stale-data",
+      "title": "Données trop anciennes",
+      "purpose": "Refuser une décision dérivée lorsque les métriques sont calculables mais trop anciennes.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "pending_quotes": {"current_amount_minor": 300000, "baseline_amount_minor": 200000},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 3, "rejected": 1, "expired": 0, "response_seconds_total": 345600, "response_sample_size": 4},
+          "baseline": {"accepted": 2, "rejected": 2, "expired": 0, "response_seconds_total": 691200, "response_sample_size": 4}
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "collected_rolling_30_days": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0},
+          "baseline": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0}
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 4, "on_time_count": 4, "duration_seconds_total": 3456000},
+          "baseline": {"settled_count": 4, "on_time_count": 3, "duration_seconds_total": 4147200}
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 4000000, "by_client_minor": {"CLIENT-A": 1200000, "CLIENT-B": 1000000, "CLIENT-C": 900000, "CLIENT-D": 900000}},
+          "baseline": {"total_amount_minor": 4000000, "by_client_minor": {"CLIENT-A": 1200000, "CLIENT-B": 1000000, "CLIENT-C": 900000, "CLIENT-D": 900000}}
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Lagging"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 300000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0.75, "numerator": 3, "denominator": 4, "sample_size": 4, "change_kind": "Increased"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 86400, "sample_size": 4, "change_kind": "Decreased"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "Stable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 864000, "sample_size": 4, "change_kind": "Decreased"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 4, "denominator": 4, "sample_size": 4, "change_kind": "Increased"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 0.3, "numerator": 1200000, "denominator": 4000000, "sample_size": 4, "change_kind": "Stable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "InsufficientData",
+          "reliability": "Insufficient",
+          "components": {
+            "quote_acceptance": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "pipeline_evolution": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "net_invoiced_evolution": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "collected_evolution": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "overdue_load": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "on_time_payment": {"status": "Unavailable", "reason": "StaleSnapshot"},
+            "top_client_share": {"status": "Unavailable", "reason": "StaleSnapshot"}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "BillingMomentum": {"status": "Unavailable", "coverage_percent": 0},
+            "ReceivablesDiscipline": {"status": "Unavailable", "coverage_percent": 0},
+            "ClientDiversification": {"status": "Unavailable", "coverage_percent": 0}
+          },
+          "global_coverage_percent": 0,
+          "overall_score": null,
+          "health_band": null,
+          "primary_attention": null,
+          "risks": []
+        },
+        "advisor": {"source_eligibility": "InsufficientAssessment", "recommendations": [], "primary_recommendation_key": null},
+        "notifications": {"plan_decision": "SourceIgnored", "channels": [], "notification_state": "Absent", "email_delivery_state": "Absent", "provider_submission_count": 0}
+      }
+    },
+    {
+      "fixture_id": "FIX-008",
+      "scenario_key": "sufficient-data-without-recommendation",
+      "title": "Données suffisantes sans Recommendation",
+      "purpose": "Faire de zéro Recommendation un résultat nominal d'une évaluation complète.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "pending_quotes": {"current_amount_minor": 300000, "baseline_amount_minor": 200000},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 3, "rejected": 1, "expired": 0, "response_seconds_total": 345600, "response_sample_size": 4},
+          "baseline": {"accepted": 2, "rejected": 2, "expired": 0, "response_seconds_total": 691200, "response_sample_size": 4}
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "collected_rolling_30_days": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0},
+          "baseline": {"outstanding_amount_minor": 0, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 0}
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 4, "on_time_count": 4, "duration_seconds_total": 3456000},
+          "baseline": {"settled_count": 4, "on_time_count": 3, "duration_seconds_total": 4147200}
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 4000000, "by_client_minor": {"CLIENT-A": 1200000, "CLIENT-B": 1000000, "CLIENT-C": 900000, "CLIENT-D": 900000}},
+          "baseline": {"total_amount_minor": 4000000, "by_client_minor": {"CLIENT-A": 1200000, "CLIENT-B": 1000000, "CLIENT-C": 900000, "CLIENT-D": 900000}}
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 300000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0.75, "numerator": 3, "denominator": 4, "sample_size": 4, "change_kind": "Increased"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 86400, "sample_size": 4, "change_kind": "Decreased"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "Stable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 864000, "sample_size": 4, "change_kind": "Decreased"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 1, "numerator": 4, "denominator": 4, "sample_size": 4, "change_kind": "Increased"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 0.3, "numerator": 1200000, "denominator": 4000000, "sample_size": 4, "change_kind": "Stable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Reliable",
+          "components": {
+            "quote_acceptance": {"status": "Available", "score": 100},
+            "pipeline_evolution": {"status": "Available", "score": 100},
+            "net_invoiced_evolution": {"status": "Available", "score": 100},
+            "collected_evolution": {"status": "Available", "score": 100},
+            "overdue_load": {"status": "Available", "score": 100},
+            "on_time_payment": {"status": "Available", "score": 100},
+            "top_client_share": {"status": "Available", "score": 100}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 100, "coverage_percent": 100},
+            "BillingMomentum": {"status": "Available", "score": 100, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 100, "coverage_percent": 100},
+            "ClientDiversification": {"status": "Available", "score": 100, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 100,
+          "overall_score": 100,
+          "health_band": "Strong",
+          "primary_attention": {"factor_key": "ReceivablesDiscipline", "deficit_contribution": 0},
+          "risks": []
+        },
+        "advisor": {"source_eligibility": "Eligible", "recommendations": [], "primary_recommendation_key": null},
+        "notifications": {"plan_decision": "NoPrimaryRecommendation", "channels": [], "notification_state": "Absent", "email_delivery_state": "Absent", "provider_submission_count": 0}
+      }
+    },
+    {
+      "fixture_id": "FIX-009",
+      "scenario_key": "high-recommendation-email-eligible",
+      "title": "Recommendation High éligible à l'email",
+      "purpose": "Prouver le fallback PrimaryAttention et l'opt-in email sans exposer de contenu métier.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "pending_quotes": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 3, "rejected": 7, "expired": 0, "response_seconds_total": 2592000, "response_sample_size": 10},
+          "baseline": {"accepted": 3, "rejected": 7, "expired": 0, "response_seconds_total": 2592000, "response_sample_size": 10}
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "collected_rolling_30_days": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 400000, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 200000},
+          "baseline": {"outstanding_amount_minor": 400000, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 200000}
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 4, "on_time_count": 0, "duration_seconds_total": 13824000},
+          "baseline": {"settled_count": 4, "on_time_count": 0, "duration_seconds_total": 13824000}
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 1000000, "by_client_minor": {"CLIENT-A": 250000, "CLIENT-B": 250000, "CLIENT-C": 250000, "CLIENT-D": 250000}},
+          "baseline": {"total_amount_minor": 1000000, "by_client_minor": {"CLIENT-A": 250000, "CLIENT-B": 250000, "CLIENT-C": 250000, "CLIENT-D": 250000}}
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0.3, "numerator": 3, "denominator": 10, "sample_size": 10, "change_kind": "Stable"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 259200, "sample_size": 10, "change_kind": "Stable"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 400000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "Stable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 200000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 3456000, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0, "numerator": 0, "denominator": 4, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 0.25, "numerator": 250000, "denominator": 1000000, "sample_size": 4, "change_kind": "Stable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Reliable",
+          "components": {
+            "quote_acceptance": {"status": "Available", "score": 55},
+            "pipeline_evolution": {"status": "Available", "score": 10},
+            "net_invoiced_evolution": {"status": "Available", "score": 20},
+            "collected_evolution": {"status": "Available", "score": 20},
+            "overdue_load": {"status": "Available", "score": 100},
+            "on_time_payment": {"status": "Available", "score": 0},
+            "top_client_share": {"status": "Available", "score": 100}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 37, "coverage_percent": 100},
+            "BillingMomentum": {"status": "Available", "score": 20, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 60, "coverage_percent": 100},
+            "ClientDiversification": {"status": "Available", "score": 100, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 100,
+          "overall_score": 51,
+          "health_band": "Watch",
+          "primary_attention": {"factor_key": "CommercialMomentum", "deficit_contribution": 18.9},
+          "risks": []
+        },
+        "advisor": {
+          "source_eligibility": "Eligible",
+          "recommendations": [
+            {"rule_key": "AddressPrimaryAttention", "recommendation_key": "advisor.address-primary-attention", "action_module": "CRM", "route_key": "OpportunityPipeline", "impact": "Significant", "urgency": "ThisWeek", "confidence": "High", "effort": "Small", "rank_score": 71, "priority": "High", "valid_until": "2026-07-14T00:00:00Z"}
+          ],
+          "primary_recommendation_key": "advisor.address-primary-attention"
+        },
+        "notifications": {
+          "plan_decision": "NotificationCreated",
+          "audience_at_plan": "Authorized",
+          "audience_at_dispatch": "Authorized",
+          "email_mode": "ImportantOnly",
+          "endpoint": "VerifiedOpaqueReference",
+          "frequency": "Available",
+          "channels": ["InApp", "Email"],
+          "notification_state": "Active",
+          "email_delivery_state": "Accepted",
+          "provider_submission_count": 1,
+          "email_content_class": "MinimalPriorityAvailable"
+        }
+      }
+    },
+    {
+      "fixture_id": "FIX-010",
+      "scenario_key": "recipient-revoked-before-dispatch",
+      "title": "Destinataire révoqué avant dispatch",
+      "purpose": "Prouver la revalidation d'autorité avant l'effet externe.",
+      "source_fact_summary": {
+        "pipeline": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "pending_quotes": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "quote_decisions_rolling_90_days": {
+          "current": {"accepted": 3, "rejected": 7, "expired": 0, "response_seconds_total": 2592000, "response_sample_size": 10},
+          "baseline": {"accepted": 3, "rejected": 7, "expired": 0, "response_seconds_total": 2592000, "response_sample_size": 10}
+        },
+        "net_invoiced_rolling_30_days": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "collected_rolling_30_days": {"current_amount_minor": 0, "baseline_amount_minor": 0},
+        "receivables": {
+          "current": {"outstanding_amount_minor": 400000, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 200000},
+          "baseline": {"outstanding_amount_minor": 400000, "overdue_amount_minor": 0, "overdue_count": 0, "due_soon_amount_minor": 200000}
+        },
+        "settlements_rolling_90_days": {
+          "current": {"settled_count": 4, "on_time_count": 0, "duration_seconds_total": 13824000},
+          "baseline": {"settled_count": 4, "on_time_count": 0, "duration_seconds_total": 13824000}
+        },
+        "collections_rolling_365_days": {
+          "current": {"total_amount_minor": 1000000, "by_client_minor": {"CLIENT-A": 250000, "CLIENT-B": 250000, "CLIENT-C": 250000, "CLIENT-D": 250000}},
+          "baseline": {"total_amount_minor": 1000000, "by_client_minor": {"CLIENT-A": 250000, "CLIENT-B": 250000, "CLIENT-C": 250000, "CLIENT-D": 250000}}
+        }
+      },
+      "expected": {
+        "analytics": {
+          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "metrics": {
+            "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.quotes.acceptance-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0.3, "numerator": 3, "denominator": 10, "sample_size": 10, "change_kind": "Stable"},
+            "analytics.quotes.average-response-time": {"state": "Available", "unit": "Duration", "exact_value": 259200, "sample_size": 10, "change_kind": "Stable"},
+            "analytics.billing.net-invoiced-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.billing.collected-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.outstanding-amount": {"state": "Available", "unit": "Money", "exact_value": 400000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.receivables.overdue-count": {"state": "Available", "unit": "Count", "exact_value": 0, "change_kind": "Stable"},
+            "analytics.receivables.due-soon-amount": {"state": "Available", "unit": "Money", "exact_value": 200000, "currency": "EUR", "change_kind": "Stable"},
+            "analytics.payments.average-time-to-payment": {"state": "Available", "unit": "Duration", "exact_value": 3456000, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.payments.on-time-rate": {"state": "Available", "unit": "Ratio", "exact_value": 0, "numerator": 0, "denominator": 4, "sample_size": 4, "change_kind": "Stable"},
+            "analytics.clients.top-collection-share": {"state": "Available", "unit": "Ratio", "exact_value": 0.25, "numerator": 250000, "denominator": 1000000, "sample_size": 4, "change_kind": "Stable"}
+          }
+        },
+        "business_health": {
+          "assessment_status": "Available",
+          "reliability": "Reliable",
+          "components": {
+            "quote_acceptance": {"status": "Available", "score": 55},
+            "pipeline_evolution": {"status": "Available", "score": 10},
+            "net_invoiced_evolution": {"status": "Available", "score": 20},
+            "collected_evolution": {"status": "Available", "score": 20},
+            "overdue_load": {"status": "Available", "score": 100},
+            "on_time_payment": {"status": "Available", "score": 0},
+            "top_client_share": {"status": "Available", "score": 100}
+          },
+          "factors": {
+            "CommercialMomentum": {"status": "Available", "score": 37, "coverage_percent": 100},
+            "BillingMomentum": {"status": "Available", "score": 20, "coverage_percent": 100},
+            "ReceivablesDiscipline": {"status": "Available", "score": 60, "coverage_percent": 100},
+            "ClientDiversification": {"status": "Available", "score": 100, "coverage_percent": 100}
+          },
+          "global_coverage_percent": 100,
+          "overall_score": 51,
+          "health_band": "Watch",
+          "primary_attention": {"factor_key": "CommercialMomentum", "deficit_contribution": 18.9},
+          "risks": []
+        },
+        "advisor": {
+          "source_eligibility": "Eligible",
+          "recommendations": [
+            {"rule_key": "AddressPrimaryAttention", "recommendation_key": "advisor.address-primary-attention", "action_module": "CRM", "route_key": "OpportunityPipeline", "impact": "Significant", "urgency": "ThisWeek", "confidence": "High", "effort": "Small", "rank_score": 71, "priority": "High", "valid_until": "2026-07-14T00:00:00Z"}
+          ],
+          "primary_recommendation_key": "advisor.address-primary-attention"
+        },
+        "notifications": {
+          "plan_decision": "NotificationCreatedThenRecipientRevoked",
+          "audience_at_plan": "Authorized",
+          "audience_at_dispatch": "Revoked",
+          "revocation_kind": "MembershipOrRoleInactive",
+          "email_mode": "ImportantOnly",
+          "endpoint": "InvalidatedOpaqueReference",
+          "channels": ["InApp", "Email"],
+          "notification_state": "Resolved",
+          "email_delivery_state": "Cancelled",
+          "provider_submission_count": 0
+        }
+      }
+    }
+  ]
+}

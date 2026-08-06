@@ -3,7 +3,7 @@ id: ROADMAP-002
 title: Atlas MVP End-to-End Acceptance
 status: In Review
 owner: Product
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -23,6 +23,7 @@ references:
   - ../../fondation/domains/advisor/api.md
   - ../../fondation/domains/notifications/api.md
   - ../../fondation/security/mvp-threat-model.md
+  - ../reference-fixtures/README.md
 ---
 
 # Acceptation de bout en bout du MVP
@@ -200,8 +201,10 @@ Le MVP est prêt pour une publication contrôlée lorsque :
 3. les scénarios de retry, conflit, indisponibilité et reconstruction sont
    démontrés ;
 4. les journaux et métriques permettent de localiser une rupture de chaîne ;
-5. les données de démonstration de référence produisent des résultats
-   déterministes ;
+5. les dix
+   [fixtures de référence](../reference-fixtures/README.md) produisent les
+   résultats déterministes vérifiés par
+   `scripts/check-mvp-reference-fixtures.sh` ;
 6. aucune fonctionnalité exclue n'est nécessaire pour atteindre le résultat ;
 7. Dashboard, Analytics et adaptateurs techniques respectent les frontières
    établies dans le Blueprint ;

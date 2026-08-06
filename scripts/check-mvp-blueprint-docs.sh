@@ -5,6 +5,7 @@ set -uo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 blueprint_root="$repo_root/evolution/blueprint"
 roadmap_root="$repo_root/evolution/roadmap"
+reference_root="$repo_root/evolution/reference-fixtures"
 errors=0
 checks=0
 
@@ -42,6 +43,7 @@ required_files=(
   "$blueprint_root/roadmap.md"
   "$repo_root/evolution/governance/quality-gates.md"
   "$repo_root/evolution/governance/consolidation-matrix.md"
+  "$reference_root/README.md"
   "$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
   "$repo_root/fondation/security/mvp-threat-model.md"
 )
@@ -50,7 +52,15 @@ for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "document requis absent: ${file#"$repo_root/"}"
 done
 if (( errors == 0 )); then
-  pass "dix-huit documents MVP, Blueprint, architecture et sécurité présents"
+  pass "dix-neuf documents MVP, Blueprint, fixtures, architecture et sécurité présents"
+fi
+
+fixture_errors=$errors
+[[ -f "$reference_root/mvp-v1.json" ]] || fail "fixture MVP absente"
+[[ -f "$repo_root/scripts/lib/check-mvp-reference-fixtures.jq" ]] || fail "oracle de fixture absent"
+[[ -x "$repo_root/scripts/check-mvp-reference-fixtures.sh" ]] || fail "checker de fixture absent ou non exécutable"
+if (( errors == fixture_errors )); then
+  pass "fixture MVP et oracle exécutable présents"
 fi
 
 structure_errors=$errors
@@ -226,6 +236,8 @@ rg -q 'scripts/check-decisions-docs.sh' "$repo_root/evolution/governance/quality
   fail "checker ADR absent des quality gates"
 rg -q 'scripts/check-security-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
   fail "checker Security absent des quality gates"
+rg -q 'scripts/check-mvp-reference-fixtures.sh' "$repo_root/evolution/governance/quality-gates.md" || \
+  fail "checker des fixtures absent des quality gates"
 adr_file="$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
 rg -q '^status: Accepted$' "$adr_file" || \
   fail "ADR-001 non accepté"
@@ -237,6 +249,8 @@ rg -q 'at least once' "$adr_file" || \
   fail "sémantique de livraison ADR absente"
 rg -q 'fixtures versionnées' "$blueprint_root/implementation-plan.md" || \
   fail "fixtures de référence absentes"
+rg -q 'analytics.snapshot-profile-version-unassigned' "$repo_root/evolution/governance/consolidation-matrix.md" || \
+  fail "gap SnapshotProfileVersion non gouverné"
 security_model="$repo_root/fondation/security/mvp-threat-model.md"
 rg -q '^status: In Review$' "$security_model" || \
   fail "statut du modèle de menace inattendu"

@@ -3,7 +3,7 @@ id: GOV-002
 title: Product Quality Gates
 status: In Review
 owner: Product and Engineering
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
@@ -12,6 +12,7 @@ references:
   - consolidation-matrix.md
   - ../roadmap/mvp-acceptance.md
   - ../blueprint/implementation-plan.md
+  - ../reference-fixtures/README.md
   - ../../fondation/decisions/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
   - ../../fondation/security/README.md
@@ -79,5 +80,6 @@ En plus des sections précédentes :
 3. `scripts/check-decisions-docs.sh` passe ;
 4. `scripts/check-security-docs.sh` passe ;
 5. les huit checkers de bounded context passent ;
-6. les fixtures de référence produisent les résultats attendus ;
+6. `scripts/check-mvp-reference-fixtures.sh` recalcule sans écart les fixtures
+   Analytics, Business Health, Advisor et Notifications ;
 7. les risques résiduels possèdent un owner et une décision d'acceptation.

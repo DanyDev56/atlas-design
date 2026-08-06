@@ -3,7 +3,7 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
@@ -20,6 +20,7 @@ references:
   - roadmap.md
   - ../roadmap/mvp-scope.md
   - ../roadmap/mvp-acceptance.md
+  - ../reference-fixtures/README.md
   - ../../fondation/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
   - ../../fondation/security/mvp-threat-model.md
@@ -49,7 +50,9 @@ erreurs. Le Blueprint en montre l'assemblage.
    composition visible par l'utilisateur ;
 7. [`permissions.md`](permissions.md), [`public-api.md`](public-api.md) et
    [`integrations.md`](integrations.md) — frontières d'exécution ;
-8. [`roadmap.md`](roadmap.md) — séquencement produit après le MVP.
+8. [`roadmap.md`](roadmap.md) — séquencement produit après le MVP ;
+9. [`reference-fixtures/`](../reference-fixtures/README.md) — entrées et
+   résultats exécutables de la chaîne de décision.
 
 ---
 
@@ -79,4 +82,5 @@ Le Blueprint peut passer de `In Review` à `Stable` après :
 2. validation Engineering que le Blueprint respecte `ADR-001` ;
 3. validation Security du modèle de menace et des preuves publiques ;
 4. passage du contrôle `scripts/check-mvp-blueprint-docs.sh` ;
-5. absence de contradiction avec les checkers des huit bounded contexts.
+5. passage du contrôle `scripts/check-mvp-reference-fixtures.sh` ;
+6. absence de contradiction avec les checkers des huit bounded contexts.

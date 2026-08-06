@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
@@ -17,6 +17,7 @@ references:
   - ../../fondation/domain-map/ownership.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
   - ../../fondation/security/mvp-threat-model.md
+  - ../reference-fixtures/README.md
 ---
 
 # Plan d'implémentation du MVP
@@ -172,7 +173,8 @@ incompatible, un retry, une indisponibilité et une preuve d'isolation.
 
 ## Données de référence
 
-Maintenir des fixtures versionnées couvrant au moins :
+Le jeu exécutable
+[`mvp-v1.json`](../reference-fixtures/mvp-v1.json) couvre :
 
 1. activité vide ;
 2. opportunité sans devis ;
@@ -185,10 +187,11 @@ Maintenir des fixtures versionnées couvrant au moins :
 9. Recommendation `High` éligible à l'email ;
 10. destinataire révoqué avant dispatch.
 
-Ces fixtures alimentent les tests Analytics, Business Health, Advisor,
-Notifications, Dashboard et la démonstration produit. Un changement attendu de
-résultat doit modifier la version de politique concernée et la fixture, jamais
-seulement le snapshot de test.
+Ces fixtures versionnées alimentent les tests Analytics, Business Health, Advisor,
+Notifications, Dashboard et la démonstration produit. Leur oracle
+`scripts/check-mvp-reference-fixtures.sh` recalcule les résultats depuis les
+faits normalisés. Un changement attendu de résultat doit modifier la version de
+politique concernée et la fixture, jamais seulement le snapshot de test.
 
 ---
 
