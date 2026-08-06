@@ -45,6 +45,7 @@ d'implémentation définitifs.
 10. [Product Blueprint](evolution/blueprint/README.md)
 11. [Product Language](fondation/language/README.md)
 12. [Domain Map](fondation/domain-map/README.md)
+13. [Architecture Decision Records](fondation/decisions/README.md)
 
 ---
 

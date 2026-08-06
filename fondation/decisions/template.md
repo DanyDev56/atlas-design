@@ -1,47 +1,65 @@
 ---
 id: ADR-000
-title:
+title: Decision Title
 status: Proposed
-date:
-owner:
+date: YYYY-MM-DD
+owner: Product or Engineering
+version: 0.1.0
+last_updated: YYYY-MM-DD
+
+references: []
 ---
 
-# Contexte
+# ADR-000 — Titre de la décision
 
-Pourquoi cette décision est-elle nécessaire ?
+## Contexte
 
----
+Pourquoi cette décision est-elle nécessaire ? Quelles contraintes et tensions
+existent aujourd'hui ?
 
-# Options étudiées
+## Forces de décision
 
-Option A
+- critère prioritaire ;
+- contrainte non négociable ;
+- qualité recherchée.
 
-Option B
+## Options étudiées
 
-Option C
+### Option A
 
----
+Description, avantages, limites et risques.
 
-# Décision
+### Option B
 
-Quelle option est retenue ?
+Description, avantages, limites et risques.
 
----
+### Option C
 
-# Raisons
+Description, avantages, limites et risques.
 
-Pourquoi ?
+## Décision
 
----
+Quelle option est retenue et quel est son périmètre normatif ?
 
-# Conséquences
+## Raisons
 
-Avantages
+Pourquoi cette option répond-elle mieux aux forces de décision ?
 
-Inconvénients
+## Conséquences
 
----
+### Positives
 
-# Alternatives futures
+- bénéfice accepté.
 
-Quand faudra-t-il reconsidérer cette décision ?
+### Négatives
+
+- limite ou coût accepté.
+
+## Conditions d'implémentation
+
+Comment vérifier que la décision est réellement respectée ?
+
+## Réexamen
+
+Quels faits mesurables ou changements de contexte justifieraient une nouvelle
+décision ?

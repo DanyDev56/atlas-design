@@ -42,13 +42,14 @@ required_files=(
   "$blueprint_root/roadmap.md"
   "$repo_root/evolution/governance/quality-gates.md"
   "$repo_root/evolution/governance/consolidation-matrix.md"
+  "$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
 )
 
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "document requis absent: ${file#"$repo_root/"}"
 done
 if (( errors == 0 )); then
-  pass "seize documents MVP et Blueprint présents"
+  pass "dix-sept documents MVP, Blueprint et architecture présents"
 fi
 
 structure_errors=$errors
@@ -220,14 +221,21 @@ fi
 governance_errors=$errors
 rg -q 'scripts/check-mvp-blueprint-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
   fail "checker absent des quality gates"
-rg -q 'modular monolith' "$blueprint_root/implementation-plan.md" || \
+rg -q 'scripts/check-decisions-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
+  fail "checker ADR absent des quality gates"
+adr_file="$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
+rg -q '^status: Accepted$' "$adr_file" || \
+  fail "ADR-001 non accepté"
+rg -q 'modular monolith' "$blueprint_root/implementation-plan.md" "$adr_file" || \
   fail "hypothèse de topologie absente"
-rg -q 'confirmée dans un ADR' "$blueprint_root/implementation-plan.md" || \
-  fail "gate ADR absent"
+rg -q 'transaction ne traverse jamais un module' "$adr_file" || \
+  fail "frontière transactionnelle ADR absente"
+rg -q 'at least once' "$adr_file" || \
+  fail "sémantique de livraison ADR absente"
 rg -q 'fixtures versionnées' "$blueprint_root/implementation-plan.md" || \
   fail "fixtures de référence absentes"
 if (( errors == governance_errors )); then
-  pass "gates d'architecture, fixtures et gouvernance présents"
+  pass "ADR accepté, gates d'architecture, fixtures et gouvernance présents"
 fi
 
 if (( errors > 0 )); then

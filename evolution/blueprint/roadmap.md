@@ -3,7 +3,7 @@ id: BPT-012
 title: Product Delivery Roadmap
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -11,6 +11,7 @@ references:
   - implementation-plan.md
   - ../roadmap/mvp-scope.md
   - ../roadmap/mvp-acceptance.md
+  - ../../fondation/decisions/ADR-001-mvp-application-topology.md
 ---
 
 # Roadmap de livraison
@@ -23,12 +24,13 @@ ne s'ouvre que lorsque son gate de sortie est prouvé.
 ## Palier 0 — Clôture de conception du MVP
 
 - valider les trois parcours et états UX ;
-- confirmer la topologie d'implémentation par ADR ;
+- appliquer la topologie acceptée dans `ADR-001` ;
+- décider la stack compatible avec cette topologie ;
 - préparer le modèle de menace et les fixtures de référence ;
 - rendre les quality gates exécutables.
 
-Gate : Blueprint `Stable`, checker vert et décisions techniques bloquantes
-acceptées.
+Gate : Blueprint `Stable`, checker vert, modèle de menace validé et décisions
+de stack bloquantes acceptées.
 
 ## Palier 1 — Contexte sûr et gestion commerciale
 

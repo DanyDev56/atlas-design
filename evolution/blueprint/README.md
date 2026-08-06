@@ -3,7 +3,7 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -21,6 +21,7 @@ references:
   - ../roadmap/mvp-scope.md
   - ../roadmap/mvp-acceptance.md
   - ../../fondation/README.md
+  - ../../fondation/decisions/ADR-001-mvp-application-topology.md
 ---
 
 # Product Blueprint
@@ -55,6 +56,8 @@ erreurs. Le Blueprint en montre l'assemblage.
 
 - le MVP couvre Identity, Workspace, CRM, Billing, Analytics, Business Health,
   Advisor et Notifications ;
+- sa topologie de départ est le modular monolith à frontières fortes accepté
+  dans `ADR-001` ;
 - Analytics est un moteur interne nécessaire au résultat, pas nécessairement
   un module de navigation autonome ;
 - le Dashboard est une composition de read models, pas un bounded context ;
@@ -72,7 +75,7 @@ erreurs. Le Blueprint en montre l'assemblage.
 Le Blueprint peut passer de `In Review` à `Stable` après :
 
 1. validation produit des trois parcours et des états UX ;
-2. validation Engineering de la topologie via ADR ;
+2. validation Engineering que le Blueprint respecte `ADR-001` ;
 3. validation Security du modèle de menace et des preuves publiques ;
 4. passage du contrôle `scripts/check-mvp-blueprint-docs.sh` ;
 5. absence de contradiction avec les checkers des huit bounded contexts.

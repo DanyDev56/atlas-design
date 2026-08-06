@@ -3,7 +3,7 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -12,6 +12,8 @@ references:
   - ../roadmap/mvp-acceptance.md
   - ../blueprint/README.md
   - ../../fondation/domain-map/README.md
+  - ../../fondation/decisions/README.md
+  - ../../fondation/decisions/ADR-001-mvp-application-topology.md
 ---
 
 # Matrice de consolidation
@@ -45,7 +47,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Roadmap | MVP Scope | Oui | Oui | Oui | Oui | In Review |
 | Roadmap | MVP End-to-End Acceptance | Oui | Oui | Oui | Oui | In Review |
 | Delivery | MVP Implementation Plan | Oui | Oui | Oui | Oui | In Review |
-| Decisions | ADR catalogue | Partiel | Non | À vérifier | Non | Draft |
+| Decisions | ADR catalogue | Oui | Oui | Oui | Oui | Living Document |
 
 ---
 
@@ -55,8 +57,8 @@ La consolidation des bounded contexts et du Blueprint permet de commencer le
 palier 0 d'implémentation. Le passage à `Stable` reste bloqué par :
 
 - la validation produit des parcours et états UX ;
-- l'ADR de topologie d'implémentation ;
 - le modèle de menace transversal ;
+- les décisions de stack compatibles avec `ADR-001` ;
 - les fixtures de référence exécutables ;
 - l'acceptation formelle des quality gates par Engineering et Security.
 

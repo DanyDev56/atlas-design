@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -15,6 +15,7 @@ references:
   - ../../fondation/domain-map/context-map.md
   - ../../fondation/domain-map/dependencies.md
   - ../../fondation/domain-map/ownership.md
+  - ../../fondation/decisions/ADR-001-mvp-application-topology.md
 ---
 
 # Plan d'implémentation du MVP
@@ -26,10 +27,10 @@ techniques terminées séparément. Chaque incrément livre une intention, son
 autorisation, son stockage, ses événements, ses lectures, ses états UX et son
 observabilité.
 
-Les bounded contexts sont des frontières logiques obligatoires. Pour le MVP,
-une architecture de type modular monolith est le point de départ recommandé
-tant qu'aucune contrainte mesurée n'exige un déploiement séparé. Chaque module
-conserve néanmoins :
+Conformément à
+[`ADR-001`](../../fondation/decisions/ADR-001-mvp-application-topology.md), les
+bounded contexts sont des frontières logiques obligatoires dans un modular
+monolith pour le MVP. Chaque module conserve :
 
 - son modèle et son schéma possédés ;
 - ses contrats publics et adaptateurs ;
@@ -37,8 +38,9 @@ conserve néanmoins :
 - sa transaction locale et son outbox ;
 - ses permissions, journaux et tests de contrat.
 
-Cette hypothèse de déploiement doit être confirmée dans un ADR avant la création
-du squelette applicatif. Elle ne permet jamais un accès direct au stockage d'un
+La décision de topologie est acceptée. Les choix de langage, framework,
+datastore, transport et hébergement restent des décisions séparées qui doivent
+respecter l'ADR. La topologie ne permet jamais un accès direct au stockage d'un
 autre module.
 
 ---
