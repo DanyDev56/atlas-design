@@ -3,8 +3,8 @@ id: ANL-PROC-PUBLISH-ANALYTICS-SNAPSHOT
 title: PublishAnalyticsSnapshot
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -47,7 +47,11 @@ WorkloadContext
 - profil et définitions supportés ;
 - toutes les observations partagent génération, calendrier, AsOf et watermarks
   cohérents ;
-- complétude et fraîcheur conformes au profil ;
+- profil exact `BusinessHealthBaselineV1@1.0.0` en 1.0 ;
+- complétude `Complete` pour les treize métriques obligatoires ;
+- watermarks CRM et Billing présents avec un `CompleteThrough` vérifiable ;
+- `SnapshotLag <= PT24H`, avec `Current` jusqu'à `PT1H` inclus et `Lagging`
+  au-delà ;
 - création immuable et publication atomique.
 
 ## Invariants concernés

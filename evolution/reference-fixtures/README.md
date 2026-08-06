@@ -3,7 +3,7 @@ id: REF-001
 title: MVP Reference Fixtures
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -75,17 +75,20 @@ devise est `EUR` et `AsOf` vaut `2026-06-30T00:00:00Z` dans le jeu 1.0.
 | Contrat | Version de la fixture |
 |---|---|
 | Définitions Analytics | `1.0` |
-| Document du catalogue Analytics | `1.1.0` |
+| Document du catalogue Analytics | `1.2.0` |
 | SnapshotProfileKey | `BusinessHealthBaselineV1` |
+| SnapshotProfileVersion | `1.0.0` |
+| CurrentLagThreshold | `PT1H` |
+| MaximumAcceptedLag | `PT24H` |
 | HealthPolicyVersion | `1.0.0` |
 | RecommendationPolicyVersion | `1.0.0` |
 | NotificationPolicyVersion | `1.0.0` |
 
-Le modèle Analytics exige un `SnapshotProfileVersion`, mais le catalogue ne lui
-attribue pas encore de valeur canonique distincte. La fixture expose donc
-`snapshot_profile_version: null` et le gap
-`analytics.snapshot-profile-version-unassigned`. Aucun consommateur ne doit
-transformer cette absence en version implicite.
+Les fixtures utilisent un retard source de trente minutes pour les snapshots
+`Current`. `FIX-007` utilise deux heures : le snapshot reste publiable, mais son
+état `Lagging` impose `InsufficientData` à Business Health. Un retard supérieur
+à vingt-quatre heures empêcherait la publication Analytics et relève d'un test
+de refus distinct, pas d'une évaluation métier.
 
 ## Catalogue des cas
 

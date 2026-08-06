@@ -63,34 +63,41 @@ metadata_errors=$errors
 if ! jq -e '
   .fixture_set_id == "atlas.mvp.reference-fixtures"
   and .fixture_schema_version == "1.0.0"
-  and .fixture_set_version == "1.0.0"
+  and .fixture_set_version == "1.1.0"
   and .as_of == "2026-06-30T00:00:00Z"
   and .reporting_time_zone == "UTC"
   and .reporting_calendar_version == "1.0.0"
   and .currency == "EUR"
   and .money_unit == "minor"
-  and .policy_versions.analytics_metric_catalog_document == "1.1.0"
+  and .policy_versions.analytics_metric_catalog_document == "1.2.0"
   and .policy_versions.analytics_metric_definition == "1.0"
   and .policy_versions.analytics_snapshot_profile_key == "BusinessHealthBaselineV1"
-  and .policy_versions.analytics_snapshot_profile_version == null
+  and .policy_versions.analytics_snapshot_profile_version == "1.0.0"
   and .policy_versions.business_health == "1.0.0"
   and .policy_versions.advisor == "1.0.0"
   and .policy_versions.notifications == "1.0.0"
-  and (.known_contract_gaps | index("analytics.snapshot-profile-version-unassigned")) != null
+  and .snapshot_profile == {
+    key: "BusinessHealthBaselineV1",
+    version: "1.0.0",
+    required_completeness: "Complete",
+    current_lag_threshold_seconds: 3600,
+    maximum_accepted_lag_seconds: 86400
+  }
+  and .known_contract_gaps == []
 ' "$fixture_file" >/dev/null; then
-  fail "métadonnées, versions de politique ou gap SnapshotProfileVersion incorrects"
+  fail "métadonnées, versions de politique ou seuils SnapshotProfile incorrects"
 fi
 
-rg -q '^version: 1\.1\.0$' "$metric_catalog" || \
+rg -q '^version: 1\.2\.0$' "$metric_catalog" || \
   fail "version du catalogue Analytics différente de la fixture"
-rg -q '^version: 1\.0\.0$' "$repo_root/fondation/domains/business-health/health-policy.md" || \
+rg -q 'HealthPolicyVersion = 1\.0\.0' "$repo_root/fondation/domains/business-health/health-policy.md" || \
   fail "HealthPolicyVersion différente de la fixture"
 rg -q '^version: 1\.0\.0$' "$repo_root/fondation/domains/advisor/recommendation-policy.md" || \
   fail "RecommendationPolicyVersion différente de la fixture"
 rg -q '^version: 1\.0\.0$' "$repo_root/fondation/domains/notifications/notification-policy.md" || \
   fail "NotificationPolicyVersion différente de la fixture"
 if (( errors == metadata_errors )); then
-  pass "contexte de calcul, versions canoniques et gap contractuel explicites"
+  pass "contexte de calcul, versions et seuils SnapshotProfile canoniques"
 fi
 
 scenario_errors=$errors

@@ -169,14 +169,29 @@ def calculated_metrics($root; $case):
 def validate_analytics($root; $case):
   calculated_metrics($root; $case) as $calculated
   | $case.expected.analytics.metrics as $expected
-  | $calculated
-  | to_entries[]
-  | . as $entry
+  | $case.expected.analytics.snapshot as $snapshot
+  | (if $snapshot.source_lag_seconds <= $root.snapshot_profile.current_lag_threshold_seconds
+     then "Current"
+     elif $snapshot.source_lag_seconds <= $root.snapshot_profile.maximum_accepted_lag_seconds
+     then "Lagging"
+     else "Unavailable"
+     end) as $freshness
   | assertion(
-      $expected[$entry.key] | contains($entry.value);
+      $snapshot.profile_version == $root.snapshot_profile.version
+      and $snapshot.completeness == $root.snapshot_profile.required_completeness
+      and $snapshot.source_lag_seconds <= $root.snapshot_profile.maximum_accepted_lag_seconds
+      and $snapshot.freshness == $freshness;
       $case.fixture_id;
-      "observation Analytics incorrecte pour \($entry.key)"
-    );
+      "version, complétude ou fraîcheur du snapshot incorrecte"
+    ),
+    ($calculated
+     | to_entries[]
+     | . as $entry
+     | assertion(
+         $expected[$entry.key] | contains($entry.value);
+         $case.fixture_id;
+         "observation Analytics incorrecte pour \($entry.key)"
+       ));
 
 def unavailable_component($reason):
   {status: "Unavailable", reason: $reason};

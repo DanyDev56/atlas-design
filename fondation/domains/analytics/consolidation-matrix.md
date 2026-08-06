@@ -3,8 +3,8 @@ id: ANL-CONSOLIDATION
 title: Analytics Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -87,6 +87,7 @@ normative complète.
 | Correction | série courante recalculée, snapshot historique immuable |
 | Rebuild | génération parallèle avec bascule atomique |
 | Business Health | consommation par snapshot cohérent |
+| Profil snapshot | `BusinessHealthBaselineV1@1.0.0`, `Current <= PT1H`, publication `<= PT24H` |
 | Utilisateur | lectures uniquement en 1.0 |
 | Prédiction | aucune probabilité ou prévision en 1.0 |
 | Comptabilité | aucun revenu, bénéfice ou solde bancaire déduit |
@@ -100,6 +101,7 @@ normative complète.
 - [x] Les dimensions, périodes, devises et arrondis sont bornés.
 - [x] Les faits sources sont versionnés, minimisés et reconstructibles.
 - [x] `NoData`, fraîcheur et complétude sont contractuels.
+- [x] Le profil Business Health possède une version et des seuils de fraîcheur exécutables.
 - [x] Les comparaisons de période conservent définition, dimensions, devise et calendrier.
 - [x] Corrections, reversals, événements en retard et rebuilds sont couverts.
 - [x] Les quatre processeurs possèdent autorité, concurrence et idempotence.

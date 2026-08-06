@@ -3,8 +3,8 @@ id: ANL-DECISIONS
 title: Analytics Decision Record
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -35,3 +35,4 @@ references:
 | `ANL-ADR-015` | Aucune prédiction en 1.0. | PipelineAmount reste une estimation déclarée, sans probabilité inventée. |
 | `ANL-ADR-016` | Les encaissements et montants facturés ne sont pas renommés revenu ou trésorerie. | Atlas évite toute promesse comptable ou bancaire implicite. |
 | `ANL-ADR-017` | Une évolution compare uniquement des périodes de même définition, dimension, devise et calendrier. | Business Health ne reçoit aucun pourcentage construit sur une baseline arbitraire. |
+| `ANL-ADR-018` | `BusinessHealthBaselineV1@1.0.0` distingue fraîcheur courante à une heure et retard publiable borné à vingt-quatre heures. | Business Health peut rendre `InsufficientData` sur un snapshot `Lagging`, tandis qu'Analytics refuse une source plus ancienne. |

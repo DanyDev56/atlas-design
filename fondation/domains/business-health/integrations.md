@@ -3,8 +3,8 @@ id: BHL-INTEGRATIONS
 title: Business Health Integrations
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -50,7 +50,8 @@ getAnalyticsSnapshot(workspaceId, analyticsSnapshotId)
 La lecture exacte exige `analytics.snapshots.consume`. L'événement déclenche le
 traitement mais ne remplace pas le contrat de valeur. Business Health vérifie :
 
-- `SnapshotProfileKey = BusinessHealthBaselineV1` et sa version ;
+- `SnapshotProfileKey = BusinessHealthBaselineV1` et
+  `SnapshotProfileVersion = 1.0.0` ;
 - métriques, définition, période, devise et comparaison attendues ;
 - complétude, fraîcheur, génération et watermarks publiés ;
 - cohérence entre l'événement et le snapshot relu.

@@ -1,24 +1,29 @@
 {
   "fixture_set_id": "atlas.mvp.reference-fixtures",
   "fixture_schema_version": "1.0.0",
-  "fixture_set_version": "1.0.0",
+  "fixture_set_version": "1.1.0",
   "as_of": "2026-06-30T00:00:00Z",
   "reporting_time_zone": "UTC",
   "reporting_calendar_version": "1.0.0",
   "currency": "EUR",
   "money_unit": "minor",
   "policy_versions": {
-    "analytics_metric_catalog_document": "1.1.0",
+    "analytics_metric_catalog_document": "1.2.0",
     "analytics_metric_definition": "1.0",
     "analytics_snapshot_profile_key": "BusinessHealthBaselineV1",
-    "analytics_snapshot_profile_version": null,
+    "analytics_snapshot_profile_version": "1.0.0",
     "business_health": "1.0.0",
     "advisor": "1.0.0",
     "notifications": "1.0.0"
   },
-  "known_contract_gaps": [
-    "analytics.snapshot-profile-version-unassigned"
-  ],
+  "snapshot_profile": {
+    "key": "BusinessHealthBaselineV1",
+    "version": "1.0.0",
+    "required_completeness": "Complete",
+    "current_lag_threshold_seconds": 3600,
+    "maximum_accepted_lag_seconds": 86400
+  },
+  "known_contract_gaps": [],
   "metric_keys": [
     "analytics.pipeline.open-amount",
     "analytics.quotes.pending-amount",
@@ -52,7 +57,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
             "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
@@ -114,7 +119,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Started"},
             "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
@@ -179,7 +184,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stopped"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "NotComparable"},
@@ -247,7 +252,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
             "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
@@ -337,7 +342,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
             "analytics.quotes.pending-amount": {"state": "NoData", "unit": "Money", "change_kind": "NotComparable"},
@@ -426,7 +431,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1000000, "currency": "EUR", "change_kind": "Stable"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 500000, "currency": "EUR", "change_kind": "Stable"},
@@ -515,7 +520,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Lagging"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 7200, "freshness": "Lagging"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 300000, "currency": "EUR", "change_kind": "Increased"},
@@ -589,7 +594,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 1200000, "currency": "EUR", "change_kind": "Increased"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 300000, "currency": "EUR", "change_kind": "Increased"},
@@ -663,7 +668,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
@@ -755,7 +760,7 @@
       },
       "expected": {
         "analytics": {
-          "snapshot": {"completeness": "Complete", "freshness": "Current"},
+          "snapshot": {"profile_version": "1.0.0", "completeness": "Complete", "source_lag_seconds": 1800, "freshness": "Current"},
           "metrics": {
             "analytics.pipeline.open-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},
             "analytics.quotes.pending-amount": {"state": "Available", "unit": "Money", "exact_value": 0, "currency": "EUR", "change_kind": "Stable"},

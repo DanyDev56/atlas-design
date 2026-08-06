@@ -3,8 +3,8 @@ id: ANL-README
 title: Analytics Domain
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -83,6 +83,8 @@ valeurs minimales nécessaires au calcul exact de la version concernée.
 - toute évolution compare des observations strictement compatibles ;
 - les corrections et reversals recalculent les périodes touchées ;
 - un snapshot publié est immuable et peut seulement être remplacé par un autre ;
+- le profil Business Health est `BusinessHealthBaselineV1@1.0.0`, courant à
+  une heure et publiable jusqu'à vingt-quatre heures de retard ;
 - Analytics n'envoie aucune commande vers CRM ou Billing.
 
 ## Statut

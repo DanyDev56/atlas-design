@@ -3,8 +3,8 @@ id: BHL-HEALTH-POLICY
 title: Business Health Policy 1.0
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -16,9 +16,14 @@ references:
 
 # Health Policy 1.0
 
-`BusinessHealthBaselineV1` désigne le profil Analytics requis.
+`BusinessHealthBaselineV1@1.0.0` désigne le profil Analytics requis.
 `HealthPolicyVersion = 1.0.0` désigne les règles ci-dessous. Les seuils sont une
 politique produit initiale, jamais un benchmark sectoriel ou une garantie.
+
+Toutes les preuves utilisées par un composant doivent être `Complete` et
+`Current`. Un snapshot `Lagging`, même encore publiable par Analytics, produit
+`InsufficientData` avec `StaleOrIncompleteSnapshot` ; aucun ancien score n'est
+réutilisé.
 
 ## Principes de calcul
 

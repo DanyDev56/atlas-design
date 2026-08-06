@@ -236,8 +236,15 @@ for required_term in MetricDefinition DataFreshness DataCompleteness NoData Curr
     fail "sémantique métrique absente: $required_term"
   fi
 done
+for profile_term in 'SnapshotProfileVersion = 1.0.0' 'CurrentLagThreshold = PT1H' \
+  'MaximumAcceptedLag = PT24H' 'BusinessHealthBaselineV1@1.0.0'; do
+  if ! rg -q "$profile_term" "$analytics_root/metric-catalog.md" \
+    "$analytics_root/value-objects.md" "$analytics_root/processors/PublishAnalyticsSnapshot.md"; then
+    fail "contrat SnapshotProfile absent: $profile_term"
+  fi
+done
 if (( errors == metric_semantic_errors )); then
-  pass "définition, période, devise, absence, fraîcheur et complétude contractuelles"
+  pass "définition, période, devise, absence, fraîcheur, profil et complétude contractuels"
 fi
 
 # Source contracts must be documented on both sides.

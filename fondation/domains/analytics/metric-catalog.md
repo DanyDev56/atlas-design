@@ -3,8 +3,8 @@ id: ANL-METRIC-CATALOG
 title: Analytics Metric Catalog
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -84,7 +84,18 @@ fuseau, même définition, mêmes dimensions et même devise.
 
 ## SnapshotProfile 1.0
 
-`BusinessHealthBaselineV1` publie les 13 MetricKeys selon un profil immuable :
+Le profil requis par Business Health est identifié sans valeur implicite :
+
+```text
+SnapshotProfileKey = BusinessHealthBaselineV1
+SnapshotProfileVersion = 1.0.0
+RequiredCompleteness = Complete
+CurrentLagThreshold = PT1H
+MaximumAcceptedLag = PT24H
+```
+
+`BusinessHealthBaselineV1@1.0.0` publie les 13 MetricKeys selon ce profil
+immuable :
 
 | Fenêtre | MetricKeys |
 |---|---|
@@ -94,9 +105,28 @@ fuseau, même définition, mêmes dimensions et même devise.
 | `Rolling365Days` | `analytics.clients.top-collection-share` |
 
 Les valeurs monétaires restent séparées par devise. Une population réellement
-vide, observée avec des watermarks courants, peut être `Complete` et `NoData`.
-Le profil fixe aussi le retard maximal accepté ; le seuil est versionné avec le
-profil et non codé dans le consommateur.
+vide, observée avec des watermarks complets, peut être `Complete` et `NoData`.
+
+### Fraîcheur du profil
+
+Chaque source requise expose un watermark `CompleteThrough`. Pour un snapshot :
+
+```text
+SourceLag = max(PT0S, AsOf - CompleteThrough)
+SnapshotLag = max(SourceLag des sources CRM et Billing requises)
+```
+
+- `Current` signifie `SnapshotLag <= PT1H` ;
+- `Lagging` signifie `PT1H < SnapshotLag <= PT24H` ;
+- un watermark requis absent ou un `SnapshotLag > PT24H` refuse la publication
+  avec `StaleData` ;
+- une génération en reconstruction ou indisponible conserve respectivement
+  `Rebuilding` ou `Unavailable` et ne publie pas ce profil.
+
+Le profil autorise donc un snapshot `Lagging` mais borné afin que Business
+Health rende visible la perte de fraîcheur. `CurrentLagThreshold` et
+`MaximumAcceptedLag` sont versionnés avec le profil et ne peuvent pas être
+élargis par un consommateur.
 
 Chaque SnapshotMetric inclut un `PeriodComparison` lorsque la baseline est
 disponible :

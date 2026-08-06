@@ -3,8 +3,8 @@ id: ANL-PUBLIC-CONTRACT
 title: Analytics Public Contract
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -64,13 +64,15 @@ getAnalyticsSnapshot(workspaceId, analyticsSnapshotId)
 → AnalyticsSnapshot
 
 getLatestAnalyticsSnapshot(workspaceId, snapshotProfileKey,
-                           minimumAsOf?, maximumAcceptedLag?)
+                           snapshotProfileVersion,
+                           minimumAsOf?, maximumAcceptedLagOverride?)
 → AnalyticsSnapshot | SnapshotUnavailable
 ```
 
 La lecture exige `analytics.snapshots.consume`. Le consommateur vérifie le
 profil, la complétude et la fraîcheur au lieu d'inférer qu'un snapshot ancien
-est courant.
+est courant. Un `maximumAcceptedLagOverride` ne peut qu'être inférieur ou égal
+au maximum du profil ; il ne peut jamais élargir la fenêtre de publication.
 
 ## Intentions système internes
 

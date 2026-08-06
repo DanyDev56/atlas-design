@@ -3,8 +3,8 @@ id: ANL-VALUE-OBJECTS
 title: Analytics Value Objects
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -19,8 +19,9 @@ references:
 ## Identifiants
 
 `AnalyticsFactId`, `MetricKey`, `MetricDefinitionVersion`, `MetricSeriesId`,
-`GenerationId`, `AnalyticsSnapshotId`, `SnapshotProfileKey`, `WorkspaceId` et
-les RequestId spécialisés sont des types distincts.
+`GenerationId`, `AnalyticsSnapshotId`, `SnapshotProfileKey`,
+`SnapshotProfileVersion`, `WorkspaceId` et les RequestId spécialisés sont des
+types distincts.
 
 ## SourceAggregateReference
 
@@ -97,6 +98,12 @@ SourceWatermarks[]
 MaximumAcceptedLag
 ```
 
+Un `SourceWatermark` contient au minimum `SourceDomain` et `CompleteThrough`.
+Le retard d'une source est la durée positive entre `AsOf` et
+`CompleteThrough`; le retard du snapshot est le maximum des sources exigées par
+le profil. Un timestamp de calcul récent ne réduit jamais artificiellement ce
+retard.
+
 ## ReportingCalendar
 
 Fuseau, premier jour de semaine et version issus des préférences Workspace. Un
@@ -106,9 +113,22 @@ modifie aucun fait ni snapshot publié.
 ## SnapshotProfile
 
 Jeu versionné de MetricKeys, fenêtres, dimensions et seuils exigés par un
-consommateur. `BusinessHealthBaselineV1` est le seul profil 1.0. Un profil ne
-change jamais la formule d'une métrique ; il sélectionne des observations
-cohérentes à publier ensemble.
+consommateur :
+
+```text
+SnapshotProfileKey
+SnapshotProfileVersion
+RequiredMetricDefinitions[]
+RequiredCompleteness
+RequiredSourceDomains[]
+CurrentLagThreshold
+MaximumAcceptedLag
+```
+
+`BusinessHealthBaselineV1@1.0.0` est le seul profil 1.0. Un profil ne change
+jamais la formule d'une métrique ; il sélectionne des observations cohérentes à
+publier ensemble. Changer une fenêtre, une exigence ou un seuil crée une
+nouvelle `SnapshotProfileVersion`.
 
 ## SnapshotMetric
 
