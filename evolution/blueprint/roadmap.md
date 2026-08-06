@@ -1,51 +1,85 @@
-# Roadmap
+---
+id: BPT-012
+title: Product Delivery Roadmap
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-06
 
-## Phase 1
+references:
+  - README.md
+  - implementation-plan.md
+  - ../roadmap/mvp-scope.md
+  - ../roadmap/mvp-acceptance.md
+---
 
-Fondations
+# Roadmap de livraison
 
-- Authentification
-- Workspace
-- CRM
-- Billing
+Cette roadmap exprime un ordre de réduction du risque, pas des dates. Un palier
+ne s'ouvre que lorsque son gate de sortie est prouvé.
 
 ---
 
-## Phase 2
+## Palier 0 — Clôture de conception du MVP
 
-Pilotage
+- valider les trois parcours et états UX ;
+- confirmer la topologie d'implémentation par ADR ;
+- préparer le modèle de menace et les fixtures de référence ;
+- rendre les quality gates exécutables.
 
-- Dashboard
-- Analytics
-- Business Health
+Gate : Blueprint `Stable`, checker vert et décisions techniques bloquantes
+acceptées.
 
----
+## Palier 1 — Contexte sûr et gestion commerciale
 
-## Phase 3
+- socle d'exécution ;
+- Identity et Workspace ;
+- CRM ;
+- Billing jusqu'au paiement.
 
-Intelligence
+Gate : `MVP-J1` et `MVP-J2` passent de bout en bout, y compris reprise et
+isolation.
 
-- Advisor
-- Notifications
-- Automations
+## Palier 2 — Compréhension et décision
 
----
+- Analytics comme moteur interne ;
+- Business Health ;
+- Advisor ;
+- Notifications ;
+- Dashboard de composition.
 
-## Phase 4
+Gate : `MVP-J3` passe avec données suffisantes, données insuffisantes, zéro
+Recommendation et notification éligible/non éligible.
 
-Écosystème
+## Palier 3 — Publication contrôlée
 
-- Intégrations
-- API
-- Marketplace
+- sécurité, accessibilité et performance ;
+- migrations, sauvegarde, restauration et reconstruction ;
+- observabilité, alertes, runbooks et support ;
+- beta fermée, mesure des outcomes et corrections.
 
----
+Gate : Definition of Done MVP satisfaite et risques résiduels acceptés.
 
-## Phase 5
+## Palier 4 — Extension validée
 
-Plateforme
+Prioriser à partir des usages observés, sans ordre prédéfini :
 
-- IA avancée
-- Multi-workspaces
-- Mobile
-- Assistant conversationnel
+- Projects ;
+- Automation bornée ;
+- premier connecteur produit ;
+- API publique externe ;
+- capacités Analytics avancées.
+
+Chaque extension exige sa propre découverte, ses frontières de domaine et une
+preuve qu'elle améliore une décision utilisateur.
+
+## Palier 5 — Plateforme
+
+- multi-workspaces ;
+- marketplace ;
+- mobile natif ;
+- IA avancée et assistant conversationnel ;
+- écosystème d'extensions.
+
+Ces éléments restent hypothétiques tant que les paliers précédents n'ont pas
+validé la boucle de valeur d'Atlas.

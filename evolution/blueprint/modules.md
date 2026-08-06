@@ -1,71 +1,70 @@
-# Modules
+---
+id: BPT-004
+title: Product Modules
+status: In Review
+owner: Product
+version: 1.0.0
+last_updated: 2026-08-06
 
-## Identity
+references:
+  - README.md
+  - product-map.md
+  - dashboard.md
+  - navigation.md
+  - ../roadmap/mvp-scope.md
+  - ../../fondation/domains/README.md
+---
 
-Authentification, appartenance et autorisation.
+# Modules du produit
+
+## Bounded contexts du MVP
+
+| Domaine | Responsabilité visible dans le MVP | Exposition principale |
+|---|---|---|
+| Identity | inscription, authentification, sessions, memberships, rôles et autorisation | connexion, profil, membres et rôles. |
+| Workspace | identité de l'activité, préférences, identité de facturation et cycle de vie | onboarding et paramètres Workspace. |
+| CRM | clients, contacts, opportunités et activités commerciales | espace CRM et pipeline. |
+| Billing | devis, factures, paiements, avoirs et documents financiers | espace Billing et vues publiques bornées. |
+| Analytics | faits, métriques, fraîcheur et snapshots déterministes | explications intégrées ; pas de navigation autonome requise. |
+| Business Health | interprétation versionnée de la santé récente | synthèse et explication Business Health. |
+| Advisor | priorités, recommandations, preuves et décisions utilisateur | espace Advisor et priorité du Dashboard. |
+| Notifications | inbox personnelle, préférences et remise des priorités importantes | inbox globale et paramètres personnels. |
+
+Ces noms désignent des frontières de propriété. Leur déploiement peut rester
+modulaire dans un même processus au MVP.
 
 ---
 
-## Workspace
+## Surfaces applicatives
 
-Contexte, profil et cycle de vie de l'activité.
+### Dashboard
 
----
+Le Dashboard compose les lectures publiques des domaines. Il ne s'agit pas
+d'un bounded context et il ne possède ni score, ni montant, ni Recommendation.
+Son contrat détaillé se trouve dans [`dashboard.md`](dashboard.md).
 
-## Dashboard
+### Onboarding
 
-Vue synthétique de l'activité.
+L'onboarding orchestre les intentions Identity et Workspace jusqu'à un
+Workspace actif. Il peut guider la création du premier Client et du premier
+Quote, mais ne possède aucune de ces entités.
 
----
+### Settings
 
-## CRM
-
-Gestion de la relation client.
-
----
-
-## Projects
-
-Suivi des missions.
+Settings regroupe des écrans appartenant à Identity, Workspace et
+Notifications. La proximité de navigation ne crée aucune propriété partagée.
 
 ---
 
-## Billing
+## Modules différés
 
-Cycle commercial.
+| Module | Statut | Condition de réouverture |
+|---|---|---|
+| Projects | Post-MVP | besoin prouvé qui ne peut pas être porté par CRM sans déformer son modèle. |
+| Automation | Post-MVP | boucle MVP stable, catalogue d'actions borné, consentement, audit et politique de rollback définis. |
+| Integrations | Post-MVP | connecteur prioritaire validé par une recherche utilisateur et un contrat de données. |
+| Public API | Post-MVP | contrats internes stables, modèle d'application cliente et politique de dépréciation validés. |
+| Marketplace | Post-MVP | gouvernance des extensions, sécurité et modèle économique établis. |
 
----
-
-## Analytics
-
-Analyse de l'activité.
-
----
-
-## Business Health
-
-Évaluation de la santé de l'entreprise.
-
----
-
-## Advisor
-
-Recommandations.
-
----
-
-## Notifications
-
-Inbox personnelle, préférences et remise des priorités Advisor importantes.
-
----
-
-## Automations
-
-Automatisation des tâches.
-
----
-
-## Integrations
-
-Connexions externes.
+Les ports techniques d'e-mail, rendu de document ou stockage ne créent pas un
+module Integrations visible par l'utilisateur.
