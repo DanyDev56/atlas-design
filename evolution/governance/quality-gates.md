@@ -3,7 +3,7 @@ id: GOV-002
 title: Product Quality Gates
 status: In Review
 owner: Product and Engineering
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-08-06
 
 references:
@@ -18,6 +18,8 @@ references:
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/README.md
   - ../../fondation/security/mvp-threat-model.md
+  - ../../scripts/check-all.sh
+  - ../../.github/workflows/documentation.yml
 ---
 
 # Quality Gates
@@ -77,12 +79,16 @@ En plus des sections précédentes :
 
 1. `MVP-J1`, `MVP-J2` et `MVP-J3` passent avec les scénarios transverses de
    [`mvp-acceptance.md`](../roadmap/mvp-acceptance.md) ;
-2. `scripts/check-mvp-blueprint-docs.sh` passe ;
-3. `scripts/check-decisions-docs.sh` passe ;
-4. `scripts/check-security-docs.sh` passe ;
-5. les huit checkers de bounded context passent ;
-6. `scripts/check-mvp-reference-fixtures.sh` recalcule sans écart les fixtures
+2. `scripts/check-all.sh` exécute avec succès les douze checkers du dépôt, dont
+   les huit bounded contexts, `scripts/check-mvp-blueprint-docs.sh`,
+   `scripts/check-decisions-docs.sh`, `scripts/check-security-docs.sh` et les
+   fixtures ;
+3. `scripts/check-mvp-reference-fixtures.sh` recalcule sans écart les fixtures
    Analytics, Business Health, Advisor et Notifications ;
-7. `ADR-001` et `ADR-002` sont `Accepted` et leurs conditions automatisables
+4. le workflow `.github/workflows/documentation.yml` exécute le même point
+   d'entrée sur chaque pull request et chaque push vers `main` ;
+5. le check `Documentation quality gates` est obligatoire dans la règle de
+   protection de `main` ;
+6. `ADR-001` et `ADR-002` sont `Accepted` et leurs conditions automatisables
    passent dans la CI ;
-8. les risques résiduels possèdent un owner et une décision d'acceptation.
+7. les risques résiduels possèdent un owner et une décision d'acceptation.

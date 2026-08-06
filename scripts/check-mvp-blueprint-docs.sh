@@ -231,8 +231,18 @@ if (( errors == chain_errors )); then
 fi
 
 governance_errors=$errors
+[[ -x "$repo_root/scripts/check-all.sh" ]] || \
+  fail "point d'entrée global des checkers absent ou non exécutable"
+[[ -f "$repo_root/.github/workflows/documentation.yml" ]] || \
+  fail "workflow GitHub Actions documentaire absent"
+rg -q 'scripts/check-all.sh' "$repo_root/evolution/governance/quality-gates.md" || \
+  fail "point d'entrée global absent des quality gates"
+rg -q 'scripts/check-all.sh' "$repo_root/.github/workflows/documentation.yml" || \
+  fail "point d'entrée global absent du workflow GitHub Actions"
+rg -q 'actions/checkout@[0-9a-f]{40}' "$repo_root/.github/workflows/documentation.yml" || \
+  fail "checkout GitHub Actions non épinglé par SHA complet"
 rg -q 'scripts/check-mvp-blueprint-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
-  fail "checker absent des quality gates"
+  fail "couverture du checker Blueprint absente des quality gates"
 rg -q 'scripts/check-decisions-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
   fail "checker ADR absent des quality gates"
 rg -q 'scripts/check-security-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \

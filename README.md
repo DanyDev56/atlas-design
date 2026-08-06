@@ -84,3 +84,14 @@ En cas de contradiction, la hiérarchie définie dans la
 Une évolution significative doit mettre à jour les documents affectés et faire
 l'objet d'une décision formelle lorsqu'elle modifie durablement le produit ou son
 modèle métier.
+
+---
+
+## Valider le référentiel
+
+Les contrôleurs documentaires nécessitent `ripgrep` et `jq`. Leur point d'entrée
+unique est le même en local et dans GitHub Actions :
+
+```bash
+scripts/check-all.sh
+```
