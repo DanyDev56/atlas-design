@@ -1,0 +1,80 @@
+name: Application quality gates
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: application-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation:
+    name: Documentation quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install checker dependencies
+        run: sudo apt-get update && sudo apt-get install --yes jq ripgrep
+
+      - name: Run documentation quality gates
+        run: scripts/check-all.sh
+
+  spike:
+    name: Spike incrément 0 (Pest + PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Build and start stack
+        run: |
+          docker compose -f implementation/docker-compose.yml up -d --build
+          docker compose -f implementation/docker-compose.yml exec -T postgres \
+            sh -c 'until pg_isready -U atlas -d atlas; do sleep 1; done'
+
+      - name: Install dependencies and run tests
+        run: |
+          docker compose -f implementation/docker-compose.yml exec -T app bash -c '
+            set -euo pipefail
+            cd /workspace/implementation/app
+            composer install --no-interaction --prefer-dist
+            npm install --ignore-scripts
+            php artisan migrate:fresh --force
+            ./vendor/bin/pest --colors=never
+          '
+
+  oci:
+    name: OCI image build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318fb6cbedbfd3102a248651c7c2eaff4 # v3.10.0
+
+      - name: Build application image with SBOM attestation
+        uses: docker/build-push-action@70a937786228f64070460c4382c736eabc2c0c10 # v6.17.0
+        with:
+          context: implementation/app
+          file: implementation/app/Dockerfile
+          push: false
+          load: true
+          tags: atlas-app:spike
+          sbom: true
+          provenance: mode=max

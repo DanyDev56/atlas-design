@@ -164,7 +164,7 @@ stack="$decisions_root/ADR-002-mvp-implementation-stack.md"
 stack_errors=$errors
 [[ -f "$stack" ]] || fail "ADR-002 de stack absent"
 if [[ -f "$stack" ]]; then
-  rg -q '^status: Proposed$' "$stack" || fail "ADR-002 ne reste pas Proposed avant son spike"
+  rg -q '^status: Accepted$' "$stack" || fail "ADR-002 doit être Accepted après le spike"
   for term in 'PHP 8.5 strict' 'Laravel 13' 'React 19' 'PostgreSQL 18' \
     'Laravel Database' 'Eloquent borné aux adapters' 'outbox, inbox' \
     'Laravel Queue avec driver database' 'OpenTelemetry' 'composer.lock' \

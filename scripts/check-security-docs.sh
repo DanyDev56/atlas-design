@@ -203,8 +203,8 @@ stack_errors=$errors
 stack_decision="$repo_root/fondation/decisions/ADR-002-mvp-implementation-stack.md"
 [[ -f "$stack_decision" ]] || fail "ADR-002 de stack absent"
 if [[ -f "$stack_decision" ]]; then
-  rg -q '^status: Proposed$' "$stack_decision" || \
-    fail "ADR-002 ne reste pas Proposed avant son spike"
+  rg -q '^status: Accepted$' "$stack_decision" || \
+    fail "ADR-002 doit être Accepted après le spike"
   for term in 'PHP 8.5 strict' 'Laravel 13' 'PostgreSQL 18' 'composer.lock' \
     'GitHub Actions' 'SBOM' 'douze conditions'; do
     rg -q "$term" "$stack_decision" || fail "contrainte de stack sécurisée absente: $term"

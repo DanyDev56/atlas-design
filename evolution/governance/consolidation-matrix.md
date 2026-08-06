@@ -53,7 +53,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Delivery | MVP Implementation Plan | Oui | Oui | Oui | Oui | In Review |
 | Delivery | MVP Reference Fixtures | Oui | Oui | Oui | Oui | In Review |
 | Decisions | ADR catalogue | Oui | Oui | Oui | Oui | Living Document |
-| Decisions | MVP Implementation Stack | Oui | Oui | Oui | Oui | Proposed |
+| Decisions | MVP Implementation Stack | Oui | Oui | Oui | Oui | Accepted |
 | Security | MVP Threat Model | Oui | Oui | Oui | Oui | In Review |
 
 ---
@@ -65,7 +65,7 @@ palier 0 d'implémentation. Le passage à `Stable` reste bloqué par :
 
 - la validation produit des parcours et états UX ;
 - la validation Security du modèle de menace transversal ;
-- l'acceptation d'`ADR-002` après le spike de compatibilité et de frontières ;
+- l'acceptation d'`ADR-002` après le spike de compatibilité et de frontières — **faite** ;
 - l'acceptation formelle des quality gates par Engineering et Security.
 
 Le profil `BusinessHealthBaselineV1@1.0.0` et ses seuils de fraîcheur sont

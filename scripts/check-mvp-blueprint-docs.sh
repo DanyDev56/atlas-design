@@ -265,8 +265,8 @@ rg -q 'transaction ne traverse jamais un module' "$adr_file" || \
 rg -q 'at least once' "$adr_file" || \
   fail "sémantique de livraison ADR absente"
 stack_adr="$repo_root/fondation/decisions/ADR-002-mvp-implementation-stack.md"
-rg -q '^status: Proposed$' "$stack_adr" || \
-  fail "ADR-002 doit rester Proposed avant le spike"
+  rg -q '^status: Accepted$' "$stack_adr" || \
+  fail "ADR-002 doit être Accepted après le spike"
 for stack_term in 'PHP 8.5 strict' 'Laravel 13' 'React 19' 'PostgreSQL 18'; do
   rg -q "$stack_term" "$stack_adr" || fail "choix ADR-002 absent: $stack_term"
 done

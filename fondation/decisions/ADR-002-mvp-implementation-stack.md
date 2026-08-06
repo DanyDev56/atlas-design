@@ -1,10 +1,10 @@
 ---
 id: ADR-002
 title: MVP Implementation Stack
-status: Proposed
+status: Accepted
 date: 2026-08-06
 owner: Engineering
-version: 0.2.0
+version: 1.0.0
 last_updated: 2026-08-06
 
 references:
@@ -14,6 +14,7 @@ references:
   - ../../evolution/blueprint/implementation-plan.md
   - ../../evolution/roadmap/mvp-acceptance.md
   - ../../evolution/reference-fixtures/README.md
+  - ../../implementation/SPIKE-CLOSURE.md
 ---
 
 # ADR-002 — Stack d'implémentation du MVP
@@ -456,3 +457,20 @@ La décision est réexaminée si :
 Un changement de préférence sans donnée mesurée ne suffit pas. Toute évolution
 continue de respecter les frontières, transactions locales et critères
 d'extraction d'`ADR-001`.
+
+---
+
+## Acceptation du spike (2026-08-06)
+
+Les douze conditions d'implémentation sont prouvées par le spike incrément 0
+documenté dans [`implementation/SPIKE-CLOSURE.md`](../../implementation/SPIKE-CLOSURE.md).
+
+Écarts acceptés au moment de l'acceptation :
+
+- l'image de développement utilise **PHP 8.4.24** en attendant PHP 8.5 dans
+  l'image officielle ; la baseline cible reste PHP 8.5 strict ;
+- OpenTelemetry complet est remplacé au spike par corrélation HTTP, logs
+  structurés et propagation jusqu'à l'outbox ; l'export OTLP reste prévu à
+  l'incrément 1 ;
+- le scan d'image et la provenance SBOM sont automatisés en CI ; la promotion
+  vers un registre de production reste différée avant `SEC-GAP-004`.

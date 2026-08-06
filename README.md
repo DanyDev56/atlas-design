@@ -95,3 +95,21 @@ unique est le même en local et dans GitHub Actions :
 ```bash
 scripts/check-all.sh
 ```
+
+---
+
+## Implémentation
+
+Le code exécutable du MVP vit dans [`implementation/`](implementation/README.md).
+La prochaine étape est l'**incrément 0** : spike des douze conditions
+d'[`ADR-002`](fondation/decisions/ADR-002-mvp-implementation-stack.md) (socle
+modulaire, outbox, tests d'architecture).
+
+```bash
+make up          # Docker + PostgreSQL
+make bootstrap   # Laravel + structure src/
+```
+
+Checklist détaillée : [`implementation/spike-checklist.md`](implementation/spike-checklist.md).
+
+Clôture du spike : [`implementation/SPIKE-CLOSURE.md`](implementation/SPIKE-CLOSURE.md) — **ADR-002 Accepted**.
