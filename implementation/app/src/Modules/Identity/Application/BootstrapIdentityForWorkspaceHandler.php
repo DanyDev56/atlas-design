@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Atlas\Modules\Identity\Application;
+
+use Atlas\Modules\Identity\Domain\MembershipCreated;
+use Atlas\Modules\Identity\Domain\MembershipId;
+use Atlas\Modules\Identity\Domain\RoleId;
+use Atlas\Modules\Identity\Domain\UserId;
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipRepository;
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
+use Atlas\Platform\Messaging\EventId;
+use Atlas\Platform\Messaging\OutgoingMessage;
+use Atlas\Platform\Messaging\OutboxWriter;
+use Illuminate\Support\Facades\DB;
+
+final class BootstrapIdentityForWorkspaceHandler
+{
+    private const OWNER_PERMISSIONS = [
+        'workspace.members.read',
+        'workspace.members.create',
+        'workspace.members.invite',
+        'workspace.members.change-role',
+        'workspace.settings.read',
+        'workspace.settings.update',
+    ];
+
+    public function __construct(
+        private readonly PostgresUserRepository $users,
+        private readonly PostgresRoleRepository $roles,
+        private readonly PostgresMembershipRepository $memberships,
+        private readonly OutboxWriter $outbox,
+    ) {}
+
+    /** @return array{role_id: string, membership_id: string} */
+    public function handle(string $userId, string $workspaceId): array
+    {
+        return DB::transaction(function () use ($userId, $workspaceId): array {
+            $user = $this->users->findById(new UserId($userId));
+
+            if ($user === null || ! $user->canAuthenticate()) {
+                throw new \DomainException('User unavailable.');
+            }
+
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+            $roleIdValue = $this->roles->findOwnerRoleId($workspaceId);
+
+            if ($roleIdValue === null) {
+                $roleId = RoleId::generate();
+                $this->roles->createOwnerRole($roleId, $workspaceId, self::OWNER_PERMISSIONS, $now);
+                $roleIdValue = $roleId->value;
+            } else {
+                $roleId = new RoleId($roleIdValue);
+            }
+
+            $existing = $this->memberships->findByUserAndWorkspace(new UserId($userId), $workspaceId);
+
+            if ($existing !== null) {
+                return [
+                    'role_id' => $roleIdValue,
+                    'membership_id' => $existing['id'],
+                ];
+            }
+
+            $membershipId = MembershipId::generate();
+            $this->memberships->create(
+                membershipId: $membershipId,
+                userId: new UserId($userId),
+                workspaceId: $workspaceId,
+                roleId: $roleId,
+                now: $now,
+            );
+
+            $event = new MembershipCreated(
+                membershipId: $membershipId,
+                userId: new UserId($userId),
+                workspaceId: $workspaceId,
+                roleId: $roleId,
+                eventId: EventId::generate(),
+                occurredAt: $now,
+            );
+            $this->outbox->append(OutgoingMessage::fromDomainEvent($event));
+
+            return [
+                'role_id' => $roleIdValue,
+                'membership_id' => $membershipId->value,
+            ];
+        });
+    }
+}

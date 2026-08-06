@@ -1,10 +1,10 @@
-# Structure modulaire Atlas
+# Atlas application code (`src/`)
 
-Code modulaire du MVP (ADR-001 / ADR-002).
+Bounded contexts, composition workflows and platform services live here,
+following ADR-002:
 
-```text
-atlas/
-  Modules/       # bounded contexts
-  Platform/      # persistence, messaging, security…
-  Composition/   # onboarding, dashboard, settings
-```
+- `modules/` — Identity, Workspace, …
+- `composition/` — onboarding sagas
+- `platform/` — messaging, Laravel adapters
+
+Autoload namespace: `Atlas\`.
