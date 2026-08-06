@@ -3,8 +3,8 @@ id: NTF-INTEGRATIONS
 title: Notifications Integrations
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -24,12 +24,9 @@ references:
 Notifications consomme :
 
 ```text
-RecommendationEvaluationCompleted
-RecommendationCompleted
-RecommendationDismissed
-RecommendationExpired
+AdvisorOverviewChanged
 
-getAdvisorOverviewForNotification(workspaceId, recommendationEvaluationId)
+getAdvisorOverviewForNotification(workspaceId, advisorOverviewVersion)
 → NotificationAdvisorOverview
 
 getRecommendationForNotification(workspaceId, recommendationId)
@@ -37,10 +34,10 @@ getRecommendationForNotification(workspaceId, recommendationId)
 ```
 
 La lecture exacte exige `advisor.recommendations.consume`. Le contrat fournit
-AdvisorOverviewVersion, SourceOrder, RecommendationId, status, Priority,
+AdvisorOverviewVersion, OverviewConvergenceKind, SourceOrder, RecommendationId, status, Priority,
 template versionné, données minimales, ActionDescriptor allowlisté et
-ValidUntil. Notifications ne consomme pas RecommendationGenerated et ne
-recalcule jamais le classement.
+ValidUntil. Notifications ne consomme aucun événement Recommendation ou
+RecommendationEvaluationCompleted et ne recalcule jamais le classement.
 
 ## Identity
 

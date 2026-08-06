@@ -197,7 +197,7 @@ awk -F'|' '
   trace && $2 ~ /`[A-Z][A-Za-z]+`/ {print $6}
 ' "$advisor_root/consolidation-matrix.md" \
   | rg -o '`[A-Z][A-Za-z0-9]+`' | tr -d '`' | sort -u > "$tmp_trace_events"
-awk -F'|' '$2 ~ /`Recommendation[A-Z][A-Za-z0-9]+`/ {
+awk -F'|' '$2 ~ /`(Recommendation|AdvisorOverview)[A-Z][A-Za-z0-9]+`/ {
   value=$2; gsub(/^[[:space:]]*`|`[[:space:]]*$/, "", value); print value
 }' "$advisor_root/events.md" | sort -u > "$tmp_catalog_events"
 
@@ -249,6 +249,18 @@ done
 if rg -q '`Recommendation(Executed|Displayed|Opened|Clicked)`' "$advisor_root/events.md" "$commands_root" "$processors_root"; then
   fail "événement Advisor non canonique détecté"
 fi
+for converging_intent in \
+  "$commands_root/CompleteRecommendation.md" \
+  "$commands_root/DismissRecommendation.md" \
+  "$processors_root/ExpireRecommendation.md" \
+  "$processors_root/EvaluateRecommendations.md"; do
+  rg -q 'RebuildAdvisorOverview' "$converging_intent" || \
+    fail "convergence AdvisorOverview absente: ${converging_intent#"$repo_root/"}"
+done
+rg -q 'SourceBecameIneligible' "$advisor_root/invariants.md" "$advisor_root/workflows.md" || \
+  fail "invalidation d'une source courante insuffisante absente"
+rg -q 'AdvisorOverviewChanged' "$repo_root/fondation/domains/notifications/integrations.md" || \
+  fail "convergence Advisor non reconnue par Notifications"
 if (( errors == lifecycle_errors )); then
   pass "cycle de vie terminal et frontière de télémétrie cohérents"
 fi

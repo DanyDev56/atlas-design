@@ -3,8 +3,8 @@ id: NTF-LIFECYCLE
 title: Notification Lifecycles
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - notification-policy.md
@@ -30,8 +30,8 @@ Active
   ou que l'overview ne contient plus de priorité ;
 - `Superseded` signifie qu'une nouvelle PrimaryRecommendation a remplacé le
   contenu du même thread ;
-- `Expired` signifie que RecommendationExpired ou DisplayUntil a mis fin à sa
-  pertinence.
+- `Expired` signifie qu'un AdvisorOverviewChanged de kind
+  RecommendationExpired ou que DisplayUntil a mis fin à sa pertinence.
 
 Ces statuts sont terminaux. Une nouvelle priorité crée une nouvelle
 Notification.

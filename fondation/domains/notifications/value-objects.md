@@ -3,8 +3,8 @@ id: NTF-VALUE-OBJECTS
 title: Notifications Value Objects
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -41,11 +41,11 @@ La référence est authentique, supportée et du même Workspace.
 ## AdvisorSourceReference
 
 ```text
-RecommendationEvaluationId
 AdvisorOverviewVersion
+OverviewConvergenceKind
+CauseReference
 SourceOrder: (AsOf, SourcePublishedAt, BusinessHealthAssessmentId)
 PrimaryRecommendationId?
-RecommendationId?
 RecommendationPolicyVersion
 RecommendationPriority?
 RecommendationStatus?
@@ -53,7 +53,8 @@ ValidUntil?
 ```
 
 Elle copie uniquement les identifiants nécessaires au message ou à sa
-résolution.
+résolution. La cause terminale reste structurée dans
+OverviewConvergenceKind ; aucun événement Recommendation séparé n'est requis.
 
 AdvisorOverviewVersion est la garde monotone inter-politique. SourceOrder est
 conservé pour l'audit et la cohérence avec l'évaluation exacte. Une version

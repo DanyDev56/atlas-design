@@ -204,6 +204,10 @@ if (( errors == policy_errors )); then
 fi
 
 integration_errors=$errors
+rg -q 'AdvisorOverviewChanged' "$repo_root/fondation/domains/advisor/events.md" || \
+  fail "événement de convergence Advisor absent"
+rg -q 'AdvisorOverviewChanged' "$notifications_root/integrations.md" || \
+  fail "événement de convergence Advisor non reconnu par Notifications"
 rg -q 'getAdvisorOverviewForNotification' "$repo_root/fondation/domains/advisor/api.md" || \
   fail "contrat Advisor absent"
 rg -q 'getAdvisorOverviewForNotification' "$notifications_root/integrations.md" || \

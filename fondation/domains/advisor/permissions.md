@@ -3,8 +3,8 @@ id: ADV-PERMISSIONS
 title: Advisor Permissions
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -41,6 +41,7 @@ l'acteur au moment de l'ouverture et de toute commande.
 |---|---|
 | `advisor.recommendations.evaluate` | Consommer BusinessHealthAssessed et appliquer RecommendationPolicy. |
 | `advisor.recommendations.expire` | Matérialiser une fin de validité prouvée par l'horloge. |
+| `advisor.overview.rebuild` | Reconstruire et publier l'AdvisorOverview après une cause authentique. |
 | `advisor.recommendations.consume` | Lire une Recommendation exacte depuis Notifications. |
 
 Ces capacités ne peuvent pas être accordées à un rôle humain. Elles exigent une

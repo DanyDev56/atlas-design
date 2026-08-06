@@ -3,8 +3,8 @@ id: ADV-PROC-EXPIRE-RECOMMENDATION
 title: ExpireRecommendation
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -50,11 +50,16 @@ WorkloadContext
 ## Invariants concernés
 
 `ADV-INV-001`, `ADV-INV-002`, `ADV-INV-032`–`ADV-INV-034`,
-`ADV-INV-037`, `ADV-INV-039`, `ADV-INV-044`–`ADV-INV-049`.
+`ADV-INV-037`, `ADV-INV-039`, `ADV-INV-044`–`ADV-INV-055`.
 
 ## Événement produit
 
 - `RecommendationExpired` avec `ExpirationReason = ValidityEnded`.
+
+L'événement cause `RebuildAdvisorOverview`. Le scheduler ne considère
+l'intention convergée que lorsque la CauseKey possède son
+`AdvisorOverviewVersion` ; l'alternative suivante est alors promue si elle
+existe.
 
 ## Concurrence
 

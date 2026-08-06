@@ -3,8 +3,8 @@ id: ADV-VALUE-OBJECTS
 title: Advisor Value Objects
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -31,10 +31,13 @@ et l'expiration contrôlée des Recommendations de l'ancienne version.
 
 ## AdvisorOverviewVersion
 
-Entier strictement croissant par Workspace à chaque convergence Eligible
-appliquée à AdvisorOverview. Une source historique conserve la version courante.
-La version ordonne les publications à travers les changements de
+Entier strictement croissant par Workspace à chaque évaluation appliquée, source
+courante invalidante ou mutation terminale appliquée à AdvisorOverview. Une
+source historique ou incompatible conserve la version courante. La version
+ordonne les publications à travers les changements de
 RecommendationPolicyVersion sans devenir une AggregateVersion.
+
+`OverviewCauseKey` déduplique la cause exacte ayant produit chaque version.
 
 ## BusinessHealthAssessmentReference
 
@@ -148,7 +151,17 @@ SourceContractMismatch
 ```
 
 Une valeur autre que Eligible termine l'évaluation avec zéro candidat publié ;
-elle ne constitue pas automatiquement une défaillance technique.
+elle ne constitue pas automatiquement une défaillance technique. Seules
+`InsufficientAssessment` et `StaleAssessment` courantes invalident les
+Recommendation actives.
+
+## OverviewConvergenceKind
+
+```text
+EvaluationApplied | SourceInvalidated
+RecommendationCompleted | RecommendationDismissed
+RecommendationExpired | PolicyReplaced
+```
 
 ## DismissalReason
 
@@ -166,6 +179,7 @@ PredicateCleared
 NoLongerPrioritized
 ContextChanged
 PolicyReplaced
+SourceBecameIneligible
 ```
 
 ## CompletionConfirmation

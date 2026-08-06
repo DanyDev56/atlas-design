@@ -3,8 +3,8 @@ id: ADV-DECISIONS
 title: Advisor Decision Record
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -37,5 +37,7 @@ references:
 | `ADV-ADR-017` | Une source tardive ne modifie pas le présent. | L'ordre de livraison ne change pas la priorité courante. |
 | `ADV-ADR-018` | Une évaluation durable existe même sans candidat. | L'absence de recommandation reste auditée et explicable. |
 | `ADV-ADR-019` | Une Recommendation terminale n'est jamais réactivée. | Un nouveau contexte reçoit une nouvelle identité. |
-| `ADV-ADR-020` | Notifications réagit à RecommendationEvaluationCompleted, pas à chaque génération isolée. | La diffusion voit la priorité stabilisée et reste séparée de la décision. |
-| `ADV-ADR-021` | AdvisorOverviewVersion ordonne chaque convergence Eligible appliquée. | Les consommateurs refusent une publication livrée hors ordre, même après un changement de politique. |
+| `ADV-ADR-020` | Notifications réagit uniquement à AdvisorOverviewChanged. | Évaluation et mutations terminales empruntent la même convergence stabilisée. |
+| `ADV-ADR-021` | AdvisorOverviewVersion ordonne chaque cause de convergence appliquée. | Les consommateurs refusent une publication livrée hors ordre, même après un changement de politique. |
+| `ADV-ADR-022` | Une source courante insuffisante ou obsolète invalide les Recommendations actives. | L'overview devient vide et aucun conseil ancien ne reste présenté comme courant. |
+| `ADV-ADR-023` | Toute mutation terminale reconstruit l'overview. | L'alternative suivante est promue et Notifications converge sans branche terminale distincte. |

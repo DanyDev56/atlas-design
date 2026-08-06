@@ -3,8 +3,8 @@ id: BHL-WORKFLOWS
 title: Business Health Workflows
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -81,6 +81,7 @@ fiabilité et son explication. L'interface :
 ## Consommation par Advisor
 
 Advisor reçoit l'événement puis relit l'évaluation exacte. Une évaluation
-InsufficientData ou trop ancienne peut produire une Recommendation de
-complétude selon la politique Advisor ; Business Health ne décide pas de cette
-action.
+`InsufficientData` ou trop ancienne ne produit aucune Recommendation en
+politique Advisor 1.0 : elle invalide l'overview courant si elle est la source
+la plus récente. Le Dashboard peut proposer les saisies ou imports manquants
+comme aide d'onboarding, jamais comme Recommendation Advisor.

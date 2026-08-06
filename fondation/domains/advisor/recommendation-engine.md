@@ -3,8 +3,8 @@ id: ADV-RECOMMENDATION-ENGINE
 title: Recommendation Engine
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - recommendation-policy.md
@@ -76,4 +76,5 @@ nouvelle est générée.
 RecommendationEvaluation est un process manager durable. Chaque décision
 possède un RequestId dérivé de l'évaluation et de la RuleKey. Un retry reprend
 les décisions manquantes ; l'évaluation devient Completed seulement lorsque
-toutes ont convergé et que l'outbox est durable.
+toutes ont convergé, que l'AdvisorOverviewRevision applicable est durable et que
+l'outbox est durable.

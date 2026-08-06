@@ -3,8 +3,8 @@ id: NTF-DECISIONS
 title: Notifications Decision Record
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -19,7 +19,7 @@ references:
 | ID | Décision | Conséquence 1.0 |
 |---|---|---|
 | `NTF-ADR-001` | Advisor est l'unique source métier. | Le MVP reste borné et n'est pas un bus générique. |
-| `NTF-ADR-002` | RecommendationEvaluationCompleted déclenche la diffusion. | Le classement est stable avant toute notification. |
+| `NTF-ADR-002` | AdvisorOverviewChanged déclenche seul la diffusion. | Évaluations et mutations terminales arrivent après la même convergence stable. |
 | `NTF-ADR-003` | Une NotificationPolicy est globale et versionnée. | Déduplication, canaux et fréquence restent reproductibles. |
 | `NTF-ADR-004` | L'audience vient d'Identity avec permissions effectives. | Notifications ne devient pas propriétaire des destinataires. |
 | `NTF-ADR-005` | Les préférences appartiennent à Notifications. | Le consentement de canal reste séparé de l'identité. |

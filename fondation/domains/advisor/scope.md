@@ -3,8 +3,8 @@ id: ADV-SCOPE
 title: Advisor Scope
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -28,6 +28,8 @@ references:
 - génération de zéro à trois Recommendation actives ;
 - sélection déterministe d'une priorité principale ;
 - réaffirmation ou expiration face à une nouvelle évaluation.
+- convergence versionnée de l'AdvisorOverview après toute évaluation appliquée
+  ou mutation terminale.
 
 ### Explication et action
 

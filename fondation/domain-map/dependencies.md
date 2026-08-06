@@ -40,8 +40,8 @@ consommer tous les domaines précédents.
   redéfinir les métriques ou la HealthPolicy ;
 - Advisor fournit des actions de navigation allowlistées, mais CRM et Billing
   réautorisent toujours l'utilisateur et traitent leurs propres commandes ;
-- Notifications consomme `RecommendationEvaluationCompleted` afin de considérer
-  une priorité déjà stabilisée ;
+- Notifications consomme `AdvisorOverviewChanged` afin de considérer une
+  priorité déjà stabilisée après évaluation ou mutation terminale ;
 - Notifications relit l'AdvisorOverview exact, résout son audience auprès
   d'Identity et vérifie état d'accès et locale auprès de Workspace ;
 - Identity ne lui fournit qu'une `DeliveryEndpointReference` opaque et

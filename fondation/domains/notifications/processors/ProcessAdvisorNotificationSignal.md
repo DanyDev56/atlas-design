@@ -3,8 +3,8 @@ id: NTF-PROC-PROCESS-ADVISOR-NOTIFICATION-SIGNAL
 title: ProcessAdvisorNotificationSignal
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -30,9 +30,8 @@ plusieurs agrégats `Notification` existants ou nouveaux.
 
 ## Acteur et autorité
 
-Workload Notifications autorisé par `notifications.signals.process`, causé par
-`RecommendationEvaluationCompleted`, `RecommendationCompleted`,
-`RecommendationDismissed` ou `RecommendationExpired`.
+Workload Notifications autorisé par `notifications.signals.process`, causé
+exclusivement par `AdvisorOverviewChanged`.
 
 ## Données d'entrée
 
@@ -52,15 +51,17 @@ décision de destinataire et de canal dérive son propre RequestId du plan.
 
 - enveloppe Advisor authentique, supportée et du même Workspace ;
 - politique publiée et versions de schéma supportées ;
-- lecture de l'AdvisorOverview exact par RecommendationEvaluationId puis de la
+- lecture de l'AdvisorOverview exact par AdvisorOverviewVersion puis de la
   NotificationRecommendationView courante par PrimaryRecommendationId avec
   `advisor.recommendations.consume` ;
-- pour RecommendationEvaluationCompleted : état Workspace Active, contexte
-  d'accès courant et audience Identity résolue pour les capacités requises ;
+- pour créer le contenu d'une version avec PrimaryRecommendation : état
+  Workspace Active, contexte d'accès courant et audience Identity résolue pour
+  les capacités requises ; les clôtures rendues nécessaires par la version
+  restent applicables dans un Workspace restreint ;
 - acquisition du TopicProcessingLease puis comparaison
   d'AdvisorOverviewVersion au cursor avant toute mutation d'évaluation ;
-- pour un événement terminal : sélection des Notification existantes par
-  RecommendationId exact, sans audience nouvelle et même si le Workspace est
+- pour une version vide ou remplaçant la PrimaryRecommendation : sélection des
+  threads existants sans audience nouvelle, y compris si le Workspace est
   restreint ;
 - lecture des préférences Notifications, avec valeurs virtuelles par défaut ;
 - création ou reprise de NotificationPlan ;
@@ -70,11 +71,11 @@ décision de destinataire et de canal dérive son propre RequestId du plan.
 - completion du plan seulement après une décision terminale pour chaque
   destinataire et canal considérés.
 
-Un signal d'évaluation inéligible ou de version inférieure produit SourceIgnored
-et ne modifie aucun thread. Un overview Eligible, monotone et vide ou une
-audience vide produit un plan Completed sans nouvelle Notification et résout les
-threads actifs concernés. Les threads d'anciens destinataires absents de
-l'audience courante sont résolus sans diffusion.
+Une version inférieure produit SourceIgnored et ne modifie aucun thread. Une
+version monotone vide, notamment après source invalidée ou mutation terminale,
+produit un plan Completed sans nouvelle Notification et résout les threads
+actifs concernés. Les threads d'anciens destinataires absents de l'audience
+courante sont résolus sans diffusion.
 
 ## Invariants concernés
 

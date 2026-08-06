@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.6.0
+version: 1.7.0
 last_updated: 2026-08-06
 
 references:
@@ -129,9 +129,14 @@ Implémenter l'évaluation déterministe, le classement, l'AdvisorOverview,
 l'explication, l'accomplissement, le rejet et l'expiration. Les actions sont des
 routes allowlistées vers le module propriétaire.
 
+Toutes les évaluations appliquées et mutations terminales passent par
+`RebuildAdvisorOverview`, qui avance la version, retire les entrées terminales,
+promeut l'alternative suivante et publie `AdvisorOverviewChanged`.
+
 Gate de sortie : une même évaluation rejouée converge ; zéro, une et trois
 recommandations sont des résultats testés ; aucune action CRM/Billing n'est
-exécutée par Advisor.
+exécutée par Advisor. Completion, dismissal, expiration et source invalidante
+convergent aussi sans priorité obsolète.
 
 ### Incrément 7 — Notifications et Dashboard
 

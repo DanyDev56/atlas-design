@@ -3,8 +3,8 @@ id: NTF-AGGREGATES
 title: Notifications Aggregates
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -34,12 +34,12 @@ La clé naturelle est `(WorkspaceId, NotificationTopic)`. La racine conserve
 LastAppliedAdvisorOverviewVersion, LastAppliedSourceOrder, ProcessingPlanId?,
 TopicProcessingLease? et Revision.
 
-Un seul plan RecommendationEvaluationCompleted détient le lease à la fois. Il
+Un seul plan AdvisorOverviewChanged détient le lease à la fois. Il
 compare sa version Advisor au cursor avant toute mutation, puis avance le cursor
 seulement lorsque toutes ses RecipientDecision et outbox sont durables. Un token
 de fencing empêche un worker au lease expiré de committer tardivement. Les
-événements terminaux ciblant une Recommendation exacte restent idempotents et ne
-font jamais régresser le cursor.
+versions vides ou de remplacement restent idempotentes et ne font jamais
+régresser le cursor.
 
 Après expiration d'un lease, le repreneur relit d'abord ProcessingPlanId. Un
 plan Completed fait avancer le cursor avant qu'un autre plan puisse acquérir le

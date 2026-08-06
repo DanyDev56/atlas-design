@@ -3,8 +3,8 @@ id: NTF-RELATIONSHIPS
 title: Notifications Relationships
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -32,15 +32,16 @@ NotificationThreadKey   1 -------- 0..1 Active Notification
 ## Advisor
 
 ```text
-RecommendationEvaluationCompleted
+AdvisorOverviewChanged
   -> ProcessAdvisorNotificationSignal
-  -> getAdvisorOverviewForNotification(exact evaluation id)
+  -> getAdvisorOverviewForNotification(exact overview version)
   -> NotificationTopicCursor(version + processing lease)
   -> NotificationPlan
 ```
 
-Les événements terminaux Advisor résolvent ou expirent les Notification liées.
-Notifications ne modifie ni Recommendation ni AdvisorOverview.
+Une version vide ou une nouvelle priorité résout, expire ou supersede les
+Notification liées. Notifications ne modifie ni Recommendation ni
+AdvisorOverview.
 
 ## Identity
 

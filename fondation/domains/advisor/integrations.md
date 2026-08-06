@@ -3,8 +3,8 @@ id: ADV-INTEGRATIONS
 title: Advisor Integrations
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -83,16 +83,17 @@ l'utilisateur, directement auprès du domaine propriétaire.
 
 ## Notifications
 
-Notifications consomme `RecommendationEvaluationCompleted` pour considérer la
-priorité stabilisée, puis les événements Completed, Dismissed et Expired pour
-mettre à jour une diffusion existante. Il relit au besoin
-`getAdvisorOverviewForNotification` ou `getRecommendationForNotification` avec
-`advisor.recommendations.consume`. Il ne déclenche pas une notification pour
-chaque RecommendationGenerated. Advisor ne décide ni canal, ni cadence, ni
-destinataire. Les vues fournies contiennent uniquement status, priorité,
-template et données minimales allowlistés, ActionDescriptor et ValidUntil ;
-elles incluent AdvisorOverviewVersion comme garde monotone et SourceOrder pour
-l'audit, puis excluent preuves détaillées, montants, Clients et documents.
+Notifications consomme exclusivement `AdvisorOverviewChanged`, que la cause soit
+une évaluation, une source invalidante, une completion, un dismissal ou une
+expiration. Il relit la version exacte par
+`getAdvisorOverviewForNotification` avec
+`advisor.recommendations.consume`. `RecommendationEvaluationCompleted` et les
+événements Recommendation restent auditables mais ne planifient aucune
+diffusion. Advisor ne décide ni canal, ni cadence, ni destinataire. La vue
+fournie contient uniquement status, priorité, template et données minimales
+allowlistés, ActionDescriptor et ValidUntil ; elle inclut
+AdvisorOverviewVersion, ConvergenceKind et SourceOrder, puis exclut preuves
+détaillées, montants, Clients et documents.
 
 ## Product Analytics et Automation
 

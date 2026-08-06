@@ -3,8 +3,8 @@ id: ADV-CMD-COMPLETE-RECOMMENDATION
 title: CompleteRecommendation
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -54,11 +54,15 @@ La commande ne vérifie et ne déduit aucune mutation CRM ou Billing.
 
 `ADV-INV-001`, `ADV-INV-002`, `ADV-INV-022`–`ADV-INV-028`,
 `ADV-INV-032`–`ADV-INV-035`, `ADV-INV-039`, `ADV-INV-043`,
-`ADV-INV-045`–`ADV-INV-049`.
+`ADV-INV-045`–`ADV-INV-055`.
 
 ## Événement produit
 
 - `RecommendationCompleted`.
+
+Cet événement cause `RebuildAdvisorOverview`. La completion métier reste
+commise une seule fois ; la convergence reprend indépendamment jusqu'à publier
+la version qui retire cette Recommendation et promeut l'alternative suivante.
 
 ## Erreurs métier
 

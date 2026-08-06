@@ -3,8 +3,8 @@ id: NTF-README
 title: Notifications Domain
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -67,12 +67,12 @@ Notifications ne possède pas :
 
 ```mermaid
 flowchart LR
-    Advisor[RecommendationEvaluationCompleted] --> Plan[NotificationPlan]
+    Advisor[AdvisorOverviewChanged] --> Plan[NotificationPlan]
     Identity[Authorized audience] --> Plan
     Preferences[NotificationPreference] --> Plan
     Plan --> Inbox[In-app Notification]
     Plan --> Email[Important email delivery]
-    Terminal[Recommendation terminal event] --> Resolve[Resolve or expire]
+    Convergence[Empty or replaced overview] --> Resolve[Resolve or expire]
 ```
 
 ## Garanties essentielles

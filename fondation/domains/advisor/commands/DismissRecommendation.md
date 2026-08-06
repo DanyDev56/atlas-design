@@ -3,8 +3,8 @@ id: ADV-CMD-DISMISS-RECOMMENDATION
 title: DismissRecommendation
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -53,11 +53,15 @@ ActorContext
 
 `ADV-INV-001`, `ADV-INV-002`, `ADV-INV-017`, `ADV-INV-018`,
 `ADV-INV-032`–`ADV-INV-034`, `ADV-INV-036`, `ADV-INV-039`,
-`ADV-INV-043`, `ADV-INV-045`–`ADV-INV-049`.
+`ADV-INV-043`, `ADV-INV-045`–`ADV-INV-055`.
 
 ## Événement produit
 
 - `RecommendationDismissed`.
+
+Cet événement cause `RebuildAdvisorOverview`. La convergence retire la
+Recommendation terminale et promeut l'alternative Generated suivante sans
+réévaluer la source ni régénérer le fingerprint rejeté.
 
 ## Erreurs métier
 

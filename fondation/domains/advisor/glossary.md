@@ -3,8 +3,8 @@ id: ADV-GLOSSARY
 title: Advisor Glossary
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -37,7 +37,8 @@ references:
 | `TriggerFingerprint` | empreinte des éléments matériels déterminant l'identité courante du déclencheur |
 | `DeduplicationKey` | clé empêchant plusieurs Recommendations actives du même type |
 | `AdvisorOverview` | projection de la priorité principale et de deux alternatives au maximum |
-| `AdvisorOverviewVersion` | ordre monotone des convergences Eligible appliquées dans un Workspace |
+| `AdvisorOverviewVersion` | ordre monotone des évaluations, invalidations et mutations terminales appliquées dans un Workspace |
+| `AdvisorOverviewRevision` | composition immuable relisible pour une AdvisorOverviewVersion exacte |
 
 ## Termes à éviter
 

@@ -3,7 +3,7 @@ id: BPT-003
 title: MVP Business Lifecycle
 status: In Review
 owner: Product
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -44,7 +44,7 @@ Business Health
         |
         v
 Advisor
-  RecommendationEvaluationCompleted
+  AdvisorOverviewChanged -> RecommendationEvaluationCompleted
         |
         v
 Notifications
@@ -81,7 +81,10 @@ relit les manifests et ne bascule sa génération qu'après validation complète
 - Analytics transforme leurs faits versionnés en mesures, sans les modifier ;
 - Business Health interprète un snapshot exact, sans recalculer ses métriques ;
 - Advisor propose une action, sans l'exécuter ;
-- Notifications décide d'une diffusion, sans modifier la Recommendation ;
+- Advisor reconstruit l'overview après toute évaluation appliquée ou mutation
+  terminale ;
+- Notifications décide d'une diffusion depuis `AdvisorOverviewChanged`, sans
+  modifier la Recommendation ;
 - chaque consommateur déduplique l'événement source et relit la révision exacte
   par un contrat public lorsque son invariant l'exige.
 

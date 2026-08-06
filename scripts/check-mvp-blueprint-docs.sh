@@ -212,6 +212,7 @@ events=(
   InvoiceDeliveryRequested InvoiceSent PaymentRecorded PaymentAppliedToInvoice
   InvoiceBalanceChanged InvoiceSettled InvoicePaid AnalyticsFactRecorded
   AnalyticsSnapshotPublished BusinessHealthAssessed RecommendationEvaluationCompleted
+  AdvisorOverviewChanged
   NotificationPlanCompleted NotificationCreated
 )
 for event in "${events[@]}"; do
@@ -224,11 +225,11 @@ if (( errors == contract_errors )); then
 fi
 
 chain_errors=$errors
-for marker in AnalyticsSnapshotPublished BusinessHealthAssessed RecommendationEvaluationCompleted NotificationPlanCompleted; do
+for marker in AnalyticsSnapshotPublished BusinessHealthAssessed AdvisorOverviewChanged RecommendationEvaluationCompleted NotificationPlanCompleted; do
   rg -q "$marker" "$blueprint_root/lifecycle.md" || fail "jalon absent du lifecycle: $marker"
 done
-rg -q 'RecommendationEvaluationCompleted' "$repo_root/fondation/domains/notifications" -g '*.md' || \
-  fail "signal Advisor non reconnu par Notifications"
+rg -q 'AdvisorOverviewChanged' "$repo_root/fondation/domains/notifications" -g '*.md' || \
+  fail "signal de convergence Advisor non reconnu par Notifications"
 rg -q 'RecommendationGenerated' "$roadmap_root/mvp-acceptance.md" || \
   fail "non-déclenchement RecommendationGenerated non documenté"
 if (( errors == chain_errors )); then

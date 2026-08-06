@@ -3,8 +3,8 @@ id: NTF-WORKFLOWS
 title: Notifications Workflows
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -21,11 +21,11 @@ references:
 
 ## Planification nominale
 
-1. Notifications reçoit `RecommendationEvaluationCompleted`.
+1. Notifications reçoit `AdvisorOverviewChanged`.
 2. `ProcessAdvisorNotificationSignal` authentifie l'enveloppe et déduplique
    EventId avec NotificationPolicyVersion.
 3. Le processeur crée ou reprend NotificationPlan.
-4. Il relit l'AdvisorOverview exact par RecommendationEvaluationId.
+4. Il relit l'AdvisorOverview exact par AdvisorOverviewVersion.
 5. Il relit la Recommendation courante par PrimaryRecommendationId.
 6. Il vérifie SourceEligibility, identité, status Generated et validité.
 7. Il vérifie que le Workspace est Active et fige sa locale.
@@ -48,12 +48,12 @@ Si RecommendationId et ContentFingerprint sont identiques, RecipientDecision
 vaut Unchanged. La Notification existante n'est ni réécrite, ni remise en
 Unread, et aucun nouvel e-mail n'est demandé.
 
-## Source historique ou inéligible
+## Source historique ou événement hors ordre
 
-Si SourceEligibility n'est pas Eligible ou si AdvisorOverviewVersion est
-inférieure au cursor, le plan conserve SourceIgnored et se termine sans modifier
-les threads courants. Une évaluation historique ou un événement livré hors ordre
-ne peut donc ni masquer ni remplacer une priorité plus récente.
+Une source historique ou incompatible ne produit aucun `AdvisorOverviewChanged`.
+Si AdvisorOverviewVersion est inférieure au cursor, le plan conserve
+SourceIgnored et se termine sans modifier les threads courants. Un événement
+livré hors ordre ne peut donc ni masquer ni remplacer une priorité plus récente.
 
 ## Nouvelle priorité
 
@@ -70,12 +70,11 @@ La nouvelle création ne modifie jamais l'historique de lecture de l'ancienne.
 
 ## Source vide ou terminale
 
-Un overview Eligible devenu vide résout tous les threads actifs du topic.
-RecommendationCompleted ou RecommendationDismissed résout uniquement les
-messages liés à la Recommendation exacte. RecommendationExpired ou DisplayUntil
-atteint les expire. Ces événements terminaux ne résolvent aucune nouvelle
-audience et restent applicables dans un Workspace restreint. Aucune transition
-ne marque automatiquement le message Read.
+Un overview devenu vide résout ou expire les threads actifs du topic selon son
+OverviewConvergenceKind. Une nouvelle PrimaryRecommendation supersede le thread
+précédent puis crée le nouveau contenu. Ces convergences ne résolvent aucune
+nouvelle audience et restent applicables dans un Workspace restreint. Aucune
+transition ne marque automatiquement le message Read.
 
 ## Préférences
 

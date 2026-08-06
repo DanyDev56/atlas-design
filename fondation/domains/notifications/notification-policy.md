@@ -3,8 +3,8 @@ id: NTF-NOTIFICATION-POLICY
 title: Notification Policy 1.0
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -17,20 +17,18 @@ references:
 
 # Notification Policy 1.0
 
-`NotificationPolicyVersion = 1.0.0` désigne les règles ci-dessous. La politique
+`NotificationPolicyVersion = 1.1.0` désigne les règles ci-dessous. La politique
 est globale, immuable et non configurable par Workspace.
 
 ## Sources supportées
 
 | SourceEvent | Effet autorisé |
 |---|---|
-| `RecommendationEvaluationCompleted` | créer, conserver ou remplacer la notification de priorité |
-| `RecommendationCompleted` | résoudre les notifications liées |
-| `RecommendationDismissed` | résoudre les notifications liées |
-| `RecommendationExpired` | expirer les notifications liées |
+| `AdvisorOverviewChanged` | créer, conserver, remplacer, résoudre ou expirer la notification de priorité |
 
-`RecommendationGenerated` n'est pas un déclencheur : l'ordre complet doit être
-stabilisé avant toute diffusion.
+Les événements Recommendation et `RecommendationEvaluationCompleted` ne sont
+pas des déclencheurs : toute cause passe d'abord par la convergence complète de
+l'AdvisorOverview.
 
 ## Éligibilité de l'évaluation
 
@@ -38,19 +36,19 @@ Une nouvelle notification exige :
 
 - `SourceEligibility = Eligible` ;
 - une `PrimaryRecommendationId` présente ;
-- une NotificationAdvisorOverview relue par RecommendationEvaluationId ;
+- une NotificationAdvisorOverview relue par AdvisorOverviewVersion ;
 - une NotificationRecommendationView courante confirmant la PrimaryRecommendation
   encore Generated et non expirée ;
 - une cohérence exacte entre événement et contrat relu ;
 - un Workspace Active.
 
-Une source dont SourceEligibility n'est pas Eligible produit `SourceIgnored` et
-ne modifie aucun thread courant. Seul un overview Eligible et courant devenu
-vide résout l'ancien thread sans créer de contenu de remplacement.
+Une source historique ou incompatible ne publie aucun AdvisorOverviewChanged.
+Un overview courant devenu vide après `SourceInvalidated` ou une mutation
+terminale résout l'ancien thread sans créer de contenu de remplacement.
 
 ## Ordre Advisor
 
-Chaque RecommendationEvaluationCompleted expose AdvisorOverviewVersion et
+Chaque AdvisorOverviewChanged expose AdvisorOverviewVersion, ConvergenceKind et
 SourceOrder. NotificationTopicCursor sérialise les plans pour `(WorkspaceId,
 NotificationTopic)` et compare la version au dernier overview appliqué :
 
@@ -81,10 +79,10 @@ processeur revalide son endpoint et sa capacité avant l'effet externe. Une
 Notification Active d'un ancien destinataire absent du nouvel AudienceSnapshot
 est Resolved et sa NotificationDelivery Pending est Cancelled.
 
-Les événements Completed, Dismissed ou Expired ne recalculent pas une audience :
-ils clôturent toutes les Notification existantes liées à la Recommendation
-exacte, y compris pour un ancien destinataire ou un Workspace restreint. Ils ne
-créent aucun message.
+Une version vide ou remplaçant la priorité ne recalcule pas une audience pour
+les threads à clôturer : elle s'applique aux Notification existantes, y compris
+pour un ancien destinataire ou un Workspace restreint. Elle ne crée aucun
+message sans nouvelle PrimaryRecommendation éligible.
 
 ## Préférences par défaut
 

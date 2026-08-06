@@ -3,8 +3,8 @@ id: NTF-SCOPE
 title: Notifications Scope
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -21,8 +21,9 @@ references:
 
 ### Planification
 
-- consommation idempotente de `RecommendationEvaluationCompleted` ;
-- traitement des Recommendation Completed, Dismissed et Expired ;
+- consommation idempotente de `AdvisorOverviewChanged` ;
+- traitement uniforme des évaluations, sources invalidantes et mutations
+  terminales après convergence Advisor ;
 - lecture de l'AdvisorOverview exact stabilisé ;
 - sérialisation monotone d'AdvisorOverviewVersion par topic ;
 - résolution d'une audience Identity autorisée ;

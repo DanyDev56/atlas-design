@@ -3,8 +3,8 @@ id: ADV-EVENTS
 title: Advisor Domain Events
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -36,12 +36,13 @@ references:
 
 | Événement | Producteur | Visibilité | Fait minimum |
 |---|---|---|---|
-| `RecommendationEvaluationCompleted` | `EvaluateRecommendations` | public | Les cinq règles et l'AdvisorOverview ont convergé pour une source et une politique. |
+| `RecommendationEvaluationCompleted` | `EvaluateRecommendations` | public | Les cinq règles ont convergé et référencent l'AdvisorOverviewVersion déjà appliquée. |
 | `RecommendationGenerated` | `EvaluateRecommendations` | public | Une proposition classée dans le top trois est devenue active. |
 | `RecommendationReaffirmed` | `EvaluateRecommendations` | interne | Une source plus récente a confirmé le même TriggerFingerprint. |
 | `RecommendationCompleted` | `CompleteRecommendation` | public | Un utilisateur a confirmé avoir accompli l'action. |
 | `RecommendationDismissed` | `DismissRecommendation` | public | Un utilisateur a explicitement rejeté la proposition. |
 | `RecommendationExpired` | `EvaluateRecommendations`, `ExpireRecommendation` | public | La proposition n'est plus active pour une raison structurée. |
+| `AdvisorOverviewChanged` | `RebuildAdvisorOverview` | public | La priorité et ses alternatives ont convergé après une cause applicable. |
 
 ## Contrat public de génération
 
@@ -77,8 +78,29 @@ PrimaryRecommendationId?
 PublishedRecommendationIds[0..3]
 ```
 
-Notifications utilise ce fait, et non chaque RecommendationGenerated, pour
-évaluer une diffusion après stabilisation de l'ordre complet.
+Ce fait reste une preuve d'évaluation. Notifications ne l'utilise pas comme
+déclencheur de diffusion.
+
+## Contrat public de convergence
+
+`AdvisorOverviewChanged` contient :
+
+```text
+AdvisorOverviewVersion
+PreviousAdvisorOverviewVersion
+OverviewConvergenceKind
+CauseReference
+RecommendationEvaluationId?
+SourceOrder
+SourceEligibility
+PrimaryRecommendationId?
+PublishedRecommendationIds[0..3]
+```
+
+Notifications consomme exclusivement ce fait pour créer, remplacer, résoudre
+ou expirer un thread Advisor. Chaque version est publiée une seule fois après la
+reconstruction complète ; les événements Recommendation isolés ne déclenchent
+aucune diffusion.
 
 ## Contrats terminaux
 

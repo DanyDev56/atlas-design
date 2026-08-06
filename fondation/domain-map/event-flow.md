@@ -67,7 +67,7 @@ AnalyticsSnapshotPublished
 BusinessHealthAssessed
         │
         ▼
-RecommendationEvaluationCompleted
+AdvisorOverviewChanged
         │
         ▼
 Notification plan
@@ -93,13 +93,14 @@ NotificationDeliveryConfirmed prouve Delivered.
 ```text
 RecommendationGenerated
         ├──► RecommendationReaffirmed ──► Generated
-        ├──► RecommendationCompleted
-        ├──► RecommendationDismissed
-        └──► RecommendationExpired
+        ├──► RecommendationCompleted ──► AdvisorOverviewChanged
+        ├──► RecommendationDismissed ──► AdvisorOverviewChanged
+        └──► RecommendationExpired ──► AdvisorOverviewChanged
 ```
 
 Reaffirmed conserve l'état Generated. Completed, Dismissed et Expired sont
-terminaux et mutuellement exclusifs.
+terminaux et mutuellement exclusifs. Chaque mutation terminale reconstruit
+l'overview avant toute planification Notifications.
 
 ---
 

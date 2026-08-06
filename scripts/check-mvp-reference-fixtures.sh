@@ -63,7 +63,7 @@ metadata_errors=$errors
 if ! jq -e '
   .fixture_set_id == "atlas.mvp.reference-fixtures"
   and .fixture_schema_version == "1.0.0"
-  and .fixture_set_version == "1.1.0"
+  and .fixture_set_version == "1.2.0"
   and .as_of == "2026-06-30T00:00:00Z"
   and .reporting_time_zone == "UTC"
   and .reporting_calendar_version == "1.0.0"
@@ -75,7 +75,7 @@ if ! jq -e '
   and .policy_versions.analytics_snapshot_profile_version == "1.0.0"
   and .policy_versions.business_health == "1.0.0"
   and .policy_versions.advisor == "1.0.0"
-  and .policy_versions.notifications == "1.0.0"
+  and .policy_versions.notifications == "1.1.0"
   and .snapshot_profile == {
     key: "BusinessHealthBaselineV1",
     version: "1.0.0",
@@ -94,7 +94,7 @@ rg -q 'HealthPolicyVersion = 1\.0\.0' "$repo_root/fondation/domains/business-hea
   fail "HealthPolicyVersion différente de la fixture"
 rg -q '^version: 1\.0\.0$' "$repo_root/fondation/domains/advisor/recommendation-policy.md" || \
   fail "RecommendationPolicyVersion différente de la fixture"
-rg -q '^version: 1\.0\.0$' "$repo_root/fondation/domains/notifications/notification-policy.md" || \
+rg -q '^version: 1\.1\.0$' "$repo_root/fondation/domains/notifications/notification-policy.md" || \
   fail "NotificationPolicyVersion différente de la fixture"
 if (( errors == metadata_errors )); then
   pass "contexte de calcul, versions et seuils SnapshotProfile canoniques"

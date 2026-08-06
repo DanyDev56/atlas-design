@@ -3,7 +3,7 @@ id: REF-001
 title: MVP Reference Fixtures
 status: In Review
 owner: Product and Engineering
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -82,7 +82,7 @@ devise est `EUR` et `AsOf` vaut `2026-06-30T00:00:00Z` dans le jeu 1.0.
 | MaximumAcceptedLag | `PT24H` |
 | HealthPolicyVersion | `1.0.0` |
 | RecommendationPolicyVersion | `1.0.0` |
-| NotificationPolicyVersion | `1.0.0` |
+| NotificationPolicyVersion | `1.1.0` |
 
 Les fixtures utilisent un retard source de trente minutes pour les snapshots
 `Current`. `FIX-007` utilise deux heures : le snapshot reste publiable, mais son

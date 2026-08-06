@@ -1,7 +1,7 @@
 {
   "fixture_set_id": "atlas.mvp.reference-fixtures",
   "fixture_schema_version": "1.0.0",
-  "fixture_set_version": "1.1.0",
+  "fixture_set_version": "1.2.0",
   "as_of": "2026-06-30T00:00:00Z",
   "reporting_time_zone": "UTC",
   "reporting_calendar_version": "1.0.0",
@@ -14,7 +14,7 @@
     "analytics_snapshot_profile_version": "1.0.0",
     "business_health": "1.0.0",
     "advisor": "1.0.0",
-    "notifications": "1.0.0"
+    "notifications": "1.1.0"
   },
   "snapshot_profile": {
     "key": "BusinessHealthBaselineV1",

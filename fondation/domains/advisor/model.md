@@ -3,8 +3,8 @@ id: ADV-MODEL
 title: Advisor Domain Model
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - recommendation-policy.md
@@ -85,12 +85,16 @@ résultat explicable, pas un échec.
 `RecommendationRuleState` résume, par RecommendationKey, le fingerprint actif,
 le dernier fingerprint terminal et la dernière disparition du prédicat.
 
-`AdvisorOverview` contient au plus trois Recommendation `Generated`, triées par
-l'ordre canonique. La première est `PrimaryRecommendation`.
-AdvisorOverviewVersion augmente à chaque convergence Eligible appliquée, y
-compris lorsque la même priorité est réaffirmée. Une source historique conserve
-la version courante. Ces projections sont reconstructibles à partir des
-agrégats et événements Advisor.
+Chaque `AdvisorOverviewRevision` contient au plus trois Recommendation
+`Generated`, triées par l'ordre canonique. La première est
+`PrimaryRecommendation`. `AdvisorOverview` pointe vers la dernière révision ;
+les anciennes restent relisibles par version pour les consommateurs livrés en
+retard.
+AdvisorOverviewVersion augmente à chaque évaluation appliquée, source courante
+invalidante ou mutation terminale, y compris lorsque la même priorité est
+réaffirmée. Une source historique conserve la version courante. La projection
+retire toujours les entrées terminales et promeut l'alternative Generated
+suivante. Elle est reconstructible à partir des agrégats et événements Advisor.
 
 ## Temps et événements tardifs
 

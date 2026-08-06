@@ -3,8 +3,8 @@ id: ADV-ENTITIES
 title: Advisor Entities
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -69,6 +69,7 @@ Process manager durable par source et politique.
 | `SourceEligibility` | éligible ou raison structurée |
 | `CandidateDecisions[]` | décision pour chaque RuleKey |
 | `StartedAt`, `CompletedAt?` | suivi de reprise |
+| `AppliedAdvisorOverviewVersion?` | version durable avant completion |
 
 ## CandidateDecision
 
@@ -79,5 +80,7 @@ une Recommendation sans décision `Generated`.
 ## RecommendationRuleState et AdvisorOverview
 
 Read models reconstructibles. Le premier protège déduplication et épisodes de
-prédicat ; le second sert les lectures de priorité. Aucun n'est une source de
-vérité supérieure aux agrégats.
+prédicat ; le second pointe vers une `AdvisorOverviewRevision` immuable par
+version. Chaque révision conserve CauseKey, ConvergenceKind, SourceOrder,
+SourceEligibility et les zéro à trois RecommendationId ordonnées. Aucun read
+model n'est une source de vérité supérieure aux agrégats.

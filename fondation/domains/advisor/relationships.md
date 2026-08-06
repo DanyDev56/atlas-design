@@ -3,8 +3,8 @@ id: ADV-RELATIONSHIPS
 title: Advisor Relationships
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -54,10 +54,10 @@ User opens RecommendationAction
 
 ## Notifications
 
-Notifications consomme `RecommendationEvaluationCompleted` puis relit
-l'AdvisorOverview stabilisé avec une capacité système. Les événements terminaux
-permettent d'actualiser une diffusion ; Advisor ne choisit ni canal, ni
-destinataire, ni cadence.
+Notifications consomme uniquement `AdvisorOverviewChanged` puis relit la version
+exacte avec une capacité système. Évaluations et mutations terminales passent
+par cette convergence unique ; Advisor ne choisit ni canal, ni destinataire, ni
+cadence.
 
 ## Identity et Workspace
 

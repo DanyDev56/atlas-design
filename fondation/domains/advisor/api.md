@@ -3,8 +3,8 @@ id: ADV-PUBLIC-CONTRACT
 title: Advisor Public Contract
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -26,7 +26,7 @@ indépendantes du transport.
 ```text
 getAdvisorOverview(workspaceId)
 → AdvisorOverviewVersion + PrimaryRecommendation?
-  + AlternativeRecommendations[0..2]
+  + AlternativeRecommendations[0..2] + LastConvergenceKind
 
 getRecommendation(workspaceId, recommendationId)
 → Recommendation
@@ -82,16 +82,21 @@ Les fiches dans [`commands/`](commands/README.md) sont normatives.
 getRecommendationForNotification(workspaceId, recommendationId)
 → NotificationRecommendationView
 
-getAdvisorOverviewForNotification(workspaceId, recommendationEvaluationId)
+getAdvisorOverviewForNotification(workspaceId, advisorOverviewVersion)
 → NotificationAdvisorOverview
 ```
 
-La lecture exige `advisor.recommendations.consume`. Les réponses minimales sont :
+La lecture exige `advisor.recommendations.consume`. La version demandée est
+relue dans une `AdvisorOverviewRevision` immuable ; une livraison tardive ne
+reçoit jamais silencieusement la projection courante. Les réponses minimales
+sont :
 
 ```text
 NotificationAdvisorOverview
-  RecommendationEvaluationId
   AdvisorOverviewVersion
+  PreviousAdvisorOverviewVersion
+  OverviewConvergenceKind
+  CauseReference
   SourceOrder: (AsOf, SourcePublishedAt, BusinessHealthAssessmentId)
   SourceEligibility
   PrimaryRecommendation?
@@ -131,6 +136,10 @@ evaluateRecommendations(workspaceId, businessHealthAssessmentId,
 
 expireRecommendation(workspaceId, recommendationId, clockProof,
                      expectedRevision, expireRecommendationRequestId)
+
+rebuildAdvisorOverview(workspaceId, overviewCause,
+                       expectedAdvisorOverviewVersion,
+                       rebuildAdvisorOverviewRequestId)
 ```
 
 Les fiches dans [`processors/`](processors/README.md) sont normatives.

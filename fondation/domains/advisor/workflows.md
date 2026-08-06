@@ -3,8 +3,8 @@ id: ADV-WORKFLOWS
 title: Advisor Workflows
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -30,17 +30,22 @@ references:
 7. Il évalue les cinq règles et calcule tous les candidats.
 8. Il ordonne les candidats et conserve au plus les trois premiers.
 9. Pour chaque règle, il génère, réaffirme, expire ou supprime le candidat.
-10. Il reconstruit AdvisorOverview après convergence et avance
-    AdvisorOverviewVersion par compare-and-set.
-11. Il marque l'évaluation Completed et publie
+10. Il appelle `RebuildAdvisorOverview` avec la CauseKey de l'évaluation.
+11. Le processeur reconstruit l'overview, avance sa version et publie
+    `AdvisorOverviewChanged`.
+12. Il marque l'évaluation Completed et publie
     `RecommendationEvaluationCompleted`.
 
 ## Zéro recommandation
 
-Une source Strong sans risque, une source insuffisante ou une source déjà
-couverte par des fingerprints terminaux peut produire zéro Recommendation.
-L'évaluation conserve la décision de chaque règle et l'overview devient vide si
-aucune ancienne Recommendation ne reste valide.
+Une source Strong sans risque ou déjà couverte par des fingerprints terminaux
+peut produire zéro Recommendation. L'évaluation conserve la décision de chaque
+règle, expire les anciens prédicats devenus invalides et publie un overview vide.
+
+Une source courante insuffisante ou obsolète suit une convergence invalidante :
+les Recommendation Generated expirent avec `SourceBecameIneligible`, puis
+l'overview vide est publié. Une source historique ou contractuellement
+incompatible ne modifie ni Recommendations, ni overview, ni version.
 
 ## Réaffirmation
 
@@ -72,6 +77,7 @@ n'expire rien. Les autres Workspaces continuent indépendamment.
 3. l'utilisateur confirme séparément l'accomplissement dans Advisor ;
 4. `CompleteRecommendation` vérifie permission, révision, statut et validité ;
 5. Recommendation devient Completed et publie RecommendationCompleted.
+6. `RebuildAdvisorOverview` retire l'entrée et promeut l'alternative suivante.
 
 Cette séquence ne prétend ni observer automatiquement la mutation source ni
 mesurer son impact.
@@ -82,12 +88,18 @@ L'utilisateur choisit un DismissalReason structuré. La transition terminale est
 atomique. Un même fingerprint ne revient pas à l'évaluation suivante tant que
 son prédicat n'a pas disparu ou changé matériellement.
 
+`RecommendationDismissed` déclenche la même reconstruction et promotion que la
+completion.
+
 ## Expiration temporelle
 
 Le scheduler sélectionne les Recommendation Generated dont ValidUntil est
 atteint. `ExpireRecommendation` vérifie ClockProof et ExpectedRevision, puis
 publie RecommendationExpired. Un traitement concurrent déjà terminal converge
 sans seconde transition.
+
+Chaque expiration déclenche `RebuildAdvisorOverview` ; Notifications attend le
+nouvel `AdvisorOverviewChanged` au lieu de réagir à l'événement terminal isolé.
 
 ## Lecture utilisateur
 

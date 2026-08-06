@@ -3,8 +3,8 @@ id: ADV-AGGREGATES
 title: Advisor Aggregates
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -25,7 +25,8 @@ references:
 | Recommendation | `Recommendation` | action, preuve, rang et transition terminale cohérents |
 
 `RecommendationPolicy` est un catalogue global versionné.
-`RecommendationRuleState` et `AdvisorOverview` sont des projections.
+`RecommendationRuleState`, les `AdvisorOverviewRevision` immuables et le pointeur
+`AdvisorOverview` courant sont des projections reconstructibles.
 
 ## RecommendationEvaluation
 
@@ -37,8 +38,8 @@ La clé naturelle est :
 
 La racine fige la source et les cinq CandidateDecision. Le processeur applique
 chaque décision avec un RequestId dérivé puis marque la racine `Completed`
-seulement lorsque les mutations de Recommendation et leurs événements sont
-durables.
+seulement lorsque les mutations de Recommendation, la reconstruction de
+l'AdvisorOverview et leurs événements sont durables.
 
 Un traitement interrompu reste `Processing` et reprend à la première décision
 non confirmée. Une source inéligible atteint `Completed` avec sa raison et cinq
@@ -71,9 +72,10 @@ expiration concurrente gagne uniquement par compare-and-set ; le perdant relit
 l'état et retourne le résultat compatible ou un conflit.
 
 Une contrainte unique empêche deux Recommendation Generated pour la même
-DeduplicationKey. L'AdvisorOverview et sa version monotone sont remplacés
-atomiquement après convergence Eligible de l'évaluation, jamais avant. Une
-source historique conserve la version déjà publiée.
+DeduplicationKey. `RebuildAdvisorOverview` remplace atomiquement la projection et
+sa version après chaque CauseKey applicable. Une évaluation Applied, une source
+courante invalidante ou une mutation terminale avance la version ; une source
+historique conserve celle déjà publiée.
 
 ## Nouvelle politique
 

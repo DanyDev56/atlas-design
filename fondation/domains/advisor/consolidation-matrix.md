@@ -3,8 +3,8 @@ id: ADV-CONSOLIDATION
 title: Advisor Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -60,15 +60,16 @@ references:
 
 | Commande | Autorité | Capacité | Invariants principaux | Domain Events | Idempotence |
 |---|---|---|---|---|---|
-| `CompleteRecommendation` | User | `advisor.recommendations.complete` | 001–002, 022–028, 032–035, 039, 043, 045–049 | `RecommendationCompleted` | `CompleteRecommendationRequestId` |
-| `DismissRecommendation` | User | `advisor.recommendations.dismiss` | 001–002, 017–018, 032–034, 036, 039, 043, 045–049 | `RecommendationDismissed` | `DismissRecommendationRequestId` |
+| `CompleteRecommendation` | User | `advisor.recommendations.complete` | 001–002, 022–028, 032–035, 039, 043, 045–055 | `RecommendationCompleted` | `CompleteRecommendationRequestId` |
+| `DismissRecommendation` | User | `advisor.recommendations.dismiss` | 001–002, 017–018, 032–034, 036, 039, 043, 045–055 | `RecommendationDismissed` | `DismissRecommendationRequestId` |
 
 ## Traçabilité des processeurs
 
 | Processeur | Autorité | Capacité | Invariants principaux | Domain Events | Idempotence |
 |---|---|---|---|---|---|
-| `EvaluateRecommendations` | Workload Advisor | `advisor.recommendations.evaluate` | 001–050 | `RecommendationEvaluationCompleted`, `RecommendationGenerated`, `RecommendationReaffirmed`, `RecommendationExpired` | `EvaluateRecommendationsRequestId` |
-| `ExpireRecommendation` | Scheduler ou workload | `advisor.recommendations.expire` | 001–002, 032–034, 037, 039, 044–049 | `RecommendationExpired` | `ExpireRecommendationRequestId` |
+| `EvaluateRecommendations` | Workload Advisor | `advisor.recommendations.evaluate` | 001–055 | `RecommendationEvaluationCompleted`, `RecommendationGenerated`, `RecommendationReaffirmed`, `RecommendationExpired` | `EvaluateRecommendationsRequestId` |
+| `ExpireRecommendation` | Scheduler ou workload | `advisor.recommendations.expire` | 001–002, 032–034, 037, 039, 044–055 | `RecommendationExpired` | `ExpireRecommendationRequestId` |
+| `RebuildAdvisorOverview` | Workload Advisor | `advisor.overview.rebuild` | 001–002, 013–015, 032–034, 040, 044–055 | `AdvisorOverviewChanged` | `RebuildAdvisorOverviewRequestId` |
 
 Les numéros abrégés désignent `ADV-INV-nnn`. Les fiches constituent les sources
 normatives complètes.
@@ -101,7 +102,7 @@ normatives complètes.
 | Impact | qualitatif, sans gain garanti |
 | Preuve | révisions immuables, source et règle exactes |
 | Déduplication | fingerprint réaffirmé ou nouvelle identité si changement matériel |
-| Ordre public | AdvisorOverviewVersion monotone par Workspace |
+| Ordre public | AdvisorOverviewVersion monotone après toute convergence appliquée |
 | Cycle | Generated vers Completed, Dismissed ou Expired |
 | Completion | confirmation humaine, pas exécution ni outcome |
 | Télémétrie | affichage, ouverture et clic hors du domaine |
@@ -114,14 +115,14 @@ normatives complètes.
 - [x] Les cinq règles possèdent déclencheur, action, validité et rang explicites.
 - [x] Le score de rang, ses poids, seuils et arrondi sont déterministes.
 - [x] L'overview contient une priorité principale et au plus deux alternatives.
-- [x] Chaque convergence Eligible appliquée avance AdvisorOverviewVersion.
+- [x] Toute évaluation appliquée ou mutation terminale avance AdvisorOverviewVersion.
 - [x] Une source insuffisante ou historique ne génère aucun fallback ancien.
 - [x] Chaque Recommendation possède une action allowlistée et une preuve.
 - [x] Réaffirmation, changement matériel et suppression sont distingués.
 - [x] Les états terminaux sont exclusifs et jamais réactivés.
 - [x] Completed ne prétend ni exécution source ni outcome.
 - [x] Les deux commandes possèdent autorité, concurrence et idempotence.
-- [x] Les deux processeurs possèdent causalité, reprise et idempotence.
+- [x] Les trois processeurs possèdent causalité, reprise et idempotence.
 - [x] Tous les Domain Events possèdent un producteur tracé.
 - [x] Toutes les capacités utilisées figurent dans le catalogue.
 - [x] Les contrats Business Health, Workspace et Notifications sont explicites.

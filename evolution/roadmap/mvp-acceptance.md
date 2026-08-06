@@ -3,7 +3,7 @@ id: ROADMAP-002
 title: Atlas MVP End-to-End Acceptance
 status: In Review
 owner: Product
-version: 1.3.0
+version: 1.4.0
 last_updated: 2026-08-06
 
 references:
@@ -174,8 +174,8 @@ décide, une notification personnelle.
 | 2 | Analytics | projections et métriques versionnées | Fraîcheur, complétude et `NoData` conservés ; aucun manque n'est transformé en zéro. |
 | 3 | Analytics | `PublishAnalyticsSnapshot` | `AnalyticsSnapshotPublished` pour un profil cohérent. |
 | 4 | Business Health | `EvaluateBusinessHealth` | Relecture du snapshot exact, puis `BusinessHealthAssessed`. |
-| 5 | Advisor | `EvaluateRecommendations` | Relecture de l'évaluation exacte, puis `RecommendationEvaluationCompleted` et événements de cycle utiles. |
-| 6 | Notifications | `ProcessAdvisorNotificationSignal` | Relecture de l'AdvisorOverview stabilisé, puis `NotificationPlanCompleted` et, si éligible, `NotificationCreated`. |
+| 5 | Advisor | `EvaluateRecommendations`, puis `RebuildAdvisorOverview` | Relecture de l'évaluation exacte, mutations de cycle, `AdvisorOverviewChanged`, puis `RecommendationEvaluationCompleted`. |
+| 6 | Notifications | `ProcessAdvisorNotificationSignal` sur `AdvisorOverviewChanged` | Relecture de la version d'overview stabilisée, puis `NotificationPlanCompleted` et, si éligible, `NotificationCreated`. |
 | 7 | Application | `getAdvisorOverview`, `getCurrentBusinessHealth`, `listNotifications` | Priorité, preuve, état de fraîcheur et inbox cohérents. |
 | 8 | Utilisateur | décision Advisor ou état lu/non lu | L'action navigue vers le domaine propriétaire ; Advisor et Notifications ne l'exécutent pas. |
 
@@ -189,8 +189,13 @@ décide, une notification personnelle.
 - un import incomplet ou non validé ne peut jamais produire un snapshot déclaré
   complet ;
 - zéro recommandation est un résultat nominal de l'évaluation Advisor ;
-- Notifications ne réagit qu'à `RecommendationEvaluationCompleted` pour créer
-  un plan, jamais directement à `RecommendationGenerated` ;
+- Notifications ne réagit qu'à `AdvisorOverviewChanged` pour créer un plan,
+  jamais directement à `RecommendationGenerated`, aux autres événements
+  Recommendation ou à l'événement d'évaluation ;
+- completion, dismissal et expiration retirent la Recommendation de l'overview,
+  promeuvent l'alternative suivante et avancent exactement une version ;
+- une source courante insuffisante ou obsolète expire les conseils actifs et
+  publie un overview vide ; une source historique ne modifie pas le présent ;
 - le canal InApp est actif par défaut ; l'email exige un consentement explicite
   et une priorité `High` ou `Critical` selon la politique Notifications ;
 - l'audience et le contexte Workspace sont revalidés avant tout effet externe ;

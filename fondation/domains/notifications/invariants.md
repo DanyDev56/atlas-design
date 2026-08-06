@@ -3,8 +3,8 @@ id: NTF-INVARIANTS
 title: Notifications Invariants
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -25,12 +25,12 @@ references:
 | `NTF-INV-001` | Tout plan, Notification, préférence, NotificationDelivery, permission et référence appartient à un seul WorkspaceId. |
 | `NTF-INV-002` | Les identifiants Notifications sont stables, uniques et jamais réattribués. |
 | `NTF-INV-003` | Une NotificationPolicy et un template publiés sont globaux, immuables et versionnés. |
-| `NTF-INV-004` | Toute Notification référence un événement Advisor authentique, supporté et du même Workspace. |
+| `NTF-INV-004` | Toute Notification référence un AdvisorOverviewChanged authentique, supporté et du même Workspace. |
 | `NTF-INV-005` | RecommendationGenerated ne déclenche jamais une planification 1.0. |
 | `NTF-INV-006` | Une création exige un AdvisorOverview exact, stabilisé, Eligible, de version supérieure au cursor ou identique compatible, et contenant une PrimaryRecommendation Generated non expirée. |
 | `NTF-INV-007` | Notifications ne recalcule ni Priority, ni Action, ni validité Advisor. |
 | `NTF-INV-008` | Il existe au plus un NotificationPlan par `(SourceEventId, NotificationPolicyVersion)` et un seul TopicProcessingLease valide par NotificationTopicCursor. |
-| `NTF-INV-009` | Une source inéligible ou de version Advisor inférieure termine un plan SourceIgnored sans mutation courante ; seul un overview Eligible et monotone vide peut résoudre un thread sans contenu inventé. |
+| `NTF-INV-009` | Une version Advisor inférieure termine un plan SourceIgnored sans mutation courante ; un overview monotone vide résout les threads sans contenu inventé, y compris après source invalidée. |
 | `NTF-INV-010` | Notifications 1.0 ne consomme aucun événement Identity sensible, Billing document delivery, CRM ou Analytics. |
 
 ## Audience, confidentialité et préférences
@@ -55,7 +55,7 @@ references:
 | `NTF-INV-021` | Il existe au plus une Notification Active par NotificationThreadKey. |
 | `NTF-INV-022` | Même PrimaryRecommendationId et même ContentFingerprint produisent Unchanged, jamais un nouvel item ou e-mail. |
 | `NTF-INV-023` | Une nouvelle PrimaryRecommendation rend l'ancienne Notification Active Superseded avant de créer la nouvelle. |
-| `NTF-INV-024` | Un événement terminal Advisor ne résout ou expire que les Notification liées à la Recommendation exacte. |
+| `NTF-INV-024` | Chaque AdvisorOverviewChanged résout, expire ou remplace seulement les Notification que sa nouvelle composition rend obsolètes. |
 | `NTF-INV-025` | NotificationContent utilise uniquement templates, locales, données et ActionDescriptor allowlistés. |
 | `NTF-INV-026` | DisplayUntil ne dépasse jamais ValidUntil de la Recommendation source. |
 | `NTF-INV-027` | Email n'est sélectionné que pour Priority High ou Critical avec endpoint et opt-in valides. |

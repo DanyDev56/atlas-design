@@ -3,8 +3,8 @@ id: ADV-PROCESSORS
 title: Advisor Processors
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - ../aggregates.md
@@ -17,13 +17,14 @@ references:
 
 # Processors
 
-Les processeurs Advisor évaluent une source ou matérialisent une expiration. Ils
-n'exécutent aucune RecommendationAction.
+Les processeurs Advisor évaluent une source, matérialisent une expiration ou
+font converger l'overview. Ils n'exécutent aucune RecommendationAction.
 
 ## Catalogue
 
 - [`EvaluateRecommendations`](EvaluateRecommendations.md)
 - [`ExpireRecommendation`](ExpireRecommendation.md)
+- [`RebuildAdvisorOverview`](RebuildAdvisorOverview.md)
 
 ## Conventions communes
 

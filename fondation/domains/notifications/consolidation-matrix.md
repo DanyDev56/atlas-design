@@ -3,8 +3,8 @@ id: NTF-CONSOLIDATION
 title: Notifications Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -74,10 +74,7 @@ normatives complètes.
 
 | Signal Advisor | Décision possible |
 |---|---|
-| `RecommendationEvaluationCompleted` | Created, Unchanged, Superseded, Resolved, AllChannelsSuppressed ou SourceIgnored |
-| `RecommendationCompleted` | Resolved exact |
-| `RecommendationDismissed` | Resolved exact |
-| `RecommendationExpired` | Expired exact |
+| `AdvisorOverviewChanged` | Created, Unchanged, Superseded, Resolved, Expired, AllChannelsSuppressed ou SourceIgnored selon ConvergenceKind |
 | `RecommendationGenerated` | Aucune planification |
 
 | Canal | Default | Conditions additionnelles |
@@ -91,7 +88,7 @@ normatives complètes.
 
 | Sujet | Décision |
 |---|---|
-| Source | AdvisorOverview stabilisé, versionné et sérialisé après RecommendationEvaluationCompleted |
+| Source | AdvisorOverview stabilisé, versionné et sérialisé par AdvisorOverviewChanged |
 | Audience | Identity, permissions Advisor read et Notifications inbox read |
 | Inbox | activée par défaut, personnelle, état lu indépendant |
 | Email | désactivé par défaut, opt-in, High/Critical uniquement |

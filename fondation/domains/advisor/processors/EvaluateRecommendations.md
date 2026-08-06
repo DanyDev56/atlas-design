@@ -3,8 +3,8 @@ id: ADV-PROC-EVALUATE-RECOMMENDATIONS
 title: EvaluateRecommendations
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -58,15 +58,18 @@ de règle dérive son propre RequestId de l'évaluation et de RuleKey.
 - création ou reprise de RecommendationEvaluation ;
 - éligibilité, cinq règles, scoring, ordre total et limite top trois ;
 - génération, réaffirmation, expiration ou suppression idempotente ;
-- reconstruction AdvisorOverview, avance atomique d'AdvisorOverviewVersion puis
-  completion du process manager.
+- appel idempotent de `RebuildAdvisorOverview`, puis completion du process
+  manager avec la version appliquée.
 
-Une source inéligible ou historique termine l'évaluation avec une
-SourceEligibility structurée sans modifier les Recommendation courantes.
+Une source courante `InsufficientAssessment` ou `StaleAssessment` expire les
+Recommendation Generated avec `SourceBecameIneligible`, puis reconstruit un
+overview vide. Une source historique, une politique non supportée ou un contrat
+incompatible termine l'évaluation avec sa SourceEligibility sans modifier les
+Recommendation courantes ni l'overview.
 
 ## Invariants concernés
 
-`ADV-INV-001`–`ADV-INV-050`.
+`ADV-INV-001`–`ADV-INV-055`.
 
 ## Événements produits
 
@@ -76,7 +79,10 @@ SourceEligibility structurée sans modifier les Recommendation courantes.
 - `RecommendationEvaluationCompleted`.
 
 Une règle peut ne produire aucun événement Recommendation. Completed n'est
-publié qu'après convergence de toutes les décisions.
+publié qu'après convergence de toutes les décisions et, pour une cause
+applicable, application durable de l'AdvisorOverviewVersion. Une source
+historique ou incompatible référence la version inchangée.
+`AdvisorOverviewChanged` est produit séparément par `RebuildAdvisorOverview`.
 
 ## Concurrence
 

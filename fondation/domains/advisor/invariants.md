@@ -3,8 +3,8 @@ id: ADV-INVARIANTS
 title: Advisor Invariants
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -28,7 +28,7 @@ references:
 | `ADV-INV-004` | Toute RecommendationEvaluation référence une BusinessHealthAssessment exacte, authentique et du même Workspace. |
 | `ADV-INV-005` | Seule la BusinessHealthAssessment courante de la HealthPolicyVersion supportée peut modifier les recommandations actives. |
 | `ADV-INV-006` | Une source doit être Available, Reliable ou Limited, et âgée d'au plus sept jours. |
-| `ADV-INV-007` | Une source inéligible produit un rapport explicite sans RecommendationGenerated ni fallback ancien. |
+| `ADV-INV-007` | Une source inéligible produit un rapport explicite sans RecommendationGenerated ; une source courante insuffisante ou obsolète invalide l'overview, tandis qu'une source historique ou incompatible ne modifie pas le présent. |
 | `ADV-INV-008` | Advisor 1.0 ne lit directement ni Analytics, CRM, Billing, ni leur stockage privé. |
 | `ADV-INV-009` | Chaque EvidenceRevision conserve la source exacte, les observations copiées et les EvidenceReferences transitives utilisées. |
 | `ADV-INV-010` | Il existe au plus une RecommendationEvaluation par `(WorkspaceId, BusinessHealthAssessmentId, RecommendationPolicyVersion)`. |
@@ -81,7 +81,7 @@ references:
 
 | ID | Règle |
 |---|---|
-| `ADV-INV-040` | Le dernier SourceOrder traité ne régresse jamais pour une même politique ; AdvisorOverviewVersion augmente à chaque convergence Eligible appliquée et ne régresse jamais dans un Workspace. |
+| `ADV-INV-040` | Le dernier SourceOrder traité ne régresse jamais pour une même politique ; AdvisorOverviewVersion augmente à chaque cause de convergence appliquée et ne régresse jamais dans un Workspace. |
 | `ADV-INV-041` | Une source historique est enregistrée mais ne réaffirme, ne génère et n'expire aucune Recommendation courante. |
 | `ADV-INV-042` | Une nouvelle ActiveRecommendationPolicyVersion n'est activée qu'après évaluation courante et expiration explicite de l'ancienne politique. |
 | `ADV-INV-043` | Lecture, completion et dismissal exigent un acteur actif, le même Workspace et la capacité Advisor exacte. |
@@ -92,3 +92,8 @@ references:
 | `ADV-INV-048` | Les consommateurs dédupliquent EventId et les process managers reprennent sans doubler une décision. |
 | `ADV-INV-049` | Un Workspace restreint bloque les lectures et décisions humaines sans effacer l'historique ni interrompre l'expiration de sécurité. |
 | `ADV-INV-050` | Advisor 1.0 ne présente aucun texte génératif, benchmark, prédiction ou décision autonome comme règle canonique. |
+| `ADV-INV-051` | Toute évaluation appliquée et toute mutation terminale de Recommendation possède une CauseKey qui déclenche exactement une reconstruction d'AdvisorOverview. |
+| `ADV-INV-052` | Chaque AdvisorOverviewRevision est immuable et contient exactement les Recommendation Generated, non expirées et publiées par la dernière évaluation appliquée de la politique active, dans l'ordre canonique. |
+| `ADV-INV-053` | Après completion, dismissal ou expiration d'une entrée, l'alternative Generated suivante devient Primary dans la même convergence ; aucune entrée terminale ne reste publiée. |
+| `ADV-INV-054` | Une source courante InsufficientAssessment ou StaleAssessment expire les Recommendation actives avec SourceBecameIneligible et publie un overview vide ; une source historique n'altère rien. |
+| `ADV-INV-055` | RecommendationEvaluationCompleted est publié après classification complète de la source ; toute cause applicable référence sa version durable et toute source non applicable la version inchangée. Notifications consomme exclusivement AdvisorOverviewChanged. |
