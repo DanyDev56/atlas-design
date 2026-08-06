@@ -3,7 +3,7 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -22,6 +22,7 @@ references:
   - ../roadmap/mvp-acceptance.md
   - ../../fondation/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Product Blueprint

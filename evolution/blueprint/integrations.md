@@ -3,7 +3,7 @@ id: BPT-011
 title: MVP Integration Boundaries
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -18,6 +18,7 @@ references:
   - ../../fondation/domains/business-health/integrations.md
   - ../../fondation/domains/advisor/integrations.md
   - ../../fondation/domains/notifications/integrations.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Frontières d'intégration du MVP

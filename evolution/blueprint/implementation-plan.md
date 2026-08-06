@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -16,6 +16,7 @@ references:
   - ../../fondation/domain-map/dependencies.md
   - ../../fondation/domain-map/ownership.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Plan d'implémentation du MVP
@@ -58,11 +59,13 @@ Livrer :
 - catalogue d'erreurs stable et mapping des adaptateurs ;
 - résolution de configuration, secrets et horloge injectables ;
 - logs structurés, traces, métriques RED et audit des décisions sensibles ;
-- harness de tests de contrats et fixtures déterministes.
+- harness de tests de contrats et fixtures déterministes ;
+- traçabilité des contrôles et tests prioritaires de `SEC-001` vers la CI et les
+  environnements de validation.
 
 Gate de sortie : un module exemple commit une mutation et son événement de
 manière atomique, un consumer rejoue le message sans double effet et la trace
-complète est consultable.
+complète est consultable. Les gaps Security marqués `incrément 0` sont résolus.
 
 ### Incrément 1 — Identité et premier Workspace
 

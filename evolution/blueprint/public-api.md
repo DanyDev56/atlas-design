@@ -3,7 +3,7 @@ id: BPT-008
 title: Contract and API Exposure
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -20,6 +20,7 @@ references:
   - ../../fondation/domains/business-health/api.md
   - ../../fondation/domains/advisor/api.md
   - ../../fondation/domains/notifications/api.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Contrats et exposition API

@@ -3,7 +3,7 @@ id: ROADMAP-002
 title: Atlas MVP End-to-End Acceptance
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -22,6 +22,7 @@ references:
   - ../../fondation/domains/business-health/api.md
   - ../../fondation/domains/advisor/api.md
   - ../../fondation/domains/notifications/api.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Acceptation de bout en bout du MVP
@@ -186,6 +187,7 @@ décide, une notification personnelle.
 | Effet externe | Rendu et livraison possèdent une clé fournisseur, un statut prouvé et une politique de retry bornée. |
 | Reconstruction | Analytics, Business Health, Advisor et Notifications peuvent reconstruire leurs projections depuis des sources immuables et versionnées. |
 | Accessibilité | Les parcours principaux sont utilisables au clavier, avec libellés, focus, erreurs et statuts non dépendants de la couleur. |
+| Sécurité | Les menaces `SEC-T01` à `SEC-T28` sont tracées vers leurs contrôles et les tests applicables à l'incrément passent. |
 
 ---
 
@@ -202,4 +204,6 @@ Le MVP est prêt pour une publication contrôlée lorsque :
    déterministes ;
 6. aucune fonctionnalité exclue n'est nécessaire pour atteindre le résultat ;
 7. Dashboard, Analytics et adaptateurs techniques respectent les frontières
-   établies dans le Blueprint.
+   établies dans le Blueprint ;
+8. le modèle `SEC-001` est validé, les gaps de la release sont fermés et aucun
+   risque résiduel `High` ou `Critical` ne reste sans acceptation formelle.

@@ -46,6 +46,7 @@ d'implémentation définitifs.
 11. [Product Language](fondation/language/README.md)
 12. [Domain Map](fondation/domain-map/README.md)
 13. [Architecture Decision Records](fondation/decisions/README.md)
+14. [Security Foundation](fondation/security/README.md)
 
 ---
 
@@ -59,7 +60,8 @@ d'implémentation définitifs.
 - stratégie produit et utilisateurs cibles ;
 - langage officiel ;
 - domaines et invariants ;
-- décisions structurantes.
+- décisions structurantes ;
+- sécurité transverse et modèles de menace.
 
 ### Évolution
 

@@ -43,13 +43,14 @@ required_files=(
   "$repo_root/evolution/governance/quality-gates.md"
   "$repo_root/evolution/governance/consolidation-matrix.md"
   "$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
+  "$repo_root/fondation/security/mvp-threat-model.md"
 )
 
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "document requis absent: ${file#"$repo_root/"}"
 done
 if (( errors == 0 )); then
-  pass "dix-sept documents MVP, Blueprint et architecture présents"
+  pass "dix-huit documents MVP, Blueprint, architecture et sécurité présents"
 fi
 
 structure_errors=$errors
@@ -223,6 +224,8 @@ rg -q 'scripts/check-mvp-blueprint-docs.sh' "$repo_root/evolution/governance/qua
   fail "checker absent des quality gates"
 rg -q 'scripts/check-decisions-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
   fail "checker ADR absent des quality gates"
+rg -q 'scripts/check-security-docs.sh' "$repo_root/evolution/governance/quality-gates.md" || \
+  fail "checker Security absent des quality gates"
 adr_file="$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
 rg -q '^status: Accepted$' "$adr_file" || \
   fail "ADR-001 non accepté"
@@ -234,8 +237,13 @@ rg -q 'at least once' "$adr_file" || \
   fail "sémantique de livraison ADR absente"
 rg -q 'fixtures versionnées' "$blueprint_root/implementation-plan.md" || \
   fail "fixtures de référence absentes"
+security_model="$repo_root/fondation/security/mvp-threat-model.md"
+rg -q '^status: In Review$' "$security_model" || \
+  fail "statut du modèle de menace inattendu"
+rg -q 'SEC-T28' "$security_model" || \
+  fail "registre de menaces MVP incomplet"
 if (( errors == governance_errors )); then
-  pass "ADR accepté, gates d'architecture, fixtures et gouvernance présents"
+  pass "ADR, modèle de menace, fixtures et gates de gouvernance présents"
 fi
 
 if (( errors > 0 )); then

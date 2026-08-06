@@ -3,7 +3,7 @@ id: GOV-002
 title: Product Quality Gates
 status: In Review
 owner: Product and Engineering
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -14,6 +14,8 @@ references:
   - ../blueprint/implementation-plan.md
   - ../../fondation/decisions/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/security/README.md
+  - ../../fondation/security/mvp-threat-model.md
 ---
 
 # Quality Gates
@@ -75,6 +77,7 @@ En plus des sections précédentes :
    [`mvp-acceptance.md`](../roadmap/mvp-acceptance.md) ;
 2. `scripts/check-mvp-blueprint-docs.sh` passe ;
 3. `scripts/check-decisions-docs.sh` passe ;
-4. les huit checkers de bounded context passent ;
-5. les fixtures de référence produisent les résultats attendus ;
-6. les risques résiduels possèdent un owner et une décision d'acceptation.
+4. `scripts/check-security-docs.sh` passe ;
+5. les huit checkers de bounded context passent ;
+6. les fixtures de référence produisent les résultats attendus ;
+7. les risques résiduels possèdent un owner et une décision d'acceptation.

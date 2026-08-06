@@ -4,7 +4,7 @@ title: MVP Application Topology
 status: Accepted
 date: 2026-08-06
 owner: Engineering
-version: 1.0.0
+version: 1.0.1
 last_updated: 2026-08-06
 
 references:
@@ -16,6 +16,7 @@ references:
   - ../../evolution/blueprint/implementation-plan.md
   - ../../evolution/roadmap/mvp-acceptance.md
   - ../../evolution/governance/quality-gates.md
+  - ../security/mvp-threat-model.md
 ---
 
 # ADR-001 — Topologie applicative du MVP
