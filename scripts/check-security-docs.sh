@@ -199,6 +199,27 @@ if (( errors == contract_errors )); then
   pass "contrats Identity, Workspace, Billing, messaging et Notifications reconnus"
 fi
 
+stack_errors=$errors
+stack_decision="$repo_root/fondation/decisions/ADR-002-mvp-implementation-stack.md"
+[[ -f "$stack_decision" ]] || fail "ADR-002 de stack absent"
+if [[ -f "$stack_decision" ]]; then
+  rg -q '^status: Proposed$' "$stack_decision" || \
+    fail "ADR-002 ne reste pas Proposed avant son spike"
+  for term in 'PHP 8.5 strict' 'Laravel 13' 'PostgreSQL 18' 'composer.lock' \
+    'GitHub Actions' 'SBOM' 'douze conditions'; do
+    rg -q "$term" "$stack_decision" || fail "contrainte de stack sécurisée absente: $term"
+  done
+fi
+rg -q 'ADR-002-mvp-implementation-stack.md' "$model" || \
+  fail "ADR-002 absent des références du modèle de menace"
+for gap in SEC-GAP-006 SEC-GAP-009; do
+  rg -q "$gap.*ADR-002|ADR-002.*$gap" "$model" || \
+    fail "écart Security non aligné avec ADR-002: $gap"
+done
+if (( errors == stack_errors )); then
+  pass "stack proposée alignée avec les gaps infrastructure et supply chain"
+fi
+
 governance_errors=$errors
 for governance_file in \
   "$repo_root/README.md" \

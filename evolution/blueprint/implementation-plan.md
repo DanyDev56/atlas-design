@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.3.0
+version: 1.5.0
 last_updated: 2026-08-06
 
 references:
@@ -16,6 +16,7 @@ references:
   - ../../fondation/domain-map/dependencies.md
   - ../../fondation/domain-map/ownership.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/mvp-threat-model.md
   - ../reference-fixtures/README.md
 ---
@@ -40,10 +41,11 @@ monolith pour le MVP. Chaque module conserve :
 - sa transaction locale et son outbox ;
 - ses permissions, journaux et tests de contrat.
 
-La décision de topologie est acceptée. Les choix de langage, framework,
-datastore, transport et hébergement restent des décisions séparées qui doivent
-respecter l'ADR. La topologie ne permet jamais un accès direct au stockage d'un
-autre module.
+La décision de topologie est acceptée. La baseline PHP, Laravel, React et
+PostgreSQL est proposée dans
+[`ADR-002`](../../fondation/decisions/ADR-002-mvp-implementation-stack.md).
+Elle reste non normative jusqu'au passage de l'ADR à `Accepted` après son spike.
+La topologie ne permet jamais un accès direct au stockage d'un autre module.
 
 ---
 
@@ -53,6 +55,7 @@ autre module.
 
 Livrer :
 
+- spike et preuves d'acceptation d'`ADR-002` ;
 - structure modulaire et règles automatiques de dépendance ;
 - identité des messages : `EventId`, `CorrelationId`, `CausationId`, version et
   instant métier ;

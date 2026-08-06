@@ -3,7 +3,7 @@ id: GOV-002
 title: Product Quality Gates
 status: In Review
 owner: Product and Engineering
-version: 1.3.0
+version: 1.4.0
 last_updated: 2026-08-06
 
 references:
@@ -15,6 +15,7 @@ references:
   - ../reference-fixtures/README.md
   - ../../fondation/decisions/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/README.md
   - ../../fondation/security/mvp-threat-model.md
 ---
@@ -82,4 +83,6 @@ En plus des sections précédentes :
 5. les huit checkers de bounded context passent ;
 6. `scripts/check-mvp-reference-fixtures.sh` recalcule sans écart les fixtures
    Analytics, Business Health, Advisor et Notifications ;
-7. les risques résiduels possèdent un owner et une décision d'acceptation.
+7. `ADR-001` et `ADR-002` sont `Accepted` et leurs conditions automatisables
+   passent dans la CI ;
+8. les risques résiduels possèdent un owner et une décision d'acceptation.

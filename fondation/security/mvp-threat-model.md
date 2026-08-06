@@ -3,13 +3,14 @@ id: SEC-001
 title: MVP Transversal Threat Model
 status: In Review
 owner: Product, Engineering and Security
-version: 1.0.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
   - README.md
   - ../constitution.md
   - ../decisions/ADR-001-mvp-application-topology.md
+  - ../decisions/ADR-002-mvp-implementation-stack.md
   - ../domain-map/context-map.md
   - ../domain-map/dependencies.md
   - ../domains/identity/api.md
@@ -109,7 +110,7 @@ une nouvelle analyse avant activation.
 | `SEC-A07` | Le volume MVP est modeste, mais les routes publiques et effets facturés peuvent subir un abus automatisé. | Quotas, backpressure et budgets d'effets sont requis dès le MVP. |
 | `SEC-A08` | La possession d'une boîte e-mail n'est pas une autorité suffisante pour une action Workspace critique. | Les actions critiques exigent session, permission et step-up adaptés. |
 | `SEC-A09` | Une sauvegarde, un cache, un log et une fixture sont des copies de données soumises aux mêmes menaces. | Classification, isolation, redaction, rétention et tests s'appliquent à toutes les copies. |
-| `SEC-A10` | La stack et le cloud ne sont pas encore choisis. | Les menaces spécifiques à la technologie restent à ajouter dans les ADR correspondants. |
+| `SEC-A10` | `ADR-002` propose PHP, Laravel, React et PostgreSQL, mais reste non normatif et le fournisseur cloud n'est pas choisi. | Le spike, l'acceptation de l'ADR et la revue du fournisseur doivent ajouter les preuves spécifiques à la technologie. |
 
 ---
 
@@ -406,10 +407,10 @@ d'exploitation. Avant cela, ils constituent des exigences de conception.
 | `SEC-GAP-003` | Entropie, TTL, capacités, rotation, transport et limites de `PublicDocumentProof` non quantifiés. | Billing + Security | avant exposition publique de `MVP-J2` | Open |
 | `SEC-GAP-004` | Classification opérationnelle, durées de rétention, suppression/export et données de support non décidées. | Product + Security | avant données réelles | Open |
 | `SEC-GAP-005` | Modèle opérateur/support, break-glass, impersonation, approbation et séparation des devoirs non défini. | Engineering + Security | avant accès production | Open |
-| `SEC-GAP-006` | Gestionnaire de secrets/keys, chiffrement, datastore, backup, RPO/RTO et stratégie de rotation dépendent de la stack. | Engineering | ADR de stack avant production | Open |
+| `SEC-GAP-006` | `ADR-002` propose PostgreSQL et un hébergement managé en UE ; fournisseur, gestionnaire de secrets/keys, chiffrement, backup, RPO/RTO et rotation restent à décider. | Engineering | ADR de stack et fournisseur avant production | Open |
 | `SEC-GAP-007` | Seuils de rate limit, quotas, budgets fournisseurs et protection edge restent à calibrer. | Product + Platform | avant beta exposée | Open |
 | `SEC-GAP-008` | Runbooks incident, niveaux d'alerte, conservation des preuves et exercices de restauration/confinement absents. | Security + Platform | avant release candidate | Open |
-| `SEC-GAP-009` | Pipeline sécurisé, SBOM, provenance, signature, scanning et politique de dépendances restent à choisir. | Engineering + Security | incrément 0 | Open |
+| `SEC-GAP-009` | `ADR-002` propose GitHub Actions, lockfiles Composer/npm, scanning, SBOM et provenance ; leur configuration durcie et leurs preuves restent à implémenter. | Engineering + Security | incrément 0 | Open |
 
 Ces gaps ne justifient pas d'inventer une valeur dans ce document. Leur
 résolution met à jour les références, contrôles, tests et risques concernés.

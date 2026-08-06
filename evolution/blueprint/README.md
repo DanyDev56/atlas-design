@@ -3,7 +3,7 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.3.0
+version: 1.4.0
 last_updated: 2026-08-06
 
 references:
@@ -23,6 +23,7 @@ references:
   - ../reference-fixtures/README.md
   - ../../fondation/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/mvp-threat-model.md
 ---
 
@@ -62,6 +63,8 @@ erreurs. Le Blueprint en montre l'assemblage.
   Advisor et Notifications ;
 - sa topologie de départ est le modular monolith à frontières fortes accepté
   dans `ADR-001` ;
+- sa stack d'implémentation est proposée par `ADR-002` et doit être prouvée par
+  le spike de l'incrément 0 avant acceptation ;
 - Analytics est un moteur interne nécessaire au résultat, pas nécessairement
   un module de navigation autonome ;
 - le Dashboard est une composition de read models, pas un bounded context ;
@@ -80,7 +83,8 @@ Le Blueprint peut passer de `In Review` à `Stable` après :
 
 1. validation produit des trois parcours et des états UX ;
 2. validation Engineering que le Blueprint respecte `ADR-001` ;
-3. validation Security du modèle de menace et des preuves publiques ;
-4. passage du contrôle `scripts/check-mvp-blueprint-docs.sh` ;
-5. passage du contrôle `scripts/check-mvp-reference-fixtures.sh` ;
-6. absence de contradiction avec les checkers des huit bounded contexts.
+3. acceptation d'`ADR-002` après passage de ses douze conditions ;
+4. validation Security du modèle de menace et des preuves publiques ;
+5. passage du contrôle `scripts/check-mvp-blueprint-docs.sh` ;
+6. passage du contrôle `scripts/check-mvp-reference-fixtures.sh` ;
+7. absence de contradiction avec les checkers des huit bounded contexts.

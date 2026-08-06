@@ -3,12 +3,13 @@ id: ADR-CATALOG
 title: Architecture Decision Record Catalogue
 status: Living Document
 owner: Product and Engineering
-version: 1.0.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
   - template.md
   - ADR-001-mvp-application-topology.md
+  - ADR-002-mvp-implementation-stack.md
   - ../README.md
 ---
 
@@ -31,6 +32,7 @@ son préfixe, par exemple `CRM-ADR-*` ou `BIL-ADR-*`.
 | ID | Décision | Statut | Date | Owner |
 |---|---|---|---|---|
 | [`ADR-001`](ADR-001-mvp-application-topology.md) | Le MVP utilise un modular monolith à frontières fortes. | Accepted | 2026-08-06 | Engineering |
+| [`ADR-002`](ADR-002-mvp-implementation-stack.md) | Le MVP propose PHP, Laravel, React et PostgreSQL. | Proposed | 2026-08-06 | Engineering |
 
 ---
 

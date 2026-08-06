@@ -3,7 +3,7 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.3.0
+version: 1.5.0
 last_updated: 2026-08-06
 
 references:
@@ -15,6 +15,7 @@ references:
   - ../../fondation/domain-map/README.md
   - ../../fondation/decisions/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
+  - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/README.md
   - ../../fondation/security/mvp-threat-model.md
 ---
@@ -52,6 +53,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Delivery | MVP Implementation Plan | Oui | Oui | Oui | Oui | In Review |
 | Delivery | MVP Reference Fixtures | Oui | Oui | Oui | Oui | In Review |
 | Decisions | ADR catalogue | Oui | Oui | Oui | Oui | Living Document |
+| Decisions | MVP Implementation Stack | Oui | Oui | Oui | Oui | Proposed |
 | Security | MVP Threat Model | Oui | Oui | Oui | Oui | In Review |
 
 ---
@@ -63,12 +65,12 @@ palier 0 d'implémentation. Le passage à `Stable` reste bloqué par :
 
 - la validation produit des parcours et états UX ;
 - la validation Security du modèle de menace transversal ;
-- les décisions de stack compatibles avec `ADR-001` ;
+- l'acceptation d'`ADR-002` après le spike de compatibilité et de frontières ;
 - l'acceptation formelle des quality gates par Engineering et Security.
 
-Le gap `analytics.snapshot-profile-version-unassigned` reste visible dans les
-fixtures et doit être résolu avant l'implémentation du contrat de publication
-Analytics ; aucune version implicite n'est admise.
+Le profil `BusinessHealthBaselineV1@1.0.0` et ses seuils de fraîcheur sont
+maintenant contractuels et vérifiés par les fixtures. Il ne bloque plus
+l'implémentation du contrat de publication Analytics.
 
 `Automation` reste volontairement absent : son cadrage ne constitue pas un
 prérequis du MVP.

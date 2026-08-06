@@ -160,6 +160,32 @@ if (( errors == topology_errors )); then
   pass "ADR-001 couvre modules, données, transactions, messaging et extraction"
 fi
 
+stack="$decisions_root/ADR-002-mvp-implementation-stack.md"
+stack_errors=$errors
+[[ -f "$stack" ]] || fail "ADR-002 de stack absent"
+if [[ -f "$stack" ]]; then
+  rg -q '^status: Proposed$' "$stack" || fail "ADR-002 ne reste pas Proposed avant son spike"
+  for term in 'PHP 8.5 strict' 'Laravel 13' 'React 19' 'PostgreSQL 18' \
+    'Laravel Database' 'Eloquent borné aux adapters' 'outbox, inbox' \
+    'Laravel Queue avec driver database' 'OpenTelemetry' 'composer.lock' \
+    'GitHub Actions' 'SBOM' 'douze conditions'; do
+    rg -q "$term" "$stack" || fail "baseline de stack absente: $term"
+  done
+  for outbox_term in 'afterCommit()' 'transactional outbox' \
+    "preuve atomique de l'intention"; do
+    rg -q -F "$outbox_term" "$stack" || \
+      fail "distinction entre afterCommit et transactional outbox absente: $outbox_term"
+  done
+  rg -q "Horizon n'est pas utilisé au MVP" "$stack" || \
+    fail "exclusion de Horizon/Redis absente de la baseline"
+  for module in identity workspace crm billing analytics business-health advisor notifications; do
+    rg -q "  $module/" "$stack" || fail "module MVP absent de la stack: $module"
+  done
+fi
+if (( errors == stack_errors )); then
+  pass "ADR-002 propose Laravel, web, persistence, messaging, observabilité et CI"
+fi
+
 if (( errors > 0 )); then
   printf '\nDecision documentation checks: %d failure(s), %d passed group(s).\n' "$errors" "$checks"
   exit 1

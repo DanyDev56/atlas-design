@@ -45,6 +45,7 @@ required_files=(
   "$repo_root/evolution/governance/consolidation-matrix.md"
   "$reference_root/README.md"
   "$repo_root/fondation/decisions/ADR-001-mvp-application-topology.md"
+  "$repo_root/fondation/decisions/ADR-002-mvp-implementation-stack.md"
   "$repo_root/fondation/security/mvp-threat-model.md"
 )
 
@@ -52,7 +53,7 @@ for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "document requis absent: ${file#"$repo_root/"}"
 done
 if (( errors == 0 )); then
-  pass "dix-neuf documents MVP, Blueprint, fixtures, architecture et sécurité présents"
+  pass "vingt documents MVP, Blueprint, fixtures, architecture et sécurité présents"
 fi
 
 fixture_errors=$errors
@@ -247,10 +248,20 @@ rg -q 'transaction ne traverse jamais un module' "$adr_file" || \
   fail "frontière transactionnelle ADR absente"
 rg -q 'at least once' "$adr_file" || \
   fail "sémantique de livraison ADR absente"
+stack_adr="$repo_root/fondation/decisions/ADR-002-mvp-implementation-stack.md"
+rg -q '^status: Proposed$' "$stack_adr" || \
+  fail "ADR-002 doit rester Proposed avant le spike"
+for stack_term in 'PHP 8.5 strict' 'Laravel 13' 'React 19' 'PostgreSQL 18'; do
+  rg -q "$stack_term" "$stack_adr" || fail "choix ADR-002 absent: $stack_term"
+done
+rg -q "acceptation d.*ADR-002" "$repo_root/evolution/governance/consolidation-matrix.md" || \
+  fail "acceptation d'ADR-002 absente du prochain gate"
 rg -q 'fixtures versionnées' "$blueprint_root/implementation-plan.md" || \
   fail "fixtures de référence absentes"
-rg -q 'analytics.snapshot-profile-version-unassigned' "$repo_root/evolution/governance/consolidation-matrix.md" || \
-  fail "gap SnapshotProfileVersion non gouverné"
+for profile_term in 'SnapshotProfileVersion = 1.0.0' 'CurrentLagThreshold = PT1H' 'MaximumAcceptedLag = PT24H'; do
+  rg -q "$profile_term" "$repo_root/fondation/domains/analytics/metric-catalog.md" || \
+    fail "contrat SnapshotProfile incomplet: $profile_term"
+done
 security_model="$repo_root/fondation/security/mvp-threat-model.md"
 rg -q '^status: In Review$' "$security_model" || \
   fail "statut du modèle de menace inattendu"
