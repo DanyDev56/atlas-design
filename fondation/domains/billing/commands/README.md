@@ -3,8 +3,8 @@ id: BIL-COMMANDS
 title: Billing Commands
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - ../aggregates.md
@@ -60,6 +60,10 @@ commis dans Billing.
 - [`DiscardCreditNoteDraft`](DiscardCreditNoteDraft.md)
 - [`IssueCreditNote`](IssueCreditNote.md)
 - [`ApplyCreditNote`](ApplyCreditNote.md)
+
+### Historique initial
+
+- [`ImportHistoricalBillingHistory`](ImportHistoricalBillingHistory.md)
 
 ## Conventions communes
 

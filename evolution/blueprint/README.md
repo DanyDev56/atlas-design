@@ -3,7 +3,7 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-08-06
 
 references:
@@ -16,6 +16,7 @@ references:
   - permissions.md
   - public-api.md
   - integrations.md
+  - historical-import.md
   - implementation-plan.md
   - roadmap.md
   - ../roadmap/mvp-scope.md
@@ -46,13 +47,15 @@ erreurs. Le Blueprint en montre l'assemblage.
 2. [`product-map.md`](product-map.md) — dépendances et propriétaires ;
 3. [`user-journeys.md`](user-journeys.md) — trois parcours MVP ;
 4. [`mvp-acceptance.md`](../roadmap/mvp-acceptance.md) — preuve de bout en bout ;
-5. [`implementation-plan.md`](implementation-plan.md) — ordre de construction ;
-6. [`dashboard.md`](dashboard.md) et [`navigation.md`](navigation.md) —
+5. [`historical-import.md`](historical-import.md) — démarrage à froid et reprise
+   de l'historique existant ;
+6. [`implementation-plan.md`](implementation-plan.md) — ordre de construction ;
+7. [`dashboard.md`](dashboard.md) et [`navigation.md`](navigation.md) —
    composition visible par l'utilisateur ;
-7. [`permissions.md`](permissions.md), [`public-api.md`](public-api.md) et
+8. [`permissions.md`](permissions.md), [`public-api.md`](public-api.md) et
    [`integrations.md`](integrations.md) — frontières d'exécution ;
-8. [`roadmap.md`](roadmap.md) — séquencement produit après le MVP ;
-9. [`reference-fixtures/`](../reference-fixtures/README.md) — entrées et
+9. [`roadmap.md`](roadmap.md) — séquencement produit après le MVP ;
+10. [`reference-fixtures/`](../reference-fixtures/README.md) — entrées et
    résultats exécutables de la chaîne de décision.
 
 ---
@@ -70,6 +73,8 @@ erreurs. Le Blueprint en montre l'assemblage.
 - le Dashboard est une composition de read models, pas un bounded context ;
 - Identity reste l'autorité unique des permissions effectives ;
 - les actions Advisor et Dashboard sont exécutées par le domaine propriétaire ;
+- un import historique initial rend le démarrage utile sans simuler les
+  commandes opérationnelles CRM ou Billing ;
 - les e-mails Identity, les documents Billing et les notifications Advisor
   utilisent des ports de livraison distincts ;
 - `Automation`, `Projects`, les connecteurs produit et l'API publique externe

@@ -3,8 +3,8 @@ id: CRM-PUBLIC-CONTRACT
 title: CRM Public Contract
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -26,6 +26,7 @@ updateClientProfile(workspaceId, clientId, changes, expectedRevision, requestId)
 updateClientBillingProfile(workspaceId, clientId, profile, expectedRevision, requestId)
 archiveClient(workspaceId, clientId, expectedRevision, requestId)
 reactivateClient(workspaceId, clientId, expectedRevision, requestId)
+importHistoricalClients(workspaceId, importManifest, expectedRevision, requestId)
 
 addContact(workspaceId, clientId, profile, expectedRevision, requestId)
 updateContact(workspaceId, clientId, contactId, changes, expectedRevision, requestId)
@@ -67,6 +68,7 @@ getPipeline(workspaceId)
 
 getActivity(workspaceId, activityId)
 listClientActivities(workspaceId, clientId, cursor?)
+getClientHistoryImport(workspaceId, importRunId)
 ```
 
 Les lectures appliquent respectivement les permissions `read`. Pagination,
@@ -133,6 +135,21 @@ La lecture exige `crm.analytics-facts.read`. Elle retourne exactement la version
 signalée par l'événement ou `NotFound` si cette version n'est plus disponible.
 Elle exclut profil Client, description, `NextAction`, notes et coordonnées.
 
+Après `ClientHistoryImportCompleted`, Analytics peut relire le manifest minimal :
+
+```text
+getClientHistoryImportManifest(workspaceId, importRunId, manifestVersion)
+→
+WorkspaceId
+ImportRunId
+ManifestVersion
+PackageHash
+Clients[] { ClientId, AggregateVersion, SourceOccurredAt, FactHash }
+```
+
+Cette lecture exige `crm.analytics-facts.read`. Elle ne retourne ni package
+brut, ni profil, ni identifiant externe source.
+
 ---
 
 ## Erreurs publiques
@@ -146,6 +163,7 @@ Elle exclut profil Client, description, `NextAction`, notes et coordonnées.
 | `InvalidState` | transition impossible |
 | `InvariantViolation` | règle absolue menacée |
 | `ReferenceConflict` | Contact, Client ou Opportunity incompatible |
+| `ImportValidationFailed` | package ou manifest historique incohérent |
 | `ActiveOpportunityExists` | archivage Client bloqué |
 | `ContactInUse` | archivage Contact bloqué |
 | `Conflict` | révision ou idempotence incompatible |

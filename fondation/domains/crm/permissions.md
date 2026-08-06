@@ -3,8 +3,8 @@ id: CRM-PERMISSIONS
 title: CRM Permissions
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -28,6 +28,7 @@ rôles et résout leur efficacité dans le Workspace.
 | `crm.clients.update-billing-profile` | Elevated | Modifier ses données administratives. |
 | `crm.clients.archive` | Elevated | Archiver un Client. |
 | `crm.clients.reactivate` | Elevated | Réactiver un Client. |
+| `crm.clients.import-history` | Critical | Confirmer un import historique borné et audité. |
 
 ## Contact
 
@@ -81,6 +82,10 @@ impliquent `crm.clients.read`.
 
 Le rôle système owner conserve toutes les permissions CRM attribuables actives.
 Les rôles par défaut sont une politique produit opérée dans Identity.
+
+`crm.clients.import-history` exige une prévisualisation confirmée et peut exiger
+un step-up. Elle n'implique aucune permission Billing ; l'import financier est
+autorisé séparément.
 
 ---
 

@@ -3,8 +3,8 @@ id: CRM-FUTURE
 title: CRM Future
 status: Draft
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -14,9 +14,10 @@ references:
 
 # Évolutions futures
 
-## Import, déduplication et fusion
+## Imports avancés, déduplication et fusion
 
-- import CSV guidé ;
+- connecteurs spécifiques et synchronisation continue ;
+- import de Contacts, Opportunities et Activities ;
 - détection explicable de doublons ;
 - fusion réversible avec journal de correspondance ;
 - conservation des identifiants référencés par Billing.

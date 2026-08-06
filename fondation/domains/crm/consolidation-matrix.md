@@ -3,8 +3,8 @@ id: CRM-CONSOLIDATION
 title: CRM Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -53,6 +53,7 @@ references:
 | `UpdateClientBillingProfile` | Membre autorisé | `crm.clients.update-billing-profile` | 001, 004, 020–024 | `ClientBillingProfileUpdated` | `UpdateClientBillingProfileRequestId` |
 | `ArchiveClient` | Membre autorisé | `crm.clients.archive` | 001, 003, 005, 006, 021–024 | `ClientArchived` | `ArchiveClientRequestId` |
 | `ReactivateClient` | Membre autorisé | `crm.clients.reactivate` | 001, 003, 004, 006, 021–024 | `ClientReactivated` | `ReactivateClientRequestId` |
+| `ImportHistoricalClients` | Membre autorisé | `crm.clients.import-history` | 001, 002, 004, 006, 021–024, 026–028 | `ClientHistoryImportRequested`, `ClientHistoryImportCompleted` | `ImportHistoricalClientsRequestId` |
 | `AddContact` | Membre autorisé | `crm.contacts.create` | 001, 002, 004, 007, 008, 021–024 | `ContactAdded`, `ClientPrimaryContactChanged` | `AddContactRequestId` |
 | `UpdateContact` | Membre autorisé | `crm.contacts.update` | 001, 007, 009, 020–024 | `ContactUpdated` | `UpdateContactRequestId` |
 | `ChangeClientPrimaryContact` | Membre autorisé | `crm.contacts.change-primary` | 001, 007–009, 021–024 | `ClientPrimaryContactChanged` | `ChangePrimaryContactRequestId` |
@@ -88,6 +89,7 @@ normative complète.
 | Doublons | détection non bloquante, pas d'unicité heuristique |
 | Billing | snapshots détenus par Billing |
 | Advisor | analyses et recommandations hors CRM |
+| Import initial | package canonique, identité externe exacte, aucune fusion heuristique |
 
 ---
 
@@ -107,6 +109,7 @@ normative complète.
 - [x] QuoteAccepted et OpportunityWon restent deux faits distincts.
 - [x] Activity ne duplique pas les événements des autres domaines.
 - [x] Les références inter-workspaces sont refusées.
+- [x] L'import initial est reprenable et ne simule aucun événement opérationnel.
 - [x] Les extensions futures sont hors du contrat 1.0.
 - [x] Les contrôles documentaires automatisés passent.
 

@@ -39,6 +39,7 @@ required_files=(
   "$blueprint_root/permissions.md"
   "$blueprint_root/public-api.md"
   "$blueprint_root/integrations.md"
+  "$blueprint_root/historical-import.md"
   "$blueprint_root/implementation-plan.md"
   "$blueprint_root/roadmap.md"
   "$repo_root/evolution/governance/quality-gates.md"
@@ -53,7 +54,7 @@ for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "document requis absent: ${file#"$repo_root/"}"
 done
 if (( errors == 0 )); then
-  pass "vingt documents MVP, Blueprint, fixtures, architecture et sécurité présents"
+  pass "vingt et un documents MVP, Blueprint, fixtures, architecture et sécurité présents"
 fi
 
 fixture_errors=$errors
@@ -159,6 +160,10 @@ rg -q 'post-MVP|hors MVP|Post-MVP' \
 if rg -q 'Recommendation[[:space:]]*->[[:space:]]*Automation' "$blueprint_root/lifecycle.md"; then
   fail "Automation encore terminale dans le lifecycle MVP"
 fi
+for marker in ImportHistoricalClients ImportHistoricalBillingHistory ClientHistoryImportCompleted BillingHistoryImportCompleted; do
+  rg -q "$marker" "$blueprint_root/historical-import.md" "$roadmap_root/mvp-acceptance.md" || \
+    fail "contrat de démarrage à froid absent: $marker"
+done
 if (( errors == boundary_errors )); then
   pass "frontières Analytics, Dashboard et Automation cohérentes"
 fi

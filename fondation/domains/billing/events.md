@@ -3,8 +3,8 @@ id: BIL-EVENTS
 title: Billing Domain Events
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -88,6 +88,17 @@ payée est réglée, mais une Invoice réglée par avoir n'est pas payée.
 | `CreditNoteDiscarded` | `DiscardCreditNoteDraft` | Brouillon abandonné. |
 | `CreditNoteIssued` | `IssueCreditNote` | CreditNote numérotée et figée. |
 | `CreditNoteAppliedToInvoice` | `ApplyCreditNote` | Montant appliqué à l'Invoice source. |
+
+## Import historique
+
+| Événement | Producteur | Fait minimum |
+|---|---|---|
+| `BillingHistoryImportRequested` | `ImportHistoricalBillingHistory` | Run confirmé, hashé et accepté pour traitement. |
+| `BillingHistoryImportCompleted` | `ImportHistoricalBillingHistory` | Manifest, compteurs et soldes historiques validés. |
+
+Ces événements contiennent uniquement l'`ImportRunId`, la version du manifest,
+les compteurs et le hash. Ils ne republient aucun fait opérationnel d'émission,
+de livraison, d'ouverture ou de paiement.
 
 ## Publication
 

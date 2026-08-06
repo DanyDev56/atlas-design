@@ -3,8 +3,8 @@ id: BIL-INVARIANTS
 title: Billing Invariants
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -36,13 +36,13 @@ pas tous les préserver est refusée sans événement de réussite.
 | `BIL-INV-006` | Sous-total, taxes, remises et total sont calculés et arrondis par une politique déterministe versionnée. |
 | `BIL-INV-007` | Les snapshots Client, émetteur et Opportunity requis sont complets avant finalisation ou émission. |
 | `BIL-INV-008` | Un snapshot figé n'est jamais réécrit par une évolution de CRM ou Workspace. |
-| `BIL-INV-009` | Un numéro de document est unique dans son espace, type, série et période ; il est monotone, audité et jamais réutilisé. |
+| `BIL-INV-009` | Un numéro de document alloué par Atlas est unique dans son espace, type, série et période ; il est monotone, audité et jamais réutilisé. |
 
 ## Quote
 
 | ID | Règle |
 |---|---|
-| `BIL-INV-010` | Les seules transitions sont `Draft -> Sending -> Sent -> Accepted | Rejected | Withdrawn | Expired`, plus `Sending -> Withdrawn`. |
+| `BIL-INV-010` | Les seules transitions opérationnelles sont `Draft -> Sending -> Sent -> Accepted | Rejected | Withdrawn | Expired`, plus `Sending -> Withdrawn`. |
 | `BIL-INV-011` | Le contenu commercial et financier d'une Quote n'est modifiable qu'en `Draft`. |
 | `BIL-INV-012` | `SendQuote` valide les données, alloue le numéro, fige les snapshots et crée une preuve d'accès avant de demander la livraison. |
 | `BIL-INV-013` | Une réponse publique exige une preuve valide, bornée au document et au Workspace ; acceptation et rejet sont mutuellement exclusifs et terminaux. |
@@ -54,7 +54,7 @@ pas tous les préserver est refusée sans événement de réussite.
 
 | ID | Règle |
 |---|---|
-| `BIL-INV-017` | Les seules transitions documentaires d'une Invoice sont `Draft -> Issued` ou `Draft -> Discarded`. |
+| `BIL-INV-017` | Les seules transitions documentaires opérationnelles d'une Invoice sont `Draft -> Issued` ou `Draft -> Discarded`. |
 | `BIL-INV-018` | Une Invoice `Draft` est modifiable ; après émission, son contenu financier, sa devise, son numéro et ses snapshots sont immuables. |
 | `BIL-INV-019` | Une Invoice émise possède un numéro, une date d'émission, une échéance, des snapshots complets et des totaux valides. |
 | `BIL-INV-020` | `OutstandingBalance = IssuedTotal - paiements actifs appliqués - avoirs appliqués`. |
@@ -86,3 +86,17 @@ pas tous les préserver est refusée sans événement de réussite.
 | `BIL-INV-036` | Toute mutation d'un agrégat existant compare sa révision attendue ; une opération multi-agrégats compare toutes les révisions concernées. |
 | `BIL-INV-037` | Chaque commande possède un RequestId ; une répétition identique retourne le résultat initial et une réutilisation incompatible échoue. |
 | `BIL-INV-038` | État, numéros réservés, événements et messages d'outbox sont commis atomiquement ; les consommateurs dédupliquent `EventId`. |
+
+## Import historique
+
+| ID | Règle |
+|---|---|
+| `BIL-INV-039` | Toute ligne importée conserve une provenance, un instant source et un hash immuables sous une identité Atlas stable. |
+| `BIL-INV-040` | Une identité externe est unique dans `(WorkspaceId, SourceSystem, RecordKind, ExternalId)` ; un rejeu divergent est refusé. |
+| `BIL-INV-041` | Le numéro, les dates et l'état source d'un document importé sont conservés ; son numéro n'est jamais alloué par ni injecté dans une séquence Atlas. |
+| `BIL-INV-042` | Les soldes importés sont recalculés depuis Invoices, Payments et avoirs supportés ; tout écart non résolu bloque la completion. |
+| `BIL-INV-043` | Un import n'émet aucun fait opérationnel et ne déclenche ni numérotation, rendu, preuve publique, livraison, ouverture ou communication. |
+| `BIL-INV-044` | Les agrégats d'un run ne deviennent visibles aux consommateurs Analytics qu'après validation du manifest, des compteurs et des soldes. |
+
+Le chargement d'un état historique supporté n'est pas une transition du cycle
+opérationnel défini par `BIL-INV-010` ou `BIL-INV-017`.

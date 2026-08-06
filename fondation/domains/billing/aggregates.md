@@ -3,8 +3,8 @@ id: BIL-AGGREGATES
 title: Billing Aggregates
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -24,6 +24,7 @@ references:
 | Invoice | `Invoice` | lignes, Payments, applications de CreditNote, solde |
 | CreditNote | `CreditNote` | lignes correctives et application |
 | Number Sequence | `DocumentNumberSequence` | prochaine allocation et historique |
+| Billing History Import | `BillingHistoryImportRun` | package, checkpoints, compteurs et manifest final |
 
 ---
 
@@ -65,6 +66,16 @@ que deux CreditNotes concurrentes ne puissent pas dépasser son total brut.
 Les commandes d'envoi ou d'émission allouent un numéro avec la séquence dans une
 transaction ou une garantie d'unicité équivalente. Un numéro réservé n'est
 jamais réutilisé, même après une panne.
+
+---
+
+## BillingHistoryImportRun
+
+Le run orchestre les Quotes, Invoices et Payments historiques sans les faire
+passer par leurs commandes opérationnelles. Il protège le hash du package, le
+mapping Client, les identités externes, les checkpoints et les totaux de
+validation. Les agrégats importés sont exposés ensemble seulement après
+completion ; une reprise continue le même run.
 
 ---
 

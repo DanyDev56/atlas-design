@@ -3,8 +3,8 @@ id: CRM-INTEGRATIONS
 title: CRM Integrations
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -66,6 +66,7 @@ Analytics consomme les événements Opportunity puis relit :
 
 ```text
 getOpportunityAnalyticsFact(workspaceId, opportunityId, aggregateVersion)
+getClientHistoryImportManifest(workspaceId, importRunId, manifestVersion)
 ```
 
 La capacité `crm.analytics-facts.read` est SystemActorOnly. Le fait versionné
@@ -75,11 +76,16 @@ consomment les sorties Analytics ; ils ne lisent pas le stockage CRM.
 Ces domaines ne modifient jamais CRM. Une Recommendation exécutée demande une
 commande publique avec l'autorité de l'utilisateur.
 
+`ClientHistoryImportCompleted` déclenche un rebuild borné après l'import
+Billing correspondant. Le manifest fournit seulement les références et versions
+nécessaires ; les Clients eux-mêmes n'ajoutent aucune métrique 1.0.
+
 ---
 
 ## Communication et calendrier
 
-Les synchronisations e-mail et calendrier sont futures. Un adaptateur ne peut
+Les synchronisations e-mail et calendrier sont futures. L'import initial CSV
+canonique du MVP n'est pas une synchronisation de produit. Un adaptateur ne peut
 pas transformer silencieusement tout message en Activity.
 
 Une Activity importée devra conserver une référence externe, une déduplication

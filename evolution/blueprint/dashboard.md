@@ -3,7 +3,7 @@ id: BPT-009
 title: MVP Dashboard Composition
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -55,6 +55,11 @@ La surface initiale privilégie la décision : la priorité Advisor et son
 explication précèdent les données de gestion. Une activité sans données affiche
 un chemin de démarrage utile plutôt qu'un score ou une Recommendation inventés.
 
+Ce chemin propose soit la première saisie, soit l'import historique. Pendant ou
+après un import, la composition peut afficher la progression, les compteurs
+validés, les Clients, les soldes et les périodes couvertes depuis leurs contrats
+propriétaires. Cette checklist n'est pas une Recommendation Advisor.
+
 ---
 
 ## Enveloppe de vue
@@ -100,6 +105,8 @@ peut être fusionnée dans la vue courante.
 |---|---|
 | Advisor sans Recommendation | Afficher « aucune priorité proposée » et la date de la dernière évaluation. |
 | Business Health `InsufficientData` | Expliquer les données manquantes et proposer les actions de collecte possédées par CRM/Billing. |
+| Business Health `Limited` | Afficher score, couverture, facteurs absents et limites sans formulation de certitude globale. |
+| Import en cours | Afficher progression et reprise ; ne pas présenter une génération Analytics intermédiaire comme complète. |
 | Analytics en reconstruction | Conserver la dernière vue valide marquée obsolète, ou afficher `Unavailable` si aucune vue sûre n'existe. |
 | Billing indisponible | Masquer les montants, conserver les autres zones et proposer un retry borné. |
 | Notifications indisponible | Ne pas inventer un compteur zéro ; afficher l'inbox comme temporairement indisponible. |

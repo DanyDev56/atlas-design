@@ -3,8 +3,8 @@ id: BIL-CONSOLIDATION
 title: Billing Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -76,6 +76,7 @@ references:
 | `DiscardCreditNoteDraft` | Membre autorisé | `billing.credit-notes.discard` | 001, 003, 028, 035–038 | `CreditNoteDiscarded` | `DiscardCreditNoteDraftRequestId` |
 | `IssueCreditNote` | Membre autorisé | `billing.credit-notes.issue` | 001, 004–009, 027–030, 032, 035–038 | `CreditNoteIssued` | `IssueCreditNoteRequestId` |
 | `ApplyCreditNote` | Membre autorisé | `billing.credit-notes.apply` | 001, 004, 020–022, 027–031, 035–038 | `CreditNoteAppliedToInvoice`, `InvoiceBalanceChanged`, `InvoiceSettled` | `ApplyCreditNoteRequestId` |
+| `ImportHistoricalBillingHistory` | Membre autorisé | `billing.history.import` | 001–009, 018–026, 035–044 | `BillingHistoryImportRequested`, `BillingHistoryImportCompleted` | `ImportHistoricalBillingHistoryRequestId` |
 
 Les numéros abrégés désignent `BIL-INV-nnn`. Les fiches constituent la source
 normative complète ; un événement conditionnel n'est publié que si son fait se
@@ -99,6 +100,7 @@ produit réellement.
 | PDF | artefact d'une version immuable |
 | Règlement erroné | inversion complète, jamais édition |
 | Comptabilité et banque | hors scope 1.0 |
+| Import initial | package canonique, provenance exacte, aucune simulation opérationnelle |
 
 ---
 
@@ -117,6 +119,7 @@ produit réellement.
 - [x] L'émission est distincte de la livraison et de l'ouverture.
 - [x] Les paiements partiels, trop-perçus, inversions et avoirs sont couverts.
 - [x] Les références inter-workspaces sont refusées.
+- [x] L'import initial conserve l'histoire sans renuméroter ni communiquer.
 - [x] Les extensions futures ne contaminent pas le contrat 1.0.
 - [x] Les contrôles documentaires automatisés passent.
 

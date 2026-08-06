@@ -3,8 +3,8 @@ id: BIL-PUBLIC-CONTRACT
 title: Billing Public Contract
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -52,6 +52,7 @@ markInvoiceOverdue(workspaceId, invoiceId, clockProof, expectedRevision, request
 requestInvoiceReminder(workspaceId, invoiceId, delivery, expectedRevision, requestId)
 recordPayment(workspaceId, invoiceId, payment, expectedRevision, requestId)
 reversePayment(workspaceId, invoiceId, paymentId, reason, expectedRevision, requestId)
+importHistoricalBillingHistory(workspaceId, importManifest, expectedRevision, requestId)
 ```
 
 ## Commandes CreditNote
@@ -77,6 +78,7 @@ listInvoicePayments(workspaceId, invoiceId)
 getCreditNote(workspaceId, creditNoteId)
 listCreditNotes(workspaceId, invoiceId?, status?, cursor?)
 getDocumentArtifact(workspaceId, documentType, documentId, artifactVersion)
+getBillingHistoryImport(workspaceId, importRunId)
 ```
 
 Les permissions `read` correspondantes s'appliquent. Les listes sont paginées
@@ -129,6 +131,21 @@ snapshots, adresses, références de paiement et preuves publiques.
 révision. Il redevient absent après `InvoiceSettlementReopened` jusqu'à un
 nouveau règlement complet par Payment.
 
+Après `BillingHistoryImportCompleted`, Analytics peut relire le manifest minimal :
+
+```text
+getBillingHistoryImportManifest(workspaceId, importRunId, manifestVersion)
+→
+WorkspaceId
+ImportRunId
+ManifestVersion
+PackageHash
+Records[] { RecordKind, AggregateId, AggregateVersion, SourceOccurredAt, FactHash }
+```
+
+La lecture exige `billing.analytics-facts.read`. Elle exclut le package brut,
+les numéros de document, les références de paiement et les identifiants externes.
+
 ## Erreurs publiques
 
 | Catégorie | Sens |
@@ -143,6 +160,7 @@ nouveau règlement complet par Payment.
 | `CalculationConflict` | totaux ou politique de calcul incompatibles |
 | `BalanceConflict` | application supérieure au solde ou état de règlement obsolète |
 | `NumberingUnavailable` | allocation de numéro impossible |
+| `ImportValidationFailed` | package, mapping ou soldes historiques incohérents |
 | `Conflict` | révision ou idempotence incompatible |
 | `TemporarilyUnavailable` | dépendance nécessaire indisponible |
 

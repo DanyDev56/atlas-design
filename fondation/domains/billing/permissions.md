@@ -3,8 +3,8 @@ id: BIL-PERMISSIONS
 title: Billing Permissions
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - scope.md
@@ -60,9 +60,19 @@ et résout leur efficacité dans un Workspace.
 | `billing.credit-notes.issue` | Émettre une CreditNote. |
 | `billing.credit-notes.apply` | Appliquer une CreditNote à son Invoice source. |
 
+## Historique initial
+
+| Clé | Intention |
+|---|---|
+| `billing.history.import` | Confirmer un import historique financier borné, critique et audité. |
+
 Les permissions de mutation impliquent la permission `read` de leur ressource.
 Le rôle owner actif conserve toutes les permissions Billing actives selon la
 politique produit du Workspace.
+
+`billing.history.import` exige la lecture des Clients mappés, une
+prévisualisation confirmée et un step-up selon la politique de sécurité. Elle
+n'accorde aucune capacité d'émission ou de communication.
 
 ## Capacités SystemActorOnly
 

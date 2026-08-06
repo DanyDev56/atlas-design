@@ -3,8 +3,8 @@ id: CRM-EVENTS
 title: CRM Domain Events
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -26,7 +26,7 @@ commande implicite ni donnée personnelle inutile.
 | `EventName` | nom canonique |
 | `SchemaVersion` | version du contrat |
 | `OccurredAt` | instant du fait |
-| `AggregateType` | Client, Opportunity ou Activity |
+| `AggregateType` | Client, Opportunity, Activity ou ClientHistoryImportRun |
 | `AggregateId` | identifiant de racine |
 | `AggregateVersion` | révision après commit |
 | `WorkspaceId` | contexte d'isolation |
@@ -49,6 +49,12 @@ Les adresses, téléphones, notes libres et identifiants fiscaux restent hors de
 | `ClientBillingProfileUpdated` | `UpdateClientBillingProfile` | Nouvelle version du profil administratif. |
 | `ClientArchived` | `ArchiveClient` | Client retiré de l'usage courant. |
 | `ClientReactivated` | `ReactivateClient` | Client archivé redevenu actif. |
+| `ClientHistoryImportRequested` | `ImportHistoricalClients` | Run confirmé, hashé et accepté pour traitement. |
+| `ClientHistoryImportCompleted` | `ImportHistoricalClients` | Manifest validé et Clients historiques rendus visibles. |
+
+Les événements d'import contiennent seulement `ImportRunId`, version du
+manifest, compteurs et hash. Ils n'exposent ni package, ni profil Client, ni
+identifiant externe source. L'import ne fabrique aucun `ClientCreated`.
 
 ## Contact
 

@@ -3,7 +3,7 @@ id: BPT-010
 title: MVP Implementation Plan
 status: In Review
 owner: Product and Engineering
-version: 1.5.0
+version: 1.6.0
 last_updated: 2026-08-06
 
 references:
@@ -99,6 +99,12 @@ Gate de sortie : un devis accepté mène à une facture soldée sans doublon apr
 retry ; paiements partiels, inversions, conflits et échecs de fournisseur sont
 testés.
 
+Le même incrément livre l'import initial décrit dans
+[`historical-import.md`](historical-import.md) : package canonique, aperçu,
+Clients, Quotes, Invoices, Payments, checkpoints et absence stricte d'effets
+externes. Sa gate ajoute un rejeu sans doublon, la conservation des numéros et
+dates source, la reprise après panne et la suppression du fichier brut.
+
 ### Incrément 4 — Faits et snapshots Analytics
 
 Ingest les faits CRM/Billing supportés, matérialise les treize métriques du
@@ -163,6 +169,7 @@ restants sont explicitement acceptés.
 | CRM → Billing | contextes Client et Opportunity versionnés | document bâti sur une donnée mutable ou étrangère. |
 | Billing → CRM | `QuoteAccepted` vers gain idempotent | Opportunity gagnée deux fois ou sans preuve. |
 | CRM/Billing → Analytics | événement, puis relecture de la révision exacte | mesure incohérente ou double comptage. |
+| Import CRM/Billing → Analytics | manifests corrélés puis rebuild isolé | snapshot publié sur un historique partiel. |
 | Analytics → Business Health | snapshot exact et versionné | score calculé sur des périodes incompatibles. |
 | Business Health → Advisor | assessment exact | recommandation fondée sur une vue différente. |
 | Advisor → Notifications | overview stabilisé et monotone | priorité obsolète ou notification dupliquée. |

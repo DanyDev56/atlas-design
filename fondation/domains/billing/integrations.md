@@ -3,8 +3,8 @@ id: BIL-INTEGRATIONS
 title: Billing Integrations
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -76,6 +76,7 @@ getQuoteAnalyticsFact(workspaceId, quoteId, aggregateVersion)
 getInvoiceAnalyticsFact(workspaceId, invoiceId, aggregateVersion)
 getPaymentAnalyticsFact(workspaceId, invoiceId, paymentId, aggregateVersion)
 getCreditNoteAnalyticsFact(workspaceId, creditNoteId, aggregateVersion)
+getBillingHistoryImportManifest(workspaceId, importRunId, manifestVersion)
 ```
 
 La capacité `billing.analytics-facts.read` est SystemActorOnly. Les faits
@@ -83,10 +84,15 @@ excluent données personnelles, contenu de document, références de paiement et
 preuves publiques. Advisor consomme les analyses en aval au lieu de recalculer
 les agrégats Billing. Aucun de ces domaines ne mute Billing.
 
+Analytics attend `BillingHistoryImportCompleted` et la completion CRM corrélée
+avant de reconstruire une génération bornée depuis le manifest. Les agrégats en
+cours d'import ne sont pas exposés à sa génération active.
+
 ## Hors 1.0
 
 Banque, prestataire de paiement, comptabilité et réseau de facturation
-électronique n'ont aucun contrat opérationnel Billing 1.0.
+électronique n'ont aucun contrat opérationnel Billing 1.0. L'import CSV initial
+est un transfert contrôlé, pas un connecteur synchronisé.
 
 ## Garanties
 

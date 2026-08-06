@@ -3,7 +3,7 @@ id: BPT-004
 title: Product Modules
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -46,8 +46,9 @@ Son contrat détaillé se trouve dans [`dashboard.md`](dashboard.md).
 ### Onboarding
 
 L'onboarding orchestre les intentions Identity et Workspace jusqu'à un
-Workspace actif. Il peut guider la création du premier Client et du premier
-Quote, mais ne possède aucune de ces entités.
+Workspace actif. Il propose ensuite la saisie initiale ou l'import historique
+défini dans [`historical-import.md`](historical-import.md). Il ne possède aucun
+Client, Quote, Invoice, Payment ou résultat d'import.
 
 ### Settings
 

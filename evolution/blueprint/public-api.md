@@ -3,7 +3,7 @@ id: BPT-008
 title: Contract and API Exposure
 status: In Review
 owner: Product and Engineering
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -52,6 +52,7 @@ contrat sans modifier son intention ou ses garanties.
 |---|---|
 | Identity et Workspace | adaptateurs first-party pour l'application et contrats de confiance pour le bootstrap. |
 | CRM et Billing | commandes et lectures first-party ; vues publiques de document accessibles uniquement avec preuve bornée. |
+| Import initial | upload first-party isolé, aperçu sans mutation, puis intentions CRM/Billing confirmées et auditables. |
 | Analytics à Notifications | lectures utilisateur first-party et contrats système authentifiés entre workloads. |
 | Dashboard | composition côté application ou backend-for-frontend à partir des lectures publiques existantes. |
 | Domain Events | enveloppes versionnées livrées à des consommateurs allowlistés, jamais un flux public générique. |
@@ -73,6 +74,8 @@ Workspace.
 - aucune credential, preuve publique ou donnée personnelle sensible dans un
   événement ou un log ordinaire ;
 - quotas, taille maximale, timeout et corrélation définis dans l'adaptateur.
+- un fichier importé n'est jamais interprété comme une commande avant scan,
+  mapping canonique, aperçu et confirmation humaine.
 
 Un adaptateur REST éventuel peut utiliser OpenAPI. Cette décision ne transforme
 pas REST, OAuth2 ou les webhooks en contraintes universelles du domaine.

@@ -3,8 +3,8 @@ id: ANL-WORKFLOWS
 title: Analytics Workflows
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -65,6 +65,14 @@ Le projecteur :
    `Superseded`.
 
 Un échec marque la génération `Failed` et conserve l'active précédente.
+
+### Rebuild après import historique
+
+La completion corrélée des imports CRM et Billing déclenche ce même mécanisme
+avec `RebuildReason = HistoricalImport`. Les manifests figent agrégats, versions,
+hashs et watermarks cibles. Tant que la génération n'est pas validée et activée,
+les lectures et snapshots continuent d'utiliser l'ancienne génération ; aucune
+vue intermédiaire n'est déclarée complète.
 
 ## Publication vers Business Health
 

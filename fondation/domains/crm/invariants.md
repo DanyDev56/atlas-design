@@ -3,8 +3,8 @@ id: CRM-INVARIANTS
 title: CRM Invariants
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -45,6 +45,9 @@ references:
 | `CRM-INV-023` | Toute commande est idempotente dans sa portée métier. |
 | `CRM-INV-024` | État, Domain Events et outbox sont enregistrés atomiquement. |
 | `CRM-INV-025` | Pipeline est une projection et ne possède aucun état métier indépendant. |
+| `CRM-INV-026` | Un Client importé conserve une provenance, un instant source et un hash immuables sans perdre son identité Atlas. |
+| `CRM-INV-027` | Une identité externe historique est unique dans `(WorkspaceId, SourceSystem, RecordKind, ExternalId)` et tout rejeu divergent est refusé. |
+| `CRM-INV-028` | Un import historique ne produit aucun événement opérationnel et ne devient visible qu'après validation de son manifest complet. |
 
 ---
 
@@ -297,3 +300,29 @@ ensemble. Un refus ne produit aucun fait de réussite.
 
 Une colonne de pipeline correspond à un statut canonique. Aucun déplacement,
 ordre manuel ou libellé d'interface ne peut contourner une commande Opportunity.
+
+---
+
+## CRM-INV-026 — Provenance historique
+
+Un Client importé reçoit un `ClientId` Atlas et un
+`HistoricalImportProvenance` immuable. Sa date source ne remplace jamais
+`ImportedAt`, et son hash permet de prouver ce qui a été accepté sans conserver
+le package brut.
+
+---
+
+## CRM-INV-027 — Identité externe
+
+La clé externe est bornée au Workspace, au système déclaré et au type de ligne.
+Un rejeu identique converge vers le Client initial. Une ligne différente sous
+la même clé produit `Conflict` ; aucun merge heuristique n'est exécuté.
+
+---
+
+## CRM-INV-028 — Barrière de completion
+
+Les Clients d'un run restent hors des lectures courantes et des contrats
+Analytics tant que compteurs, checkpoints et hash du manifest ne concordent
+pas. La completion les rend visibles ensemble du point de vue du contrat ; elle
+publie `ClientHistoryImportCompleted`, jamais `ClientCreated`.

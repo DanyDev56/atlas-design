@@ -3,8 +3,8 @@ id: BIL-WORKFLOWS
 title: Billing Workflows
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -29,6 +29,21 @@ references:
 
 Un échec de livraison ne remet pas la Quote en Draft. L'outbox retente la même
 intention ; l'émetteur peut la retirer explicitement.
+
+## Importer l'historique initial
+
+1. l'adaptateur prépare un package canonique et un aperçu sans mutation ;
+2. le manifest Client CRM terminé résout chaque contrepartie ;
+3. `ImportHistoricalBillingHistory` confirme hash, compteurs et mapping ;
+4. le run matérialise Quotes, Invoices puis Payments par checkpoints ;
+5. Billing recalcule les totaux et soldes, et bloque tout écart ;
+6. la completion rend les agrégats visibles et publie
+   `BillingHistoryImportCompleted` ;
+7. Analytics reconstruit ensuite une génération contrôlée.
+
+Ce workflow ne passe jamais par les commandes de création, d'envoi, d'émission
+ou d'encaissement. Une relance ultérieure reste une nouvelle intention humaine
+après revalidation de l'adresse et de l'autorisation.
 
 ## Quote acceptée vers Opportunity et Invoices
 

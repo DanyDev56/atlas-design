@@ -3,8 +3,8 @@ id: ANL-INTEGRATIONS
 title: Analytics Integrations
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - api.md
@@ -91,6 +91,22 @@ getCreditNoteAnalyticsFact(workspaceId, creditNoteId, aggregateVersion)
 Ces contrats exposent montants, devises, statuts, ClientId et instants minimaux,
 jamais snapshots de document, adresses, lignes, références de paiement ou
 preuves publiques.
+
+## Import historique
+
+Analytics ne consomme pas les agrégats partiellement matérialisés. Il attend la
+corrélation de `ClientHistoryImportCompleted` et
+`BillingHistoryImportCompleted`, relit les deux manifests versionnés, puis lance
+une génération isolée avec les watermarks d'import comme cible.
+
+```text
+getClientHistoryImportManifest(workspaceId, importRunId, manifestVersion)
+getBillingHistoryImportManifest(workspaceId, importRunId, manifestVersion)
+```
+
+Chaque référence du manifest est relue via le contrat de fait propriétaire
+existant. Une validation ou un checkpoint incomplet conserve l'ancienne
+génération et interdit la publication d'un snapshot présenté comme complet.
 
 ## Business Health
 

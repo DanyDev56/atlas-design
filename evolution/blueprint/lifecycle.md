@@ -3,7 +3,7 @@ id: BPT-003
 title: MVP Business Lifecycle
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -55,6 +55,23 @@ Le `?` est intentionnel : un plan valide peut décider de ne créer aucune
 notification. De même, une évaluation Advisor valide peut ne produire aucune
 Recommendation et une évaluation Business Health peut conclure à
 `InsufficientData`.
+
+## Chemin de démarrage avec historique
+
+```text
+CRM ClientHistoryImportCompleted
+        +
+Billing BillingHistoryImportCompleted
+        |
+        v
+Analytics isolated rebuild -> validated generation -> snapshot
+        |
+        v
+Business Health -> Advisor -> Notifications?
+```
+
+Les événements de completion ne simulent aucun fait opérationnel. Analytics
+relit les manifests et ne bascule sa génération qu'après validation complète.
 
 ---
 

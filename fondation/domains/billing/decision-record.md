@@ -3,8 +3,8 @@ id: BIL-DECISIONS
 title: Billing Decision Record
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - mission.md
@@ -33,3 +33,4 @@ references:
 | `BIL-ADR-014` | Le retard est une propriété dérivée de l'échéance et du solde. | Le scheduler matérialise le fait sans devenir propriétaire de l'état financier. |
 | `BIL-ADR-015` | Le PDF est un artefact d'une version immuable. | Le modèle de domaine, non le fichier, reste la source canonique. |
 | `BIL-ADR-016` | Billing 1.0 n'est ni un grand livre ni un moteur bancaire. | Comptabilité, rapprochement et paiement en ligne restent hors scope. |
+| `BIL-ADR-017` | L'import historique est une intention distincte des cycles opérationnels. | Les états source sont conservés sans renumérotation, communication ni événements opérationnels simulés. |

@@ -3,8 +3,8 @@ id: CRM-COMMANDS
 title: CRM Commands
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - ../aggregates.md
@@ -28,6 +28,7 @@ validée et commise atomiquement avec ses Domain Events.
 - [`UpdateClientBillingProfile`](UpdateClientBillingProfile.md)
 - [`ArchiveClient`](ArchiveClient.md)
 - [`ReactivateClient`](ReactivateClient.md)
+- [`ImportHistoricalClients`](ImportHistoricalClients.md)
 
 ### Contact
 

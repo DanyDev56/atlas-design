@@ -182,7 +182,7 @@ awk -F'|' '
 ' "$billing_root/consolidation-matrix.md" \
   | rg -o '`[A-Z][A-Za-z0-9]+`' | tr -d '`' | sort -u > "$tmp_trace_events"
 
-awk -F'|' '$2 ~ /`(Quote|Invoice|Payment|CreditNote)[A-Z][A-Za-z0-9]+`/ {
+awk -F'|' '$2 ~ /`(Quote|Invoice|Payment|CreditNote|BillingHistory)[A-Z][A-Za-z0-9]+`/ {
   value=$2; gsub(/^[[:space:]]*`|`[[:space:]]*$/, "", value); print value
 }' "$billing_root/events.md" | sort -u > "$tmp_catalog_events"
 

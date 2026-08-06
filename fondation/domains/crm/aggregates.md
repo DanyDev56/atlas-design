@@ -3,8 +3,8 @@ id: CRM-AGGREGATES
 title: CRM Aggregates
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -23,6 +23,7 @@ references:
 | Client | `Client` | `WorkspaceId` |
 | Opportunity | `Opportunity` | `WorkspaceId`, `ClientId`, `ContactId?` |
 | Activity | `Activity` | `WorkspaceId`, `ClientId`, `ContactId?`, `OpportunityId?` |
+| Client History Import | `ClientHistoryImportRun` | `WorkspaceId`, package canonique opaque |
 
 ---
 
@@ -56,6 +57,15 @@ une nouvelle Opportunity.
 Chaque Activity est indépendante pour éviter qu'un historique croissant ne
 verrouille le Client. Une correction ajoute une révision au même agrégat et
 préserve la valeur antérieure dans l'audit.
+
+---
+
+## Agrégat Client History Import
+
+Le run protège identité du package, checkpoints, compteurs et manifest final.
+Les Clients sont matérialisés par transactions bornées et restent invisibles aux
+lectures courantes jusqu'à la validation du manifest. Un retry reprend le même
+run ; il ne recrée ni ne fusionne silencieusement les Clients déjà validés.
 
 ---
 

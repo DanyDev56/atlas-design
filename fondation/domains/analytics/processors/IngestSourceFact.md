@@ -3,8 +3,8 @@ id: ANL-PROC-INGEST-SOURCE-FACT
 title: IngestSourceFact
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -33,7 +33,7 @@ de faits du domaine source.
 
 ```text
 WorkspaceId
-SourceEventEnvelope
+SourceEventEnvelope | HistoricalImportManifestEntry
 IngestSourceFactRequestId
 WorkloadContext
 ```
@@ -41,9 +41,15 @@ WorkloadContext
 `SourceEventEnvelope` fournit `SourceEventId`, type, agrégat, version, instant,
 causalité et signature. Sa version joue le rôle de concurrence source.
 
+Une `HistoricalImportManifestEntry` est autorisée uniquement après un événement
+de completion authentique. Elle fournit cet EventId, l'`ImportRunId`, la version
+et le hash du manifest, puis une référence d'agrégat et de version. Elle ne
+simule aucun événement opérationnel.
+
 ## Préconditions et traitement
 
-- événement supporté, authentique et du même Workspace ;
+- événement supporté ou entrée d'un manifest completed authentique, dans le
+  même Workspace ;
 - EventId non associé à un autre contenu ;
 - révision non régressive ou FactKind distinct à révision égale ;
 - lecture exacte du fait à `AggregateVersion` ;
@@ -66,5 +72,6 @@ causalité et signature. Sa version joue le rôle de concurrence source.
 
 ## Idempotence
 
-`IngestSourceFactRequestId` est obligatoire et dérivé de `SourceEventId`. Un
-rejeu identique retourne le résultat initial ; un EventId altéré est refusé.
+`IngestSourceFactRequestId` est obligatoire et dérivé de `SourceEventId`, puis
+de l'identité d'entrée pour un manifest. Un rejeu identique retourne le résultat
+initial ; un EventId, hash de manifest ou contenu altéré est refusé.

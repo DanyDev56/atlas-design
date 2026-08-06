@@ -3,7 +3,7 @@ id: ANL-PUBLIC-CONTRACT
 title: Analytics Public Contract
 status: In Review
 owner: Product
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
@@ -77,7 +77,7 @@ au maximum du profil ; il ne peut jamais élargir la fenêtre de publication.
 ## Intentions système internes
 
 ```text
-ingestSourceFact(workspaceId, sourceEventEnvelope,
+ingestSourceFact(workspaceId, sourceEventEnvelopeOrHistoricalManifestEntry,
                  ingestSourceFactRequestId)
 
 startAnalyticsProjectionRebuild(workspaceId, generationId, rebuildScope,

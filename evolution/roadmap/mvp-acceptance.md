@@ -3,13 +3,14 @@ id: ROADMAP-002
 title: Atlas MVP End-to-End Acceptance
 status: In Review
 owner: Product
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
   - mvp-scope.md
   - ../blueprint/implementation-plan.md
   - ../blueprint/dashboard.md
+  - ../blueprint/historical-import.md
   - ../../fondation/product/product-strategy.md
   - ../../fondation/product/personnas/persona-primary.md
   - ../../fondation/product/jobs-to-be-done/manage-business.md
@@ -87,6 +88,28 @@ et du `WorkspaceId`.
 - aucune adresse, credential ou topologie de permissions sensible n'apparaît
   dans les événements d'intégration.
 
+### Démarrage à froid d'un utilisateur établi
+
+Après l'activation, l'utilisateur peut ignorer l'import et saisir sa première
+donnée, ou confirmer un package canonique prévisualisé :
+
+| Étape | Propriétaire | Intention | Résultat attendu |
+|---|---|---|---|
+| 1 | Adaptateur d'import | upload, scan, mapping et aperçu | Aucune mutation métier ; erreurs et doublons probables explicités. |
+| 2 | CRM | `ImportHistoricalClients` | `ClientHistoryImportRequested`, puis `ClientHistoryImportCompleted`. |
+| 3 | Billing | `ImportHistoricalBillingHistory` | Clients résolus, puis `BillingHistoryImportRequested` et `BillingHistoryImportCompleted`. |
+| 4 | Analytics | rebuild isolé depuis les manifests corrélés | Aucune génération partielle active ; bascule après validation seulement. |
+| 5 | Application | lectures Dashboard propriétaires | Clients, soldes, couverture et limites visibles sans score inventé. |
+
+Le scénario accepte un historique incomplet : Business Health rend `Limited` si
+sa couverture autorise un score, sinon `InsufficientData`. Dans les deux cas, le
+Dashboard explique les périodes ou faits manquants et Advisor ne fabrique aucune
+Recommendation de collecte.
+
+Critères obligatoires : même package sans doublon, collision divergente refusée,
+reprise à chaque checkpoint, numéros/dates/états conservés, aucun envoi ou numéro
+Atlas créé et fichier brut supprimé dans les vingt-quatre heures.
+
 ---
 
 ## MVP-J2 — Du client au paiement
@@ -163,6 +186,8 @@ décide, une notification personnelle.
   nouveau snapshot, sans réécrire l'historique publié ;
 - un snapshot incomplet peut conduire à `InsufficientData` ; ce résultat reste
   consultable et expliqué ;
+- un import incomplet ou non validé ne peut jamais produire un snapshot déclaré
+  complet ;
 - zéro recommandation est un résultat nominal de l'évaluation Advisor ;
 - Notifications ne réagit qu'à `RecommendationEvaluationCompleted` pour créer
   un plan, jamais directement à `RecommendationGenerated` ;
@@ -185,6 +210,7 @@ décide, une notification personnelle.
 | Reprise asynchrone | Un consumer reprend depuis son checkpoint et déduplique par événement source. |
 | Traçabilité | `CorrelationId`, `CausationId`, `EventId`, acteur, versions et résultat sont recherchables sans secret. |
 | Données absentes | `NoData`, `InsufficientData` et zéro Recommendation sont distincts d'une panne. |
+| Import historique | Numéros, dates et états sont conservés sans rejouer émission, numérotation, paiement ou communication. |
 | Effet externe | Rendu et livraison possèdent une clé fournisseur, un statut prouvé et une politique de retry bornée. |
 | Reconstruction | Analytics, Business Health, Advisor et Notifications peuvent reconstruire leurs projections depuis des sources immuables et versionnées. |
 | Accessibilité | Les parcours principaux sont utilisables au clavier, avec libellés, focus, erreurs et statuts non dépendants de la couleur. |

@@ -3,8 +3,8 @@ id: ANL-INVARIANTS
 title: Analytics Invariants
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-05
+version: 1.2.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -22,7 +22,7 @@ references:
 |---|---|
 | `ANL-INV-001` | Tout fait, série, génération, snapshot, permission et référence appartient à un seul `WorkspaceId`. |
 | `ANL-INV-002` | Les identifiants Analytics sont stables, uniques et jamais réattribués. |
-| `ANL-INV-003` | Un fait provient d'un événement authentique et d'un contrat source supporté ; Analytics n'accepte aucune valeur métier libre. |
+| `ANL-INV-003` | Un fait provient d'un événement authentique ou d'une entrée de manifest ancrée à une completion authentique, puis d'un contrat source supporté ; Analytics n'accepte aucune valeur métier libre. |
 | `ANL-INV-004` | Un `SourceEventId` est enregistré au plus une fois ; son rejeu identique est sans effet et un contenu différent est refusé. |
 | `ANL-INV-005` | Les versions d'un agrégat source ne régressent jamais ; un trou est attendu, relu ou reconstruit, jamais supposé. |
 | `ANL-INV-006` | Plusieurs événements supportés d'une même transaction peuvent partager une version source ; leur EventId reste distinct et leur contribution commune n'est jamais comptée deux fois. |

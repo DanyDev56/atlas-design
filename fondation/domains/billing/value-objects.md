@@ -3,8 +3,8 @@ id: BIL-VALUE-OBJECTS
 title: Billing Value Objects
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -21,6 +21,9 @@ references:
 `QuoteId`, `InvoiceId`, `PaymentId`, `CreditNoteId`, `DocumentArtifactId`,
 `WorkspaceId`, `ClientId`, `OpportunityId` et les RequestId
 spécialisés sont des types distincts et non réutilisables.
+
+`ImportRunId` identifie une intention d'import historique et ne peut être
+substitué à aucun identifiant de document.
 
 ---
 
@@ -79,6 +82,28 @@ Numéro canonique composé d'une série, d'une période et d'une valeur allouée
 est unique dans `(WorkspaceId, DocumentType, Series, Period, Value)` et jamais
 réutilisé. La séquence est monotone dans
 `(WorkspaceId, DocumentType, Series, Period)`.
+
+Un document importé conserve séparément un `HistoricalDocumentNumber` exact,
+affiché comme son numéro source. Cette valeur ne réserve aucun nombre dans
+`DocumentNumberSequence` et porte toujours sa provenance pour éviter toute
+confusion avec une émission Atlas.
+
+---
+
+## HistoricalImportProvenance
+
+```text
+HistoricalImportProvenance
+├── ImportRunId
+├── SourceSystem
+├── ExternalIdHash
+├── SourceOccurredAt
+├── ImportedAt
+└── CanonicalRecordHash
+```
+
+La provenance est immuable. L'identifiant externe n'est jamais publié dans les
+événements ou contrats Analytics.
 
 ---
 

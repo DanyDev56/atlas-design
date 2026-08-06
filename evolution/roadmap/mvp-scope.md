@@ -3,7 +3,7 @@ id: ROADMAP-001
 title: Atlas MVP Scope
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -32,7 +32,7 @@ Gérer -> Comprendre -> Décider -> Agir -> Mesurer
 Un utilisateur doit pouvoir :
 
 1. créer son Workspace ;
-2. enregistrer un client ;
+2. importer son historique existant ou enregistrer un client ;
 3. créer et envoyer un devis ;
 4. faire accepter ou refuser ce devis ;
 5. transformer le devis accepté en facture ;
@@ -64,6 +64,7 @@ Un utilisateur doit pouvoir :
 - contacts ;
 - opportunités simples ;
 - historique d’activité.
+- import initial guidé des clients.
 
 ### Billing
 
@@ -75,6 +76,8 @@ Un utilisateur doit pouvoir :
 - documents PDF ;
 - échéances ;
 - relances manuelles.
+- import initial guidé des devis, factures et paiements, sans rejeu d'effet
+  opérationnel.
 
 ### Analytics — moteur interne
 
@@ -125,6 +128,7 @@ context, ne possède aucune vérité métier et ne recalcule aucun indicateur.
 - synchronisation bancaire ;
 - rapprochement bancaire ;
 - facturation électronique complète ;
+- connecteurs synchronisés vers des produits tiers ;
 - gestion de stock ;
 - paie ;
 - projets complexes ;

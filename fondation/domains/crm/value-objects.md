@@ -3,8 +3,8 @@ id: CRM-VALUE-OBJECTS
 title: CRM Value Objects
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - model.md
@@ -28,8 +28,27 @@ Les valeurs CRM sont immuables, normalisées et validées à la construction.
 | `WorkspaceId` | référence externe et frontière d'isolation |
 | `QuoteId` | référence Billing optionnelle dans un résultat |
 | `CRMRequestId` | racine des clés d'idempotence |
+| `ImportRunId` | identifie une intention d'import historique |
 
 Ces types ne sont jamais interchangeables.
+
+---
+
+## HistoricalImportProvenance
+
+```text
+HistoricalImportProvenance
+├── ImportRunId
+├── SourceSystem
+├── ExternalIdHash
+├── SourceOccurredAt
+├── ImportedAt
+└── CanonicalRecordHash
+```
+
+L'identifiant externe est chiffré ou hashé selon le besoin de relecture et n'est
+jamais publié. La provenance distingue une ligne importée d'une création Atlas
+sans modifier son cycle Client courant.
 
 ---
 

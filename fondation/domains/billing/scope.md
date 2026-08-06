@@ -3,8 +3,8 @@ id: BIL-SCOPE
 title: Billing Scope
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -63,6 +63,14 @@ references:
 - livraison et relance des Quotes et Invoices déléguées à Communication ;
 - téléchargement membre d'une CreditNote, sans envoi dédié en 1.0.
 
+### Démarrage à froid
+
+- import initial guidé de Quotes, Invoices et Payments historiques ;
+- conservation des numéros, dates, états, montants et devises source ;
+- rapprochement exact des Clients déjà importés ;
+- reprise par checkpoint et validation des soldes avant publication Analytics ;
+- aucune renumérotation, émission, livraison ou communication rejouée.
+
 ---
 
 ## Hors périmètre
@@ -92,5 +100,6 @@ references:
 - aucune multi-devise, conversion ou rapprochement bancaire ;
 - aucune suppression physique ;
 - aucune modification financière après émission.
+- aucun connecteur synchronisé ou import comptable complet.
 
 Les extensions sont classées dans [`future.md`](future.md).

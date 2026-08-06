@@ -3,7 +3,7 @@ id: BPT-002
 title: MVP User Journeys
 status: In Review
 owner: Product
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-06
 
 references:
@@ -33,14 +33,21 @@ S'inscrire
   -> renseigner son activité
   -> attendre le provisioning explicite
   -> entrer dans un Workspace actif
+  -> choisir une saisie neuve ou importer son historique
 ```
 
 L'utilisateur voit la progression du provisioning. Il ne peut pas entrer dans
 une application partiellement autorisée. Si une étape échoue, Atlas reprend le
 même workflow et n'impose ni nouveau compte ni nouveau Workspace.
 
+Pour un utilisateur établi, l'import guidé enchaîne Clients, Quotes, Invoices et
+Payments. Atlas préserve numéros, dates et états historiques, mais ne rejoue
+aucun envoi, aucune émission, aucune communication ni aucune numérotation.
+
 Résultat : une identité active, un Workspace actif et un membership owner
-cohérents.
+cohérents, puis une première vue utile issue de données réelles. Si la couverture
+reste insuffisante, Atlas montre le chemin de progression au lieu d'inventer un
+score ou une priorité.
 
 ---
 

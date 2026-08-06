@@ -3,7 +3,7 @@ id: BPT-011
 title: MVP Integration Boundaries
 status: In Review
 owner: Product and Engineering
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-08-06
 
 references:
@@ -48,11 +48,17 @@ Third-party product synchronization
 | remise de document financier | Billing | remet devis, factures et relances et retourne une preuve de prise en charge. |
 | remise d'email Advisor | Notifications | remet uniquement les notifications éligibles après consentement et revalidation. |
 | stockage d'artefacts | domaine propriétaire | conserve un objet immuable adressé par référence opaque et politique de rétention. |
+| import historique initial | CRM et Billing | scanne, mappe, prévisualise et remet un package canonique confirmé à rétention courte. |
 | horloge, bus, observabilité | plateforme | fournit des capacités techniques sans devenir propriétaire des décisions métier. |
 
 Identity, Billing et Notifications ne partagent pas un service métier de
 « communication ». Ils peuvent partager une librairie ou une infrastructure,
 mais gardent leurs templates, consentements, preuves, retries et événements.
+
+L'import historique est un adaptateur first-party borné, pas un connecteur de
+synchronisation. Il applique taille maximale, détection de malware, protection
+contre les archives expansives, parsing sans contenu actif, schémas allowlistés,
+chiffrement temporaire et suppression du fichier brut sous vingt-quatre heures.
 
 ---
 
@@ -96,6 +102,9 @@ une commande, un invariant ou un événement métier.
 Gmail, Outlook, calendriers, stockage utilisateur, Stripe, GoCardless,
 Pennylane, Indy, banques, signature, GitHub et outils similaires sont des pistes
 post-MVP, pas des engagements.
+
+Leur export peut alimenter le format canonique du MVP ; Atlas n'ouvre aucune
+connexion continue vers ces produits.
 
 Chaque connecteur futur nécessite un besoin priorisé, un propriétaire de vérité,
 un modèle de consentement, une stratégie de conflit, des limites de données et

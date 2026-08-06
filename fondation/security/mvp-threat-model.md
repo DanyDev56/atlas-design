@@ -3,7 +3,7 @@ id: SEC-001
 title: MVP Transversal Threat Model
 status: In Review
 owner: Product, Engineering and Security
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-08-06
 
 references:
@@ -22,6 +22,7 @@ references:
   - ../domains/notifications/integrations.md
   - ../../evolution/roadmap/mvp-acceptance.md
   - ../../evolution/blueprint/dashboard.md
+  - ../../evolution/blueprint/historical-import.md
   - ../../evolution/governance/quality-gates.md
 ---
 
@@ -330,7 +331,7 @@ change ou un test échoue, le risque est réévalué avant acceptation.
 
 | ID | Scénario et catégorie STRIDE | Risque initial | Contrôles | Détection | Vérification | Owner | Résiduel cible |
 |---|---|---|---|---|---|---|---|
-| `SEC-T16` | Injection, overposting/mass assignment ou contenu actif via champs, recherche, templates ou métadonnées (`T`, `I`, `E`). | High | C07, C14, C19 | erreurs de schéma, payloads bloqués et signaux WAF/applicatifs. | `SEC-TEST-015` | Tous modules + adapters | Low |
+| `SEC-T16` | Injection, overposting/mass assignment, fichier actif, malware ou archive expansive via champs, imports, recherche, templates ou métadonnées (`T`, `I`, `E`). | High | C07, C14, C19 | erreurs de schéma, fichiers bloqués, payloads bloqués et signaux WAF/applicatifs. | `SEC-TEST-015` | Tous modules + adaptateur d'import | Low |
 | `SEC-T17` | Forger ou modifier un Domain Event, une preuve d'horloge ou un callback fournisseur (`S`, `T`, `R`). | Critical | C06, C11, C13, C15 | signature/identité/audience invalide, nonce ou timestamp rejoué. | `SEC-TEST-016` | Platform + consommateur | Low |
 | `SEC-T18` | Dupliquer, retarder, réordonner ou omettre un message afin de rétablir un ancien état ou répéter un effet (`T`, `D`). | High | C10, C11, C15 | gap de version/cursor, inbox duplicate et âge de message. | `SEC-TEST-017` | Tous consumers | Low |
 | `SEC-T19` | Un Worker ou Scheduler contourne le domaine en écrivant directement son stockage ou celui d'un autre module (`E`, `T`). | Critical | C05, C06, C10, C18 | requête interdite par rôle datastore et test d'architecture. | `SEC-TEST-018` | Platform + Engineering | Low |
@@ -378,7 +379,7 @@ ce document.
 | `SEC-TEST-012` | Vérifier qu'un `GET`, prefetch, image, iframe, origine tierce ou requête sans confirmation ne décide jamais une Quote. | end-to-end |
 | `SEC-TEST-013` | Modifier artifact, hash, version et référence ; prouver refus et non-remplacement d'un document communiqué. | integration |
 | `SEC-TEST-014` | Concurrencer/rejouer acceptation, émission, séquence, paiement et inversion avec mêmes/différentes clés et révisions. | CI + integration |
-| `SEC-TEST-015` | Fuzz schémas, tailles, encodages, propriétés inconnues, contenu actif et champs server-owned sur toutes les frontières. | CI + dynamic testing |
+| `SEC-TEST-015` | Fuzz schémas, tailles, encodages, propriétés inconnues, contenu actif et champs server-owned ; tester malware, archive expansive, rétention et parsing sans exécution sur l'import. | CI + dynamic testing |
 | `SEC-TEST-016` | Forger/tamper/rejouer événements, horloge et callbacks ; vérifier identité, intégrité, audience, nonce et timestamp. | contract + integration |
 | `SEC-TEST-017` | Injecter duplicate, retard, ancien ordre et trou ; vérifier inbox, cursor/version, lecture exacte et absence de régression. | integration |
 | `SEC-TEST-018` | Faire échouer la CI sur import interne/migration transverse et refuser au runtime l'accès datastore d'un Worker/Scheduler non propriétaire. | CI + pre-release |

@@ -3,8 +3,8 @@ id: CRM-SCOPE
 title: CRM Scope
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - README.md
@@ -60,6 +60,13 @@ references:
 - historique des activités CRM ;
 - contextes versionnés fournis à Billing.
 
+### Démarrage à froid
+
+- import initial guidé de Clients depuis le schéma canonique Atlas ;
+- prévisualisation et refus des lignes invalides avant confirmation ;
+- conservation des états, dates et références historiques minimales ;
+- déduplication exacte par identité externe, sans fusion heuristique.
+
 ---
 
 ## Hors périmètre
@@ -96,7 +103,7 @@ CRM ne réécrit jamais un document financier existant.
 
 - pipeline fixe, sans étapes personnalisées ;
 - aucun scoring prédictif dans CRM ;
-- aucun import massif, fusion ou déduplication automatique ;
+- aucun connecteur synchronisé, fusion ou déduplication heuristique ;
 - aucun Client parent/enfant ;
 - un Contact appartient à un seul Client ;
 - une seule devise de référence par Opportunity, figée à la saisie ;

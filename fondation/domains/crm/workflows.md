@@ -3,8 +3,8 @@ id: CRM-WORKFLOWS
 title: CRM Workflows
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.1.0
+last_updated: 2026-08-06
 
 references:
   - commands/README.md
@@ -27,6 +27,22 @@ Authorize crm.clients.create
 
 Le parcours demande uniquement les données utiles. Le profil de facturation peut
 être complété avant la première Quote ou Invoice.
+
+---
+
+## Importer les Clients existants
+
+1. l'adaptateur prépare et prévisualise un package canonique ;
+2. l'utilisateur corrige les erreurs et confirme son hash ;
+3. `ImportHistoricalClients` crée le run et matérialise les lignes par
+   checkpoints idempotents ;
+4. les doublons exacts convergent, les collisions divergentes bloquent ;
+5. la validation finale rend les Clients visibles et publie
+   `ClientHistoryImportCompleted` ;
+6. Billing peut alors résoudre le manifest Client pour son propre import.
+
+Aucune ligne n'émet `ClientCreated`. Un run interrompu reprend depuis son dernier
+checkpoint et le package brut est supprimé selon sa rétention courte.
 
 ---
 
