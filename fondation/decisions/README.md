@@ -39,3 +39,8 @@ Conserver :
 - intégrations.
 
 Les changements mineurs ne nécessitent pas de décision formelle.
+## Décisions acceptées
+
+- [ADR-001 — Intégration inter-domaines](ADR-001-domain-integration.md)
+- [ADR-002 — Politiques versionnées](ADR-002-versioned-policies.md)
+- [ADR-003 — RouteKeys stables](ADR-003-route-keys.md)

@@ -33,3 +33,13 @@ Une fonctionnalité ne peut être publiée que si tous les critères suivants so
 - La fonctionnalité respecte la Constitution.
 - Elle renforce au moins une Capability.
 - Elle possède des métriques de succès.
+## Gate documentaire automatisé
+
+Toute pull request exécute `bash scripts/check-all.sh`. Le gate vérifie les liens
+locaux, l'unicité des IDs, le registre des RouteKeys, les contrats spécialisés de
+chaque domaine et les erreurs de whitespace. Il est bloquant pour `main` et ne
+requiert aucune dépendance réseau après le checkout.
+
+Une modification de contrat met à jour dans le même commit les producteurs,
+consommateurs, cartes globales et ADR concernés. Désactiver un contrôle nécessite
+un ADR accepté ; une exception temporaire possède propriétaire et échéance.

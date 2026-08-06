@@ -1,10 +1,10 @@
 ---
 id: ROADMAP-001
 title: Atlas MVP Scope
-status: Draft
+status: In Review
 owner: Product
-version: 0.2
-last_updated: 2026-08-05
+version: 1.0
+last_updated: 2026-08-06
 ---
 
 # Atlas MVP
@@ -26,7 +26,11 @@ Un utilisateur doit pouvoir :
 5. transformer le devis accepté en facture ;
 6. enregistrer le paiement ;
 7. comprendre la santé récente de son activité ;
-8. recevoir une priorité d’action claire.
+8. recevoir une priorité d'action claire.
+
+Le démarrage doit aussi permettre un chemin manuel sans dépendance externe et un
+import CSV guidé conforme au contrat de
+[`cold-start.md`](../blueprint/cold-start.md).
 
 ---
 
@@ -52,6 +56,7 @@ Un utilisateur doit pouvoir :
 - contacts ;
 - opportunités simples ;
 - historique d’activité.
+- import CSV guidé des clients, contacts et opportunités sans fusion automatique.
 
 ### Billing
 
@@ -63,6 +68,7 @@ Un utilisateur doit pouvoir :
 - documents PDF ;
 - échéances ;
 - relances manuelles.
+- import CSV guidé des devis, factures et paiements manuels.
 
 ### Business Health
 
@@ -102,3 +108,19 @@ Un utilisateur doit pouvoir :
 - marketplace ;
 - IA générative autonome ;
 - prévisions financières avancées.
+
+
+## Définition de terminé du MVP
+
+- le parcours froid, la boucle commerciale et la boucle de décision passent sur
+  écran mobile de 320 px sans dépendre d'une intégration optionnelle ;
+- chaque domaine livre sa slice verticale décrite dans le Blueprint ;
+- les politiques et résultats portent leur version et sont réversibles ;
+- accessibilité, sécurité, observabilité, contrats et documentation satisfont les
+  quality gates ;
+- aucune exclusion ci-dessus n'apparaît comme dépendance cachée.
+
+## Plan d’implémentation
+
+Les incréments verticaux et leurs gates sont définis dans
+[`mvp-implementation-slices.md`](mvp-implementation-slices.md).

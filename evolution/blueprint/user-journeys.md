@@ -6,10 +6,10 @@ Inscription
 Création Workspace
       │
       ▼
-Assistant de configuration
+Choix import CSV ou saisie manuelle
       │
       ▼
-Premier client
+Premier client validé
       │
       ▼
 Premier devis
@@ -21,10 +21,13 @@ Première facture
 Premier paiement
       │
       ▼
-Premier Business Health
+Premier fait utile et couverture des données
       │
       ▼
-Première recommandation
+Première recommandation, si les préconditions sont réunies
+
+Le contrat détaillé, y compris les états incomplets et la reprise idempotente,
+est défini dans [`cold-start.md`](cold-start.md).
 
 # Signature d'un devis
 

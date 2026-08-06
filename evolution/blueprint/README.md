@@ -19,3 +19,11 @@ Il répond notamment aux questions suivantes :
 - Quelles API sont exposées ?
 
 Ce document est la porte d'entrée pour toute personne rejoignant le projet.
+
+## Parcours structurants
+
+- [Démarrage à froid, import et première valeur](cold-start.md)
+- [Boucle Business Health → Advisor → Notifications](decision-loop.md)
+- [Parcours utilisateur](user-journeys.md)
+- [Navigation](navigation.md)
+- [Registre des RouteKeys](route-key-registry.md)

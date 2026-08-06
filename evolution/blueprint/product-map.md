@@ -1,25 +1,28 @@
-                                   Atlas
+                                   Atlas MVP
 
  ┌─────────────────────────────────────────────────────┐
- │                     Dashboard                       │
+ │                     Aujourd’hui : faits + santé + prochaine action│
  └─────────────────────────────────────────────────────┘
                     │
  ┌───────────┬────────────┬─────────────┬──────────────┐
  │           │            │             │              │
  ▼           ▼            ▼             ▼              ▼
 
- CRM      Projects     Billing      Business      Advisor
+ CRM                   Billing      Business      Advisor
                            │          Health
                            │             │
                            ▼             ▼
-                      Analytics      Recommendations
-                           │
-                           ▼
-                    Notifications
+                      Analytics ──► Business Health
+                                        │
+                                        ▼
+                                     Advisor
+                                        │
+                                        ▼
+                                  Notifications
 
 ──────────────────────────────────────────────────────
 
-Paramètres
+Plus / Paramètres
 
 Intégrations
 
@@ -28,3 +31,9 @@ Workspace
 Profil
 
 Administration
+
+Les flèches expriment des contrats publics asynchrones, jamais un accès direct
+aux données internes. Voir [`decision-loop.md`](decision-loop.md).
+
+Projects, Automations, intégrations profondes et Marketplace appartiennent aux
+phases ultérieures ; ils ne constituent pas des destinations MVP.

@@ -19,6 +19,9 @@ references:
 
 # Workflows
 
+La cadence et l'activation coordonnée des versions suivent la
+[gouvernance des politiques](../../../evolution/governance/evaluation-cadence.md).
+
 ## Évaluation nominale
 
 1. Advisor reçoit `BusinessHealthAssessed`.

@@ -19,6 +19,9 @@ references:
 
 # Workflows
 
+La cadence de reprise et la compatibilité des versions suivent la
+[gouvernance des politiques](../../../evolution/governance/evaluation-cadence.md).
+
 ## Planification nominale
 
 1. Notifications reçoit `RecommendationEvaluationCompleted`.

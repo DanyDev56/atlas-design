@@ -16,7 +16,8 @@ references:
 
 ## Import, déduplication et fusion
 
-- import CSV guidé ;
+- enrichissement de l'import CSV guidé du MVP (formats additionnels, règles de
+  rapprochement assistées et connecteurs) ;
 - détection explicable de doublons ;
 - fusion réversible avec journal de correspondance ;
 - conservation des identifiants référencés par Billing.

@@ -84,3 +84,5 @@ Advisor reçoit l'événement puis relit l'évaluation exacte. Une évaluation
 InsufficientData ou trop ancienne peut produire une Recommendation de
 complétude selon la politique Advisor ; Business Health ne décide pas de cette
 action.
+Le protocole opérationnel de préparation, activation et rollback est défini par
+la [gouvernance des politiques](../../../evolution/governance/evaluation-cadence.md).
