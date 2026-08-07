@@ -281,6 +281,18 @@
         return api('GET', `/workspaces/${state.workspaceId}/pipeline`);
     }
 
+    async function publishSnapshot() {
+        return api('POST', `/workspaces/${state.workspaceId}/analytics/snapshots/publish`, {});
+    }
+
+    async function latestSnapshot() {
+        return api('GET', `/workspaces/${state.workspaceId}/analytics/snapshot/latest`);
+    }
+
+    async function pipelineMetric() {
+        return api('GET', `/workspaces/${state.workspaceId}/analytics/metrics/analytics.pipeline.open-amount`);
+    }
+
     async function runFullFlow() {
         const btn = $('btnFullFlow');
         btn.disabled = true;
@@ -301,6 +313,9 @@
             await issueInvoice();
             await recordPayment();
             await refreshPipeline();
+            await processOutbox();
+            await publishSnapshot();
+            await latestSnapshot();
         } finally {
             btn.disabled = false;
             btn.textContent = '▶ Parcours MVP-J2 complet';
@@ -333,6 +348,9 @@
     bind('btnPayment', recordPayment);
     bind('btnRefreshOpp', refreshOpportunity);
     bind('btnPipeline', refreshPipeline);
+    bind('btnPublishSnapshot', publishSnapshot);
+    bind('btnLatestSnapshot', latestSnapshot);
+    bind('btnPipelineMetric', pipelineMetric);
 
     $('btnFullFlow')?.addEventListener('click', () => runFullFlow().catch((e) => {
         log('ERR', 'full-flow', '—', { message: e.message }, false);

@@ -62,6 +62,13 @@ final class BootstrapIdentityForWorkspaceHandler
         'billing.payments.read',
         'billing.payments.record',
         'billing.payments.reverse',
+        'analytics.metrics.read',
+        'analytics.facts.ingest',
+        'analytics.projections.rebuild',
+        'analytics.snapshots.publish',
+        'analytics.snapshots.consume',
+        'crm.analytics-facts.read',
+        'billing.analytics-facts.read',
     ];
 
     public function __construct(

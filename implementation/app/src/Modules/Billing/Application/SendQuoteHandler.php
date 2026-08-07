@@ -6,9 +6,13 @@ namespace Atlas\Modules\Billing\Application;
 
 use Atlas\Modules\Billing\Domain\Quote;
 use Atlas\Modules\Billing\Domain\QuoteId;
+use Atlas\Modules\Billing\Domain\QuoteSent;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
+use Atlas\Platform\Messaging\EventId;
+use Atlas\Platform\Messaging\OutgoingMessage;
+use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +23,7 @@ final class SendQuoteHandler
         private readonly PostgresQuoteRepository $quotes,
         private readonly PostgresPublicDocumentProofRepository $proofs,
         private readonly PostgresBillingIdempotencyStore $idempotency,
+        private readonly OutboxWriter $outbox,
     ) {}
 
     public function handle(
@@ -77,6 +82,14 @@ final class SendQuoteHandler
                 capabilities: ['accept'],
                 expiresAt: $expiresAt,
             );
+
+            $event = new QuoteSent(
+                quoteId: new QuoteId($quoteId),
+                workspaceId: $workspaceId,
+                eventId: EventId::generate(),
+                occurredAt: $now,
+            );
+            $this->outbox->append(OutgoingMessage::fromDomainEvent($event));
 
             $response = [
                 'quote_id' => $quoteId,

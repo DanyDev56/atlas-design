@@ -74,7 +74,17 @@
             </details>
 
             <details class="section">
-                <summary>Outils</summary>
+                <summary>4. Analytics</summary>
+                <div class="section-body">
+                    <div class="row">
+                        <button type="button" id="btnPublishSnapshot">Publier snapshot</button>
+                        <button type="button" id="btnLatestSnapshot" class="secondary">↻ Snapshot latest</button>
+                        <button type="button" id="btnPipelineMetric" class="secondary">Métrique pipeline</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section">
                 <div class="section-body">
                     <div class="row">
                         <button type="button" id="btnReset" class="danger">Reset session locale</button>

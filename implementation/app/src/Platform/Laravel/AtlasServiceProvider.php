@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Laravel;
 
+use Atlas\Composition\Analytics\OutboxAnalyticsIngestConsumer;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
 use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
@@ -12,6 +13,7 @@ use Atlas\Modules\Crm\Application\AddContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
+use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
@@ -21,6 +23,9 @@ use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
+use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
+use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
+use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
@@ -31,6 +36,13 @@ use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPaymentRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
+use Atlas\Modules\Analytics\Application\AnalyticsQueryHandler;
+use Atlas\Modules\Analytics\Application\IngestSourceFactHandler;
+use Atlas\Modules\Analytics\Application\MetricCalculator;
+use Atlas\Modules\Analytics\Application\PublishAnalyticsSnapshotHandler;
+use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
+use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
+use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
@@ -70,6 +82,7 @@ final class AtlasServiceProvider extends ServiceProvider
                 [
                     $app->make(SpikeEventCounterConsumer::class),
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
+                    $app->make(OutboxAnalyticsIngestConsumer::class),
                 ],
             );
         });
@@ -100,6 +113,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(AddContactHandler::class);
         $this->app->singleton(CreateOpportunityHandler::class);
         $this->app->singleton(QualifyOpportunityHandler::class);
+        $this->app->singleton(GetOpportunityAnalyticsFactHandler::class);
         $this->app->singleton(CrmQueryHandler::class);
 
         $this->app->singleton(PostgresBillingIdempotencyStore::class);
@@ -116,7 +130,19 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(SendInvoiceHandler::class);
         $this->app->singleton(RecordPaymentHandler::class);
         $this->app->singleton(BillingQueryHandler::class);
+        $this->app->singleton(GetQuoteAnalyticsFactHandler::class);
+        $this->app->singleton(GetInvoiceAnalyticsFactHandler::class);
+        $this->app->singleton(GetPaymentAnalyticsFactHandler::class);
         $this->app->singleton(WinOpportunityFromQuoteHandler::class);
         $this->app->singleton(QuoteAcceptedWinOpportunityConsumer::class);
+
+        $this->app->singleton(PostgresAnalyticsIdempotencyStore::class);
+        $this->app->singleton(PostgresAnalyticsFactRepository::class);
+        $this->app->singleton(PostgresAnalyticsSnapshotRepository::class);
+        $this->app->singleton(MetricCalculator::class);
+        $this->app->singleton(IngestSourceFactHandler::class);
+        $this->app->singleton(PublishAnalyticsSnapshotHandler::class);
+        $this->app->singleton(AnalyticsQueryHandler::class);
+        $this->app->singleton(OutboxAnalyticsIngestConsumer::class);
     }
 }

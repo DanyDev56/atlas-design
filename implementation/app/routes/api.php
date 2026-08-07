@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
@@ -58,6 +59,10 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
             Route::post('/invoices/{invoiceId}/issue', [InvoiceController::class, 'issue']);
             Route::post('/invoices/{invoiceId}/send', [InvoiceController::class, 'send']);
             Route::post('/invoices/{invoiceId}/payments', [InvoiceController::class, 'recordPayment']);
+
+            Route::get('/analytics/snapshot/latest', [AnalyticsController::class, 'latestSnapshot']);
+            Route::post('/analytics/snapshots/publish', [AnalyticsController::class, 'publishSnapshot']);
+            Route::get('/analytics/metrics/{metricKey}', [AnalyticsController::class, 'metric']);
         });
     });
 });

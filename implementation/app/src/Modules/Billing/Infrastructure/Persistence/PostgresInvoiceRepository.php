@@ -42,7 +42,9 @@ final class PostgresInvoiceRepository
                 'balance_cents' => $invoice->balanceCents(),
                 'version' => $invoice->version(),
                 'updated_at' => now()->toIso8601String(),
-                'issued_at' => $invoice->status() === Invoice::STATUS_ISSUED ? now()->toIso8601String() : null,
+                'issued_at' => $invoice->issuedAt()?->format('Y-m-d H:i:sP'),
+                'due_date' => $invoice->dueDate()?->format('Y-m-d H:i:sP'),
+                'paid_at' => $invoice->paidAt()?->format('Y-m-d H:i:sP'),
                 'sent_at' => $sentAt?->format('Y-m-d H:i:sP'),
             ]);
     }

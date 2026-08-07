@@ -32,6 +32,8 @@ final class Invoice
         private \DateTimeImmutable $updatedAt,
         private ?\DateTimeImmutable $issuedAt,
         private ?\DateTimeImmutable $sentAt,
+        private ?\DateTimeImmutable $dueDate,
+        private ?\DateTimeImmutable $paidAt,
     ) {}
 
     /** @param list<array<string, mixed>> $lines */
@@ -58,6 +60,8 @@ final class Invoice
             updatedAt: $now,
             issuedAt: null,
             sentAt: null,
+            dueDate: null,
+            paidAt: null,
         );
     }
 
@@ -82,6 +86,8 @@ final class Invoice
             updatedAt: new \DateTimeImmutable($row['updated_at']),
             issuedAt: isset($row['issued_at']) ? new \DateTimeImmutable($row['issued_at']) : null,
             sentAt: isset($row['sent_at']) ? new \DateTimeImmutable($row['sent_at']) : null,
+            dueDate: isset($row['due_date']) ? new \DateTimeImmutable($row['due_date']) : null,
+            paidAt: isset($row['paid_at']) ? new \DateTimeImmutable($row['paid_at']) : null,
         );
     }
 
@@ -94,6 +100,7 @@ final class Invoice
         $this->status = self::STATUS_ISSUED;
         $this->invoiceNumber = $invoiceNumber;
         $this->issuedAt = $now;
+        $this->dueDate = $now->modify('+30 days');
         $this->version++;
         $this->updatedAt = $now;
     }
@@ -123,6 +130,9 @@ final class Invoice
         $this->settlementStatus = $this->balanceCents === 0
             ? self::SETTLEMENT_PAID
             : self::SETTLEMENT_PARTIALLY_PAID;
+        if ($this->balanceCents === 0) {
+            $this->paidAt = $now;
+        }
         $this->version++;
         $this->updatedAt = $now;
     }
@@ -192,5 +202,20 @@ final class Invoice
     public function clientSnapshot(): array
     {
         return $this->clientSnapshot;
+    }
+
+    public function issuedAt(): ?\DateTimeImmutable
+    {
+        return $this->issuedAt;
+    }
+
+    public function dueDate(): ?\DateTimeImmutable
+    {
+        return $this->dueDate;
+    }
+
+    public function paidAt(): ?\DateTimeImmutable
+    {
+        return $this->paidAt;
     }
 }
