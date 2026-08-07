@@ -2,6 +2,8 @@ FROM php:8.4-cli-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
+    jq \
+    ripgrep \
     unzip \
     libpq-dev \
     libzip-dev \

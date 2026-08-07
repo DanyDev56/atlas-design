@@ -108,6 +108,8 @@ make check-docs  # Quality gates documentaires du dépôt parent
 | 7 | Notifications + Dashboard | MVP-J3 |
 | 8 | Durcissement | Release candidate |
 
+Voir [`MVP-RC.md`](MVP-RC.md) pour la checklist de release candidate (incrément 8).
+
 ---
 
 ## Fixtures de référence
