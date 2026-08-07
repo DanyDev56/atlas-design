@@ -22,6 +22,7 @@
         publicAcceptToken: null,
         invoiceId: null,
         invoiceVersion: 1,
+        businessHealthAssessmentId: null,
     });
 
     let state = loadState();
@@ -72,6 +73,7 @@
             ['Opportunity', !!state.opportunityId],
             ['Quote', !!state.quoteId],
             ['Invoice', !!state.invoiceId],
+            ['Health', !!state.businessHealthAssessmentId],
         ];
         $('sessionPills').innerHTML = pills.map(([label, ok]) =>
             `<span class="pill ${ok ? 'ok' : ''}">${label}</span>`
@@ -293,6 +295,20 @@
         return api('GET', `/workspaces/${state.workspaceId}/analytics/metrics/analytics.pipeline.open-amount`);
     }
 
+    async function currentBusinessHealth() {
+        const data = await api('GET', `/workspaces/${state.workspaceId}/business-health/current`);
+        state.businessHealthAssessmentId = data.business_health_assessment_id;
+        saveState();
+        return data;
+    }
+
+    async function getBusinessHealthAssessment() {
+        if (!state.businessHealthAssessmentId) {
+            throw new Error('Aucune évaluation — lance « Santé courante » d’abord.');
+        }
+        return api('GET', `/workspaces/${state.workspaceId}/business-health/assessments/${state.businessHealthAssessmentId}`);
+    }
+
     async function runFullFlow() {
         const btn = $('btnFullFlow');
         btn.disabled = true;
@@ -315,7 +331,9 @@
             await refreshPipeline();
             await processOutbox();
             await publishSnapshot();
+            await processOutbox();
             await latestSnapshot();
+            await currentBusinessHealth();
         } finally {
             btn.disabled = false;
             btn.textContent = '▶ Parcours MVP-J2 complet';
@@ -351,6 +369,8 @@
     bind('btnPublishSnapshot', publishSnapshot);
     bind('btnLatestSnapshot', latestSnapshot);
     bind('btnPipelineMetric', pipelineMetric);
+    bind('btnCurrentHealth', currentBusinessHealth);
+    bind('btnHealthAssessment', getBusinessHealthAssessment);
 
     $('btnFullFlow')?.addEventListener('click', () => runFullFlow().catch((e) => {
         log('ERR', 'full-flow', '—', { message: e.message }, false);

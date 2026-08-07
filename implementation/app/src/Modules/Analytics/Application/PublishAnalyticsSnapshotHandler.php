@@ -8,6 +8,7 @@ use Atlas\Modules\Analytics\Domain\AnalyticsSnapshotPublished;
 use Atlas\Modules\Analytics\Domain\MetricKeys;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
+use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
 use Atlas\Platform\Messaging\OutgoingMessage;
@@ -25,6 +26,7 @@ final class PublishAnalyticsSnapshotHandler
         private readonly PostgresAnalyticsSnapshotRepository $snapshots,
         private readonly MetricCalculator $calculator,
         private readonly PostgresAnalyticsIdempotencyStore $idempotency,
+        private readonly SourceFactSummaryBuilder $sourceFactSummary,
         private readonly OutboxWriter $outbox,
     ) {}
 
@@ -81,6 +83,7 @@ final class PublishAnalyticsSnapshotHandler
                 'crm' => $crmWatermark['complete_through'],
                 'billing' => $billingWatermark['complete_through'],
             ];
+            $sourceFactSummary = $this->sourceFactSummary->build($workspaceId, $now);
 
             $snapshotId = $this->snapshots->insert(
                 workspaceId: $workspaceId,
@@ -92,6 +95,7 @@ final class PublishAnalyticsSnapshotHandler
                 completenessStatus: MetricKeys::COMPLETENESS_COMPLETE,
                 metrics: $metrics,
                 watermarks: $watermarks,
+                sourceFactSummary: $sourceFactSummary,
             );
 
             $event = new AnalyticsSnapshotPublished(

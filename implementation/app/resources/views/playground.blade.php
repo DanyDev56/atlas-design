@@ -85,6 +85,16 @@
             </details>
 
             <details class="section">
+                <summary>5. Business Health</summary>
+                <div class="section-body">
+                    <div class="row">
+                        <button type="button" id="btnCurrentHealth">Santé courante</button>
+                        <button type="button" id="btnHealthAssessment" class="secondary">↻ Détail évaluation</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section">
                 <div class="section-body">
                     <div class="row">
                         <button type="button" id="btnReset" class="danger">Reset session locale</button>

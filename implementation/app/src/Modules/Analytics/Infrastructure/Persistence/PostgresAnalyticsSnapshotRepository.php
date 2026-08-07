@@ -20,6 +20,7 @@ final class PostgresAnalyticsSnapshotRepository
         string $completenessStatus,
         array $metrics,
         array $watermarks,
+        array $sourceFactSummary,
     ): string {
         $id = UuidGenerator::generate();
 
@@ -34,10 +35,22 @@ final class PostgresAnalyticsSnapshotRepository
             'completeness_status' => $completenessStatus,
             'metrics' => json_encode($metrics, JSON_THROW_ON_ERROR),
             'watermarks' => json_encode($watermarks, JSON_THROW_ON_ERROR),
+            'source_fact_summary' => json_encode($sourceFactSummary, JSON_THROW_ON_ERROR),
             'published_at' => now()->toIso8601String(),
         ]);
 
         return $id;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findById(string $workspaceId, string $snapshotId): ?array
+    {
+        $row = DB::table('analytics.snapshots')
+            ->where('workspace_id', $workspaceId)
+            ->where('id', $snapshotId)
+            ->first();
+
+        return $row !== null ? $this->mapRow($row) : null;
     }
 
     /** @return array<string, mixed>|null */
@@ -50,10 +63,12 @@ final class PostgresAnalyticsSnapshotRepository
             ->orderByDesc('published_at')
             ->first();
 
-        if ($row === null) {
-            return null;
-        }
+        return $row !== null ? $this->mapRow($row) : null;
+    }
 
+    /** @return array<string, mixed> */
+    private function mapRow(object $row): array
+    {
         return [
             'analytics_snapshot_id' => $row->id,
             'workspace_id' => $row->workspace_id,
@@ -65,6 +80,9 @@ final class PostgresAnalyticsSnapshotRepository
             'completeness_status' => $row->completeness_status,
             'metrics' => json_decode($row->metrics, true, 512, JSON_THROW_ON_ERROR),
             'watermarks' => json_decode($row->watermarks, true, 512, JSON_THROW_ON_ERROR),
+            'source_fact_summary' => $row->source_fact_summary !== null
+                ? json_decode($row->source_fact_summary, true, 512, JSON_THROW_ON_ERROR)
+                : [],
             'published_at' => $row->published_at,
         ];
     }

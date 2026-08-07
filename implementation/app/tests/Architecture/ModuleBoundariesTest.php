@@ -43,3 +43,13 @@ arch('analytics domain does not depend on identity or workspace domains')
     ->not->toUse('Atlas\Modules\Identity')
     ->and('Atlas\Modules\Analytics\Domain')
     ->not->toUse('Atlas\Modules\Workspace');
+
+arch('business health domain does not depend on Laravel')
+    ->expect('Atlas\Modules\BusinessHealth\Domain')
+    ->not->toUse('Illuminate');
+
+arch('business health domain does not depend on identity or workspace domains')
+    ->expect('Atlas\Modules\BusinessHealth\Domain')
+    ->not->toUse('Atlas\Modules\Identity')
+    ->and('Atlas\Modules\BusinessHealth\Domain')
+    ->not->toUse('Atlas\Modules\Workspace');

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Atlas\Platform\Laravel;
 
 use Atlas\Composition\Analytics\OutboxAnalyticsIngestConsumer;
+use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
+use Atlas\Composition\BusinessHealth\OutboxBusinessHealthEvaluateConsumer;
 use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
@@ -43,6 +45,12 @@ use Atlas\Modules\Analytics\Application\PublishAnalyticsSnapshotHandler;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
+use Atlas\Modules\BusinessHealth\Application\BusinessHealthQueryHandler;
+use Atlas\Modules\BusinessHealth\Application\EvaluateBusinessHealthHandler;
+use Atlas\Modules\BusinessHealth\Application\HealthPolicyEvaluator;
+use Atlas\Modules\BusinessHealth\Infrastructure\Persistence\PostgresBusinessHealthAssessmentRepository;
+use Atlas\Modules\BusinessHealth\Infrastructure\Persistence\PostgresCurrentBusinessHealthRepository;
+use Atlas\Modules\BusinessHealth\Infrastructure\PostgresBusinessHealthIdempotencyStore;
 use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
@@ -83,6 +91,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(SpikeEventCounterConsumer::class),
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
                     $app->make(OutboxAnalyticsIngestConsumer::class),
+                    $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                 ],
             );
         });
@@ -144,5 +153,14 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PublishAnalyticsSnapshotHandler::class);
         $this->app->singleton(AnalyticsQueryHandler::class);
         $this->app->singleton(OutboxAnalyticsIngestConsumer::class);
+
+        $this->app->singleton(SourceFactSummaryBuilder::class);
+        $this->app->singleton(PostgresBusinessHealthIdempotencyStore::class);
+        $this->app->singleton(PostgresBusinessHealthAssessmentRepository::class);
+        $this->app->singleton(PostgresCurrentBusinessHealthRepository::class);
+        $this->app->singleton(HealthPolicyEvaluator::class);
+        $this->app->singleton(EvaluateBusinessHealthHandler::class);
+        $this->app->singleton(BusinessHealthQueryHandler::class);
+        $this->app->singleton(OutboxBusinessHealthEvaluateConsumer::class);
     }
 }

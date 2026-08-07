@@ -69,6 +69,7 @@ final class BootstrapIdentityForWorkspaceHandler
         'analytics.snapshots.consume',
         'crm.analytics-facts.read',
         'billing.analytics-facts.read',
+        'business-health.assessments.read',
     ];
 
     public function __construct(
