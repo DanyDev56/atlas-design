@@ -1,4 +1,4 @@
-.PHONY: up down down-clean shell bootstrap test check-docs logs serve
+.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -7,6 +7,9 @@ COMPOSE = $(DOCKER) compose -f implementation/docker-compose.yml
 
 up:
 	$(COMPOSE) up -d --build
+
+up-observability:
+	$(COMPOSE) --profile observability up -d --build
 
 down:
 	$(COMPOSE) down
@@ -40,3 +43,13 @@ logs:
 
 serve:
 	$(COMPOSE) exec app php artisan serve --host=0.0.0.0 --port=8000
+
+backup:
+	./implementation/scripts/backup-postgres.sh
+
+restore:
+	@if [ -z "$(BACKUP)" ]; then echo "Usage: make restore BACKUP=implementation/backups/atlas-....dump"; exit 1; fi
+	./implementation/scripts/restore-postgres.sh "$(BACKUP)"
+
+verify-restore:
+	./implementation/scripts/verify-restore-canary.sh $(if $(BACKUP),"$(BACKUP)",)

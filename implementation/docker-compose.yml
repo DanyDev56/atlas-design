@@ -33,6 +33,10 @@ services:
       DB_DATABASE: atlas
       DB_USERNAME: atlas
       DB_PASSWORD: atlas_dev
+      OTEL_SERVICE_NAME: atlas-app
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      LOG_CHANNEL: stack
+      LOG_STACK: json_stderr
     ports:
       - "8000:8000"
       - "5173:5173"
@@ -40,6 +44,24 @@ services:
       postgres:
         condition: service_healthy
     command: sleep infinity
+
+  jaeger:
+    profiles: [observability]
+    image: jaegertracing/jaeger:2.20.0
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+
+  otel-collector:
+    profiles: [observability]
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./docker/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4318:4318"
+    depends_on:
+      - jaeger
 
 volumes:
   postgres_data:

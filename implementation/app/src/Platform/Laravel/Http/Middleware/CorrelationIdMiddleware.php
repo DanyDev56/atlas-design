@@ -7,6 +7,7 @@ namespace Atlas\Platform\Laravel\Http\Middleware;
 use Atlas\Platform\Support\CorrelationId;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 final class CorrelationIdMiddleware
@@ -18,6 +19,10 @@ final class CorrelationIdMiddleware
         );
 
         $request->attributes->set('correlation_id', $correlationId);
+        Log::shareContext([
+            'correlation_id' => $correlationId,
+            'service' => env('OTEL_SERVICE_NAME', 'atlas-app'),
+        ]);
 
         $response = $next($request);
         $response->headers->set('X-Correlation-Id', $correlationId);

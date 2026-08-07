@@ -91,7 +91,13 @@ make down        # Arrêter
 make shell       # Shell dans le conteneur app
 make test        # Tests Pest (après bootstrap)
 make check-docs  # Quality gates documentaires du dépôt parent
+make backup      # Sauvegarde PostgreSQL (Palier 3)
+make verify-restore  # Canary SEC-TEST-023
+make up-observability  # Jaeger + OTLP collector
 ```
+
+Runbooks Palier 3 : [`runbooks/`](runbooks/) · Matrice SEC-TEST :
+[`SEC-TEST-MATRIX.md`](SEC-TEST-MATRIX.md).
 
 ---
 
