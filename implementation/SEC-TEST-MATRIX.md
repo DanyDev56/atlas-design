@@ -21,7 +21,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-003 | SEC-T02 | `VerifyEmail` + token debug test | ◐ | Token expiré / rejoué |
 | SEC-TEST-004 | SEC-T03 | `RevokeSessionTest` | ☑ | — |
 | SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
-| SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest` | ☑ | Étendre aux routes publiques sensibles |
+| SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest`, `PublicQuoteRateLimitTest` | ☑ | — |
 | SEC-TEST-007 | SEC-T08 | `MembershipRevocationTest`, `CrmAuthorizationTest` | ☑ | — |
 | SEC-TEST-008 | SEC-T09 | Public quote accept | ◐ | Token expiré / mauvais workspace |
 | SEC-TEST-009 | SEC-T10 | — | ◻ | Proof opaques billing |
@@ -60,4 +60,4 @@ Exécuté manuellement avant release :
 |---|---|
 | SEC-GAP-004 (rétention / support) | ◐ draft `runbooks/data-retention-beta.md` |
 | SEC-GAP-006 (backup hors site) | ◐ scripts locaux ; hors site à décider |
-| SEC-GAP-008 (runbooks / alertes) | ◐ backup + observabilité + outbox incident |
+| SEC-GAP-008 (runbooks / alertes) | ◐ runbooks ☑ ; webhook `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` |

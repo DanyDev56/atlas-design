@@ -80,4 +80,31 @@ final class OutboxBacklogMonitorTest extends IntegrationTestCase
         $this->assertSame(1, $snapshot->context['outbox.pending_count'] ?? null);
         $this->assertSame(1, $snapshot->context['outbox.processed_in_batch'] ?? null);
     }
+
+    public function test_posts_webhook_when_configured_and_threshold_exceeded(): void
+    {
+        Config::set('platform.outbox.backlog_warning_threshold', 1);
+        Config::set('platform.outbox.alert_webhook_url', 'https://alerts.test/outbox');
+
+        DB::table('platform.outbox_messages')->insert([
+            'id' => UuidGenerator::generate(),
+            'event_id' => UuidGenerator::generate(),
+            'event_type' => 'test.backlog',
+            'payload' => json_encode(['index' => 0], JSON_THROW_ON_ERROR),
+            'occurred_at' => now()->toIso8601String(),
+            'correlation_id' => null,
+            'causation_id' => null,
+            'schema_version' => 1,
+            'created_at' => now()->toIso8601String(),
+        ]);
+
+        \Illuminate\Support\Facades\Http::fake();
+
+        app(OutboxBacklogMonitor::class)->reportAfterProcessing(0);
+
+        \Illuminate\Support\Facades\Http::assertSent(function ($request): bool {
+            return $request->url() === 'https://alerts.test/outbox'
+                && ($request['alert'] ?? null) === 'outbox_backlog_above_threshold';
+        });
+    }
 }

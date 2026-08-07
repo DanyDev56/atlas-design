@@ -45,7 +45,12 @@ Ce document résume l'état de preuve du MVP exécutable sous `implementation/`.
 | Frontières modules | `ModuleBoundariesTest` | ☑ |
 | Documentation fondation | CI `documentation` + `check-all.sh` | ☑ |
 | Image OCI + SBOM | CI job `oci` | ☑ |
-| Tests Pest + PostgreSQL | CI job `spike` (72 tests) | ☑ |
+| Tests Pest + PostgreSQL | CI job `spike` (83+ tests) | ☑ |
+
+## Palier 3 (Track A)
+
+Clôture engineering : [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Checklist beta :
+[`runbooks/beta-release-checklist.md`](runbooks/beta-release-checklist.md).
 
 ## Écarts acceptés (voir MVP-CLOSURE)
 
@@ -57,7 +62,7 @@ avec owner et plan dans [`MVP-CLOSURE.md`](MVP-CLOSURE.md) :
 - complete/dismiss Advisor ;
 - accessibilité clavier et responsive ;
 - sauvegarde/restauration et migrations down en production ;
-- runbooks d'exploitation, alertes et step-up SEC-T.
+- runbooks d'exploitation livrés (backup, observabilité, outbox) ; step-up SEC-T différé ;
 
 ## Démonstration locale
 

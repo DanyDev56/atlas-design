@@ -33,7 +33,9 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/auth/login', LoginController::class);
     });
 
-    Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
+    Route::middleware('throttle:public')->group(function (): void {
+        Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
+    });
 
     Route::post('/dev/outbox/process', ProcessOutboxController::class);
 

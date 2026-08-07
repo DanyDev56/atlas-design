@@ -18,7 +18,7 @@ references:
 | Export OTLP (infra) | ☑ | `otel-collector` + Jaeger (profile `observability`) |
 | Export OTLP (PHP SDK) | ☑ | `Telemetry`, `HttpTracingMiddleware`, `TraceScope` / outbox |
 | Métriques RED / outbox lag | ◐ | `OutboxBacklogMonitor`, logs structurés backlog |
-| Alertes et runbooks incident | ◐ | `runbooks/outbox-incident.md` |
+| Alertes et runbooks incident | ◐ | runbooks ☑ ; webhook backlog optionnel |
 
 ## Démarrer la stack observabilité
 
@@ -80,6 +80,14 @@ OTEL_TRACES_EXPORTER=otlp
 ```
 
 Sans profile observability, laisser `OTEL_TRACES_EXPORTER=none` (défaut Compose).
+
+Webhook alerte backlog (optionnel) :
+
+```env
+OUTBOX_BACKLOG_ALERT_WEBHOOK_URL=https://hooks.example.com/outbox
+```
+
+Émis sur log warning `Outbox backlog above threshold` — voir `OutboxBacklogAlertNotifier`.
 
 ### Vérifier dans Jaeger
 

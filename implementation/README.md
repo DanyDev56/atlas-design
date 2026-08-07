@@ -96,7 +96,8 @@ make verify-restore  # Canary SEC-TEST-023
 make up-observability  # Jaeger + OTLP collector
 ```
 
-Runbooks Palier 3 : [`runbooks/`](runbooks/) · Matrice SEC-TEST :
+Runbooks Palier 3 : [`runbooks/`](runbooks/) · Clôture Track A :
+[`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Matrice SEC-TEST :
 [`SEC-TEST-MATRIX.md`](SEC-TEST-MATRIX.md) · Idempotence :
 [`docs/idempotency.md`](docs/idempotency.md).
 

@@ -35,7 +35,7 @@ technique et ne bloquent pas la transition vers le Palier 3.
 | Parcours MVP-J1, MVP-J2, MVP-J3 | ☑ Prouvés par tests d'acceptation |
 | Fixtures FIX-001…010 + oracle jq | ☑ |
 | CI `application.yml` (docs + spike + oci) | ☑ Verte |
-| Palier 3 — publication contrôlée | ◻ Prochaine étape |
+| Palier 3 — publication contrôlée | ◐ Track A clôturé — voir [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) |
 
 ---
 
@@ -77,11 +77,11 @@ Référence : [`mvp-acceptance.md`](../evolution/roadmap/mvp-acceptance.md).
 | 1 | J1, J2, J3 en environnement proche production | ☑ | Docker Compose + CI GitHub Actions |
 | 2 | Contrats, permissions et erreurs testés aux frontières | ☑ | Feature, integration et architecture |
 | 3 | Retry, conflit, indisponibilité, reconstruction | ◐ | Retry/conflit/outbox prouvés ; reconstruction complète non automatisée |
-| 4 | Journaux et métriques pour localiser une rupture | ◐ | `CorrelationId` HTTP → outbox ; pas d'export OTLP ni alertes |
+| 4 | Journaux et métriques pour localiser une rupture | ◐ | OTLP + backlog monitor + runbooks ; gate Jaeger manuelle |
 | 5 | Fixtures FIX-001…010 déterministes | ☑ | Oracle `scripts/check-mvp-reference-fixtures.sh` + Pest |
 | 6 | Aucune exclusion nécessaire au résultat nominal | ◐ | Parcours à froid sans import ; import historique différé |
 | 7 | Dashboard et frontières Blueprint respectées | ☑ | Composition par lectures publiques uniquement |
-| 8 | SEC-001 validé, gaps fermés, risques High/Critical acceptés | ◐ | Isolation Workspace et authz par défaut ; step-up et runbooks différés |
+| 8 | SEC-001 validé, gaps fermés, risques High/Critical acceptés | ◐ | Subset beta SEC-TEST ☑ ; step-up et fuzz différés |
 
 Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 
@@ -100,7 +100,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 | Effet externe (email) | ◐ | Inbox in-app ; dispatch fournisseur réel différé |
 | Reconstruction projections | ◐ | Rebuild via reprocess outbox ; pas de commande dédiée |
 | Accessibilité clavier | ◻ | Playground non audité |
-| SEC-T01…SEC-T28 tracés | ◐ | Contrôles de base ; matrice complète non testée |
+| SEC-T01…SEC-T28 tracés | ◐ | Subset beta automatisé — voir [`SEC-TEST-MATRIX.md`](SEC-TEST-MATRIX.md) |
 
 ---
 
@@ -112,7 +112,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 | Laravel | 13.x |
 | Pest | 4.7 |
 | PostgreSQL | 18 (Alpine) |
-| Tests Pest | 72 passés (CI + local) |
+| Tests Pest | 83+ passés (CI + local) |
 
 ---
 
@@ -124,10 +124,10 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 | Advisor `CompleteRecommendation` / `DismissRecommendation` | Faible | Engineering | Compléter boucle Advisor avant beta | 2026-08-07 |
 | Dispatch email fournisseur réel | Moyen | Engineering | Adaptateur Notifications + consentement testé | 2026-08-07 |
 | `ExpireNotification` et events outbox Notifications dédiés | Faible | Engineering | Durcissement Notifications Palier 3 | 2026-08-07 |
-| OpenTelemetry OTLP non branché | Moyen | Engineering | Observabilité Palier 3 | 2026-08-07 |
+| OpenTelemetry OTLP non branché | Moyen | Engineering | ☑ Track A lot 2 — [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) | 2026-08-07 |
 | PHP 8.4 au lieu de 8.5 | Faible | Engineering | Image Docker quand 8.5 stable | 2026-08-07 |
-| Sauvegarde/restauration et migrations down | Élevé | Engineering | Obligatoire avant prod (Palier 3) | 2026-08-07 |
-| Runbooks, alertes, step-up SEC-T | Élevé | Engineering + Ops | Palier 3 publication contrôlée | 2026-08-07 |
+| Sauvegarde/restauration et migrations down | Élevé | Engineering | Scripts + canary ☑ ; migrations down ◻ | 2026-08-07 |
+| Runbooks, alertes, step-up SEC-T | Élevé | Engineering + Ops | Runbooks ☑ ; webhook optionnel ; step-up ◻ | 2026-08-07 |
 | Accessibilité et responsive playground | Faible | Product | Audit UX avant beta fermée | 2026-08-07 |
 | Registre OCI production | Moyen | Engineering | `SEC-GAP-004` avant prod | 2026-08-07 |
 
@@ -141,7 +141,7 @@ la cohérence des fixtures de référence.
 ```bash
 make up
 make migrate-fresh
-make test                    # 72 tests attendus
+make test                    # 83+ tests attendus
 make check-docs              # 12 checkers documentaires
 scripts/check-mvp-reference-fixtures.sh
 ```
@@ -154,11 +154,13 @@ CI : workflow `.github/workflows/application.yml` (jobs `documentation`, `spike`
 
 ## Prochaine étape
 
-**Palier 3 — Publication contrôlée** ([`roadmap.md`](../evolution/blueprint/roadmap.md)) :
+**Publication beta fermée** — voir [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) et
+[`runbooks/beta-release-checklist.md`](runbooks/beta-release-checklist.md) :
 
-1. combler les écarts à impact élevé (sauvegarde, SEC-T, observabilité) ;
-2. prioriser import historique si la beta cible des indépendants établis ;
-3. beta fermée avec mesure des outcomes.
+1. valider SEC-GAP-004 / SEC-GAP-006 avec Product+Security ;
+2. exécuter gates manuelles observabilité + release rehearsal ;
+3. ouvrir beta fermée et mesurer les outcomes ;
+4. Palier 4 — extensions selon usages.
 
 Le référentiel métier (`fondation/`, `evolution/`) reste la source de vérité ;
 `implementation/` prouve l'exécutabilité du MVP minimal documenté.

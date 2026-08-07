@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 final class OutboxBacklogMonitor
 {
+    public function __construct(
+        private readonly OutboxBacklogAlertNotifier $alerts,
+    ) {}
+
     public function reportAfterProcessing(int $processedInBatch): void
     {
         $row = DB::selectOne(
@@ -40,6 +44,7 @@ final class OutboxBacklogMonitor
 
         if ($pending >= $threshold) {
             Log::warning('Outbox backlog above threshold', $context);
+            $this->alerts->notifyWarning($context);
 
             return;
         }

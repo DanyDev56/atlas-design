@@ -27,5 +27,11 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute((int) $config['max_attempts'])->by($request->ip());
         });
+
+        RateLimiter::for('public', function (Request $request): Limit {
+            $config = config('platform.rate_limits.public');
+
+            return Limit::perMinute((int) $config['max_attempts'])->by($request->ip());
+        });
     }
 }

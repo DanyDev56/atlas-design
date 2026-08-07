@@ -20,6 +20,7 @@ references:
 | Variable | Défaut | Description |
 |---|---|---|
 | `OUTBOX_BACKLOG_WARNING_THRESHOLD` | `25` | Alerte log warning après chaque cycle `atlas:outbox:process` |
+| `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` | *(vide)* | POST JSON optionnel sur alerte backlog |
 
 Champs structurés émis :
 
