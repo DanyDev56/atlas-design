@@ -1,0 +1,73 @@
+import type { ApiError } from '@/types/api';
+
+const API_BASE = '/api';
+
+export class ApiClientError extends Error {
+    constructor(
+        message: string,
+        public readonly status: number,
+        public readonly body: ApiError,
+    ) {
+        super(message);
+        this.name = 'ApiClientError';
+    }
+}
+
+function newIdempotencyKey(): string {
+    return crypto.randomUUID();
+}
+
+export interface RequestOptions {
+    auth?: boolean;
+    token?: string | null;
+    idempotency?: boolean;
+}
+
+export async function apiRequest<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    options: RequestOptions = {},
+): Promise<T> {
+    const { auth = true, token = null, idempotency = body !== undefined && method !== 'GET' } = options;
+
+    const headers: Record<string, string> = {
+        Accept: 'application/json',
+    };
+
+    if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    if (idempotency) {
+        headers['Idempotency-Key'] = newIdempotencyKey();
+    }
+
+    if (auth && token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+
+    let data: unknown;
+    try {
+        data = await response.json();
+    } catch {
+        data = { error: 'ParseError', messages: ['Invalid JSON response'] };
+    }
+
+    if (!response.ok) {
+        const err = data as ApiError;
+        throw new ApiClientError(
+            err.messages?.[0] ?? err.error ?? `HTTP ${response.status}`,
+            response.status,
+            err,
+        );
+    }
+
+    return data as T;
+}

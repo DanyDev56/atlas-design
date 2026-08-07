@@ -2,8 +2,23 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../js/web/**/*.{ts,tsx}';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-atlas-ink: #0c1222;
+    --color-atlas-ink-muted: #4a5568;
+    --color-atlas-surface: #f7f8fb;
+    --color-atlas-card: #ffffff;
+    --color-atlas-border: #e2e8f0;
+    --color-atlas-accent: #1a6b5c;
+    --color-atlas-accent-soft: #e6f4f1;
+    --color-atlas-warm: #c4842d;
+    --color-atlas-sidebar: #0f172a;
+}
+
+body {
+    @apply bg-atlas-surface text-atlas-ink font-sans;
 }

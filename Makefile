@@ -1,4 +1,4 @@
-.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge
+.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -56,3 +56,9 @@ verify-restore:
 
 retention-purge:
 	$(COMPOSE) exec app php artisan atlas:retention:purge $(if $(DRY_RUN),--dry-run,)
+
+web-install:
+	$(COMPOSE) exec app bash -c 'cd /workspace/implementation/app && npm install'
+
+web-dev:
+	$(COMPOSE) exec app bash -c 'cd /workspace/implementation/app && npm run dev -- --host 0.0.0.0'
