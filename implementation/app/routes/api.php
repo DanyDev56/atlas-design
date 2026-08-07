@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\QuoteController;
@@ -23,6 +24,8 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
     Route::post('/auth/login', LoginController::class);
 
     Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
+
+    Route::post('/dev/outbox/process', ProcessOutboxController::class);
 
     Route::post('/spike/workspaces', SpikeCreateWorkspaceController::class);
 
