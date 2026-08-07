@@ -3,6 +3,7 @@ import type {
     DashboardResponse,
     LoginResponse,
     RegisterResponse,
+    SessionContextResponse,
     WorkspaceBootstrapResponse,
 } from '@/types/api';
 
@@ -30,6 +31,10 @@ export async function register(
 
 export async function verifyEmail(userId: string, token: string): Promise<void> {
     await apiRequest('POST', '/auth/verify-email', { user_id: userId, token }, { auth: false });
+}
+
+export async function fetchSessionContext(token: string): Promise<SessionContextResponse> {
+    return apiRequest<SessionContextResponse>('GET', '/auth/session/context', undefined, { token });
 }
 
 export async function bootstrapWorkspace(token: string, name: string): Promise<WorkspaceBootstrapResponse> {

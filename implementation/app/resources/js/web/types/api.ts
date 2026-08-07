@@ -23,6 +23,11 @@ export interface WorkspaceBootstrapResponse {
     status: string;
 }
 
+export interface SessionContextResponse {
+    user_id: string;
+    workspace_id: string | null;
+}
+
 export interface DashboardWidget<T = unknown> {
     source_domain: string;
     data_state: DataState;

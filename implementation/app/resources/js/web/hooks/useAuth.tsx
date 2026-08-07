@@ -2,11 +2,12 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
 } from 'react';
-import { bootstrapWorkspace, login, register, verifyEmail } from '@/api/auth';
+import { bootstrapWorkspace, fetchSessionContext, login, register, verifyEmail } from '@/api/auth';
 import type { SessionState } from '@/types/api';
 
 const STORAGE_KEY = 'atlas_web_session';
@@ -14,6 +15,7 @@ const STORAGE_KEY = 'atlas_web_session';
 interface AuthContextValue {
     session: SessionState | null;
     isAuthenticated: boolean;
+    isResolvingWorkspace: boolean;
     loginWithPassword: (email: string, password: string) => Promise<SessionState>;
     registerAccount: (email: string, displayName: string, password: string) => Promise<void>;
     createWorkspace: (name: string) => Promise<void>;
@@ -43,14 +45,57 @@ function persistSession(session: SessionState | null): void {
     }
 }
 
+async function resolveWorkspaceId(token: string, userId: string, current: string | null): Promise<string | null> {
+    if (current) return current;
+
+    const context = await fetchSessionContext(token);
+    if (context.user_id !== userId) return null;
+
+    return context.workspace_id;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [session, setSession] = useState<SessionState | null>(() => loadSession());
+    const [isResolvingWorkspace, setIsResolvingWorkspace] = useState(false);
+
+    const setWorkspaceId = useCallback((workspaceId: string) => {
+        setSession((current) => {
+            if (!current) return current;
+            const next = { ...current, workspaceId };
+            persistSession(next);
+            return next;
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!session?.token || session.workspaceId) return;
+
+        let cancelled = false;
+        setIsResolvingWorkspace(true);
+
+        void resolveWorkspaceId(session.token, session.userId, session.workspaceId)
+            .then((workspaceId) => {
+                if (!cancelled && workspaceId) {
+                    setWorkspaceId(workspaceId);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setIsResolvingWorkspace(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [session?.token, session?.userId, session?.workspaceId, setWorkspaceId]);
 
     const loginWithPassword = useCallback(async (email: string, password: string): Promise<SessionState> => {
         const result = await login(email, password);
         const previous = loadSession();
-        const workspaceId =
+        const preservedWorkspaceId =
             previous?.userId === result.user_id ? (previous.workspaceId ?? null) : null;
+
+        const workspaceId = await resolveWorkspaceId(result.token, result.user_id, preservedWorkspaceId);
+
         const next: SessionState = {
             token: result.token,
             userId: result.user_id,
@@ -83,24 +128,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persistSession(null);
     }, []);
 
-    const setWorkspaceId = useCallback((workspaceId: string) => {
-        setSession((current) => {
-            if (!current) return current;
-            const next = { ...current, workspaceId };
-            persistSession(next);
-            return next;
-        });
-    }, []);
-
     const value = useMemo<AuthContextValue>(() => ({
         session,
         isAuthenticated: session !== null,
+        isResolvingWorkspace,
         loginWithPassword,
         registerAccount,
         createWorkspace,
         logout,
         setWorkspaceId,
-    }), [session, loginWithPassword, registerAccount, createWorkspace, logout, setWorkspaceId]);
+    }), [session, isResolvingWorkspace, loginWithPassword, registerAccount, createWorkspace, logout, setWorkspaceId]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
+use App\Http\Controllers\Api\SessionContextController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
@@ -43,6 +44,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
     Route::middleware(BearerSessionMiddleware::class)->group(function (): void {
         Route::post('/auth/session/revoke', RevokeSessionController::class);
+        Route::get('/auth/session/context', SessionContextController::class);
 
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);
 

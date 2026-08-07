@@ -10,7 +10,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 export function OnboardingPage() {
-    const { isAuthenticated, session, createWorkspace } = useAuth();
+    const { isAuthenticated, session, createWorkspace, isResolvingWorkspace } = useAuth();
     const navigate = useNavigate();
     const [workspaceName, setWorkspaceName] = useState('Mon activité');
     const [error, setError] = useState<string | null>(null);
@@ -22,6 +22,14 @@ export function OnboardingPage() {
 
     if (session?.workspaceId) {
         return <Navigate to="/app" replace />;
+    }
+
+    if (isResolvingWorkspace) {
+        return (
+            <AuthLayout title="Chargement" subtitle="Récupération de votre workspace…">
+                <div className="h-24 animate-pulse rounded-xl bg-atlas-surface" />
+            </AuthLayout>
+        );
     }
 
     async function onSubmit(event: FormEvent) {

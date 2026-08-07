@@ -50,6 +50,17 @@ final class PostgresMembershipRepository
         return $row !== null ? (array) $row : null;
     }
 
+    public function findPrimaryWorkspaceId(UserId $userId): ?string
+    {
+        $workspaceId = DB::table('identity.memberships')
+            ->where('user_id', $userId->value)
+            ->where('status', 'Active')
+            ->orderBy('created_at')
+            ->value('workspace_id');
+
+        return is_string($workspaceId) ? $workspaceId : null;
+    }
+
     /** @return array<string, mixed>|null */
     public function findById(MembershipId $membershipId): ?array
     {
