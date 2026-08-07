@@ -24,9 +24,9 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 | Lot | Contenu | Statut | Gate |
 |---|---|---|---|
-| **0** | Shell, auth J1, client API, routing | ◐ | Connexion + navigation |
-| **1** | Dashboard (widgets composition) | ◐ | Démo 2 min convaincante |
-| **2** | CRM slice + devis | ◻ | Parcours J2 en UI |
+| **0** | Shell, auth J1, client API, routing | ✓ | Connexion + navigation |
+| **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
+| **2** | CRM slice + devis | ◐ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ◻ | Beta élargie |
 
 ---
@@ -72,11 +72,21 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 
 ---
 
-## Lot 2 — Vertical slice J2
+## Lot 2 — Vertical slice J2 (en cours)
 
-- Liste clients + détail opportunité
-- Créer / envoyer devis
-- *(Option)* page publique acceptation devis
+### Livré
+
+- `/app/crm` — liste clients + création
+- `/app/crm/clients/:id` — détail client, opportunités, création opportunité
+- `/app/crm/opportunities/:id` — qualification, création/envoi devis
+- `/app/quotes/accept/:workspaceId/:quoteId` — acceptation publique (token en query)
+
+### Parcours démo
+
+1. CRM → Nouveau client
+2. Client → Nouvelle opportunité
+3. Opportunité → Qualifier → Nouveau devis → Envoyer
+4. Copier le lien d'acceptation → page publique → Confirmer
 
 ---
 

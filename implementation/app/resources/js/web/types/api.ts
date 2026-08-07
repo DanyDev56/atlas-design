@@ -82,3 +82,63 @@ export interface SessionState {
     workspaceId: string | null;
     email: string;
 }
+
+export interface ClientSummary {
+    client_id: string;
+    display_name: string;
+    kind: 'Individual' | 'Organization';
+    status: string;
+    version: number;
+}
+
+export interface ClientDetail extends ClientSummary {
+    workspace_id: string;
+    profile: Record<string, unknown>;
+    billing_profile: Record<string, unknown> | null;
+    primary_contact_id: string | null;
+    profile_version: number;
+    billing_profile_version: number;
+}
+
+export interface OpportunitySummary {
+    opportunity_id: string;
+    client_id: string;
+    title: string;
+    status: string;
+    estimated_amount_cents: number | null;
+    currency: string;
+    version: number;
+}
+
+export interface OpportunityDetail extends OpportunitySummary {
+    workspace_id: string;
+    contact_id: string | null;
+    qualified_at: string | null;
+}
+
+export interface QuoteLine {
+    description: string;
+    quantity: number;
+    unit_price_cents: number;
+}
+
+export interface QuoteSummary {
+    quote_id: string;
+    client_id: string;
+    opportunity_id: string | null;
+    status: string;
+    total_cents: number;
+    currency: string;
+    version: number;
+}
+
+export interface QuoteDetail extends QuoteSummary {
+    lines: QuoteLine[];
+}
+
+export interface SendQuoteResponse {
+    quote_id: string;
+    status: string;
+    version: number;
+    public_accept_token: string;
+}

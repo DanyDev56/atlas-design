@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
     { to: '/app', label: 'Dashboard', end: true },
-    { to: '/app/crm', label: 'CRM', disabled: true },
+    { to: '/app/crm', label: 'CRM', end: false },
     { to: '/app/billing', label: 'Billing', disabled: true },
 ];
 
