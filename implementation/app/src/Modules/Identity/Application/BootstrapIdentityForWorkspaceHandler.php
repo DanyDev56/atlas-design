@@ -73,6 +73,10 @@ final class BootstrapIdentityForWorkspaceHandler
         'advisor.recommendations.read',
         'advisor.recommendations.complete',
         'advisor.recommendations.dismiss',
+        'notifications.inbox.read',
+        'notifications.inbox.mark-read',
+        'notifications.preferences.read',
+        'notifications.preferences.change',
     ];
 
     public function __construct(

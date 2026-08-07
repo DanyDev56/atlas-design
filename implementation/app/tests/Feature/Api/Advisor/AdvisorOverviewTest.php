@@ -78,6 +78,7 @@ final class AdvisorOverviewTest extends IntegrationTestCase
 
         app(OutboxProcessor::class)->processPending();
         app(OutboxProcessor::class)->processPending();
+        app(OutboxProcessor::class)->processPending();
 
         $this->assertTrue(
             DB::table('advisor.overviews')

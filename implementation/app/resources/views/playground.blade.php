@@ -104,6 +104,25 @@
             </details>
 
             <details class="section">
+                <summary>7. Notifications</summary>
+                <div class="section-body">
+                    <div class="row">
+                        <button type="button" id="btnUnreadCount">Compteur non lu</button>
+                        <button type="button" id="btnNotifications" class="secondary">Liste inbox</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section">
+                <summary>8. Dashboard</summary>
+                <div class="section-body">
+                    <div class="row">
+                        <button type="button" id="btnDashboard">Vue dashboard</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section">
                 <div class="section-body">
                     <div class="row">
                         <button type="button" id="btnReset" class="danger">Reset session locale</button>

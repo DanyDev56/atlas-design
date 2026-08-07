@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Dashboard\DashboardController;
+use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
@@ -70,6 +72,15 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
             Route::get('/business-health/assessments/{assessmentId}', [BusinessHealthController::class, 'show']);
 
             Route::get('/advisor/overview', [AdvisorController::class, 'overview']);
+
+            Route::get('/notifications', [NotificationController::class, 'index']);
+            Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+            Route::get('/notifications/preferences', [NotificationController::class, 'getPreferences']);
+            Route::put('/notifications/preferences', [NotificationController::class, 'changePreferences']);
+            Route::get('/notifications/{notificationId}', [NotificationController::class, 'show']);
+            Route::post('/notifications/{notificationId}/mark-read', [NotificationController::class, 'markRead']);
+
+            Route::get('/dashboard', [DashboardController::class, 'show']);
         });
     });
 });

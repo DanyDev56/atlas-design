@@ -52,6 +52,17 @@ use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresAdvisorOverviewRepo
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepository;
 use Atlas\Modules\Advisor\Infrastructure\PostgresAdvisorIdempotencyStore;
 use Atlas\Composition\Advisor\OutboxAdvisorEvaluateConsumer;
+use Atlas\Composition\Dashboard\DashboardQueryHandler;
+use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
+use Atlas\Modules\Notifications\Application\ChangeNotificationPreferencesHandler;
+use Atlas\Modules\Notifications\Application\MarkNotificationReadHandler;
+use Atlas\Modules\Notifications\Application\NotificationPlanEvaluator;
+use Atlas\Modules\Notifications\Application\NotificationQueryHandler;
+use Atlas\Modules\Notifications\Application\ProcessAdvisorNotificationSignalHandler;
+use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationPreferenceRepository;
+use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
+use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
+use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
 use Atlas\Modules\BusinessHealth\Application\BusinessHealthQueryHandler;
 use Atlas\Modules\BusinessHealth\Application\EvaluateBusinessHealthHandler;
 use Atlas\Modules\BusinessHealth\Application\HealthPolicyEvaluator;
@@ -100,6 +111,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(OutboxAnalyticsIngestConsumer::class),
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
+                    $app->make(OutboxNotificationsProcessConsumer::class),
                 ],
             );
         });
@@ -178,5 +190,17 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(EvaluateRecommendationsHandler::class);
         $this->app->singleton(AdvisorQueryHandler::class);
         $this->app->singleton(OutboxAdvisorEvaluateConsumer::class);
+
+        $this->app->singleton(PostgresNotificationsIdempotencyStore::class);
+        $this->app->singleton(PostgresNotificationRepository::class);
+        $this->app->singleton(PostgresNotificationPreferenceRepository::class);
+        $this->app->singleton(PostgresNotificationTopicCursorRepository::class);
+        $this->app->singleton(NotificationPlanEvaluator::class);
+        $this->app->singleton(ProcessAdvisorNotificationSignalHandler::class);
+        $this->app->singleton(NotificationQueryHandler::class);
+        $this->app->singleton(MarkNotificationReadHandler::class);
+        $this->app->singleton(ChangeNotificationPreferencesHandler::class);
+        $this->app->singleton(OutboxNotificationsProcessConsumer::class);
+        $this->app->singleton(DashboardQueryHandler::class);
     }
 }

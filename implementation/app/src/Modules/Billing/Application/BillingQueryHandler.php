@@ -86,4 +86,25 @@ final class BillingQueryHandler
             'version' => $invoice->version(),
         ];
     }
+
+    /** @return list<array<string, mixed>> */
+    public function listRecentInvoices(string $actorUserId, string $workspaceId, int $limit = 5): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.invoices.read');
+
+        return DB::table('billing.invoices')
+            ->where('workspace_id', $workspaceId)
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => [
+                'invoice_id' => $row->id,
+                'status' => $row->status,
+                'settlement_status' => $row->settlement_status,
+                'total_cents' => (int) $row->total_cents,
+                'balance_cents' => (int) $row->balance_cents,
+                'currency' => $row->currency,
+            ])
+            ->all();
+    }
 }

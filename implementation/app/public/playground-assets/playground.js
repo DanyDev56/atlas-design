@@ -24,6 +24,7 @@
         invoiceVersion: 1,
         businessHealthAssessmentId: null,
         advisorOverviewVersion: null,
+        unreadNotificationCount: null,
     });
 
     let state = loadState();
@@ -76,6 +77,7 @@
             ['Invoice', !!state.invoiceId],
             ['Health', !!state.businessHealthAssessmentId],
             ['Advisor', !!state.advisorOverviewVersion],
+            ['Inbox', state.unreadNotificationCount !== null],
         ];
         $('sessionPills').innerHTML = pills.map(([label, ok]) =>
             `<span class="pill ${ok ? 'ok' : ''}">${label}</span>`
@@ -318,6 +320,21 @@
         return data;
     }
 
+    async function unreadCount() {
+        const data = await api('GET', `/workspaces/${state.workspaceId}/notifications/unread-count`);
+        state.unreadNotificationCount = data.unread_count;
+        saveState();
+        return data;
+    }
+
+    async function listNotifications() {
+        return api('GET', `/workspaces/${state.workspaceId}/notifications`);
+    }
+
+    async function dashboard() {
+        return api('GET', `/workspaces/${state.workspaceId}/dashboard`);
+    }
+
     async function runFullFlow() {
         const btn = $('btnFullFlow');
         btn.disabled = true;
@@ -345,6 +362,9 @@
             await currentBusinessHealth();
             await processOutbox();
             await advisorOverview();
+            await processOutbox();
+            await unreadCount();
+            await dashboard();
         } finally {
             btn.disabled = false;
             btn.textContent = '▶ Parcours MVP-J2 complet';
@@ -383,6 +403,9 @@
     bind('btnCurrentHealth', currentBusinessHealth);
     bind('btnHealthAssessment', getBusinessHealthAssessment);
     bind('btnAdvisorOverview', advisorOverview);
+    bind('btnUnreadCount', unreadCount);
+    bind('btnNotifications', listNotifications);
+    bind('btnDashboard', dashboard);
 
     $('btnFullFlow')?.addEventListener('click', () => runFullFlow().catch((e) => {
         log('ERR', 'full-flow', '—', { message: e.message }, false);

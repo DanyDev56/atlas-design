@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Advisor\Application;
 
+use Atlas\Modules\Advisor\Domain\AdvisorOverviewChanged;
 use Atlas\Modules\Advisor\Domain\RecommendationPolicy;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresAdvisorOverviewRepository;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepository;
 use Atlas\Modules\Advisor\Infrastructure\PostgresAdvisorIdempotencyStore;
 use Atlas\Modules\BusinessHealth\Domain\HealthPolicy;
 use Atlas\Modules\BusinessHealth\Infrastructure\Persistence\PostgresCurrentBusinessHealthRepository;
+use Atlas\Platform\Messaging\EventId;
+use Atlas\Platform\Messaging\OutgoingMessage;
+use Atlas\Platform\Messaging\OutboxWriter;
 use Illuminate\Support\Facades\DB;
 
 final class EvaluateRecommendationsHandler
@@ -20,6 +24,7 @@ final class EvaluateRecommendationsHandler
         private readonly PostgresAdvisorOverviewRepository $overviews,
         private readonly PostgresAdvisorIdempotencyStore $idempotency,
         private readonly RecommendationPolicyEvaluator $evaluator,
+        private readonly OutboxWriter $outbox,
     ) {}
 
     /** @return array<string, mixed> */
@@ -86,6 +91,17 @@ final class EvaluateRecommendationsHandler
                 recommendationIds: $recommendationIds,
                 updatedAt: $now,
             );
+
+            $event = new AdvisorOverviewChanged(
+                workspaceId: $workspaceId,
+                advisorOverviewVersion: $overviewVersion,
+                sourceEligibility: $evaluation['source_eligibility'],
+                primaryRecommendationId: $primaryId,
+                recommendationPolicyVersion: RecommendationPolicy::VERSION,
+                eventId: EventId::generate(),
+                occurredAt: $now,
+            );
+            $this->outbox->append(OutgoingMessage::fromDomainEvent($event));
 
             $response = [
                 'advisor_overview_version' => $overviewVersion,
