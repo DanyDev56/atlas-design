@@ -5,6 +5,7 @@ import { AdvisorPriorityWidget } from '@/components/dashboard/AdvisorPriorityWid
 import { BillingWidget } from '@/components/dashboard/BillingWidget';
 import { BusinessHealthWidget } from '@/components/dashboard/BusinessHealthWidget';
 import { PipelineWidget } from '@/components/dashboard/PipelineWidget';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardResponse } from '@/types/api';
 
@@ -77,13 +78,7 @@ export function DashboardPage() {
                 )}
             </div>
 
-            {loading && (
-                <div className="grid gap-6 md:grid-cols-2">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-48 animate-pulse rounded-2xl bg-white shadow-sm" />
-                    ))}
-                </div>
-            )}
+            {loading && <PageSkeleton rows={4} variant="cards" />}
 
             {error && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">

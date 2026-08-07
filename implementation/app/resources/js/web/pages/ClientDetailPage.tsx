@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { createOpportunity, getClient, listOpportunities } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { ErrorBanner, FormField, SubmitButton, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientDetail, OpportunitySummary } from '@/types/api';
@@ -102,7 +104,11 @@ export function ClientDetailPage() {
                     ← Retour aux clients
                 </Link>
 
-                {loading && <div className="mt-8 h-32 animate-pulse rounded-2xl bg-white shadow-sm" />}
+                {loading && (
+                    <div className="mt-8">
+                        <PageSkeleton rows={2} />
+                    </div>
+                )}
 
                 {error && (
                     <div className="mt-6">
@@ -178,11 +184,10 @@ export function ClientDetailPage() {
                             )}
 
                             {sortedOpportunities.length === 0 && (
-                                <div className="rounded-2xl border border-dashed border-atlas-border bg-atlas-card px-6 py-10 text-center">
-                                    <p className="text-sm text-atlas-ink-muted">
-                                        Aucune opportunité. Créez-en une pour préparer un devis.
-                                    </p>
-                                </div>
+                                <EmptyState
+                                    title="Aucune opportunité"
+                                    description="Créez une opportunité pour préparer un devis."
+                                />
                             )}
 
                             {sortedOpportunities.length > 0 && (

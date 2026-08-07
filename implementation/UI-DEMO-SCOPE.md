@@ -26,8 +26,8 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 |---|---|---|---|
 | **0** | Shell, auth J1, client API, routing | ✓ | Connexion + navigation |
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
-| **2** | CRM slice + devis | ◐ | Parcours J2 en UI |
-| **3** | Polish démo (empty states, seed, responsive) | ◻ | Beta élargie |
+| **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
+| **3** | Polish démo (empty states, seed, responsive) | ◐ | Beta élargie |
 
 ---
 
@@ -72,7 +72,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 
 ---
 
-## Lot 2 — Vertical slice J2 (en cours)
+## Lot 2 — Vertical slice J2
 
 ### Livré
 
@@ -90,11 +90,29 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 
 ---
 
-## Lot 3 — Polish présentation
+## Lot 3 — Polish présentation (en cours)
 
-- Compte démo + script seed
-- Skeletons, responsive tablette
-- Env staging `demo.atlas…`
+### Livré
+
+- Commande `make demo-seed` → compte `demo@atlas.test` / `DemoAtlas2026!`
+- Données : 2 clients, opportunités (Open + Qualified), devis brouillon + accepté, facture payée
+- Dashboard alimenté (outbox + snapshot analytics)
+- Login : encart compte démo + pré-remplissage
+- Layout responsive : menu mobile, paddings tablette
+- Composants `PageSkeleton` et `EmptyState` réutilisés
+
+### Compte démo
+
+```bash
+make demo-seed
+# → http://localhost:8000/app/login
+```
+
+Identifiants affichés sur la page de connexion après seed.
+
+### Reste hors scope Lot 3
+
+- Env staging `demo.atlas…` (infra)
 
 ---
 
@@ -104,6 +122,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 make serve                    # API :8000
 make web-install              # première fois — deps npm React
 make web-dev                  # Vite HMR :5173
+make demo-seed                # compte démo + données présentation
 
 # Ouvrir http://localhost:8000/app
 ```

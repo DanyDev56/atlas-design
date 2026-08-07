@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { createClient, listClients } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { ErrorBanner, FormField, SubmitButton, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientSummary } from '@/types/api';
@@ -117,20 +119,24 @@ export function CrmClientsPage() {
                     </form>
                 )}
 
-                {loading && (
-                    <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-16 animate-pulse rounded-xl bg-white shadow-sm" />
-                        ))}
-                    </div>
-                )}
+                {loading && <PageSkeleton rows={3} />}
 
                 {!loading && clients.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-atlas-border bg-atlas-card px-6 py-12 text-center">
-                        <p className="text-sm text-atlas-ink-muted">
-                            Aucun client pour l'instant. Créez votre premier client pour démarrer une opportunité.
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="Aucun client"
+                        description="Créez votre premier client pour démarrer une opportunité commerciale."
+                        action={
+                            !showForm ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowForm(true)}
+                                    className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                                >
+                                    Nouveau client
+                                </button>
+                            ) : undefined
+                        }
+                    />
                 )}
 
                 {!loading && clients.length > 0 && (
