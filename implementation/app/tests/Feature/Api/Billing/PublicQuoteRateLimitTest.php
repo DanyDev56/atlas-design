@@ -19,7 +19,7 @@ final class PublicQuoteRateLimitTest extends IntegrationTestCase
             $this->postJson($url, [
                 'public_token' => str_repeat('a', 32),
                 'expected_revision' => 1,
-            ])->assertStatus(422);
+            ])->assertStatus(401);
         }
 
         $this->postJson($url, [

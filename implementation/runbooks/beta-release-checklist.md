@@ -1,5 +1,6 @@
 ---
-title: Checklist — Release beta fermée
+
+## title: Checklist — Release beta fermée
 owner: Engineering + Product
 last_updated: 2026-08-07
 references:
@@ -8,8 +9,7 @@ references:
   - backup-restore.md
   - observability.md
   - outbox-incident.md
-  - data-retention-beta.md
----
+  - [data-retention-beta.md](http://data-retention-beta.md)
 
 # Checklist release beta
 
@@ -30,6 +30,8 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 - [ ] SEC-TEST-013 idempotence documentée (`docs/idempotency.md`)
 - [ ] Risques SEC-T résiduels High/Critical acceptés formellement (Product+Security)
 
+
+
 ## Exploitation
 
 - [ ] `make backup` testé ; rétention dumps documentée
@@ -37,17 +39,23 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 - [ ] `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` configuré en staging (si alerting externe)
 - [ ] Runbooks relus : backup, observabilité, outbox incident
 
+
+
 ## Observabilité (manuel)
 
 - [ ] Spans `atlas-app` visibles dans Jaeger (requête API + outbox)
 - [ ] Logs JSON corrélés sans secret (`correlation_id`, pas de token/mot de passe)
 - [ ] `LOG_STACK=json_stderr` en environnement beta
 
+
+
 ## Product / conformité
 
 - [ ] Draft rétention beta validé ou écarts acceptés (SEC-GAP-004)
 - [ ] Liste utilisateurs beta + support définis
 - [ ] Playground / parcours J1–J3 démontrés sur environnement beta
+
+
 
 ## Rollback
 
@@ -58,8 +66,11 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 
 **Sign-off**
 
-| Rôle | Nom | Date |
-|---|---|---|
-| Engineering | | |
-| Product | | |
-| Security | | |
+
+| Rôle        | Nom | Date |
+| ----------- | --- | ---- |
+| Engineering |     |      |
+| Product     |     |      |
+| Security    |     |      |
+
+
