@@ -70,6 +70,9 @@ final class BootstrapIdentityForWorkspaceHandler
         'crm.analytics-facts.read',
         'billing.analytics-facts.read',
         'business-health.assessments.read',
+        'advisor.recommendations.read',
+        'advisor.recommendations.complete',
+        'advisor.recommendations.dismiss',
     ];
 
     public function __construct(

@@ -23,6 +23,7 @@
         invoiceId: null,
         invoiceVersion: 1,
         businessHealthAssessmentId: null,
+        advisorOverviewVersion: null,
     });
 
     let state = loadState();
@@ -74,6 +75,7 @@
             ['Quote', !!state.quoteId],
             ['Invoice', !!state.invoiceId],
             ['Health', !!state.businessHealthAssessmentId],
+            ['Advisor', !!state.advisorOverviewVersion],
         ];
         $('sessionPills').innerHTML = pills.map(([label, ok]) =>
             `<span class="pill ${ok ? 'ok' : ''}">${label}</span>`
@@ -309,6 +311,13 @@
         return api('GET', `/workspaces/${state.workspaceId}/business-health/assessments/${state.businessHealthAssessmentId}`);
     }
 
+    async function advisorOverview() {
+        const data = await api('GET', `/workspaces/${state.workspaceId}/advisor/overview`);
+        state.advisorOverviewVersion = data.advisor_overview_version;
+        saveState();
+        return data;
+    }
+
     async function runFullFlow() {
         const btn = $('btnFullFlow');
         btn.disabled = true;
@@ -334,6 +343,8 @@
             await processOutbox();
             await latestSnapshot();
             await currentBusinessHealth();
+            await processOutbox();
+            await advisorOverview();
         } finally {
             btn.disabled = false;
             btn.textContent = '▶ Parcours MVP-J2 complet';
@@ -371,6 +382,7 @@
     bind('btnPipelineMetric', pipelineMetric);
     bind('btnCurrentHealth', currentBusinessHealth);
     bind('btnHealthAssessment', getBusinessHealthAssessment);
+    bind('btnAdvisorOverview', advisorOverview);
 
     $('btnFullFlow')?.addEventListener('click', () => runFullFlow().catch((e) => {
         log('ERR', 'full-flow', '—', { message: e.message }, false);

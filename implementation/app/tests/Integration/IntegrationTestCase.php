@@ -27,6 +27,7 @@ abstract class IntegrationTestCase extends TestCase
         DB::statement('DROP SCHEMA IF EXISTS billing CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS analytics CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS business_health CASCADE');
+        DB::statement('DROP SCHEMA IF EXISTS advisor CASCADE');
 
         DB::statement('CREATE SCHEMA IF NOT EXISTS platform');
         DB::statement('CREATE SCHEMA IF NOT EXISTS workspace');
@@ -35,6 +36,7 @@ abstract class IntegrationTestCase extends TestCase
         DB::statement('CREATE SCHEMA IF NOT EXISTS billing');
         DB::statement('CREATE SCHEMA IF NOT EXISTS analytics');
         DB::statement('CREATE SCHEMA IF NOT EXISTS business_health');
+        DB::statement('CREATE SCHEMA IF NOT EXISTS advisor');
 
         self::$atlasSchemasPrepared = true;
     }

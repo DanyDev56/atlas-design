@@ -95,6 +95,15 @@
             </details>
 
             <details class="section">
+                <summary>6. Advisor</summary>
+                <div class="section-body">
+                    <div class="row">
+                        <button type="button" id="btnAdvisorOverview">Overview recommandations</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="section">
                 <div class="section-body">
                     <div class="row">
                         <button type="button" id="btnReset" class="danger">Reset session locale</button>

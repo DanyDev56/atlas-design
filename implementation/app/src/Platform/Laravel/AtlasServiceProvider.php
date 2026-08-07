@@ -45,6 +45,13 @@ use Atlas\Modules\Analytics\Application\PublishAnalyticsSnapshotHandler;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
+use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
+use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
+use Atlas\Modules\Advisor\Application\RecommendationPolicyEvaluator;
+use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresAdvisorOverviewRepository;
+use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepository;
+use Atlas\Modules\Advisor\Infrastructure\PostgresAdvisorIdempotencyStore;
+use Atlas\Composition\Advisor\OutboxAdvisorEvaluateConsumer;
 use Atlas\Modules\BusinessHealth\Application\BusinessHealthQueryHandler;
 use Atlas\Modules\BusinessHealth\Application\EvaluateBusinessHealthHandler;
 use Atlas\Modules\BusinessHealth\Application\HealthPolicyEvaluator;
@@ -92,6 +99,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
                     $app->make(OutboxAnalyticsIngestConsumer::class),
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
+                    $app->make(OutboxAdvisorEvaluateConsumer::class),
                 ],
             );
         });
@@ -162,5 +170,13 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(EvaluateBusinessHealthHandler::class);
         $this->app->singleton(BusinessHealthQueryHandler::class);
         $this->app->singleton(OutboxBusinessHealthEvaluateConsumer::class);
+
+        $this->app->singleton(PostgresAdvisorIdempotencyStore::class);
+        $this->app->singleton(PostgresRecommendationRepository::class);
+        $this->app->singleton(PostgresAdvisorOverviewRepository::class);
+        $this->app->singleton(RecommendationPolicyEvaluator::class);
+        $this->app->singleton(EvaluateRecommendationsHandler::class);
+        $this->app->singleton(AdvisorQueryHandler::class);
+        $this->app->singleton(OutboxAdvisorEvaluateConsumer::class);
     }
 }

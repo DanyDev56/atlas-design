@@ -121,13 +121,17 @@ final class SourceFactSummaryBuilder
         \DateTimeImmutable $from,
         \DateTimeImmutable $to,
     ): ?int {
+        if (! $this->workspaceHasIssuedInvoices($workspaceId)) {
+            return null;
+        }
+
         $total = DB::table('billing.invoices')
             ->where('workspace_id', $workspaceId)
             ->where('status', 'Issued')
             ->whereBetween('issued_at', [$from->format('Y-m-d H:i:sP'), $to->format('Y-m-d H:i:sP')])
             ->sum('total_cents');
 
-        return $total > 0 ? (int) $total : null;
+        return (int) $total;
     }
 
     private function collectedAmount(
@@ -135,12 +139,31 @@ final class SourceFactSummaryBuilder
         \DateTimeImmutable $from,
         \DateTimeImmutable $to,
     ): ?int {
+        if (! $this->workspaceHasPayments($workspaceId)) {
+            return null;
+        }
+
         $total = DB::table('billing.payments')
             ->where('workspace_id', $workspaceId)
             ->whereBetween('recorded_at', [$from->format('Y-m-d H:i:sP'), $to->format('Y-m-d H:i:sP')])
             ->sum('amount_cents');
 
-        return $total > 0 ? (int) $total : null;
+        return (int) $total;
+    }
+
+    private function workspaceHasIssuedInvoices(string $workspaceId): bool
+    {
+        return DB::table('billing.invoices')
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'Issued')
+            ->exists();
+    }
+
+    private function workspaceHasPayments(string $workspaceId): bool
+    {
+        return DB::table('billing.payments')
+            ->where('workspace_id', $workspaceId)
+            ->exists();
     }
 
     /** @return array<string, int>|null */

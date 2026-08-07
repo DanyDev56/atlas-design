@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
 use App\Http\Controllers\Api\Dev\ProcessOutboxController;
@@ -67,6 +68,8 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
 
             Route::get('/business-health/current', [BusinessHealthController::class, 'current']);
             Route::get('/business-health/assessments/{assessmentId}', [BusinessHealthController::class, 'show']);
+
+            Route::get('/advisor/overview', [AdvisorController::class, 'overview']);
         });
     });
 });
