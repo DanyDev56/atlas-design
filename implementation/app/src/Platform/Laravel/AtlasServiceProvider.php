@@ -84,6 +84,7 @@ use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
 use Atlas\Modules\Workspace\Application\CreateWorkspaceHandler;
 use Atlas\Modules\Workspace\Domain\WorkspaceRepository;
 use Atlas\Modules\Workspace\Infrastructure\Persistence\PostgresWorkspaceRepository;
+use Atlas\Platform\Messaging\Infrastructure\OutboxBacklogMonitor;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Atlas\Platform\Messaging\Infrastructure\PostgresInboxStore;
 use Atlas\Platform\Messaging\Infrastructure\PostgresOutboxWriter;
@@ -114,6 +115,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
                     $app->make(OutboxNotificationsProcessConsumer::class),
                 ],
+                $app->make(OutboxBacklogMonitor::class),
             );
         });
 

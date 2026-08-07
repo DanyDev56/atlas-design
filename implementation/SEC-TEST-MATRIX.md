@@ -19,7 +19,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-001 | SEC-T07 | `MvpAcceptanceCrossCuttingTest` (isolation client) | ◐ | Étendre à quotes/invoices |
 | SEC-TEST-002 | SEC-T01 | — | ◻ | Fuzz login / lockout |
 | SEC-TEST-003 | SEC-T02 | `VerifyEmail` + token debug test | ◐ | Token expiré / rejoué |
-| SEC-TEST-004 | SEC-T03 | Sessions Postgres | ◻ | Révocation mid-session |
+| SEC-TEST-004 | SEC-T03 | `RevokeSessionTest` | ☑ | — |
 | SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
 | SEC-TEST-006 | SEC-T05 | — | ◻ | Rate limit API |
 | SEC-TEST-007 | SEC-T08 | `CrmAuthorizationTest` | ◐ | Membership révoquée mid-flow |
@@ -48,7 +48,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 
 Exécuté à chaque `make test` :
 
-- SEC-TEST-001 (partiel), 007 (partiel), 014 (partiel), 017, 018
+- SEC-TEST-001 (partiel), 004, 007 (partiel), 014 (partiel), 017, 018
 
 Exécuté manuellement avant release :
 
@@ -58,6 +58,6 @@ Exécuté manuellement avant release :
 
 | Gap | Statut Track A |
 |---|---|
-| SEC-GAP-004 (rétention / support) | ◻ décision Product+Security |
+| SEC-GAP-004 (rétention / support) | ◐ draft `runbooks/data-retention-beta.md` |
 | SEC-GAP-006 (backup hors site) | ◐ scripts locaux ; hors site à décider |
-| SEC-GAP-008 (runbooks / alertes) | ◐ backup + observabilité runbooks |
+| SEC-GAP-008 (runbooks / alertes) | ◐ backup + observabilité + outbox incident |

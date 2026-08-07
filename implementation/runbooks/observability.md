@@ -17,8 +17,8 @@ references:
 | Logs JSON structurés | ☑ | canal `json_stderr`, contexte `correlation_id` |
 | Export OTLP (infra) | ☑ | `otel-collector` + Jaeger (profile `observability`) |
 | Export OTLP (PHP SDK) | ☑ | `Telemetry`, `HttpTracingMiddleware`, `TraceScope` / outbox |
-| Métriques RED / outbox lag | ◻ | Prochain lot Track A |
-| Alertes et runbooks incident | ◻ | SEC-GAP-008 |
+| Métriques RED / outbox lag | ◐ | `OutboxBacklogMonitor`, logs structurés backlog |
+| Alertes et runbooks incident | ◐ | `runbooks/outbox-incident.md` |
 
 ## Démarrer la stack observabilité
 
@@ -69,6 +69,7 @@ ORDER BY created_at;
 
 - spans HTTP : `HttpTracingMiddleware` (`http.method`, `http.route`, `correlation_id`) ;
 - spans outbox : `outbox.process_pending` dans `OutboxProcessor`.
+- métriques backlog : `OutboxBacklogMonitor` après chaque cycle outbox (voir `runbooks/outbox-incident.md`).
 
 Variables (`.env` ou Compose) :
 
@@ -95,4 +96,4 @@ Si seul le service `jaeger` apparaît, l'export OTLP PHP est désactivé : contr
 
 - [ ] Spans visibles dans Jaeger pour au moins une requête API et un cycle outbox
 - [ ] Logs JSON corrélés consultables sans secret
-- [ ] Runbook incident + alerte outbox backlog documentés
+- [x] Runbook incident + alerte outbox backlog documentés (`runbooks/outbox-incident.md`)

@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterUserController;
+use App\Http\Controllers\Api\RevokeSessionController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
@@ -36,6 +37,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
     Route::post('/spike/workspaces', SpikeCreateWorkspaceController::class);
 
     Route::middleware(BearerSessionMiddleware::class)->group(function (): void {
+        Route::post('/auth/session/revoke', RevokeSessionController::class);
+
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);
 
         Route::prefix('/workspaces/{workspaceId}')->group(function (): void {

@@ -17,17 +17,22 @@ final class OutboxProcessor
     public function __construct(
         private readonly InboxStore $inbox,
         private readonly iterable $consumers,
+        private readonly OutboxBacklogMonitor $backlog,
     ) {}
 
     public function processPending(int $batchSize = 100): int
     {
-        return TraceScope::run(
+        $processed = TraceScope::run(
             'outbox.process_pending',
             fn (): int => (int) DB::transaction(function () use ($batchSize): int {
                 return $this->processPendingWithinTransaction($batchSize);
             }),
             ['outbox.batch_size' => $batchSize],
         );
+
+        $this->backlog->reportAfterProcessing($processed);
+
+        return $processed;
     }
 
     private function processPendingWithinTransaction(int $batchSize): int

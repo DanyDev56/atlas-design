@@ -39,6 +39,27 @@ final class PostgresSessionRepository
         return $row !== null ? (array) $row : null;
     }
 
+    /** @return array<string, mixed>|null */
+    public function findById(SessionId $sessionId): ?array
+    {
+        $row = DB::table('identity.sessions')
+            ->where('id', $sessionId->value)
+            ->first();
+
+        return $row !== null ? (array) $row : null;
+    }
+
+    public function revoke(SessionId $sessionId, \DateTimeImmutable $revokedAt): void
+    {
+        DB::table('identity.sessions')
+            ->where('id', $sessionId->value)
+            ->where('status', 'Active')
+            ->update([
+                'status' => 'Revoked',
+                'revoked_at' => $revokedAt->format('Y-m-d H:i:sP'),
+            ]);
+    }
+
     public static function hashToken(string $plainToken): string
     {
         return hash('sha256', $plainToken);
