@@ -1,4 +1,4 @@
-.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore
+.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -53,3 +53,6 @@ restore:
 
 verify-restore:
 	./implementation/scripts/verify-restore-canary.sh $(if $(BACKUP),"$(BACKUP)",)
+
+retention-purge:
+	$(COMPOSE) exec app php artisan atlas:retention:purge $(if $(DRY_RUN),--dry-run,)

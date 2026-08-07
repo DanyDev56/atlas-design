@@ -38,7 +38,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-020 | SEC-T21 | — | ◻ | Secret scan CI |
 | SEC-TEST-021 | SEC-T22 | CI `oci` SBOM | ◐ | Scan vulnérabilités |
 | SEC-TEST-022 | SEC-T24 | — | ◻ | DLQ / poison message |
-| SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` + CI `release-rehearsal` | ☑ | Rehearsal manuel avant release |
+| SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` + CI `release-rehearsal` | ☑ | CI validé (`501bf1c`) |
 | SEC-TEST-024 | SEC-T26 | — | ◻ | Supply chain pin audit |
 | SEC-TEST-025 | SEC-T27 | — | ◻ | Chaos outbox consumer |
 | SEC-TEST-026 | SEC-T28 | — | ◻ | Performance baseline |
@@ -58,6 +58,6 @@ Exécuté manuellement avant release :
 
 | Gap | Statut Track A |
 |---|---|
-| SEC-GAP-004 (rétention / support) | ◐ draft `runbooks/data-retention-beta.md` |
-| SEC-GAP-006 (backup hors site) | ◐ scripts locaux ; hors site à décider |
+| SEC-GAP-004 (rétention / support) | ☑ purge `atlas:retention:purge` (`runbooks/data-retention-beta.md`) |
+| SEC-GAP-006 (backup hors site) | ◐ risque accepté beta ; dumps locaux 30 j ; hors site post-beta |
 | SEC-GAP-008 (runbooks / alertes) | ◐ runbooks ☑ ; webhook `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` |

@@ -33,8 +33,8 @@ restent des gates distinctes.
 | Tests Pest | ☑ 83+ (CI job `spike`) |
 | Matrice SEC-TEST beta (006, 004, 007, 013, 017, 018, 023) | ☑ |
 | Runbooks exploitation | ☑ backup, observabilité, outbox, beta release |
-| Gate observabilité manuelle (Jaeger + logs) | ◐ checklist beta |
-| SEC-GAP-004 / 006 (Product+Security) | ◐ drafts / décision hors site |
+| Gate observabilité manuelle (Jaeger + logs) | ☑ checklist beta |
+| SEC-GAP-004 / 006 (Product+Security) | ☑ rétention ; ◐ hors site post-beta |
 
 ---
 

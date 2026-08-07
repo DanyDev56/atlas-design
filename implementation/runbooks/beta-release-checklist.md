@@ -1,6 +1,5 @@
 ---
-
-## title: Checklist — Release beta fermée
+title: Checklist — Release beta fermée
 owner: Engineering + Product
 last_updated: 2026-08-07
 references:
@@ -9,68 +8,69 @@ references:
   - backup-restore.md
   - observability.md
   - outbox-incident.md
-  - [data-retention-beta.md](http://data-retention-beta.md)
+  - data-retention-beta.md
+---
 
 # Checklist release beta
 
 Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 
+## Périmètre beta interne
+
+| Élément | Décision |
+|---|---|
+| Utilisateurs | Beta fermée **interne** — équipe Atlas + proches |
+| Support | `beta@atlas-design.fr` *(placeholder — à confirmer avant ouverture externe)* |
+| Environnement démo J1–J3 | Local validé (`make serve`, playground) |
+| Tag release rollback | `beta-0.1.0` |
+
 ## CI / qualité
 
-- [ ] `make test` vert (83+ tests)
-- [ ] CI GitHub `documentation` + `spike` + `oci` verts sur `main`
-- [ ] `scripts/check-mvp-reference-fixtures.sh` vert
-- [ ] Workflow `release-rehearsal` exécuté (SEC-TEST-023)
+- [x] `make test` vert (83+ tests)
+- [x] CI GitHub `documentation` + `spike` + `oci` verts sur `main`
+- [x] `scripts/check-mvp-reference-fixtures.sh` vert
+- [x] Workflow `release-rehearsal` exécuté (SEC-TEST-023) — vert sur `main` (`501bf1c`, workflow_dispatch)
 
 ## Sécurité (subset beta)
 
-- [ ] SEC-TEST-004 session revoke validé
-- [ ] SEC-TEST-006 rate limit auth + public quote
-- [ ] SEC-TEST-007 membership revocation mid-session
-- [ ] SEC-TEST-013 idempotence documentée (`docs/idempotency.md`)
-- [ ] Risques SEC-T résiduels High/Critical acceptés formellement (Product+Security)
-
-
+- [x] SEC-TEST-004 session revoke validé
+- [x] SEC-TEST-006 rate limit auth + public quote
+- [x] SEC-TEST-007 membership revocation mid-session
+- [x] SEC-TEST-013 idempotence documentée (`docs/idempotency.md`)
+- [x] Risques SEC-T résiduels High/Critical acceptés formellement (Product+Security)
 
 ## Exploitation
 
-- [ ] `make backup` testé ; rétention dumps documentée
-- [ ] Décision backup hors site (SEC-GAP-006) ou acceptation risque beta
-- [ ] `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` configuré en staging (si alerting externe)
-- [ ] Runbooks relus : backup, observabilité, outbox incident
-
-
+- [x] `make backup` testé ; rétention dumps documentée
+- [x] Décision backup hors site (SEC-GAP-006) — **acceptation risque beta** : dumps locaux uniquement, rotation 30 j
+- [x] `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` configuré en staging (si alerting externe) — N/A beta, logs only
+- [x] Runbooks relus : backup, observabilité, outbox incident
 
 ## Observabilité (manuel)
 
-- [ ] Spans `atlas-app` visibles dans Jaeger (requête API + outbox)
-- [ ] Logs JSON corrélés sans secret (`correlation_id`, pas de token/mot de passe)
-- [ ] `LOG_STACK=json_stderr` en environnement beta
-
-
+- [x] Spans `atlas-app` visibles dans Jaeger (requête API + outbox)
+- [x] Logs JSON corrélés sans secret (`correlation_id`, pas de token/mot de passe)
+- [x] `LOG_STACK=json_stderr` en environnement beta
 
 ## Product / conformité
 
-- [ ] Draft rétention beta validé ou écarts acceptés (SEC-GAP-004)
-- [ ] Liste utilisateurs beta + support définis
-- [ ] Playground / parcours J1–J3 démontrés sur environnement beta
-
-
+- [x] Draft rétention beta validé (SEC-GAP-004) — `atlas:retention:purge` + schedule quotidien
+- [x] Liste utilisateurs beta + support définis — beta interne ; support `beta@atlas-design.fr`
+- [x] Playground / parcours J1–J3 démontrés — local (`make serve`, playground)
 
 ## Rollback
 
-- [ ] Procédure restore documentée et testée (`make verify-restore`)
-- [ ] Tag ou commit de release identifié pour rollback image OCI
+- [x] Procédure restore documentée et testée (`make verify-restore`)
+- [x] Tag ou commit de release identifié pour rollback image OCI — `beta-0.1.0`
 
 ---
 
 **Sign-off**
 
+Beta interne : Product et Security portés par la même personne.
 
-| Rôle        | Nom | Date |
-| ----------- | --- | ---- |
-| Engineering |     |      |
-| Product     |     |      |
-| Security    |     |      |
-
-
+| Rôle        | Nom    | Date       |
+| ----------- | ------ | ---------- |
+| Engineering | Daniel | 2026-08-07 |
+| Product     | Daniel | 2026-08-07 |
+| Security    | Daniel | 2026-08-07 |

@@ -16,4 +16,9 @@ return [
             'max_attempts' => (int) env('RATE_LIMIT_PUBLIC_MAX_ATTEMPTS', 30),
         ],
     ],
+    'retention' => [
+        'sessions_days' => (int) env('RETENTION_SESSIONS_DAYS', 30),
+        'outbox_dispatched_days' => (int) env('RETENTION_OUTBOX_DISPATCHED_DAYS', 90),
+        'idempotency_keys_days' => (int) env('RETENTION_IDEMPOTENCY_DAYS', 30),
+    ],
 ];

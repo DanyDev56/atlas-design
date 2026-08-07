@@ -93,6 +93,7 @@ make test        # Tests Pest (après bootstrap)
 make check-docs  # Quality gates documentaires du dépôt parent
 make backup      # Sauvegarde PostgreSQL (Palier 3)
 make verify-restore  # Canary SEC-TEST-023
+make retention-purge # Purge rétention beta (SEC-GAP-004)
 make up-observability  # Jaeger + OTLP collector
 ```
 
