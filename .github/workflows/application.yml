@@ -110,4 +110,5 @@ jobs:
             php artisan migrate:fresh --force
             ./vendor/bin/pest tests/Architecture/ReferenceFixturesOracleTest.php --colors=never
           '
+          ./implementation/scripts/backup-postgres.sh
           ./implementation/scripts/verify-restore-canary.sh
