@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Laravel;
 
+use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
+use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
 use Atlas\Modules\Crm\Application\AddContactHandler;
@@ -15,6 +17,20 @@ use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
+use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
+use Atlas\Modules\Billing\Application\BillingQueryHandler;
+use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
+use Atlas\Modules\Billing\Application\CreateQuoteHandler;
+use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
+use Atlas\Modules\Billing\Application\RecordPaymentHandler;
+use Atlas\Modules\Billing\Application\SendInvoiceHandler;
+use Atlas\Modules\Billing\Application\SendQuoteHandler;
+use Atlas\Modules\Billing\Application\UpdateQuoteDraftHandler;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPaymentRepository;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
+use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
 use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
@@ -51,7 +67,10 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(OutboxProcessor::class, function ($app): OutboxProcessor {
             return new OutboxProcessor(
                 $app->make(InboxStore::class),
-                [$app->make(SpikeEventCounterConsumer::class)],
+                [
+                    $app->make(SpikeEventCounterConsumer::class),
+                    $app->make(QuoteAcceptedWinOpportunityConsumer::class),
+                ],
             );
         });
 
@@ -82,5 +101,22 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(CreateOpportunityHandler::class);
         $this->app->singleton(QualifyOpportunityHandler::class);
         $this->app->singleton(CrmQueryHandler::class);
+
+        $this->app->singleton(PostgresBillingIdempotencyStore::class);
+        $this->app->singleton(PostgresQuoteRepository::class);
+        $this->app->singleton(PostgresInvoiceRepository::class);
+        $this->app->singleton(PostgresPaymentRepository::class);
+        $this->app->singleton(PostgresPublicDocumentProofRepository::class);
+        $this->app->singleton(CreateQuoteHandler::class);
+        $this->app->singleton(UpdateQuoteDraftHandler::class);
+        $this->app->singleton(SendQuoteHandler::class);
+        $this->app->singleton(AcceptQuoteHandler::class);
+        $this->app->singleton(CreateFinalInvoiceFromQuoteHandler::class);
+        $this->app->singleton(IssueInvoiceHandler::class);
+        $this->app->singleton(SendInvoiceHandler::class);
+        $this->app->singleton(RecordPaymentHandler::class);
+        $this->app->singleton(BillingQueryHandler::class);
+        $this->app->singleton(WinOpportunityFromQuoteHandler::class);
+        $this->app->singleton(QuoteAcceptedWinOpportunityConsumer::class);
     }
 }

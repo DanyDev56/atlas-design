@@ -83,6 +83,21 @@ final class Opportunity
         $this->updatedAt = $now;
     }
 
+    public function win(\DateTimeImmutable $now): void
+    {
+        if ($this->status === self::STATUS_WON) {
+            return;
+        }
+
+        if ($this->status !== self::STATUS_QUALIFIED) {
+            throw new \DomainException('Opportunity is not qualified.');
+        }
+
+        $this->status = self::STATUS_WON;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function id(): OpportunityId
     {
         return $this->id;

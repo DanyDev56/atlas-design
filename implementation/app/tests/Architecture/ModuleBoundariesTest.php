@@ -23,3 +23,13 @@ arch('crm domain does not depend on identity or workspace domains')
     ->not->toUse('Atlas\Modules\Identity')
     ->and('Atlas\Modules\Crm\Domain')
     ->not->toUse('Atlas\Modules\Workspace');
+
+arch('billing domain does not depend on Laravel')
+    ->expect('Atlas\Modules\Billing\Domain')
+    ->not->toUse('Illuminate');
+
+arch('billing domain does not depend on identity or workspace domains')
+    ->expect('Atlas\Modules\Billing\Domain')
+    ->not->toUse('Atlas\Modules\Identity')
+    ->and('Atlas\Modules\Billing\Domain')
+    ->not->toUse('Atlas\Modules\Workspace');

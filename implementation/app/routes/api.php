@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Billing\InvoiceController;
+use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
+use App\Http\Controllers\Api\Billing\QuoteController;
 use App\Http\Controllers\Api\BootstrapWorkspaceController;
 use App\Http\Controllers\Api\Crm\ClientController;
 use App\Http\Controllers\Api\Crm\OpportunityController;
@@ -18,6 +21,8 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
     Route::post('/auth/register', RegisterUserController::class);
     Route::post('/auth/verify-email', VerifyEmailController::class);
     Route::post('/auth/login', LoginController::class);
+
+    Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
 
     Route::post('/spike/workspaces', SpikeCreateWorkspaceController::class);
 
@@ -38,6 +43,18 @@ Route::middleware(CorrelationIdMiddleware::class)->group(function (): void {
             Route::get('/opportunities/{opportunityId}/commercial-context', [OpportunityController::class, 'commercialContext']);
 
             Route::get('/pipeline', PipelineController::class);
+
+            Route::get('/quotes', [QuoteController::class, 'index']);
+            Route::post('/quotes', [QuoteController::class, 'store']);
+            Route::get('/quotes/{quoteId}', [QuoteController::class, 'show']);
+            Route::patch('/quotes/{quoteId}', [QuoteController::class, 'update']);
+            Route::post('/quotes/{quoteId}/send', [QuoteController::class, 'send']);
+            Route::post('/quotes/{quoteId}/invoices', [QuoteController::class, 'createInvoice']);
+
+            Route::get('/invoices/{invoiceId}', [InvoiceController::class, 'show']);
+            Route::post('/invoices/{invoiceId}/issue', [InvoiceController::class, 'issue']);
+            Route::post('/invoices/{invoiceId}/send', [InvoiceController::class, 'send']);
+            Route::post('/invoices/{invoiceId}/payments', [InvoiceController::class, 'recordPayment']);
         });
     });
 });
