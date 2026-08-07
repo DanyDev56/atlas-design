@@ -9,14 +9,14 @@ references:
 
 # Observabilité
 
-## État Palier 3 (Track A — lot 1)
+## État Palier 3 (Track A)
 
 | Signal | Statut | Détail |
 |---|---|---|
 | Corrélation HTTP → outbox | ☑ | `CorrelationIdMiddleware`, colonne `correlation_id` |
 | Logs JSON structurés | ☑ | canal `json_stderr`, contexte `correlation_id` |
-| Export OTLP (infra) | ☑ | `otel-collector` + Jaeger en Compose |
-| Export OTLP (PHP SDK) | ◻ | Prochain lot Track A |
+| Export OTLP (infra) | ☑ | `otel-collector` + Jaeger (profile `observability`) |
+| Export OTLP (PHP SDK) | ☑ | `Telemetry`, `HttpTracingMiddleware`, `TraceScope` / outbox |
 | Métriques RED / outbox lag | ◻ | Prochain lot Track A |
 | Alertes et runbooks incident | ◻ | SEC-GAP-008 |
 
@@ -24,8 +24,9 @@ references:
 
 ```bash
 make up-observability
+# active OTEL_TRACES_EXPORTER=otlp sur le conteneur app
 # Jaeger UI : http://localhost:16686
-# OTLP HTTP  : http://localhost:4318
+# OTLP HTTP (collector) : http://localhost:4318/v1/traces
 ```
 
 Services : `jaeger` (v2, image `jaegertracing/jaeger`), `otel-collector` (profile `observability`).
@@ -62,9 +63,14 @@ WHERE correlation_id = '<uuid>'
 ORDER BY created_at;
 ```
 
-## OTLP (prochain lot)
+## OTLP PHP
 
-Variables préparées dans `.env.example` :
+`make up-observability` exporte les traces via le SDK OpenTelemetry :
+
+- spans HTTP : `HttpTracingMiddleware` (`http.method`, `http.route`, `correlation_id`) ;
+- spans outbox : `outbox.process_pending` dans `OutboxProcessor`.
+
+Variables (`.env` ou Compose) :
 
 ```env
 OTEL_SERVICE_NAME=atlas-app
@@ -72,8 +78,18 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 OTEL_TRACES_EXPORTER=otlp
 ```
 
-Brancher le SDK OpenTelemetry PHP sur le middleware HTTP et le processeur outbox
-pour fermer l'écart SPIKE-CLOSURE / MVP-CLOSURE DoD §4.
+Sans profile observability, laisser `OTEL_TRACES_EXPORTER=none` (défaut Compose).
+
+### Vérifier dans Jaeger
+
+1. `make up-observability` (recrée le conteneur `app` avec `OTEL_TRACES_EXPORTER=otlp`)
+2. Vérifier que `.env` contient `OTEL_TRACES_EXPORTER=otlp`
+3. `make serve` — redémarrer le serveur après changement `.env`
+4. Playground → parcours API → « Process outbox »
+5. Jaeger → service **`atlas-app`** → spans `GET api/...` et `outbox.process_pending`
+
+Si seul le service `jaeger` apparaît, l'export OTLP PHP est désactivé : contrôler
+`OTEL_TRACES_EXPORTER` et relancer `make up-observability`.
 
 ## Gate beta
 

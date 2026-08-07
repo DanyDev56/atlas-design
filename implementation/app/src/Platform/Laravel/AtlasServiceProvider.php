@@ -90,6 +90,7 @@ use Atlas\Platform\Messaging\Infrastructure\PostgresOutboxWriter;
 use Atlas\Platform\Messaging\InboxStore;
 use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Messaging\Spike\SpikeEventCounterConsumer;
+use Atlas\Platform\Observability\Telemetry;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\ServiceProvider;
 
@@ -202,5 +203,15 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(ChangeNotificationPreferencesHandler::class);
         $this->app->singleton(OutboxNotificationsProcessConsumer::class);
         $this->app->singleton(DashboardQueryHandler::class);
+    }
+
+    public function boot(): void
+    {
+        Telemetry::configure(
+            tracesExporter: (string) config('otel.traces_exporter', 'none'),
+            serviceName: (string) config('otel.service_name', 'atlas-app'),
+            otlpEndpoint: (string) config('otel.exporter_otlp_endpoint', 'http://otel-collector:4318'),
+        );
+        Telemetry::bootstrap();
     }
 }

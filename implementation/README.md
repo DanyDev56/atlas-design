@@ -99,6 +99,13 @@ make up-observability  # Jaeger + OTLP collector
 Runbooks Palier 3 : [`runbooks/`](runbooks/) · Matrice SEC-TEST :
 [`SEC-TEST-MATRIX.md`](SEC-TEST-MATRIX.md).
 
+Après pull Palier 3+, mettre à jour les dépendances PHP dans le conteneur :
+
+```bash
+make shell
+composer update --no-interaction
+```
+
 ---
 
 ## Ordre de construction

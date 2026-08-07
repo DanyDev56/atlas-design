@@ -35,6 +35,7 @@ services:
       DB_PASSWORD: atlas_dev
       OTEL_SERVICE_NAME: atlas-app
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-none}
       LOG_CHANNEL: stack
       LOG_STACK: json_stderr
     ports:

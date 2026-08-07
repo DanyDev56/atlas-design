@@ -9,7 +9,7 @@ up:
 	$(COMPOSE) up -d --build
 
 up-observability:
-	$(COMPOSE) --profile observability up -d --build
+	OTEL_TRACES_EXPORTER=otlp $(COMPOSE) --profile observability up -d --build --force-recreate app jaeger otel-collector
 
 down:
 	$(COMPOSE) down
