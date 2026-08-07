@@ -50,9 +50,9 @@ jobs:
           docker compose -f implementation/docker-compose.yml exec -T app bash -c '
             set -euo pipefail
             cd /workspace/implementation/app
+            composer install --no-interaction --prefer-dist
             cp -n .env.example .env
             php artisan key:generate --force --no-interaction
-            composer install --no-interaction --prefer-dist
             npm install --ignore-scripts
             php artisan migrate:fresh --force
             ./vendor/bin/pest --colors=never
@@ -76,7 +76,6 @@ jobs:
           context: implementation
           file: implementation/Dockerfile
           push: false
-          load: true
           tags: atlas-app:spike
           sbom: true
           provenance: mode=max
