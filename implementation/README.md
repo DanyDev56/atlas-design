@@ -4,9 +4,10 @@ Ce dossier contient le code exécutable d'Atlas, conformément à
 [`ADR-001`](../fondation/decisions/ADR-001-mvp-application-topology.md) et
 [`ADR-002`](../fondation/decisions/ADR-002-mvp-implementation-stack.md).
 
-Le référentiel parent reste la source de vérité métier. Ce dossier prouve que
-la stack proposée respecte les frontières, l'outbox et les quality gates avant
-le passage d'`ADR-002` à `Accepted`.
+Le référentiel parent reste la source de vérité métier. Ce dossier prouve
+l'exécutabilité du MVP minimal : frontières modules, outbox, parcours J1–J3
+et quality gates automatisés. Clôture technique :
+[`MVP-CLOSURE.md`](MVP-CLOSURE.md) (2026-08-07).
 
 ---
 
@@ -106,9 +107,9 @@ make check-docs  # Quality gates documentaires du dépôt parent
 | 5 | Business Health | Fixtures |
 | 6 | Advisor | Fixtures |
 | 7 | Notifications + Dashboard | MVP-J3 |
-| 8 | Durcissement | Release candidate |
+| 8 | Durcissement | Release candidate ☑ |
 
-Voir [`MVP-RC.md`](MVP-RC.md) pour la checklist de release candidate (incrément 8).
+Clôture technique : [`MVP-CLOSURE.md`](MVP-CLOSURE.md) · Checklist RC : [`MVP-RC.md`](MVP-RC.md)
 
 ---
 

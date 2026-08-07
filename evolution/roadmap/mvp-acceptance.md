@@ -3,8 +3,8 @@ id: ROADMAP-002
 title: Atlas MVP End-to-End Acceptance
 status: In Review
 owner: Product
-version: 1.4.0
-last_updated: 2026-08-06
+version: 1.5.0
+last_updated: 2026-08-07
 
 references:
   - mvp-scope.md
@@ -24,7 +24,7 @@ references:
   - ../../fondation/domains/advisor/api.md
   - ../../fondation/domains/notifications/api.md
   - ../../fondation/security/mvp-threat-model.md
-  - ../reference-fixtures/README.md
+  - ../../implementation/MVP-CLOSURE.md
 ---
 
 # Acceptation de bout en bout du MVP
@@ -241,3 +241,25 @@ Le MVP est prêt pour une publication contrôlée lorsque :
    établies dans le Blueprint ;
 8. le modèle `SEC-001` est validé, les gaps de la release sont fermés et aucun
    risque résiduel `High` ou `Critical` ne reste sans acceptation formelle.
+
+---
+
+## Preuve d'implémentation technique
+
+**Statut : clôturé le 2026-08-07** (Engineering).
+
+L'attestation détaillée, la matrice Definition of Done honnête et la liste des
+écarts acceptés formellement se trouvent dans
+[`implementation/MVP-CLOSURE.md`](../../implementation/MVP-CLOSURE.md).
+
+| Parcours | Preuve automatisée | Statut |
+|---|---|---|
+| MVP-J1 | `MvpJ1OnboardingTest` | ☑ |
+| MVP-J2 | `MvpJ2BillingFlowTest` | ☑ |
+| MVP-J3 | `MvpJ3EndToEndAcceptanceTest` | ☑ |
+| Démarrage avec import historique (extension J1) | — | ◻ différé |
+| Scénarios transverses (isolation, idempotence, conflit, outbox) | `MvpAcceptanceCrossCuttingTest` + intégration | ☑ |
+| Fixtures FIX-001…010 | oracle + tests unitaires | ☑ |
+
+La **publication contrôlée** (Palier 3) reste ouverte tant que les écarts à
+impact élevé de `MVP-CLOSURE.md` ne sont pas traités ou re-acceptés pour la beta.

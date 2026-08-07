@@ -88,5 +88,4 @@ scripts/check-all.sh                    # 12 checkers documentaires
 
 ## Prochaine étape
 
-**Incrément 1 — MVP-J1** : Identity + Workspace (remplacer le spike par les
-contrats documentés du référentiel).
+**Clôturé.** Voir [`MVP-CLOSURE.md`](MVP-CLOSURE.md) pour la suite (Palier 3).

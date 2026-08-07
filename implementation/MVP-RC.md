@@ -1,15 +1,20 @@
 ---
 title: Atlas MVP — Release Candidate
-status: Candidate
+status: Accepted
 owner: Engineering
 last_updated: 2026-08-07
+closure: MVP-CLOSURE.md
 references:
+  - MVP-CLOSURE.md
   - ../evolution/roadmap/mvp-acceptance.md
   - ../evolution/roadmap/mvp-scope.md
   - spike-checklist.md
 ---
 
 # MVP Release Candidate
+
+> **Clôturé le 2026-08-07.** Document de synthèse ; la clôture formelle est
+> attestée dans [`MVP-CLOSURE.md`](MVP-CLOSURE.md).
 
 Ce document résume l'état de preuve du MVP exécutable sous `implementation/`.
 
@@ -36,23 +41,23 @@ Ce document résume l'état de preuve du MVP exécutable sous `implementation/`.
 
 | Gate | Preuve | Statut |
 |---|---|---|
-| ADR-002 spike (12 conditions) | `spike-checklist.md` | ☑ |
+| ADR-002 spike (12 conditions) | `spike-checklist.md`, `SPIKE-CLOSURE.md` | ☑ |
 | Frontières modules | `ModuleBoundariesTest` | ☑ |
 | Documentation fondation | CI `documentation` + `check-all.sh` | ☑ |
 | Image OCI + SBOM | CI job `oci` | ☑ |
-| Tests Pest + PostgreSQL | CI job `spike` | ☑ |
+| Tests Pest + PostgreSQL | CI job `spike` (72 tests) | ☑ |
 
-## Hors périmètre RC (incrément 8 partiel)
+## Écarts acceptés (voir MVP-CLOSURE)
 
-Les éléments suivants restent documentés dans `mvp-acceptance.md` mais ne sont pas
-automatiqués dans cette release candidate :
+Les éléments suivants restent hors de cette clôture technique et sont tracés
+avec owner et plan dans [`MVP-CLOSURE.md`](MVP-CLOSURE.md) :
 
 - import historique CRM/Billing ;
 - dispatch email fournisseur réel ;
 - complete/dismiss Advisor ;
 - accessibilité clavier et responsive ;
 - sauvegarde/restauration et migrations down en production ;
-- runbooks d'exploitation et alertes.
+- runbooks d'exploitation, alertes et step-up SEC-T.
 
 ## Démonstration locale
 
