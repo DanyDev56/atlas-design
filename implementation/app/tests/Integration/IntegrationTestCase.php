@@ -23,10 +23,12 @@ abstract class IntegrationTestCase extends TestCase
         DB::statement('DROP SCHEMA IF EXISTS platform CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS workspace CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS identity CASCADE');
+        DB::statement('DROP SCHEMA IF EXISTS crm CASCADE');
 
         DB::statement('CREATE SCHEMA IF NOT EXISTS platform');
         DB::statement('CREATE SCHEMA IF NOT EXISTS workspace');
         DB::statement('CREATE SCHEMA IF NOT EXISTS identity');
+        DB::statement('CREATE SCHEMA IF NOT EXISTS crm');
 
         self::$atlasSchemasPrepared = true;
     }
