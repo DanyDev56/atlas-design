@@ -21,14 +21,14 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-003 | SEC-T02 | `VerifyEmail` + token debug test | ◐ | Token expiré / rejoué |
 | SEC-TEST-004 | SEC-T03 | `RevokeSessionTest` | ☑ | — |
 | SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
-| SEC-TEST-006 | SEC-T05 | — | ◻ | Rate limit API |
-| SEC-TEST-007 | SEC-T08 | `CrmAuthorizationTest` | ◐ | Membership révoquée mid-flow |
+| SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest` | ☑ | Étendre aux routes publiques sensibles |
+| SEC-TEST-007 | SEC-T08 | `MembershipRevocationTest`, `CrmAuthorizationTest` | ☑ | — |
 | SEC-TEST-008 | SEC-T09 | Public quote accept | ◐ | Token expiré / mauvais workspace |
 | SEC-TEST-009 | SEC-T10 | — | ◻ | Proof opaques billing |
 | SEC-TEST-010 | SEC-T11 | — | ◻ | CSRF surface web |
 | SEC-TEST-011 | SEC-T12 | — | ◻ | IDOR opportunité |
 | SEC-TEST-012 | SEC-T13 | — | ◻ | Mass assignment API |
-| SEC-TEST-013 | SEC-T14 | Idempotence handlers | ◐ | Documenter par handler |
+| SEC-TEST-013 | SEC-T14 | Idempotence handlers + `docs/idempotency.md` | ☑ | — |
 | SEC-TEST-014 | SEC-T15 | `MvpAcceptanceCrossCuttingTest` (revision) | ◐ | Concurrence quote accept |
 | SEC-TEST-015 | SEC-T16 | — | ◻ | Payload fuzz |
 | SEC-TEST-016 | SEC-T17 | — | ◻ | Outbox event forgé |
@@ -38,7 +38,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-020 | SEC-T21 | — | ◻ | Secret scan CI |
 | SEC-TEST-021 | SEC-T22 | CI `oci` SBOM | ◐ | Scan vulnérabilités |
 | SEC-TEST-022 | SEC-T24 | — | ◻ | DLQ / poison message |
-| SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` | ☑ | Intégrer en rehearsal release |
+| SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` + CI `release-rehearsal` | ☑ | Rehearsal manuel avant release |
 | SEC-TEST-024 | SEC-T26 | — | ◻ | Supply chain pin audit |
 | SEC-TEST-025 | SEC-T27 | — | ◻ | Chaos outbox consumer |
 | SEC-TEST-026 | SEC-T28 | — | ◻ | Performance baseline |
@@ -48,11 +48,11 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 
 Exécuté à chaque `make test` :
 
-- SEC-TEST-001 (partiel), 004, 007 (partiel), 014 (partiel), 017, 018
+- SEC-TEST-001 (partiel), 004, 006, 007, 013, 014 (partiel), 017, 018
 
 Exécuté manuellement avant release :
 
-- **SEC-TEST-023** : `make verify-restore`
+- **SEC-TEST-023** : `make verify-restore` ou workflow CI `release-rehearsal`
 
 ## Gaps ouverts liés
 

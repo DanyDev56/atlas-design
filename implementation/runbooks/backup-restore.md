@@ -68,6 +68,17 @@ make verify-restore
 
 Gate : canary vert avant toute rehearsal de release ou migration risquée.
 
+### CI (workflow dispatch)
+
+Le job **`release-rehearsal`** du workflow `.github/workflows/application.yml` exécute
+le canary SEC-TEST-023 sur demande :
+
+```text
+GitHub Actions → Application quality gates → Run workflow
+```
+
+Prérequis : stack Docker (identique au job `spike`), `jq` installé sur le runner.
+
 ## Après restauration
 
 - Vérifier `php artisan migrate:status` — appliquer les migrations en attente si

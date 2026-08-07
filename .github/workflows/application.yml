@@ -79,3 +79,35 @@ jobs:
           tags: atlas-app:spike
           sbom: true
           provenance: mode=max
+
+  release-rehearsal:
+    name: Release rehearsal (SEC-TEST-023)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install rehearsal dependencies
+        run: sudo apt-get update && sudo apt-get install --yes jq
+
+      - name: Build and start stack
+        run: |
+          docker compose -f implementation/docker-compose.yml up -d --build
+          docker compose -f implementation/docker-compose.yml exec -T postgres \
+            sh -c 'until pg_isready -U atlas -d atlas; do sleep 1; done'
+
+      - name: Seed database and run restore canary
+        run: |
+          docker compose -f implementation/docker-compose.yml exec -T app bash -c '
+            set -euo pipefail
+            cd /workspace/implementation/app
+            composer install --no-interaction --prefer-dist
+            cp -n .env.example .env
+            php artisan key:generate --force --no-interaction
+            php artisan migrate:fresh --force
+            ./vendor/bin/pest tests/Architecture/ReferenceFixturesOracleTest.php --colors=never
+          '
+          ./implementation/scripts/verify-restore-canary.sh

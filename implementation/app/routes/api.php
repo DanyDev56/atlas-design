@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterUserController;
+use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\VerifyEmailController;
@@ -26,9 +27,11 @@ use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class])->group(function (): void {
-    Route::post('/auth/register', RegisterUserController::class);
-    Route::post('/auth/verify-email', VerifyEmailController::class);
-    Route::post('/auth/login', LoginController::class);
+    Route::middleware('throttle:auth')->group(function (): void {
+        Route::post('/auth/register', RegisterUserController::class);
+        Route::post('/auth/verify-email', VerifyEmailController::class);
+        Route::post('/auth/login', LoginController::class);
+    });
 
     Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
 
@@ -42,6 +45,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);
 
         Route::prefix('/workspaces/{workspaceId}')->group(function (): void {
+            Route::post('/memberships/{membershipId}/remove', RemoveMembershipController::class);
+
             Route::get('/clients', [ClientController::class, 'index']);
             Route::post('/clients', [ClientController::class, 'store']);
             Route::get('/clients/{clientId}', [ClientController::class, 'show']);

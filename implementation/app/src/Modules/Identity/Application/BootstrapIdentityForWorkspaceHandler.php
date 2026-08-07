@@ -23,6 +23,7 @@ final class BootstrapIdentityForWorkspaceHandler
         'workspace.members.create',
         'workspace.members.invite',
         'workspace.members.change-role',
+        'workspace.members.remove',
         'workspace.settings.read',
         'workspace.settings.update',
         'crm.clients.read',

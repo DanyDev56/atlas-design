@@ -11,17 +11,28 @@ use Illuminate\Support\Facades\DB;
 final class PostgresRoleRepository
 {
     /** @param list<string> $permissions */
-    public function createOwnerRole(RoleId $roleId, string $workspaceId, array $permissions, \DateTimeImmutable $now): void
-    {
+    public function createRole(
+        RoleId $roleId,
+        string $workspaceId,
+        string $name,
+        array $permissions,
+        \DateTimeImmutable $now,
+    ): void {
         DB::table('identity.roles')->insert([
             'id' => $roleId->value,
             'workspace_id' => $workspaceId,
-            'name' => 'owner',
+            'name' => $name,
             'permissions' => json_encode($permissions, JSON_THROW_ON_ERROR),
             'status' => 'Active',
             'version' => 1,
             'created_at' => $now->format('Y-m-d H:i:sP'),
         ]);
+    }
+
+    /** @param list<string> $permissions */
+    public function createOwnerRole(RoleId $roleId, string $workspaceId, array $permissions, \DateTimeImmutable $now): void
+    {
+        $this->createRole($roleId, $workspaceId, 'owner', $permissions, $now);
     }
 
     public function findOwnerRoleId(string $workspaceId): ?string

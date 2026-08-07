@@ -49,4 +49,47 @@ final class PostgresMembershipRepository
 
         return $row !== null ? (array) $row : null;
     }
+
+    /** @return array<string, mixed>|null */
+    public function findById(MembershipId $membershipId): ?array
+    {
+        $row = DB::table('identity.memberships')
+            ->where('id', $membershipId->value)
+            ->first();
+
+        return $row !== null ? (array) $row : null;
+    }
+
+    public function countActiveOwners(string $workspaceId): int
+    {
+        return (int) DB::table('identity.memberships as m')
+            ->join('identity.roles as r', 'r.id', '=', 'm.role_id')
+            ->where('m.workspace_id', $workspaceId)
+            ->where('m.status', 'Active')
+            ->where('r.name', 'owner')
+            ->where('r.status', 'Active')
+            ->count();
+    }
+
+    public function isActiveOwnerMembership(string $membershipId): bool
+    {
+        return DB::table('identity.memberships as m')
+            ->join('identity.roles as r', 'r.id', '=', 'm.role_id')
+            ->where('m.id', $membershipId)
+            ->where('m.status', 'Active')
+            ->where('r.name', 'owner')
+            ->where('r.status', 'Active')
+            ->exists();
+    }
+
+    public function remove(MembershipId $membershipId, \DateTimeImmutable $removedAt): void
+    {
+        DB::table('identity.memberships')
+            ->where('id', $membershipId->value)
+            ->whereIn('status', ['Active', 'Suspended'])
+            ->update([
+                'status' => 'Removed',
+                'version' => DB::raw('version + 1'),
+            ]);
+    }
 }
