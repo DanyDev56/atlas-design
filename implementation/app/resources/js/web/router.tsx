@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { BillingPage } from '@/pages/BillingPage';
+import { BusinessHealthPage } from '@/pages/BusinessHealthPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
 import { CrmClientsPage } from '@/pages/CrmClientsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -28,6 +29,7 @@ export function AppRouter() {
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="billing/quotes/:quoteId" element={<QuoteDetailPage />} />
                 <Route path="billing/invoices/:invoiceId" element={<InvoiceDetailPage />} />
+                <Route path="health" element={<BusinessHealthPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />

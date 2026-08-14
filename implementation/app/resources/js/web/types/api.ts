@@ -71,6 +71,47 @@ export interface BusinessHealthCurrent {
     assessed_at?: string;
 }
 
+export interface BusinessHealthComponent {
+    status: 'Available' | 'Unavailable';
+    score?: number;
+    reason?: string;
+}
+
+export interface BusinessHealthFactor {
+    status: 'Available' | 'Unavailable';
+    score?: number;
+    coverage_percent: number;
+}
+
+export interface BusinessHealthRisk {
+    risk_key: string;
+    severity: 'Low' | 'Medium' | 'High' | 'Critical';
+}
+
+export interface BusinessHealthAssessment {
+    business_health_assessment_id: string;
+    workspace_id: string;
+    analytics_snapshot_id: string;
+    health_policy_version: string;
+    as_of: string;
+    assessed_at: string;
+    assessment_status: 'Available' | 'InsufficientData';
+    assessment_reliability: 'Reliable' | 'Limited' | 'Insufficient';
+    overall_score: number | null;
+    health_band: string | null;
+    health_trend: string;
+    primary_attention: {
+        factor_key: string;
+        deficit_contribution: number;
+    } | null;
+    components: Record<string, BusinessHealthComponent>;
+    factors: Record<string, BusinessHealthFactor>;
+    risks: BusinessHealthRisk[];
+    global_coverage_percent: number;
+    assessment_currency: string | null;
+    source_published_at: string;
+}
+
 export interface PipelinePayload {
     counts_by_status?: Record<string, number>;
 }

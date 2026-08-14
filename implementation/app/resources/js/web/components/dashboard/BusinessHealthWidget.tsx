@@ -46,6 +46,9 @@ export function BusinessHealthWidget({ widget }: { widget: DashboardWidget<Busin
                             />
                         </div>
                     )}
+                    <Link to="/app/health" className="mt-5 inline-flex text-sm font-semibold text-atlas-accent hover:underline">
+                        Comprendre l’évaluation <span className="ml-1" aria-hidden="true">→</span>
+                    </Link>
                 </div>
             ) : (
                 <EmptyWidgetMessage>

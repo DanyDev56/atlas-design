@@ -149,6 +149,11 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
   autoritatif, filtre des non-lues, historique et marquage individuel comme lu
 - Actions de notification limitées aux destinations CRM et Facturation
   allowlistées par le contrat Advisor
+- Destination Santé de l’activité accessible depuis la navigation et le
+  dashboard, avec score, fiabilité, couverture, facteurs et preuves issus de
+  l’évaluation Business Health courante
+- Absence de score, données manquantes et risques observés expliqués sans
+  transformer une preuve indisponible en note nulle
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux
