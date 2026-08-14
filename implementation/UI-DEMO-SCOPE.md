@@ -31,6 +31,24 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 ---
 
+## Priorité de la prochaine tranche
+
+La prochaine tranche Engineering reprend l'implémentation **UI/UX**. Les travaux
+de publication et de déploiement de l'image OCI sont volontairement différés et
+restent tracés dans le
+[`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
+
+L'ordre de travail retenu est :
+
+1. auditer les écrans React existants sur desktop et mobile ;
+2. traiter les frictions qui empêchent de comprendre le dashboard en 30 secondes ;
+3. consolider les parcours d'onboarding et CRM/devis, leurs états vides, erreurs
+   et retours d'action ;
+4. vérifier l'accessibilité, la cohérence visuelle et le responsive avant
+   d'élargir le périmètre fonctionnel.
+
+---
+
 ## Lot 0 — Fondations (livré)
 
 ### Livré

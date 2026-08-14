@@ -89,6 +89,22 @@ Les trois rôles partagent le code, la configuration de base et PostgreSQL,
 mais publient des noms OpenTelemetry distincts : `atlas-api`, `atlas-worker`
 et `atlas-scheduler`.
 
+## Livraison différée
+
+La construction et la répétition locale de l'image sont livrées. Sa publication
+et son déploiement sont volontairement différés pendant la prochaine tranche
+UI/UX. Ils ne doivent pas être considérés comme réalisés tant que les preuves
+suivantes ne sont pas réunies :
+
+- [ ] publier l'image dans le registre retenu et l'adresser par son digest
+  immuable (`repository@sha256:…`), relié au commit, au SBOM et à la provenance ;
+- [ ] déployer ce même digest en staging pour les rôles API, worker et scheduler ;
+- [ ] exécuter les migrations via un job ponctuel avant la bascule applicative ;
+- [ ] répéter un rollback vers le digest précédent et documenter la stratégie de
+  compatibilité de base de données (rollback vérifié ou forward-fix) ;
+- [ ] conserver les résultats de migration, smoke test et rollback comme preuves
+  de la répétition staging.
+
 ## Arrêt gracieux du worker
 
 Le worker termine son lot courant lorsqu'il reçoit `SIGINT`, `SIGTERM` ou
