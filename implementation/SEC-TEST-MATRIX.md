@@ -37,18 +37,19 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-019 | SEC-T20 | — | ◻ | Egress billing adapter |
 | SEC-TEST-020 | SEC-T21 | — | ◻ | Secret scan CI |
 | SEC-TEST-021 | SEC-T22 | CI `oci` SBOM + `npm audit --audit-level=high` | ◐ | Scan PHP et image OCI |
-| SEC-TEST-022 | SEC-T24 | — | ◻ | DLQ / poison message |
+| SEC-TEST-022 | SEC-T24 | `OutboxFailureHandlingTest` (message d'exception non journalisé) | ◐ | Étendre séparateurs/markup, accès et rotation |
 | SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` + CI `release-rehearsal` | ☑ | CI validé (`501bf1c`) |
 | SEC-TEST-024 | SEC-T26 | — | ◻ | Supply chain pin audit |
 | SEC-TEST-025 | SEC-T27 | — | ◻ | Chaos outbox consumer |
 | SEC-TEST-026 | SEC-T28 | — | ◻ | Performance baseline |
-| SEC-TEST-027 | SEC-T06 | — | ◻ | Privilege escalation |
+| SEC-TEST-027 | SEC-T28 | `OutboxFailureHandlingTest` (poison, backoff, dead-letter, reprise) | ◐ | Ajouter rebuild concurrent |
 
 ## Sous-ensemble CI beta (Track A)
 
 Exécuté à chaque `make test` :
 
-- SEC-TEST-001 (partiel), 004, 006, 007, 013, 014 (partiel), 017, 018
+- SEC-TEST-001 (partiel), 004, 006, 007, 013, 014 (partiel), 017, 018,
+  022 (partiel), 027 (partiel)
 
 Exécuté manuellement avant release :
 

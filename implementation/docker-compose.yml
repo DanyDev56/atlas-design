@@ -32,6 +32,7 @@ x-runtime-base: &runtime-base
   <<: *app-base
   profiles: [runtime]
   init: true
+  restart: unless-stopped
   stop_grace_period: 30s
   environment: *runtime-environment
 

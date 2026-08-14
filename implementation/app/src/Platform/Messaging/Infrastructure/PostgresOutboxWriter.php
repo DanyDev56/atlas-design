@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Messaging\Infrastructure;
 
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Support\UuidGenerator;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +22,8 @@ final class PostgresOutboxWriter implements OutboxWriter
             'correlation_id' => $message->correlationId,
             'causation_id' => $message->causationId,
             'schema_version' => $message->schemaVersion,
-            'created_at' => now()->toIso8601String(),
+            'created_at' => DB::raw('clock_timestamp()'),
+            'available_at' => DB::raw('clock_timestamp()'),
         ]);
     }
 }

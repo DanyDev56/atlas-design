@@ -69,5 +69,10 @@ opérationnelles sont :
 --max-cycles=0    zéro pour tourner en continu, valeur positive pour un test borné
 ```
 
+Les erreurs de consumer utilisent un backoff exponentiel borné. Après le nombre
+maximal d'essais, le message passe en dead-letter sans arrêter le worker ni
+bloquer les événements suivants. La procédure de diagnostic et la commande de
+remise en file figurent dans le runbook incident.
+
 En cas de backlog, suivre le runbook
 [`outbox-incident.md`](outbox-incident.md).

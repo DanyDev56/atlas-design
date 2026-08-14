@@ -16,6 +16,9 @@ return [
     'outbox' => [
         'backlog_warning_threshold' => (int) env('OUTBOX_BACKLOG_WARNING_THRESHOLD', 25),
         'alert_webhook_url' => env('OUTBOX_BACKLOG_ALERT_WEBHOOK_URL'),
+        'max_attempts' => (int) env('OUTBOX_MAX_ATTEMPTS', 5),
+        'retry_base_seconds' => (int) env('OUTBOX_RETRY_BASE_SECONDS', 5),
+        'retry_max_seconds' => (int) env('OUTBOX_RETRY_MAX_SECONDS', 300),
     ],
     'rate_limits' => [
         'auth' => [
