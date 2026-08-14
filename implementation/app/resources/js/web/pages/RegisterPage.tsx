@@ -96,7 +96,7 @@ export function RegisterPage() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </FormField>
-                <SubmitButton loading={loading}>Créer mon compte</SubmitButton>
+                <SubmitButton loading={loading} loadingLabel="Création du compte…">Créer mon compte</SubmitButton>
             </form>
             <p className="mt-4 text-center text-sm text-atlas-ink-muted">
                 Déjà inscrit ?{' '}

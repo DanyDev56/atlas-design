@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 
 export function AuthLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle: string }) {
     return (
@@ -24,11 +23,6 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
                     <h2 className="mt-2 text-2xl font-semibold text-atlas-ink">{title}</h2>
                     <p className="mt-2 text-sm text-atlas-ink-muted">{subtitle}</p>
                     <div className="mt-8">{children}</div>
-                    <p className="mt-8 text-center text-sm text-atlas-ink-muted">
-                        <Link to="/app/login" className="text-atlas-accent hover:underline">Connexion</Link>
-                        {' · '}
-                        <Link to="/app/register" className="text-atlas-accent hover:underline">Inscription</Link>
-                    </p>
                 </div>
             </div>
         </div>
@@ -37,15 +31,18 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
 
 export function FormField({
     label,
+    hint,
     children,
 }: {
     label: string;
+    hint?: string;
     children: ReactNode;
 }) {
     return (
         <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-atlas-ink">{label}</span>
             {children}
+            {hint && <span className="mt-1.5 block text-xs leading-relaxed text-atlas-ink-muted">{hint}</span>}
         </label>
     );
 }
@@ -53,14 +50,23 @@ export function FormField({
 export const inputClassName =
     'w-full rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm text-atlas-ink outline-none transition-shadow focus:border-atlas-accent focus:ring-2 focus:ring-atlas-accent/20';
 
-export function SubmitButton({ loading, children }: { loading: boolean; children: ReactNode }) {
+export function SubmitButton({
+    loading,
+    loadingLabel = 'Patientez…',
+    children,
+}: {
+    loading: boolean;
+    loadingLabel?: string;
+    children: ReactNode;
+}) {
     return (
         <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-atlas-accent px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            aria-busy={loading}
+            className="w-full rounded-xl bg-atlas-accent px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
         >
-            {loading ? 'Patientez…' : children}
+            {loading ? loadingLabel : children}
         </button>
     );
 }
@@ -68,7 +74,20 @@ export function SubmitButton({ loading, children }: { loading: boolean; children
 export function ErrorBanner({ message }: { message: string | null }) {
     if (!message) return null;
     return (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {message}
+        </div>
+    );
+}
+
+export function SuccessBanner({ message }: { message: string | null }) {
+    if (!message) return null;
+
+    return (
+        <div
+            role="status"
+            className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+        >
             {message}
         </div>
     );

@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
-import { ErrorBanner, FormField, SubmitButton, inputClassName } from '@/components/auth/AuthLayout';
+import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientDetail, OpportunitySummary } from '@/types/api';
 import { formatMoney } from '@/utils/format';
@@ -24,6 +24,7 @@ export function ClientDetailPage() {
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
     const [creating, setCreating] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
 
     useEffect(() => {
         if (!token || !workspaceId || !clientId) {
@@ -75,6 +76,7 @@ export function ClientDetailPage() {
 
         setCreating(true);
         setError(null);
+        setSuccess(null);
         try {
             const cents = amount ? Math.round(parseFloat(amount.replace(',', '.')) * 100) : undefined;
             await createOpportunity(token, workspaceId, {
@@ -83,6 +85,7 @@ export function ClientDetailPage() {
                 estimated_amount_cents: cents,
                 currency: 'EUR',
             });
+            setSuccess(`L’opportunité « ${title} » a bien été créée.`);
             setTitle('');
             setAmount('');
             setShowForm(false);
@@ -119,6 +122,12 @@ export function ClientDetailPage() {
                 {error && (
                     <div className="mt-6">
                         <ErrorBanner message={error} />
+                    </div>
+                )}
+
+                {success && (
+                    <div className="mt-6">
+                        <SuccessBanner message={success} />
                     </div>
                 )}
 
@@ -176,8 +185,10 @@ export function ClientDetailPage() {
                                             />
                                         </FormField>
                                     </div>
-                                    <div className="mt-4 flex gap-3">
-                                        <SubmitButton loading={creating}>Créer</SubmitButton>
+                                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                                        <SubmitButton loading={creating} loadingLabel="Création de l’opportunité…">
+                                            Créer l’opportunité
+                                        </SubmitButton>
                                         <button
                                             type="button"
                                             onClick={() => setShowForm(false)}

@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
-import { ErrorBanner, FormField, SubmitButton, inputClassName } from '@/components/auth/AuthLayout';
+import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientSummary } from '@/types/api';
 
@@ -21,6 +21,7 @@ export function CrmClientsPage() {
     const [displayName, setDisplayName] = useState('');
     const [kind, setKind] = useState<'Organization' | 'Individual'>('Organization');
     const [creating, setCreating] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
 
     async function reload() {
         setLoading(true);
@@ -42,8 +43,10 @@ export function CrmClientsPage() {
         event.preventDefault();
         setCreating(true);
         setError(null);
+        setSuccess(null);
         try {
             await createClient(token, workspaceId, { kind, display_name: displayName });
+            setSuccess(`Le client « ${displayName} » a bien été créé.`);
             setDisplayName('');
             setShowForm(false);
             await reload();
@@ -77,6 +80,7 @@ export function CrmClientsPage() {
                 </div>
 
                 <ErrorBanner message={error} />
+                <SuccessBanner message={success} />
 
                 {showForm && (
                     <form
@@ -106,8 +110,8 @@ export function CrmClientsPage() {
                                 />
                             </FormField>
                         </div>
-                        <div className="mt-4 flex gap-3">
-                            <SubmitButton loading={creating}>Créer</SubmitButton>
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                            <SubmitButton loading={creating} loadingLabel="Création du client…">Créer le client</SubmitButton>
                             <button
                                 type="button"
                                 onClick={() => setShowForm(false)}

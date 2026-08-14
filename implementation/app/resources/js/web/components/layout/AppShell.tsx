@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
@@ -64,9 +64,73 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell() {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const location = useLocation();
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const mobileDialogRef = useRef<HTMLElement>(null);
+
+    const closeMobileNav = useCallback(() => {
+        setMobileNavOpen(false);
+        window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+    }, []);
+
+    const completeMobileNavigation = useCallback(() => {
+        setMobileNavOpen(false);
+        window.requestAnimationFrame(() => document.getElementById('main-content')?.focus());
+    }, []);
+
+    useEffect(() => {
+        setMobileNavOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (!mobileNavOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        closeButtonRef.current?.focus();
+
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
+                closeMobileNav();
+                return;
+            }
+
+            if (event.key !== 'Tab') return;
+
+            const focusable = mobileDialogRef.current?.querySelectorAll<HTMLElement>(
+                'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+            );
+            if (!focusable?.length) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+
+        document.addEventListener('keydown', onKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [mobileNavOpen, closeMobileNav]);
 
     return (
         <div className="flex min-h-screen">
+            <a
+                href="#main-content"
+                className="sr-only fixed left-4 top-4 z-50 rounded-lg bg-white px-4 py-2 font-semibold text-atlas-ink shadow-lg focus:not-sr-only"
+            >
+                Aller au contenu
+            </a>
             <aside className="hidden w-60 shrink-0 flex-col bg-atlas-sidebar px-4 py-6 text-white md:flex">
                 <SidebarNav />
             </aside>
@@ -76,11 +140,28 @@ export function AppShell() {
                     <button
                         type="button"
                         aria-label="Fermer le menu"
+                        aria-hidden="true"
+                        tabIndex={-1}
                         className="absolute inset-0 bg-black/40"
-                        onClick={() => setMobileNavOpen(false)}
+                        onClick={closeMobileNav}
                     />
-                    <aside className="relative flex h-full w-72 max-w-[85vw] flex-col bg-atlas-sidebar px-4 py-6 text-white shadow-xl">
-                        <SidebarNav onNavigate={() => setMobileNavOpen(false)} />
+                    <aside
+                        ref={mobileDialogRef}
+                        id="mobile-navigation"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Navigation principale"
+                        className="relative flex h-full w-72 max-w-[85vw] flex-col bg-atlas-sidebar px-4 py-6 text-white shadow-xl"
+                    >
+                        <button
+                            ref={closeButtonRef}
+                            type="button"
+                            onClick={closeMobileNav}
+                            className="mb-5 ml-auto rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
+                        >
+                            Fermer
+                        </button>
+                        <SidebarNav onNavigate={completeMobileNavigation} />
                     </aside>
                 </div>
             )}
@@ -89,8 +170,11 @@ export function AppShell() {
                 <header className="flex items-center justify-between gap-4 border-b border-atlas-border bg-atlas-card px-4 py-4 md:px-8">
                     <div className="flex items-center gap-3">
                         <button
+                            ref={menuButtonRef}
                             type="button"
                             aria-label="Ouvrir le menu"
+                            aria-controls="mobile-navigation"
+                            aria-expanded={mobileNavOpen}
                             className="rounded-lg border border-atlas-border px-3 py-2 text-sm font-medium text-atlas-ink md:hidden"
                             onClick={() => setMobileNavOpen(true)}
                         >
@@ -98,14 +182,14 @@ export function AppShell() {
                         </button>
                         <div>
                             <p className="text-xs font-medium uppercase tracking-wide text-atlas-ink-muted">
-                                Workspace
+                                Espace de travail
                             </p>
                             <p className="text-sm font-semibold text-atlas-ink">Actif</p>
                         </div>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-auto p-4 md:p-8">
+                <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-4 md:p-8">
                     <Outlet />
                 </main>
             </div>

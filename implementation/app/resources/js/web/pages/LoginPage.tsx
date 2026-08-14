@@ -84,7 +84,7 @@ export function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </FormField>
-                <SubmitButton loading={loading}>Se connecter</SubmitButton>
+                <SubmitButton loading={loading} loadingLabel="Connexion…">Se connecter</SubmitButton>
             </form>
             <p className="mt-4 text-center text-sm text-atlas-ink-muted">
                 Pas de compte ?{' '}

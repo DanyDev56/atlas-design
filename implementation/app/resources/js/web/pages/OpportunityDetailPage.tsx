@@ -4,7 +4,7 @@ import { createQuote, listQuotes, sendQuote } from '@/api/billing';
 import { getClient, getOpportunity, qualifyOpportunity } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
-import { ErrorBanner, FormField, SubmitButton, inputClassName } from '@/components/auth/AuthLayout';
+import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientDetail, OpportunityDetail, QuoteSummary, SendQuoteResponse } from '@/types/api';
 import { formatMoney } from '@/utils/format';
@@ -25,6 +25,8 @@ export function OpportunityDetailPage() {
     const [lineDescription, setLineDescription] = useState('');
     const [lineAmount, setLineAmount] = useState('');
     const [sentQuote, setSentQuote] = useState<SendQuoteResponse | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [linkCopied, setLinkCopied] = useState(false);
 
     async function reload() {
         if (!opportunityId) return;
@@ -55,9 +57,11 @@ export function OpportunityDetailPage() {
         if (!opportunity) return;
         setActionLoading(true);
         setError(null);
+        setSuccess(null);
         try {
             await qualifyOpportunity(token, workspaceId, opportunity.opportunity_id, opportunity.version);
             await reload();
+            setSuccess('L’opportunité est qualifiée. Vous pouvez maintenant préparer un devis.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Qualification impossible');
         } finally {
@@ -77,6 +81,7 @@ export function OpportunityDetailPage() {
 
         setActionLoading(true);
         setError(null);
+        setSuccess(null);
         try {
             await createQuote(token, workspaceId, {
                 client_id: opportunity.client_id,
@@ -88,6 +93,7 @@ export function OpportunityDetailPage() {
             setLineAmount('');
             setShowQuoteForm(false);
             await reload();
+            setSuccess('Le devis a bien été créé. Il est prêt à être vérifié puis envoyé.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Création du devis impossible');
         } finally {
@@ -98,7 +104,9 @@ export function OpportunityDetailPage() {
     async function onSendQuote(quote: QuoteSummary) {
         setActionLoading(true);
         setError(null);
+        setSuccess(null);
         setSentQuote(null);
+        setLinkCopied(false);
         try {
             const result = await sendQuote(token, workspaceId, quote.quote_id, quote.version);
             setSentQuote(result);
@@ -122,6 +130,17 @@ export function OpportunityDetailPage() {
         sentQuote &&
         `${window.location.origin}/app/quotes/accept/${workspaceId}/${sentQuote.quote_id}?token=${encodeURIComponent(sentQuote.public_accept_token)}&revision=${sentQuote.version}`;
 
+    async function copyAcceptUrl() {
+        if (!acceptUrl) return;
+
+        try {
+            await navigator.clipboard.writeText(acceptUrl);
+            setLinkCopied(true);
+        } catch {
+            setError('Le lien n’a pas pu être copié. Sélectionnez-le manuellement.');
+        }
+    }
+
     return (
         <RequireAuth>
             <div className="mx-auto max-w-4xl">
@@ -139,6 +158,12 @@ export function OpportunityDetailPage() {
                 {error && (
                     <div className="mt-6">
                         <ErrorBanner message={error} />
+                    </div>
+                )}
+
+                {success && (
+                    <div className="mt-6">
+                        <SuccessBanner message={success} />
                     </div>
                 )}
 
@@ -214,8 +239,10 @@ export function OpportunityDetailPage() {
                                             />
                                         </FormField>
                                     </div>
-                                    <div className="mt-4 flex gap-3">
-                                        <SubmitButton loading={actionLoading}>Créer le devis</SubmitButton>
+                                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                                        <SubmitButton loading={actionLoading} loadingLabel="Création du devis…">
+                                            Créer le devis
+                                        </SubmitButton>
                                         <button
                                             type="button"
                                             onClick={() => setShowQuoteForm(false)}
@@ -228,14 +255,35 @@ export function OpportunityDetailPage() {
                             )}
 
                             {sentQuote && acceptUrl && (
-                                <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
+                                <div
+                                    role="status"
+                                    className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900"
+                                >
                                     <p className="font-medium">Devis envoyé — lien d'acceptation client :</p>
-                                    <a
-                                        href={acceptUrl}
-                                        className="mt-2 block break-all font-mono text-xs text-emerald-800 underline"
-                                    >
-                                        {acceptUrl}
-                                    </a>
+                                    <input
+                                        readOnly
+                                        aria-label="Lien d’acceptation du devis"
+                                        value={acceptUrl}
+                                        onFocus={(event) => event.currentTarget.select()}
+                                        className="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 font-mono text-xs text-emerald-900"
+                                    />
+                                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            onClick={() => void copyAcceptUrl()}
+                                            className="min-h-11 rounded-lg bg-emerald-800 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-900"
+                                        >
+                                            {linkCopied ? 'Lien copié ✓' : 'Copier le lien'}
+                                        </button>
+                                        <a
+                                            href={acceptUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
+                                        >
+                                            Prévisualiser la page client
+                                        </a>
+                                    </div>
                                 </div>
                             )}
 
