@@ -140,6 +140,11 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Vérification obligatoire avant envoi : édition multi-lignes des brouillons,
   total recalculé par l'API, verrouillage explicite et lien client disponible
   uniquement après l'envoi
+- Parcours facture après acceptation : création idempotente depuis le devis,
+  émission numérotée, confirmation d'envoi, paiements partiels et solde restant
+  autoritatif
+- Liste persistante des factures dans Facturation, enrichie par le CRM sans en
+  dépendre pour rester consultable
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux

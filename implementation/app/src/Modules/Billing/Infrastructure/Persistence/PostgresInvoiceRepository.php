@@ -31,7 +31,7 @@ final class PostgresInvoiceRepository
         ]);
     }
 
-    public function update(Invoice $invoice, ?\DateTimeImmutable $sentAt = null): void
+    public function update(Invoice $invoice): void
     {
         DB::table('billing.invoices')
             ->where('id', $invoice->id()->value)
@@ -45,7 +45,7 @@ final class PostgresInvoiceRepository
                 'issued_at' => $invoice->issuedAt()?->format('Y-m-d H:i:sP'),
                 'due_date' => $invoice->dueDate()?->format('Y-m-d H:i:sP'),
                 'paid_at' => $invoice->paidAt()?->format('Y-m-d H:i:sP'),
-                'sent_at' => $sentAt?->format('Y-m-d H:i:sP'),
+                'sent_at' => $invoice->sentAt()?->format('Y-m-d H:i:sP'),
             ]);
     }
 

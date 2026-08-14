@@ -4,6 +4,7 @@ import { BillingPage } from '@/pages/BillingPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
 import { CrmClientsPage } from '@/pages/CrmClientsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage';
@@ -25,6 +26,7 @@ export function AppRouter() {
                 <Route path="crm/opportunities/:opportunityId" element={<OpportunityDetailPage />} />
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="billing/quotes/:quoteId" element={<QuoteDetailPage />} />
+                <Route path="billing/invoices/:invoiceId" element={<InvoiceDetailPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>

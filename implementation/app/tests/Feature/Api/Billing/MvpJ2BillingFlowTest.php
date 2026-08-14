@@ -162,6 +162,27 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
 
         $invoiceId = $invoice->json('invoice_id');
 
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('invoice_id', $invoiceId);
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/invoices", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('0.invoice_id', $invoiceId)
+            ->assertJsonPath('0.client_id', $clientId)
+            ->assertJsonPath('0.quote_id', $quoteId)
+            ->assertJsonPath('0.balance_cents', 50000);
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('client_id', $clientId)
+            ->assertJsonPath('lines.0.description', 'Prestation finale')
+            ->assertJsonPath('issued_at', null)
+            ->assertJsonPath('due_date', null);
+
         $issued = $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/issue", [
             'expected_revision' => 1,
         ], [
@@ -186,6 +207,14 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
         ])->assertCreated()
             ->assertJsonPath('balance_cents', 0)
             ->assertJsonPath('settlement_status', 'Paid');
+
+        $paidInvoices = $this->getJson("/api/workspaces/{$owner['workspace_id']}/invoices", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('0.balance_cents', 0)
+            ->assertJsonPath('0.settlement_status', 'Paid');
+
+        $this->assertNotNull($paidInvoices->json('0.sent_at'));
 
         $this->assertTrue(
             DB::table('platform.outbox_messages')

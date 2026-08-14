@@ -76,6 +76,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/quotes/{quoteId}/send', [QuoteController::class, 'send']);
             Route::post('/quotes/{quoteId}/invoices', [QuoteController::class, 'createInvoice']);
 
+            Route::get('/invoices', [InvoiceController::class, 'index']);
             Route::get('/invoices/{invoiceId}', [InvoiceController::class, 'show']);
             Route::post('/invoices/{invoiceId}/issue', [InvoiceController::class, 'issue']);
             Route::post('/invoices/{invoiceId}/send', [InvoiceController::class, 'send']);

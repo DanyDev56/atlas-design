@@ -62,7 +62,7 @@ final class SendInvoiceHandler
 
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $invoice->markSent($now);
-            $this->invoices->update($invoice, $now);
+            $this->invoices->update($invoice);
 
             $response = [
                 'invoice_id' => $invoiceId,

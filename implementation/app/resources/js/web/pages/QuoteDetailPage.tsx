@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { getQuote, sendQuote, updateQuote } from '@/api/billing';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { createInvoiceFromQuote, getQuote, sendQuote, updateQuote } from '@/api/billing';
 import { getClient } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -37,6 +37,7 @@ function parseUnitPrice(value: string): number | null {
 
 export function QuoteDetailPage() {
     const { quoteId } = useParams<{ quoteId: string }>();
+    const navigate = useNavigate();
     const { session } = useAuth();
     const token = session!.token;
     const workspaceId = session!.workspaceId!;
@@ -173,6 +174,27 @@ export function QuoteDetailPage() {
             setSuccess('Le devis est envoyé. Partagez maintenant le lien d’acceptation avec votre client.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Envoi du devis impossible');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function onCreateInvoice() {
+        if (!quote || quote.status !== 'Accepted') return;
+
+        if (quote.invoice_id) {
+            navigate(`/app/billing/invoices/${quote.invoice_id}`);
+            return;
+        }
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const invoice = await createInvoiceFromQuote(token, workspaceId, quote.quote_id);
+            navigate(`/app/billing/invoices/${invoice.invoice_id}`);
+        } catch {
+            setError('La facture n’a pas pu être créée. Rechargez le devis avant de réessayer.');
         } finally {
             setActionLoading(false);
         }
@@ -415,6 +437,27 @@ export function QuoteDetailPage() {
                                         </p>
                                     </div>
                                 </div>
+                            </section>
+                        )}
+
+                        {quote.status === 'Accepted' && (
+                            <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                                <h3 className="font-semibold text-emerald-950">Le devis est accepté</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-emerald-900">
+                                    Créez la facture correspondante. Atlas reprendra les prestations et le montant validés par le client.
+                                </p>
+                                <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={() => void onCreateInvoice()}
+                                    className="mt-4 min-h-11 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
+                                >
+                                    {actionLoading
+                                        ? 'Préparation…'
+                                        : quote.invoice_id
+                                          ? 'Ouvrir la facture'
+                                          : 'Créer la facture'}
+                                </button>
                             </section>
                         )}
                     </>

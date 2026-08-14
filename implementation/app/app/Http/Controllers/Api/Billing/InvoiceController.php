@@ -22,6 +22,14 @@ final class InvoiceController extends Controller
         private readonly BillingQueryHandler $queries,
     ) {}
 
+    public function index(Request $request, string $workspaceId): JsonResponse
+    {
+        return $this->respond(fn () => $this->queries->listInvoices(
+            $this->actorId($request),
+            $workspaceId,
+        ));
+    }
+
     public function show(Request $request, string $workspaceId, string $invoiceId): JsonResponse
     {
         return $this->respond(fn () => $this->queries->getInvoice(

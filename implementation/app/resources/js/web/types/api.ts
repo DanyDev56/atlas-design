@@ -150,6 +150,7 @@ export interface QuoteSummary {
 
 export interface QuoteDetail extends QuoteSummary {
     lines: QuoteLine[];
+    invoice_id: string | null;
 }
 
 export interface PublicQuoteDetail {
@@ -168,4 +169,34 @@ export interface SendQuoteResponse {
     status: string;
     version: number;
     public_accept_token: string;
+}
+
+export interface InvoiceSummary {
+    invoice_id: string;
+    client_id: string;
+    quote_id: string | null;
+    status: string;
+    settlement_status: string;
+    invoice_number: string | null;
+    total_cents: number;
+    balance_cents: number;
+    currency: string;
+    version: number;
+    issued_at: string | null;
+    sent_at: string | null;
+    due_date: string | null;
+    paid_at: string | null;
+}
+
+export interface InvoiceDetail extends InvoiceSummary {
+    lines: QuoteLine[];
+}
+
+export interface PaymentResponse {
+    payment_id: string;
+    invoice_id: string;
+    amount_cents: number;
+    balance_cents: number;
+    settlement_status: string;
+    version: number;
 }

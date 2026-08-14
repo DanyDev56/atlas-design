@@ -214,6 +214,11 @@ final class Invoice
         return $this->dueDate;
     }
 
+    public function sentAt(): ?\DateTimeImmutable
+    {
+        return $this->sentAt;
+    }
+
     public function paidAt(): ?\DateTimeImmutable
     {
         return $this->paidAt;
