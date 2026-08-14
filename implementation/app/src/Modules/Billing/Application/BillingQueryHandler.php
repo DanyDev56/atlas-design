@@ -99,6 +99,7 @@ final class BillingQueryHandler
             ->get()
             ->map(fn ($row) => [
                 'invoice_id' => $row->id,
+                'invoice_number' => $row->invoice_number,
                 'status' => $row->status,
                 'settlement_status' => $row->settlement_status,
                 'total_cents' => (int) $row->total_cents,

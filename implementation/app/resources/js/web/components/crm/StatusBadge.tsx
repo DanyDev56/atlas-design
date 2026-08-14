@@ -8,6 +8,10 @@ const statusStyles: Record<string, string> = {
     Draft: 'bg-amber-50 text-amber-800',
     Sent: 'bg-indigo-50 text-indigo-700',
     Accepted: 'bg-emerald-50 text-emerald-700',
+    Issued: 'bg-indigo-50 text-indigo-700',
+    Unpaid: 'bg-amber-50 text-amber-800',
+    PartiallyPaid: 'bg-amber-50 text-amber-800',
+    Paid: 'bg-emerald-50 text-emerald-700',
     Active: 'bg-atlas-accent-soft text-atlas-accent',
 };
 

@@ -50,16 +50,24 @@ export interface AdvisorOverview {
         recommendation_key: string;
         priority: string;
         rule_key?: string;
+        action_module?: string;
+        route_key?: string;
         impact?: string;
+        urgency?: string;
+        confidence?: string;
+        effort?: string;
+        valid_until?: string;
     } | null;
     updated_at?: string;
 }
 
 export interface BusinessHealthCurrent {
     assessment_status?: string;
-    score?: number | null;
-    band?: string;
-    reliability?: string;
+    overall_score?: number | null;
+    health_band?: string | null;
+    assessment_reliability?: string;
+    health_trend?: string | null;
+    global_coverage_percent?: number;
     assessed_at?: string;
 }
 
@@ -70,9 +78,11 @@ export interface PipelinePayload {
 export interface BillingPayload {
     recent_invoices?: Array<{
         invoice_id: string;
-        number?: string;
+        invoice_number?: string | null;
         status: string;
+        settlement_status?: string;
         total_cents?: number;
+        balance_cents?: number;
         currency?: string;
     }>;
 }

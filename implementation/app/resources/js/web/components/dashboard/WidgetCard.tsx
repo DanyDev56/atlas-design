@@ -19,7 +19,7 @@ const stateLabels: Record<DataState, string> = {
 
 const accentRing: Record<NonNullable<WidgetCardProps['accent']>, string> = {
     default: 'border-atlas-border',
-    priority: 'border-atlas-warm/30',
+    priority: 'border-atlas-warm/30 bg-gradient-to-br from-white to-amber-50/60',
     health: 'border-atlas-accent/30',
 };
 
@@ -32,7 +32,7 @@ export function WidgetCard({
     accent = 'default',
 }: WidgetCardProps) {
     return (
-        <article className={`rounded-2xl border bg-atlas-card p-6 shadow-sm ${accentRing[accent]}`}>
+        <article className={`rounded-2xl border bg-atlas-card p-5 shadow-sm sm:p-6 ${accentRing[accent]}`}>
             <header className="mb-4 flex items-start justify-between gap-4">
                 <div>
                     <h3 className="text-base font-semibold text-atlas-ink">{title}</h3>
@@ -53,7 +53,8 @@ export function WidgetCard({
 
             {observedAt && dataState === 'Data' && (
                 <p className="mt-4 text-xs text-atlas-ink-muted">
-                    Observé {new Date(observedAt).toLocaleString('fr-FR')}
+                    Mis à jour{' '}
+                    <time dateTime={observedAt}>{new Date(observedAt).toLocaleString('fr-FR')}</time>
                 </p>
             )}
         </article>
@@ -62,8 +63,8 @@ export function WidgetCard({
 
 export function EmptyWidgetMessage({ children }: { children: ReactNode }) {
     return (
-        <div className="flex h-full flex-col items-start justify-center gap-2 rounded-xl bg-atlas-surface px-4 py-6">
-            <p className="text-sm leading-relaxed text-atlas-ink-muted">{children}</p>
+        <div className="flex h-full flex-col items-start justify-center gap-3 rounded-xl bg-atlas-surface px-4 py-6 text-sm leading-relaxed text-atlas-ink-muted">
+            {children}
         </div>
     );
 }

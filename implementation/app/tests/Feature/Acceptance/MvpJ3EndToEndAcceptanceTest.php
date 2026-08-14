@@ -53,7 +53,16 @@ final class MvpJ3EndToEndAcceptanceTest extends IntegrationTestCase
         ])->assertOk();
 
         $dashboard->assertJsonPath('business_health.payload.business_health_assessment_id', $health->json('business_health_assessment_id'));
+        $dashboard->assertJsonPath('business_health.payload.overall_score', $health->json('overall_score'));
+        $dashboard->assertJsonPath('business_health.payload.health_band', $health->json('health_band'));
         $dashboard->assertJsonPath('advisor_priority.payload.advisor_overview_version', $advisor->json('advisor_overview_version'));
+
+        $invoiceNumber = DB::table('billing.invoices')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->value('invoice_number');
+
+        $dashboard->assertJsonPath('billing.payload.recent_invoices.0.invoice_number', $invoiceNumber);
+        $dashboard->assertJsonPath('billing.payload.recent_invoices.0.settlement_status', 'Paid');
     }
 
     public function test_snapshot_publish_is_idempotent_and_outbox_replay_is_safe(): void

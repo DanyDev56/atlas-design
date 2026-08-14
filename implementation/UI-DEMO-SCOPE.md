@@ -121,6 +121,13 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Surfaces dev : `/api/dev/*`, `/api/spike/*` et jeton de vérification sous opt-in explicite
 - Layout responsive : menu mobile, paddings tablette
 - Composants `PageSkeleton` et `EmptyState` réutilisés
+- Dashboard orienté action : recommandation traduite, urgence et impact lisibles,
+  actions vers CRM ou facturation
+- Santé de l'activité alignée sur le contrat API canonique (`overall_score`,
+  `health_band`, `assessment_reliability`)
+- Pipeline visualisé par étape et statuts de facturation traduits
+- Rechargement explicite en cas d'erreur, focus clavier visible et respect de
+  `prefers-reduced-motion`
 
 ### Compte démo
 
