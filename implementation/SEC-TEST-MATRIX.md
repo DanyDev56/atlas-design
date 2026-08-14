@@ -23,7 +23,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
 | SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest`, `PublicQuoteRateLimitTest` | ☑ | — |
 | SEC-TEST-007 | SEC-T08 | `MembershipRevocationTest`, `CrmAuthorizationTest` | ☑ | — |
-| SEC-TEST-008 | SEC-T09 | Public quote accept | ◐ | Token expiré / mauvais workspace |
+| SEC-TEST-008 | SEC-T09 | `MvpJ2BillingFlowTest` (lecture/acceptation, mauvais token et workspace masqués) | ◐ | Token expiré / rejoué |
 | SEC-TEST-009 | SEC-T10 | — | ◻ | Proof opaques billing |
 | SEC-TEST-010 | SEC-T11 | — | ◻ | CSRF surface web |
 | SEC-TEST-011 | SEC-T12 | — | ◻ | IDOR opportunité |

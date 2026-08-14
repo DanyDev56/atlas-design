@@ -41,9 +41,16 @@ final class PublicQuoteAcceptController extends Controller
         } catch (\DomainException $exception) {
             $code = match ($exception->getMessage()) {
                 'Unauthorized.' => 403,
-                'Invalid or expired proof.', 'Proof mismatch.' => 401,
+                'Invalid or expired proof.' => 401,
                 default => 422,
             };
+
+            if ($code === 401) {
+                return response()->json([
+                    'error' => 'Unauthenticated',
+                    'messages' => ['Ce lien est invalide ou a expiré.'],
+                ], $code);
+            }
 
             return response()->json([
                 'error' => class_basename($exception),

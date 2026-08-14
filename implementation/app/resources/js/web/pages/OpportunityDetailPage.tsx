@@ -128,7 +128,7 @@ export function OpportunityDetailPage() {
 
     const acceptUrl =
         sentQuote &&
-        `${window.location.origin}/app/quotes/accept/${workspaceId}/${sentQuote.quote_id}?token=${encodeURIComponent(sentQuote.public_accept_token)}&revision=${sentQuote.version}`;
+        `${window.location.origin}/app/quotes/accept/${workspaceId}/${sentQuote.quote_id}?token=${encodeURIComponent(sentQuote.public_accept_token)}`;
 
     async function copyAcceptUrl() {
         if (!acceptUrl) return;

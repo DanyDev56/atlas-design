@@ -200,4 +200,9 @@ final class Quote
     {
         return $this->acceptedAt;
     }
+
+    public function validUntil(): ?\DateTimeImmutable
+    {
+        return $this->validUntil;
+    }
 }

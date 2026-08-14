@@ -93,6 +93,51 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
 
         $acceptToken = $sent->json('public_accept_token');
 
+        $publicQuote = $this->getJson(
+            "/api/public/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}?".http_build_query([
+                'public_token' => $acceptToken,
+            ])
+        )->assertOk()
+            ->assertJsonPath('quote_id', $quoteId)
+            ->assertJsonPath('client_display_name', 'Billing Client')
+            ->assertJsonPath('status', 'Sent')
+            ->assertJsonPath('lines.0.description', 'Prestation finale')
+            ->assertJsonPath('lines.0.quantity', 1)
+            ->assertJsonPath('lines.0.unit_price_cents', 50000)
+            ->assertJsonPath('total_cents', 50000)
+            ->assertJsonPath('currency', 'EUR')
+            ->assertJsonPath('version', 3)
+            ->assertJsonStructure(['valid_until']);
+
+        $this->assertArrayNotHasKey('client_id', $publicQuote->json());
+        $this->assertArrayNotHasKey('opportunity_id', $publicQuote->json());
+        $this->assertArrayNotHasKey('client_snapshot', $publicQuote->json());
+        $this->assertArrayNotHasKey('public_token', $publicQuote->json());
+
+        $maskedResponse = [
+            'error' => 'Unauthenticated',
+            'messages' => ['Ce lien est invalide ou a expiré.'],
+        ];
+
+        $this->getJson(
+            "/api/public/workspaces/".Str::uuid()."/quotes/{$quoteId}?".http_build_query([
+                'public_token' => $acceptToken,
+            ])
+        )->assertUnauthorized()->assertExactJson($maskedResponse);
+
+        $this->getJson(
+            "/api/public/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}?".http_build_query([
+                'public_token' => str_repeat('a', 64),
+            ])
+        )->assertUnauthorized()->assertExactJson($maskedResponse);
+
+        $this->postJson("/api/public/workspaces/".Str::uuid()."/quotes/{$quoteId}/accept", [
+            'public_token' => $acceptToken,
+            'expected_revision' => 3,
+        ], [
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertUnauthorized()->assertExactJson($maskedResponse);
+
         $this->postJson("/api/public/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/accept", [
             'public_token' => $acceptToken,
             'expected_revision' => 3,

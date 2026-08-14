@@ -1,5 +1,5 @@
 import { apiRequest } from '@/api/client';
-import type { QuoteDetail, QuoteLine, QuoteSummary, SendQuoteResponse } from '@/types/api';
+import type { PublicQuoteDetail, QuoteDetail, QuoteLine, QuoteSummary, SendQuoteResponse } from '@/types/api';
 
 function workspacePath(workspaceId: string, suffix: string): string {
     return `/workspaces/${workspaceId}${suffix}`;
@@ -52,4 +52,16 @@ export async function acceptQuotePublic(
         { public_token: publicToken, expected_revision: expectedRevision },
         { auth: false },
     );
+}
+
+export async function getPublicQuote(
+    workspaceId: string,
+    quoteId: string,
+    publicToken: string,
+): Promise<PublicQuoteDetail> {
+    const query = new URLSearchParams({ public_token: publicToken });
+
+    return apiRequest('GET', `/public/workspaces/${workspaceId}/quotes/${quoteId}?${query}`, undefined, {
+        auth: false,
+    });
 }

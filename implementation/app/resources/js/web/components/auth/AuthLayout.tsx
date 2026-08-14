@@ -52,19 +52,21 @@ export const inputClassName =
 
 export function SubmitButton({
     loading,
+    disabled = false,
     loadingLabel = 'Patientez…',
     children,
 }: {
     loading: boolean;
+    disabled?: boolean;
     loadingLabel?: string;
     children: ReactNode;
 }) {
     return (
         <button
             type="submit"
-            disabled={loading}
+            disabled={loading || disabled}
             aria-busy={loading}
-            className="w-full rounded-xl bg-atlas-accent px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+            className="w-full rounded-xl bg-atlas-accent px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
             {loading ? loadingLabel : children}
         </button>

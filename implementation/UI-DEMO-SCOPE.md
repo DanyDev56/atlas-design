@@ -132,6 +132,9 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
   avant l'arrivée sur le dashboard
 - Confirmations accessibles après création d'un client, d'une opportunité et
   d'un devis ; lien public copiable et prévisualisable après envoi
+- Page publique de devis complète avant acceptation : destinataire, lignes,
+  montant total, validité et consentement explicite, avec lecture bornée par le
+  jeton et erreurs masquées
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux

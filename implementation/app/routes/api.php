@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
+use App\Http\Controllers\Api\Billing\PublicQuoteController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\QuoteController;
 use App\Http\Controllers\Api\BootstrapWorkspaceController;
@@ -36,6 +37,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
     });
 
     Route::middleware('throttle:public')->group(function (): void {
+        Route::get('/public/workspaces/{workspaceId}/quotes/{quoteId}', PublicQuoteController::class);
         Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
     });
 

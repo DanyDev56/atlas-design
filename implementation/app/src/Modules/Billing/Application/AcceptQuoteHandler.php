@@ -57,19 +57,19 @@ final class AcceptQuoteHandler
             }
 
             if ($proof['workspace_id'] !== $workspaceId || $proof['document_id'] !== $quoteId) {
-                throw new \DomainException('Proof mismatch.');
+                throw new \DomainException('Invalid or expired proof.');
             }
 
             $capabilities = json_decode($proof['capabilities'], true, 512, JSON_THROW_ON_ERROR);
 
             if (! in_array('accept', $capabilities, true)) {
-                throw new \DomainException('Unauthorized.');
+                throw new \DomainException('Invalid or expired proof.');
             }
 
             $quote = $this->quotes->findById($workspaceId, new QuoteId($quoteId));
 
             if ($quote === null) {
-                throw new \DomainException('Quote not found.');
+                throw new \DomainException('Invalid or expired proof.');
             }
 
             if ($quote->status() === Quote::STATUS_ACCEPTED) {

@@ -152,6 +152,17 @@ export interface QuoteDetail extends QuoteSummary {
     lines: QuoteLine[];
 }
 
+export interface PublicQuoteDetail {
+    quote_id: string;
+    client_display_name: string | null;
+    status: string;
+    lines: QuoteLine[];
+    total_cents: number;
+    currency: string;
+    version: number;
+    valid_until: string | null;
+}
+
 export interface SendQuoteResponse {
     quote_id: string;
     status: string;
