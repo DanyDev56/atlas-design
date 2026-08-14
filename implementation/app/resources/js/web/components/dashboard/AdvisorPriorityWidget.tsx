@@ -33,7 +33,7 @@ const recommendationCopy: Record<string, RecommendationCopy> = {
 
 function recommendationAction(rec: NonNullable<AdvisorOverview['primary_recommendation']>) {
     if (rec.action_module === 'Billing') {
-        return { href: '#billing', label: 'Voir la facturation' };
+        return { href: '/app/billing', label: 'Voir la facturation' };
     }
 
     return { href: '/app/crm', label: 'Ouvrir le CRM' };

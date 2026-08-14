@@ -3,9 +3,9 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
-    { to: '/app', label: 'Dashboard', end: true },
-    { to: '/app/crm', label: 'CRM', end: false },
-    { to: '/app/billing', label: 'Billing', disabled: true },
+    { to: '/app', label: 'Dashboard', end: true, disabled: false },
+    { to: '/app/crm', label: 'CRM', end: false, disabled: false },
+    { to: '/app/billing', label: 'Facturation', end: false, disabled: false },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {

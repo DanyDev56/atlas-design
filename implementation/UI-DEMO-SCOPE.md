@@ -135,6 +135,11 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Page publique de devis complète avant acceptation : destinataire, lignes,
   montant total, validité et consentement explicite, avec lecture bornée par le
   jeton et erreurs masquées
+- Espace Facturation accessible depuis la navigation, avec liste des devis et
+  accès au détail
+- Vérification obligatoire avant envoi : édition multi-lignes des brouillons,
+  total recalculé par l'API, verrouillage explicite et lien client disponible
+  uniquement après l'envoi
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux

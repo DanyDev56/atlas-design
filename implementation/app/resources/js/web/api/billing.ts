@@ -26,6 +26,21 @@ export async function createQuote(
     return apiRequest('POST', workspacePath(workspaceId, '/quotes'), payload, { token });
 }
 
+export async function updateQuote(
+    token: string,
+    workspaceId: string,
+    quoteId: string,
+    lines: QuoteLine[],
+    expectedRevision: number,
+): Promise<{ quote_id: string; status: string; total_cents: number; version: number }> {
+    return apiRequest(
+        'PATCH',
+        workspacePath(workspaceId, `/quotes/${quoteId}`),
+        { lines, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function sendQuote(
     token: string,
     workspaceId: string,
