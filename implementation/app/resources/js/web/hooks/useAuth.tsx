@@ -7,7 +7,14 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import { bootstrapWorkspace, fetchSessionContext, login, register, verifyEmail } from '@/api/auth';
+import {
+    bootstrapWorkspace,
+    fetchSessionContext,
+    login,
+    register,
+    revokeSession,
+    verifyEmail,
+} from '@/api/auth';
 import type { SessionState } from '@/types/api';
 
 const STORAGE_KEY = 'atlas_web_session';
@@ -17,9 +24,9 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     isResolvingWorkspace: boolean;
     loginWithPassword: (email: string, password: string) => Promise<SessionState>;
-    registerAccount: (email: string, displayName: string, password: string) => Promise<void>;
+    registerAccount: (email: string, displayName: string, password: string) => Promise<boolean>;
     createWorkspace: (name: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     setWorkspaceId: (workspaceId: string) => void;
 }
 
@@ -30,7 +37,11 @@ function loadSession(): SessionState | null {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return null;
         const parsed = JSON.parse(raw) as SessionState;
-        if (!parsed.token || !parsed.userId) return null;
+        const expiresAt = Date.parse(parsed.expiresAt);
+        if (!parsed.token || !parsed.userId || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+            localStorage.removeItem(STORAGE_KEY);
+            return null;
+        }
         return parsed;
     } catch {
         return null;
@@ -101,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             userId: result.user_id,
             workspaceId,
             email,
+            expiresAt: result.expires_at,
         };
         setSession(next);
         persistSession(next);
@@ -111,8 +123,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await register(email, displayName, password);
         if (result.verification_token) {
             await verifyEmail(result.user_id, result.verification_token);
+            await loginWithPassword(email, password);
+
+            return true;
         }
-        await loginWithPassword(email, password);
+
+        return false;
     }, [loginWithPassword]);
 
     const createWorkspace = useCallback(async (name: string) => {
@@ -123,10 +139,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persistSession(next);
     }, [session]);
 
-    const logout = useCallback(() => {
-        setSession(null);
-        persistSession(null);
-    }, []);
+    const logout = useCallback(async () => {
+        const token = session?.token;
+
+        try {
+            if (token) await revokeSession(token);
+        } catch {
+            // A locally forgotten or already expired session still signs the browser out.
+        } finally {
+            setSession(null);
+            persistSession(null);
+        }
+    }, [session?.token]);
 
     const value = useMemo<AuthContextValue>(() => ({
         session,

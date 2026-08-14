@@ -12,10 +12,6 @@ final class ProcessOutboxController extends Controller
 {
     public function __invoke(OutboxProcessor $processor): JsonResponse
     {
-        if (! config('app.debug') && ! app()->environment('testing')) {
-            abort(404);
-        }
-
         $count = $processor->processPending();
 
         return response()->json(['processed' => $count]);

@@ -54,6 +54,7 @@ jobs:
             cp -n .env.example .env
             php artisan key:generate --force --no-interaction
             npm ci --ignore-scripts
+            npm audit --audit-level=high
             npm run typecheck
             npm run build
             php artisan migrate:fresh --force

@@ -9,8 +9,9 @@ import {
 } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 
-const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL ?? 'demo@atlas.test';
-const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? 'DemoAtlas2026!';
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL;
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
+const demoCredentialsAvailable = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
 
 export function LoginPage() {
     const { loginWithPassword, session, isAuthenticated } = useAuth();
@@ -25,6 +26,7 @@ export function LoginPage() {
     }
 
     function fillDemoCredentials() {
+        if (!DEMO_EMAIL || !DEMO_PASSWORD) return;
         setEmail(DEMO_EMAIL);
         setPassword(DEMO_PASSWORD);
     }
@@ -45,19 +47,21 @@ export function LoginPage() {
 
     return (
         <AuthLayout title="Connexion" subtitle="Accédez à votre espace Atlas.">
-            <div className="mb-6 rounded-xl border border-atlas-border bg-atlas-surface px-4 py-3">
-                <p className="text-sm font-medium text-atlas-ink">Compte démo présentation</p>
-                <p className="mt-1 font-mono text-xs text-atlas-ink-muted">
-                    {DEMO_EMAIL} / {DEMO_PASSWORD}
-                </p>
-                <button
-                    type="button"
-                    onClick={fillDemoCredentials}
-                    className="mt-3 text-sm font-medium text-atlas-accent hover:underline"
-                >
-                    Pré-remplir le formulaire
-                </button>
-            </div>
+            {demoCredentialsAvailable && (
+                <div className="mb-6 rounded-xl border border-atlas-border bg-atlas-surface px-4 py-3">
+                    <p className="text-sm font-medium text-atlas-ink">Compte démo présentation</p>
+                    <p className="mt-1 font-mono text-xs text-atlas-ink-muted">
+                        {DEMO_EMAIL} / {DEMO_PASSWORD}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={fillDemoCredentials}
+                        className="mt-3 text-sm font-medium text-atlas-accent hover:underline"
+                    >
+                        Pré-remplir le formulaire
+                    </button>
+                </div>
+            )}
             <form onSubmit={onSubmit} className="space-y-4">
                 <ErrorBanner message={error} />
                 <FormField label="Email">

@@ -86,6 +86,7 @@ export interface SessionState {
     userId: string;
     workspaceId: string | null;
     email: string;
+    expiresAt: string;
 }
 
 export interface ClientSummary {

@@ -7,6 +7,10 @@ import type {
     WorkspaceBootstrapResponse,
 } from '@/types/api';
 
+const debugVerificationTokensEnabled =
+    import.meta.env.VITE_DEBUG_VERIFICATION_TOKENS === 'true'
+    || (import.meta.env.VITE_DEBUG_VERIFICATION_TOKENS === undefined && import.meta.env.DEV);
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
     return apiRequest<LoginResponse>('POST', '/auth/login', { email, password }, { auth: false });
 }
@@ -23,7 +27,7 @@ export async function register(
             email,
             display_name: displayName,
             password,
-            debug_verification_token: true,
+            ...(debugVerificationTokensEnabled ? { debug_verification_token: true } : {}),
         },
         { auth: false, idempotency: true },
     );
@@ -35,6 +39,10 @@ export async function verifyEmail(userId: string, token: string): Promise<void> 
 
 export async function fetchSessionContext(token: string): Promise<SessionContextResponse> {
     return apiRequest<SessionContextResponse>('GET', '/auth/session/context', undefined, { token });
+}
+
+export async function revokeSession(token: string): Promise<void> {
+    await apiRequest('POST', '/auth/session/revoke', {}, { token, idempotency: true });
 }
 
 export async function bootstrapWorkspace(token: string, name: string): Promise<WorkspaceBootstrapResponse> {

@@ -1,7 +1,7 @@
 ---
 title: SEC-TEST — Matrice de vérification MVP
 owner: Engineering + Security
-last_updated: 2026-08-07
+last_updated: 2026-08-14
 references:
   - ../fondation/security/mvp-threat-model.md
   - MVP-CLOSURE.md
@@ -18,7 +18,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 |---|---|---|---|---|
 | SEC-TEST-001 | SEC-T07 | `MvpAcceptanceCrossCuttingTest` (isolation client) | ◐ | Étendre à quotes/invoices |
 | SEC-TEST-002 | SEC-T01 | — | ◻ | Fuzz login / lockout |
-| SEC-TEST-003 | SEC-T02 | `VerifyEmail` + token debug test | ◐ | Token expiré / rejoué |
+| SEC-TEST-003 | SEC-T02 | `VerifyEmail` + `BetaSurfaceHardeningTest` (token debug fermé) | ◐ | Token expiré / rejoué |
 | SEC-TEST-004 | SEC-T03 | `RevokeSessionTest` | ☑ | — |
 | SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
 | SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest`, `PublicQuoteRateLimitTest` | ☑ | — |
@@ -36,7 +36,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-018 | SEC-T19 | `SqlModuleIsolationTest`, `ModuleBoundariesTest` | ☑ | — |
 | SEC-TEST-019 | SEC-T20 | — | ◻ | Egress billing adapter |
 | SEC-TEST-020 | SEC-T21 | — | ◻ | Secret scan CI |
-| SEC-TEST-021 | SEC-T22 | CI `oci` SBOM | ◐ | Scan vulnérabilités |
+| SEC-TEST-021 | SEC-T22 | CI `oci` SBOM + `npm audit --audit-level=high` | ◐ | Scan PHP et image OCI |
 | SEC-TEST-022 | SEC-T24 | — | ◻ | DLQ / poison message |
 | SEC-TEST-023 | SEC-T25 | `verify-restore-canary.sh` + CI `release-rehearsal` | ☑ | CI validé (`501bf1c`) |
 | SEC-TEST-024 | SEC-T26 | — | ◻ | Supply chain pin audit |

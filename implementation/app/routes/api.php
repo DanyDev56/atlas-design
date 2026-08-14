@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\Dashboard\DashboardController;
-use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
-use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
-use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\QuoteController;
 use App\Http\Controllers\Api\BootstrapWorkspaceController;
+use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
 use App\Http\Controllers\Api\Crm\ClientController;
 use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
+use App\Http\Controllers\Api\Dashboard\DashboardController;
+use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\CorrelationIdMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\DevelopmentOnlyMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -38,9 +39,10 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
     });
 
-    Route::post('/dev/outbox/process', ProcessOutboxController::class);
-
-    Route::post('/spike/workspaces', SpikeCreateWorkspaceController::class);
+    Route::middleware(DevelopmentOnlyMiddleware::class)->group(function (): void {
+        Route::post('/dev/outbox/process', ProcessOutboxController::class);
+        Route::post('/spike/workspaces', SpikeCreateWorkspaceController::class);
+    });
 
     Route::middleware(BearerSessionMiddleware::class)->group(function (): void {
         Route::post('/auth/session/revoke', RevokeSessionController::class);

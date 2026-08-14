@@ -17,6 +17,7 @@ export function RegisterPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [verificationRequiredFor, setVerificationRequiredFor] = useState<string | null>(null);
 
     if (isAuthenticated) {
         return <Navigate to={session?.workspaceId ? '/app' : '/app/onboarding'} replace />;
@@ -27,13 +28,37 @@ export function RegisterPage() {
         setError(null);
         setLoading(true);
         try {
-            await registerAccount(email, displayName, password);
-            navigate('/app/onboarding');
+            const authenticated = await registerAccount(email, displayName, password);
+            if (authenticated) {
+                navigate('/app/onboarding');
+            } else {
+                setVerificationRequiredFor(email);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Inscription impossible');
         } finally {
             setLoading(false);
         }
+    }
+
+    if (verificationRequiredFor) {
+        return (
+            <AuthLayout title="Compte créé" subtitle="Votre adresse doit encore être vérifiée.">
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+                    <p className="font-semibold">Vérification requise</p>
+                    <p className="mt-2">
+                        L’accès de {verificationRequiredFor} doit être activé avant la première connexion.
+                        Contactez l’équipe Atlas si aucun parcours de vérification ne vous a été transmis.
+                    </p>
+                </div>
+                <Link
+                    to="/app/login"
+                    className="mt-5 block text-center text-sm font-medium text-atlas-accent hover:underline"
+                >
+                    Retour à la connexion
+                </Link>
+            </AuthLayout>
+        );
     }
 
     return (

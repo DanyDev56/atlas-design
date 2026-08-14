@@ -52,7 +52,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 <p className="truncate px-2">{session?.email}</p>
                 <button
                     type="button"
-                    onClick={logout}
+                    onClick={() => void logout()}
                     className="mt-2 w-full rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/8 hover:text-white"
                 >
                     Déconnexion

@@ -46,7 +46,11 @@ final class RegisterUserController extends Controller
             'status' => $result['status'],
         ];
 
-        if ($request->boolean('debug_verification_token') && isset($result['verification_token'])) {
+        if (
+            config('platform.development.debug_verification_tokens')
+            && $request->boolean('debug_verification_token')
+            && isset($result['verification_token'])
+        ) {
             $payload['verification_token'] = $result['verification_token'];
         }
 

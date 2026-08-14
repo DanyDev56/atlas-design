@@ -3,6 +3,16 @@
 declare(strict_types=1);
 
 return [
+    'development' => [
+        'routes_enabled' => (bool) env(
+            'ATLAS_DEVELOPMENT_ROUTES',
+            env('APP_ENV', 'production') === 'local',
+        ),
+        'debug_verification_tokens' => (bool) env(
+            'ATLAS_DEBUG_VERIFICATION_TOKENS',
+            env('APP_ENV', 'production') === 'local',
+        ),
+    ],
     'outbox' => [
         'backlog_warning_threshold' => (int) env('OUTBOX_BACKLOG_WARNING_THRESHOLD', 25),
         'alert_webhook_url' => env('OUTBOX_BACKLOG_ALERT_WEBHOOK_URL'),

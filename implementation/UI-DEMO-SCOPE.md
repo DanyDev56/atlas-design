@@ -98,6 +98,9 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Données : 2 clients, opportunités (Open + Qualified), devis brouillon + accepté, facture payée
 - Dashboard alimenté (outbox + snapshot analytics)
 - Login : encart compte démo + pré-remplissage
+- Déconnexion : révocation de la session serveur avant oubli local
+- Session locale : rejet automatique des credentials expirés ou historiques incomplets
+- Surfaces dev : `/api/dev/*`, `/api/spike/*` et jeton de vérification sous opt-in explicite
 - Layout responsive : menu mobile, paddings tablette
 - Composants `PageSkeleton` et `EmptyState` réutilisés
 
@@ -109,6 +112,9 @@ make demo-seed
 ```
 
 Identifiants affichés sur la page de connexion après seed.
+Ils ne sont intégrés au build que si `VITE_DEMO_EMAIL` et `VITE_DEMO_PASSWORD`
+sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
+`ATLAS_DEBUG_VERIFICATION_TOKENS` restent réservés au développement local.
 
 ### Reste hors scope Lot 3
 

@@ -37,6 +37,8 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 - [x] SEC-TEST-006 rate limit auth + public quote
 - [x] SEC-TEST-007 membership revocation mid-session
 - [x] SEC-TEST-013 idempotence documentée (`docs/idempotency.md`)
+- [x] Routes dev/spike fermées par défaut (`BetaSurfaceHardeningTest`)
+- [ ] Jeton de vérification debug désactivé et remise email réelle avant beta externe
 - [x] Risques SEC-T résiduels High/Critical acceptés formellement (Product+Security)
 
 ## Exploitation
