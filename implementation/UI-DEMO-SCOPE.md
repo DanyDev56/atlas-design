@@ -69,7 +69,7 @@ L'ordre de travail retenu est :
 
 - Inertia, Livewire, Eloquent côté web (ADR-002)
 - Logique métier recalculée dans le frontend
-- Settings, rôles, import historique, inbox complète
+- Settings, rôles et import historique
 
 ---
 
@@ -145,6 +145,10 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
   autoritatif
 - Liste persistante des factures dans Facturation, enrichie par le CRM sans en
   dépendre pour rester consultable
+- Inbox Notifications accessible depuis l’en-tête et le dashboard, avec compteur
+  autoritatif, filtre des non-lues, historique et marquage individuel comme lu
+- Actions de notification limitées aux destinations CRM et Facturation
+  allowlistées par le contrat Advisor
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux

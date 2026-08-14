@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { fetchUnreadCount } from '@/api/auth';
 import { useAuth } from '@/hooks/useAuth';
+
+export interface AppShellOutletContext {
+    refreshUnreadCount: () => Promise<void>;
+}
 
 const navItems = [
     { to: '/app', label: 'Dashboard', end: true, disabled: false },
@@ -64,10 +69,32 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell() {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState<number | null>(null);
+    const [notificationsUnavailable, setNotificationsUnavailable] = useState(false);
+    const { session } = useAuth();
     const location = useLocation();
     const menuButtonRef = useRef<HTMLButtonElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const mobileDialogRef = useRef<HTMLElement>(null);
+    const token = session?.token ?? null;
+    const workspaceId = session?.workspaceId ?? null;
+
+    const refreshUnreadCount = useCallback(async () => {
+        if (!token || !workspaceId) {
+            setUnreadCount(null);
+            setNotificationsUnavailable(false);
+            return;
+        }
+
+        try {
+            const result = await fetchUnreadCount(token, workspaceId);
+            setUnreadCount(result.unread_count);
+            setNotificationsUnavailable(false);
+        } catch {
+            setUnreadCount(null);
+            setNotificationsUnavailable(true);
+        }
+    }, [token, workspaceId]);
 
     const closeMobileNav = useCallback(() => {
         setMobileNavOpen(false);
@@ -82,6 +109,10 @@ export function AppShell() {
     useEffect(() => {
         setMobileNavOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        void refreshUnreadCount();
+    }, [location.pathname, refreshUnreadCount]);
 
     useEffect(() => {
         if (!mobileNavOpen) return;
@@ -187,10 +218,34 @@ export function AppShell() {
                             <p className="text-sm font-semibold text-atlas-ink">Actif</p>
                         </div>
                     </div>
+                    <Link
+                        to="/app/notifications"
+                        aria-label={
+                            notificationsUnavailable
+                                ? 'Notifications temporairement indisponibles'
+                                : unreadCount && unreadCount > 0
+                                  ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}`
+                                  : 'Notifications'
+                        }
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-atlas-border bg-white px-3 py-2 text-sm font-semibold text-atlas-ink transition-colors hover:bg-slate-50"
+                    >
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 17H9m9-2V11a6 6 0 0 0-12 0v4l-2 2h16l-2-2Zm-7 5h2" />
+                        </svg>
+                        <span className="hidden sm:inline">Notifications</span>
+                        {unreadCount !== null && unreadCount > 0 && (
+                            <span className="min-w-5 rounded-full bg-atlas-accent px-1.5 py-0.5 text-center text-xs font-bold tabular-nums text-white">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                        {notificationsUnavailable && (
+                            <span className="text-xs font-bold text-amber-700" title="Compteur indisponible">—</span>
+                        )}
+                    </Link>
                 </header>
 
                 <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-4 md:p-8">
-                    <Outlet />
+                    <Outlet context={{ refreshUnreadCount } satisfies AppShellOutletContext} />
                 </main>
             </div>
         </div>

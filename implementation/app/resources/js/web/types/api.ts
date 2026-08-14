@@ -91,6 +91,34 @@ export interface NotificationUnread {
     unread_count?: number;
 }
 
+export interface NotificationContent {
+    template_key: string;
+    template_version?: string;
+    recommendation_key?: string | null;
+    action_module?: string | null;
+    route_key?: string | null;
+}
+
+export interface NotificationSummary {
+    notification_id: string;
+    workspace_id: string;
+    recommendation_id: string | null;
+    notification_topic: string;
+    status: 'Active' | 'Resolved' | 'Superseded' | 'Expired';
+    read_state: 'Unread' | 'Read';
+    priority: string;
+    content: NotificationContent;
+    selected_channels: string[];
+    revision: number;
+    created_at: string;
+    display_until: string | null;
+}
+
+export interface MarkNotificationReadResponse {
+    notification_id: string;
+    revision: number;
+}
+
 export interface SessionState {
     token: string;
     userId: string;

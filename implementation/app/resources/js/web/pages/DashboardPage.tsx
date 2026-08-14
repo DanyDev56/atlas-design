@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { fetchDashboard } from '@/api/auth';
 import { AdvisorPriorityWidget } from '@/components/dashboard/AdvisorPriorityWidget';
 import { BillingWidget } from '@/components/dashboard/BillingWidget';
@@ -81,10 +81,13 @@ export function DashboardPage() {
                     </p>
                 </div>
                 {unread > 0 && (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-atlas-accent-soft px-3 py-1.5 text-sm font-semibold text-atlas-accent">
+                    <Link
+                        to="/app/notifications"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-atlas-accent-soft px-4 py-2 text-sm font-semibold text-atlas-accent transition-colors hover:bg-atlas-accent hover:text-white"
+                    >
                         <span className="h-2 w-2 rounded-full bg-atlas-accent" aria-hidden="true" />
                         {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
-                    </span>
+                    </Link>
                 )}
             </div>
 
