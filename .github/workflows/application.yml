@@ -78,10 +78,25 @@ jobs:
         with:
           context: implementation
           file: implementation/Dockerfile
+          target: runtime
           push: false
-          tags: atlas-app:spike
+          tags: atlas-app:runtime
           sbom: true
           provenance: mode=max
+
+  runtime-smoke:
+    name: Immutable runtime smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUNTIME_APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Build and smoke test immutable application roles
+        run: bash ./implementation/scripts/smoke-runtime.sh
 
   release-rehearsal:
     name: Release rehearsal (SEC-TEST-023)

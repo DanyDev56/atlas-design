@@ -34,7 +34,7 @@ technique et ne bloquent pas la transition vers le Palier 3.
 | Incréments 0 à 8 | ☑ Clôturés |
 | Parcours MVP-J1, MVP-J2, MVP-J3 | ☑ Prouvés par tests d'acceptation |
 | Fixtures FIX-001…010 + oracle jq | ☑ |
-| CI `application.yml` (docs + spike + oci) | ☑ Verte |
+| CI `application.yml` (docs + spike + oci + runtime smoke) | ☑ Configurée |
 | Palier 3 — publication contrôlée | ◐ Track A clôturé — voir [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) |
 
 ---
@@ -148,7 +148,10 @@ scripts/check-mvp-reference-fixtures.sh
 
 Playground manuel : `make serve` → `http://localhost:8000/playground`.
 
-CI : workflow `.github/workflows/application.yml` (jobs `documentation`, `spike`, `oci`).
+CI : workflow `.github/workflows/application.yml` (jobs `documentation`, `spike`,
+`oci`, `runtime-smoke`). Le job OCI construit explicitement la cible immuable
+`runtime` avec SBOM et provenance ; le smoke test prouve les trois rôles sans
+bind mount.
 
 ---
 

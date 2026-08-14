@@ -1,4 +1,4 @@
-.PHONY: up up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
+.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -8,7 +8,16 @@ COMPOSE = $(DOCKER) compose -f implementation/docker-compose.yml
 up:
 	$(COMPOSE) up -d --build
 
-up-runtime:
+runtime-build:
+	$(COMPOSE) --profile runtime build api
+
+check-runtime-key:
+	@if [ -z "$(RUNTIME_APP_KEY)" ]; then echo "RUNTIME_APP_KEY is required."; exit 78; fi
+
+runtime-smoke: check-runtime-key
+	bash ./implementation/scripts/smoke-runtime.sh
+
+up-runtime: check-runtime-key
 	$(COMPOSE) --profile runtime up -d --build api worker scheduler
 
 stop-runtime:

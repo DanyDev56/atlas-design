@@ -44,7 +44,7 @@ Ce document résume l'état de preuve du MVP exécutable sous `implementation/`.
 | ADR-002 spike (12 conditions) | `spike-checklist.md`, `SPIKE-CLOSURE.md` | ☑ |
 | Frontières modules | `ModuleBoundariesTest` | ☑ |
 | Documentation fondation | CI `documentation` + `check-all.sh` | ☑ |
-| Image OCI + SBOM | CI job `oci` | ☑ |
+| Image OCI immuable + SBOM/provenance | CI jobs `oci`, `runtime-smoke` | ☑ |
 | Tests Pest + PostgreSQL | CI job `spike` (83+ tests) | ☑ |
 
 ## Palier 3 (Track A)

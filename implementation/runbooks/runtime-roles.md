@@ -11,7 +11,7 @@ references:
 # Rôles d'exécution
 
 Le profil Compose `runtime` matérialise les trois rôles prévus par
-l'architecture avec la même image applicative :
+l'architecture avec la même image applicative immuable `atlas-app:runtime` :
 
 | Service | Processus | Responsabilité |
 |---|---|---|
@@ -23,11 +23,33 @@ Ce profil sert à la répétition locale et staging de la topologie. Le serveur
 HTTP Artisan n'est pas le serveur de production cible ; la plateforme choisie
 devra exécuter le même artefact derrière son serveur HTTP managé.
 
+## Artefacts de développement et runtime
+
+Le Dockerfile multi-stage publie deux cibles distinctes :
+
+| Cible | Usage | Contenu |
+|---|---|---|
+| `development` | boucle locale et CI Pest | Composer, Node, Git, jq, ripgrep et bind mount `/workspace` |
+| `runtime` | rehearsal et promotion OCI | code, vendor `--no-dev`, assets Vite, OPcache et extensions d'exécution |
+
+La cible `runtime` :
+
+- ne dépend d'aucun fichier de l'hôte et n'a aucun mount ;
+- exclut tests, Composer, Node et dépendances de développement ;
+- s'exécute avec l'utilisateur non privilégié `www-data` ;
+- garde le code et les assets en lecture seule pour ce processus ; seuls
+  `storage` et `bootstrap/cache` sont inscriptibles ;
+- exige que `APP_KEY` soit injectée à l'exécution ;
+- utilise le même digest pour les rôles API, worker et scheduler.
+
 ## Démarrage et arrêt
 
 Depuis la racine du dépôt :
 
 ```bash
+make runtime-build
+export RUNTIME_APP_KEY="base64:$(openssl rand -base64 32)"
+make runtime-smoke
 make up-runtime
 make logs-runtime
 make stop-runtime
@@ -38,7 +60,11 @@ développement `app`. L'API utilise le port `8080` afin de pouvoir cohabiter
 avec `make serve` sur le port `8000`.
 
 Par défaut, les processus démarrent avec `APP_ENV=staging` et
-`APP_DEBUG=false`. Un test strictement local peut les surcharger :
+`APP_DEBUG=false`. `make up-runtime` et `make runtime-smoke` refusent de
+démarrer sans `RUNTIME_APP_KEY`. Cette clé est une configuration d'exécution :
+elle ne doit jamais être ajoutée au dépôt ni à l'image.
+
+Un test strictement local peut surcharger l'environnement :
 
 ```bash
 RUNTIME_APP_ENV=local RUNTIME_APP_DEBUG=true make up-runtime
@@ -52,6 +78,12 @@ docker compose -f implementation/docker-compose.yml --profile runtime ps
 docker compose -f implementation/docker-compose.yml --profile runtime exec worker \
   php artisan atlas:outbox:process --batch=100
 ```
+
+Le script `implementation/scripts/smoke-runtime.sh` automatise les preuves
+suivantes : migration, santé `/up`, UID non-root, même image et absence de mount
+pour les trois rôles, code non inscriptible, présence de `vendor` et du manifest
+Vite, absence des toolchains de build, cycle worker borné et chargement du
+scheduler. Le job CI `runtime-smoke` l'exécute sur chaque push et pull request.
 
 Les trois rôles partagent le code, la configuration de base et PostgreSQL,
 mais publient des noms OpenTelemetry distincts : `atlas-api`, `atlas-worker`

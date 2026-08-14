@@ -87,6 +87,8 @@ Plan détaillé :
 
 ```bash
 make up          # Démarrer les services
+make runtime-build # Construire l'artefact OCI immuable
+make runtime-smoke # Tester l'artefact (RUNTIME_APP_KEY requis)
 make up-runtime  # Démarrer les rôles API + worker + scheduler
 make logs-runtime # Suivre leurs logs
 make stop-runtime # Arrêter les rôles sans arrêter PostgreSQL
