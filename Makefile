@@ -1,4 +1,4 @@
-.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev demo-seed
+.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -62,6 +62,9 @@ web-install:
 
 web-dev:
 	$(COMPOSE) exec app bash -c 'cd /workspace/implementation/app && npm run dev -- --host 0.0.0.0'
+
+web-check:
+	$(COMPOSE) exec -T app bash -c 'cd /workspace/implementation/app && npm run typecheck && npm run build'
 
 demo-seed:
 	$(COMPOSE) exec app php artisan atlas:demo:seed

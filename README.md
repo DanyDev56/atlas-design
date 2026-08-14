@@ -101,15 +101,17 @@ scripts/check-all.sh
 ## Implémentation
 
 Le code exécutable du MVP vit dans [`implementation/`](implementation/README.md).
-La prochaine étape est l'**incrément 0** : spike des douze conditions
-d'[`ADR-002`](fondation/decisions/ADR-002-mvp-implementation-stack.md) (socle
-modulaire, outbox, tests d'architecture).
+Les incréments 0 à 8 et le Palier 3 technique sont clôturés. Le chantier courant
+est l'interface React de démonstration et d'early access décrite dans
+[`implementation/UI-DEMO-SCOPE.md`](implementation/UI-DEMO-SCOPE.md).
 
 ```bash
-make up          # Docker + PostgreSQL
-make bootstrap   # Laravel + structure src/
+make up           # Docker + PostgreSQL
+make bootstrap    # Dépendances, configuration et migrations
+make test         # Tests backend Pest
+make web-check    # TypeScript strict + build Vite
 ```
 
-Checklist détaillée : [`implementation/spike-checklist.md`](implementation/spike-checklist.md).
-
-Clôture du spike : [`implementation/SPIKE-CLOSURE.md`](implementation/SPIKE-CLOSURE.md) — **ADR-002 Accepted**.
+État technique : [`implementation/MVP-CLOSURE.md`](implementation/MVP-CLOSURE.md) ·
+UI courante : [`implementation/UI-DEMO-SCOPE.md`](implementation/UI-DEMO-SCOPE.md) ·
+clôture du spike : [`implementation/SPIKE-CLOSURE.md`](implementation/SPIKE-CLOSURE.md).

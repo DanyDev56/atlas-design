@@ -90,6 +90,7 @@ make up          # Démarrer les services
 make down        # Arrêter
 make shell       # Shell dans le conteneur app
 make test        # Tests Pest (après bootstrap)
+make web-check   # TypeScript strict + build Vite
 make check-docs  # Quality gates documentaires du dépôt parent
 make backup      # Sauvegarde PostgreSQL (Palier 3)
 make verify-restore  # Canary SEC-TEST-023

@@ -45,7 +45,7 @@ jobs:
           docker compose -f implementation/docker-compose.yml exec -T postgres \
             sh -c 'until pg_isready -U atlas -d atlas; do sleep 1; done'
 
-      - name: Install dependencies and run tests
+      - name: Install dependencies and run quality gates
         run: |
           docker compose -f implementation/docker-compose.yml exec -T app bash -c '
             set -euo pipefail
@@ -53,7 +53,9 @@ jobs:
             composer install --no-interaction --prefer-dist
             cp -n .env.example .env
             php artisan key:generate --force --no-interaction
-            npm install --ignore-scripts
+            npm ci --ignore-scripts
+            npm run typecheck
+            npm run build
             php artisan migrate:fresh --force
             ./vendor/bin/pest --colors=never
           '

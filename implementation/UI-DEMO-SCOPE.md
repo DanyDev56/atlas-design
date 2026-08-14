@@ -31,7 +31,7 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 ---
 
-## Lot 0 — Fondations (en cours)
+## Lot 0 — Fondations (livré)
 
 ### Livré
 
@@ -122,6 +122,7 @@ Identifiants affichés sur la page de connexion après seed.
 make serve                    # API :8000
 make web-install              # première fois — deps npm React
 make web-dev                  # Vite HMR :5173
+make web-check                # TypeScript strict + build de production
 make demo-seed                # compte démo + données présentation
 
 # Ouvrir http://localhost:8000/app

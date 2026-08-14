@@ -13,8 +13,8 @@ import { formatMoney } from '@/utils/format';
 export function ClientDetailPage() {
     const { clientId } = useParams<{ clientId: string }>();
     const { session } = useAuth();
-    const token = session!.token;
-    const workspaceId = session!.workspaceId!;
+    const token = session?.token ?? null;
+    const workspaceId = session?.workspaceId ?? null;
 
     const [client, setClient] = useState<ClientDetail | null>(null);
     const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
@@ -26,21 +26,27 @@ export function ClientDetailPage() {
     const [creating, setCreating] = useState(false);
 
     useEffect(() => {
-        if (!clientId) return;
+        if (!token || !workspaceId || !clientId) {
+            setLoading(false);
+            return;
+        }
 
         let cancelled = false;
+        const activeToken = token;
+        const activeWorkspaceId = workspaceId;
+        const selectedClientId = clientId;
 
         async function load() {
             setLoading(true);
             setError(null);
             try {
                 const [clientData, allOpportunities] = await Promise.all([
-                    getClient(token, workspaceId, clientId),
-                    listOpportunities(token, workspaceId),
+                    getClient(activeToken, activeWorkspaceId, selectedClientId),
+                    listOpportunities(activeToken, activeWorkspaceId),
                 ]);
                 if (!cancelled) {
                     setClient(clientData);
-                    setOpportunities(allOpportunities.filter((o) => o.client_id === clientId));
+                    setOpportunities(allOpportunities.filter((o) => o.client_id === selectedClientId));
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -65,7 +71,7 @@ export function ClientDetailPage() {
 
     async function onCreateOpportunity(event: FormEvent) {
         event.preventDefault();
-        if (!clientId) return;
+        if (!token || !workspaceId || !clientId) return;
 
         setCreating(true);
         setError(null);

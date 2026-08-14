@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { DashboardResponse } from '@/types/api';
 
 export function DashboardPage() {
-    const { session, isAuthenticated } = useAuth();
+    const { session } = useAuth();
     const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -25,12 +25,14 @@ export function DashboardPage() {
         }
 
         let cancelled = false;
+        const activeToken = token;
+        const activeWorkspaceId = workspaceId;
 
         async function load() {
             setLoading(true);
             setError(null);
             try {
-                const data = await fetchDashboard(token!, workspaceId!);
+                const data = await fetchDashboard(activeToken, activeWorkspaceId);
                 if (!cancelled) setDashboard(data);
             } catch (err) {
                 if (!cancelled) {
@@ -48,7 +50,7 @@ export function DashboardPage() {
         };
     }, [token, workspaceId]);
 
-    if (!isAuthenticated) {
+    if (!session) {
         return <Navigate to="/app/login" replace />;
     }
 
