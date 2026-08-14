@@ -1,4 +1,4 @@
-.PHONY: up up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
+.PHONY: up up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -7,6 +7,15 @@ COMPOSE = $(DOCKER) compose -f implementation/docker-compose.yml
 
 up:
 	$(COMPOSE) up -d --build
+
+up-runtime:
+	$(COMPOSE) --profile runtime up -d --build api worker scheduler
+
+stop-runtime:
+	$(COMPOSE) --profile runtime stop api worker scheduler
+
+logs-runtime:
+	$(COMPOSE) --profile runtime logs -f api worker scheduler
 
 up-observability:
 	OTEL_TRACES_EXPORTER=otlp $(COMPOSE) --profile observability up -d --build --force-recreate app jaeger otel-collector

@@ -87,6 +87,9 @@ Plan détaillé :
 
 ```bash
 make up          # Démarrer les services
+make up-runtime  # Démarrer les rôles API + worker + scheduler
+make logs-runtime # Suivre leurs logs
+make stop-runtime # Arrêter les rôles sans arrêter PostgreSQL
 make down        # Arrêter
 make shell       # Shell dans le conteneur app
 make test        # Tests Pest (après bootstrap)
@@ -105,6 +108,9 @@ Runbooks Palier 3 : [`runbooks/`](runbooks/) · Clôture Track A :
 [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Matrice SEC-TEST :
 [`SEC-TEST-MATRIX.md`](SEC-TEST-MATRIX.md) · Idempotence :
 [`docs/idempotency.md`](docs/idempotency.md).
+
+Topologie API / worker / scheduler :
+[`runbooks/runtime-roles.md`](runbooks/runtime-roles.md).
 
 Après pull Palier 3+, mettre à jour les dépendances PHP dans le conteneur :
 

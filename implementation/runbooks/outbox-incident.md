@@ -1,7 +1,7 @@
 ---
 title: Runbook — Incident outbox backlog
 owner: Engineering
-last_updated: 2026-08-07
+last_updated: 2026-08-14
 references:
   - ../SEC-TEST-MATRIX.md
   - observability.md
@@ -19,7 +19,7 @@ references:
 
 | Variable | Défaut | Description |
 |---|---|---|
-| `OUTBOX_BACKLOG_WARNING_THRESHOLD` | `25` | Alerte log warning après chaque cycle `atlas:outbox:process` |
+| `OUTBOX_BACKLOG_WARNING_THRESHOLD` | `25` | Alerte log warning après chaque cycle de traitement |
 | `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` | *(vide)* | POST JSON optionnel sur alerte backlog |
 
 Champs structurés émis :
@@ -50,13 +50,15 @@ ORDER BY cnt DESC;
 Vérifier que le worker outbox tourne :
 
 ```bash
-php artisan atlas:outbox:process
+php artisan atlas:outbox:work --batch=100 --sleep=2
+# cycle ponctuel de diagnostic :
+php artisan atlas:outbox:process --batch=100
 # ou POST /api/dev/outbox/process en dev
 ```
 
 ## Actions
 
-1. **Confirmer le worker** — cron / commande `atlas:outbox:process` actif.
+1. **Confirmer le worker** — processus `atlas:outbox:work` actif.
 2. **Identifier le type d'événement bloquant** — requête par `event_type`.
 3. **Consulter les logs applicatifs** — erreurs consumer, exceptions inbox.
 4. **Augmenter temporairement le batch** si pic transitoire : `atlas:outbox:process --batch=500`.

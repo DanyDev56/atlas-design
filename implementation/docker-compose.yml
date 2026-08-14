@@ -1,3 +1,40 @@
+x-app-environment: &app-environment
+  APP_ENV: local
+  APP_DEBUG: "true"
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_DATABASE: atlas
+  DB_USERNAME: atlas
+  DB_PASSWORD: atlas_dev
+  OTEL_SERVICE_NAME: atlas-app
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+  OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-none}
+  LOG_CHANNEL: stack
+  LOG_STACK: json_stderr
+
+x-runtime-environment: &runtime-environment
+  <<: *app-environment
+  APP_ENV: ${RUNTIME_APP_ENV:-staging}
+  APP_DEBUG: ${RUNTIME_APP_DEBUG:-false}
+
+x-app-base: &app-base
+  image: atlas-app:local
+  working_dir: /workspace/implementation/app
+  volumes:
+    - ..:/workspace
+  environment: *app-environment
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+x-runtime-base: &runtime-base
+  <<: *app-base
+  profiles: [runtime]
+  init: true
+  stop_grace_period: 30s
+  environment: *runtime-environment
+
 services:
   postgres:
     image: postgres:18-alpine
@@ -18,33 +55,40 @@ services:
       retries: 10
 
   app:
+    <<: *app-base
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /workspace/implementation/app
-    volumes:
-      - ..:/workspace
-    environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: atlas
-      DB_USERNAME: atlas
-      DB_PASSWORD: atlas_dev
-      OTEL_SERVICE_NAME: atlas-app
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-none}
-      LOG_CHANNEL: stack
-      LOG_STACK: json_stderr
     ports:
       - "8000:8000"
       - "5173:5173"
-    depends_on:
-      postgres:
-        condition: service_healthy
     command: sleep infinity
+
+  api:
+    <<: *runtime-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      <<: *runtime-environment
+      OTEL_SERVICE_NAME: atlas-api
+    ports:
+      - "8080:8000"
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  worker:
+    <<: *runtime-base
+    environment:
+      <<: *runtime-environment
+      OTEL_SERVICE_NAME: atlas-worker
+    command: php artisan atlas:outbox:work --batch=100 --sleep=2
+
+  scheduler:
+    <<: *runtime-base
+    environment:
+      <<: *runtime-environment
+      OTEL_SERVICE_NAME: atlas-scheduler
+    command: php artisan schedule:work
 
   jaeger:
     profiles: [observability]
