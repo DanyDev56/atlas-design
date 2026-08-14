@@ -31,11 +31,11 @@ docker compose up -d
 # Si un premier démarrage a échoué (PostgreSQL 18), supprimer le volume corrompu :
 # docker compose down -v && docker compose up -d
 
-# 2. Bootstrap Laravel (première fois uniquement)
+# 2. Bootstrap local (réexécutable sans écraser .env ni APP_KEY)
 ./scripts/bootstrap.sh
 
-# Si un bootstrap précédent s'est arrêté sur pest --init, relancer suffit :
-# le script reprend automatiquement là où il en était.
+# Ne pas utiliser sudo : Docker Desktop doit être accessible à l'utilisateur courant.
+# Le script installe Composer/npm depuis les lockfiles, puis applique les migrations.
 
 # 3. Vérifier la connexion PostgreSQL
 docker compose exec app php artisan db:show

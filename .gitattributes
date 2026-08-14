@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Scripts executed by Linux containers/WSL must never receive CRLF endings.
+*.sh text eol=lf
+*.jq text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
