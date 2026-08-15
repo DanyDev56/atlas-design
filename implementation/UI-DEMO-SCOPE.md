@@ -175,6 +175,14 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux
   technologies d'assistance
+- Recette navigateur Playwright isolée des dépendances Vite : dashboard,
+  données du scénario v2, accès aux devis et factures actionnables, navigation
+  mobile et absence de débordement horizontal
+- Facturation enrichie en parallèle avec les noms CRM pour réduire l’attente ;
+  factures récentes du dashboard désormais directement ouvrables
+- Libellés techniques de chantier retirés des écrans CRM et de connexion
+- Retour d’un devis adapté à son point d’entrée : Facturation conserve le
+  contexte, tandis que le parcours CRM revient à l’opportunité
 
 ### Compte démo
 

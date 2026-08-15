@@ -14,7 +14,7 @@ export function AuthLayout({ children, title, subtitle }: { children: ReactNode;
                         artificielles.
                     </p>
                 </div>
-                <p className="text-sm text-white/40">Beta interne — Palier 4 UI démo</p>
+                <p className="text-sm text-white/40">Vos données restent au centre de chaque décision.</p>
             </div>
 
             <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16">

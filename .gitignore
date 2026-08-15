@@ -10,6 +10,9 @@ implementation/app/.phpactor.json
 implementation/app/auth.json
 implementation/app/npm-debug.log
 implementation/app/yarn-error.log
+implementation/e2e/node_modules/
+implementation/e2e/playwright-report/
+implementation/e2e/test-results/
 
 # IDE
 .idea/

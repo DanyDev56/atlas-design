@@ -25,18 +25,14 @@ export function BillingPage() {
         setLoading(true);
         setError(null);
         try {
-            const [quoteData, invoiceData] = await Promise.all([
+            const [quoteData, invoiceData, clientData] = await Promise.all([
                 listQuotes(token, workspaceId),
                 listInvoices(token, workspaceId),
+                listClients(token, workspaceId).catch(() => [] as ClientSummary[]),
             ]);
             setQuotes(quoteData);
             setInvoices(invoiceData);
-
-            try {
-                setClients(await listClients(token, workspaceId));
-            } catch {
-                setClients([]);
-            }
+            setClients(clientData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Chargement de la facturation impossible');
         } finally {
@@ -181,6 +177,7 @@ export function BillingPage() {
                                         <li key={quote.quote_id}>
                                             <Link
                                                 to={`/app/billing/quotes/${quote.quote_id}`}
+                                                state={{ from: 'billing' }}
                                                 className="flex min-h-20 flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:px-6"
                                             >
                                                 <div className="min-w-0">

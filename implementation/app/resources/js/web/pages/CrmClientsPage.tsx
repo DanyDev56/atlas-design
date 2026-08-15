@@ -65,7 +65,7 @@ export function CrmClientsPage() {
                         <p className="text-sm font-medium text-atlas-accent">CRM</p>
                         <h2 className="mt-1 text-3xl font-semibold tracking-tight text-atlas-ink">Clients</h2>
                         <p className="mt-2 text-sm text-atlas-ink-muted">
-                            Cycle commercial J2 — clients et opportunités branchés sur l'API.
+                            Centralisez vos clients et faites avancer chaque opportunité jusqu’au devis.
                         </p>
                     </div>
                     {!showForm && (

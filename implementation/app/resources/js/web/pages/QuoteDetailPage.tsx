@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { createInvoiceFromQuote, getQuote, sendQuote, updateQuote } from '@/api/billing';
 import { getClient } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
@@ -37,6 +37,7 @@ function parseUnitPrice(value: string): number | null {
 
 export function QuoteDetailPage() {
     const { quoteId } = useParams<{ quoteId: string }>();
+    const location = useLocation();
     const navigate = useNavigate();
     const { session } = useAuth();
     const token = session!.token;
@@ -223,10 +224,13 @@ export function QuoteDetailPage() {
         );
     }
 
-    const backUrl = quote?.opportunity_id
+    const openedFromBilling = location.state?.from === 'billing';
+    const backUrl = !openedFromBilling && quote?.opportunity_id
         ? `/app/crm/opportunities/${quote.opportunity_id}`
         : '/app/billing';
-    const backLabel = quote?.opportunity_id ? 'Retour à l’opportunité' : 'Retour aux devis';
+    const backLabel = !openedFromBilling && quote?.opportunity_id
+        ? 'Retour à l’opportunité'
+        : 'Retour à la facturation';
 
     return (
         <RequireAuth>

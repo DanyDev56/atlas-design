@@ -211,6 +211,7 @@ export function InvoiceDetailPage() {
                                 {invoice.quote_id && (
                                     <Link
                                         to={`/app/billing/quotes/${invoice.quote_id}`}
+                                        state={{ from: 'billing' }}
                                         className="text-sm font-medium text-atlas-accent hover:underline"
                                     >
                                         Voir le devis source
