@@ -55,6 +55,10 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Julien Morel', { exact: true })).toBeVisible();
     await expect(page.getByText('Principal', { exact: true })).toBeVisible();
 
+    await page.getByRole('button', { name: 'Nouvelle opportunité' }).click();
+    await expect(page.getByLabel('Contact associé (optionnel)').locator('option:checked'))
+        .toHaveText('Camille Martin — principal');
+
     await navigateFromShell(page, 'Facturation');
     await expect(page.getByRole('heading', { name: 'Facturation' })).toBeVisible();
     await expect(page.getByText('Maison Lumen', { exact: true }).first()).toBeVisible();

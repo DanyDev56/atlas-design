@@ -61,6 +61,11 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
 
         $opportunityId = $opportunity->json('opportunity_id');
 
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('contact_id', $contact->json('contact_id'));
+
         $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}/qualify", [
             'expected_revision' => 1,
         ], [
@@ -82,7 +87,8 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}/commercial-context", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
-            ->assertJsonPath('opportunity_status', 'Qualified');
+            ->assertJsonPath('opportunity_status', 'Qualified')
+            ->assertJsonPath('contact_id', $contact->json('contact_id'));
 
         $this->assertTrue(
             DB::table('platform.outbox_messages')

@@ -1,12 +1,12 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createQuote, listQuotes } from '@/api/billing';
-import { getClient, getOpportunity, qualifyOpportunity } from '@/api/crm';
+import { getClient, getOpportunity, listContacts, qualifyOpportunity } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
-import type { ClientDetail, OpportunityDetail, QuoteSummary } from '@/types/api';
+import type { ClientDetail, ContactSummary, OpportunityDetail, QuoteSummary } from '@/types/api';
 import { formatMoney } from '@/utils/format';
 
 export function OpportunityDetailPage() {
@@ -18,6 +18,7 @@ export function OpportunityDetailPage() {
 
     const [opportunity, setOpportunity] = useState<OpportunityDetail | null>(null);
     const [client, setClient] = useState<ClientDetail | null>(null);
+    const [contact, setContact] = useState<ContactSummary | null>(null);
     const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,12 +35,14 @@ export function OpportunityDetailPage() {
         setError(null);
         try {
             const opp = await getOpportunity(token, workspaceId, opportunityId);
-            const [clientData, allQuotes] = await Promise.all([
+            const [clientData, contacts, allQuotes] = await Promise.all([
                 getClient(token, workspaceId, opp.client_id),
+                listContacts(token, workspaceId, opp.client_id),
                 listQuotes(token, workspaceId),
             ]);
             setOpportunity(opp);
             setClient(clientData);
+            setContact(contacts.find((candidate) => candidate.contact_id === opp.contact_id) ?? null);
             setQuotes(allQuotes.filter((q) => q.opportunity_id === opportunityId));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Chargement impossible');
@@ -142,6 +145,16 @@ export function OpportunityDetailPage() {
                                     {opportunity.estimated_amount_cents != null &&
                                         ` · ${formatMoney(opportunity.estimated_amount_cents, opportunity.currency)}`}
                                 </p>
+                                {contact && typeof contact.profile.display_name === 'string' && (
+                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                        Contact : {contact.profile.display_name}
+                                    </p>
+                                )}
+                                {opportunity.contact_id && !contact && (
+                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                        Contact associé indisponible
+                                    </p>
+                                )}
                             </div>
                             <StatusBadge status={opportunity.status} />
                         </div>

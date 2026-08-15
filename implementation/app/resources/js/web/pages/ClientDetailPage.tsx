@@ -38,6 +38,7 @@ export function ClientDetailPage() {
     const [creatingContact, setCreatingContact] = useState(false);
 
     const [showOpportunityForm, setShowOpportunityForm] = useState(false);
+    const [opportunityContactId, setOpportunityContactId] = useState('');
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
     const [creatingOpportunity, setCreatingOpportunity] = useState(false);
@@ -106,6 +107,13 @@ export function ClientDetailPage() {
         setSuccess(null);
     }
 
+    function openOpportunityForm() {
+        const primaryContact = contacts.find((contact) => contact.is_primary && contact.status === 'Active');
+        setOpportunityContactId(primaryContact?.contact_id ?? '');
+        setShowOpportunityForm(true);
+        setSuccess(null);
+    }
+
     async function onAddContact(event: FormEvent) {
         event.preventDefault();
         if (!token || !workspaceId || !clientId || !client) return;
@@ -158,6 +166,7 @@ export function ClientDetailPage() {
             const cents = amount ? Math.round(parseFloat(amount.replace(',', '.')) * 100) : undefined;
             await createOpportunity(token, workspaceId, {
                 client_id: clientId,
+                ...(opportunityContactId ? { contact_id: opportunityContactId } : {}),
                 title,
                 estimated_amount_cents: cents,
                 currency: 'EUR',
@@ -392,7 +401,7 @@ export function ClientDetailPage() {
                                 {!showOpportunityForm && (
                                     <button
                                         type="button"
-                                        onClick={() => setShowOpportunityForm(true)}
+                                        onClick={openOpportunityForm}
                                         className="rounded-xl bg-atlas-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                                     >
                                         Nouvelle opportunité
@@ -414,6 +423,30 @@ export function ClientDetailPage() {
                                             placeholder="Refonte site web"
                                         />
                                     </FormField>
+                                    <div className="mt-4">
+                                        <FormField
+                                            label="Contact associé (optionnel)"
+                                            hint={contacts.length > 0
+                                                ? 'Le contact principal est présélectionné.'
+                                                : 'Ajoutez d’abord un contact si vous souhaitez l’associer.'}
+                                        >
+                                            <select
+                                                className={inputClassName}
+                                                value={opportunityContactId}
+                                                onChange={(event) => setOpportunityContactId(event.target.value)}
+                                            >
+                                                <option value="">Aucun contact associé</option>
+                                                {sortedContacts
+                                                    .filter((contact) => contact.status === 'Active')
+                                                    .map((contact) => (
+                                                        <option key={contact.contact_id} value={contact.contact_id}>
+                                                            {contactProfileValue(contact, 'display_name') ?? 'Contact sans nom'}
+                                                            {contact.is_primary ? ' — principal' : ''}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                        </FormField>
+                                    </div>
                                     <div className="mt-4">
                                         <FormField label="Montant estimé (€, optionnel)">
                                             <input

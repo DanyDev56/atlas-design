@@ -84,6 +84,7 @@ export async function createOpportunity(
     workspaceId: string,
     payload: {
         client_id: string;
+        contact_id?: string;
         title: string;
         estimated_amount_cents?: number;
         currency?: string;
