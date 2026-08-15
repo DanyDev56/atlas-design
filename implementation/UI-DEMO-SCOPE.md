@@ -181,7 +181,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - États de chargement annoncés sans exposer les squelettes décoratifs aux
   technologies d'assistance
 - Recette navigateur Playwright isolée des dépendances Vite : dashboard,
-  données du scénario v3, accès aux devis et factures actionnables, navigation
+  données du scénario v4, accès aux devis et factures actionnables, navigation
   mobile et absence de débordement horizontal
 - Facturation enrichie en parallèle avec les noms CRM pour réduire l’attente ;
   factures récentes du dashboard désormais directement ouvrables
@@ -291,13 +291,17 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Activité retirée absente de la chronologie courante sans suppression physique
   de son contenu ni de ses corrections ; événement `ActivityRemoved` sans texte
   libre dans l'outbox
-- Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
+- Scénario démo v4 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
+- Lecture d'audit autorisée et isolée par workspace, limitée aux activités
+  corrigées ou retirées et distincte de la chronologie commerciale ordinaire
+- Valeur courante, anciennes révisions, motifs, acteurs et horodatages présentés
+  à la demande ; scénario v4 livré avec une correction et un retrait auditables
 
 ### Suite logique
 
-- Rendre l'historique des corrections et retraits consultable dans une vue
-  d'audit autorisée, distincte de la chronologie commerciale ordinaire
+- Permettre de marquer manuellement comme gagnée une opportunité qualifiée sans
+  devis accepté, avec résultat structuré, révision et audit
 
 ---
 

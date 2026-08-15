@@ -288,6 +288,37 @@ export interface ClientActivity {
     version: number;
 }
 
+export interface ActivityAuditContent {
+    revision: number;
+    kind: ActivityKind;
+    summary: string;
+    occurred_at: string;
+}
+
+export interface ActivityAuditCorrection extends ActivityAuditContent {
+    reason: string;
+    actor_user_id: string;
+    corrected_at: string;
+}
+
+export interface ActivityAuditEntry {
+    activity_id: string;
+    client_id: string;
+    contact_id: string | null;
+    opportunity_id: string | null;
+    status: 'Recorded' | 'Removed';
+    aggregate_version: number;
+    current_content: ActivityAuditContent;
+    corrections: ActivityAuditCorrection[];
+    removal: {
+        reason: string;
+        actor_user_id: string;
+        removed_at: string;
+    } | null;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface QuoteLine {
     description: string;
     quantity: number;

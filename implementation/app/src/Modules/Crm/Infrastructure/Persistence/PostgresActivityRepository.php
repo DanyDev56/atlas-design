@@ -102,4 +102,45 @@ final class PostgresActivityRepository
             ->map(fn ($row) => (array) $row)
             ->all();
     }
+
+    /** @return list<array<string, mixed>> */
+    public function listAuditedByClient(string $workspaceId, ClientId $clientId): array
+    {
+        $activities = DB::table('crm.activities as activities')
+            ->where('activities.workspace_id', $workspaceId)
+            ->where('activities.client_id', $clientId->value)
+            ->where(function ($query): void {
+                $query->where('activities.status', Activity::STATUS_REMOVED)
+                    ->orWhereExists(function ($revisions): void {
+                        $revisions->selectRaw('1')
+                            ->from('crm.activity_revisions as revisions')
+                            ->whereColumn('revisions.workspace_id', 'activities.workspace_id')
+                            ->whereColumn('revisions.activity_id', 'activities.id');
+                    });
+            })
+            ->orderByDesc('activities.updated_at')
+            ->get()
+            ->map(fn ($row) => (array) $row)
+            ->all();
+
+        if ($activities === []) {
+            return [];
+        }
+
+        $revisions = DB::table('crm.activity_revisions')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('activity_id', array_column($activities, 'id'))
+            ->orderBy('revision')
+            ->get()
+            ->map(fn ($row) => (array) $row)
+            ->groupBy('activity_id');
+
+        return array_map(function (array $activity) use ($revisions): array {
+            $activity['revisions'] = $revisions->get($activity['id'], collect())
+                ->values()
+                ->all();
+
+            return $activity;
+        }, $activities);
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Crm\Application;
 
+use Atlas\Modules\Crm\Domain\Activity;
 use Atlas\Modules\Crm\Domain\Client;
 use Atlas\Modules\Crm\Domain\ClientId;
 use Atlas\Modules\Crm\Domain\Opportunity;
@@ -105,6 +106,54 @@ final class CrmQueryHandler
             ],
             $this->activities->listRecordedByClient($workspaceId, new ClientId($clientId)),
         );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listClientActivityAudit(string $actorUserId, string $workspaceId, string $clientId): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.activities.read');
+
+        if ($this->clients->findById($workspaceId, new ClientId($clientId)) === null) {
+            throw new \DomainException('Client not found.');
+        }
+
+        return array_map(function (array $row): array {
+            $revisions = array_map(
+                fn (array $revision) => [
+                    'revision' => (int) $revision['revision'],
+                    'kind' => $revision['kind'],
+                    'summary' => $revision['summary'],
+                    'occurred_at' => $revision['occurred_at'],
+                    'reason' => $revision['correction_reason'],
+                    'actor_user_id' => $revision['corrected_by'],
+                    'corrected_at' => $revision['corrected_at'],
+                ],
+                $row['revisions'],
+            );
+
+            return [
+                'activity_id' => $row['id'],
+                'client_id' => $row['client_id'],
+                'contact_id' => $row['contact_id'],
+                'opportunity_id' => $row['opportunity_id'],
+                'status' => $row['status'],
+                'aggregate_version' => (int) $row['version'],
+                'current_content' => [
+                    'revision' => count($revisions) + 1,
+                    'kind' => $row['kind'],
+                    'summary' => $row['summary'],
+                    'occurred_at' => $row['occurred_at'],
+                ],
+                'corrections' => $revisions,
+                'removal' => $row['status'] === Activity::STATUS_REMOVED ? [
+                    'reason' => $row['removal_reason'],
+                    'actor_user_id' => $row['removed_by'],
+                    'removed_at' => $row['removed_at'],
+                ] : null,
+                'created_at' => $row['created_at'],
+                'updated_at' => $row['updated_at'],
+            ];
+        }, $this->activities->listAuditedByClient($workspaceId, new ClientId($clientId)));
     }
 
     /** @return array<string, mixed> */

@@ -14,10 +14,12 @@ use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
 use Atlas\Modules\Crm\Application\AddContactHandler;
+use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\RecordActivityHandler;
+use Atlas\Modules\Crm\Application\RemoveActivityHandler;
 use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
@@ -26,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 
 final class DemoAccountSeeder
 {
-    public const SCENARIO_VERSION = '3';
+    public const SCENARIO_VERSION = '4';
 
     public const EMAIL = 'demo@atlas.test';
 
@@ -98,6 +100,8 @@ final class DemoAccountSeeder
         private readonly CreateOpportunityHandler $createOpportunity,
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
         private readonly RecordActivityHandler $recordActivity,
+        private readonly CorrectActivityHandler $correctActivity,
+        private readonly RemoveActivityHandler $removeActivity,
         private readonly CreateQuoteHandler $createQuote,
         private readonly SendQuoteHandler $sendQuote,
         private readonly AcceptQuoteHandler $acceptQuote,
@@ -133,6 +137,11 @@ final class DemoAccountSeeder
         }
 
         if ($this->seedScenarioActivities($userId, $workspaceId)) {
+            $this->drainOutbox();
+            $sampleDataSeeded = true;
+        }
+
+        if ($this->seedScenarioActivityAudit($userId, $workspaceId)) {
             $this->drainOutbox();
             $sampleDataSeeded = true;
         }
@@ -600,6 +609,62 @@ final class DemoAccountSeeder
         }
 
         return $activityCreated;
+    }
+
+    private function seedScenarioActivityAudit(string $actorUserId, string $workspaceId): bool
+    {
+        $auditSeeded = false;
+        $clientId = DB::table('crm.clients')
+            ->where('workspace_id', $workspaceId)
+            ->where('display_name', 'Les Ateliers du Marais')
+            ->value('id');
+
+        if (! is_string($clientId)) {
+            return false;
+        }
+
+        $correctedActivity = DB::table('crm.activities')
+            ->where('workspace_id', $workspaceId)
+            ->where('client_id', $clientId)
+            ->where('summary', self::ACTIVITIES[0]['summary'])
+            ->first();
+
+        if ($correctedActivity !== null
+            && $correctedActivity->status === 'Recorded'
+            && (int) $correctedActivity->version === 1) {
+            $this->correctActivity->handle(
+                actorUserId: $actorUserId,
+                workspaceId: $workspaceId,
+                activityId: $correctedActivity->id,
+                kind: $correctedActivity->kind,
+                summary: 'Atelier de cadrage terminé : identité éditoriale validée et lancement confirmé au prochain trimestre.',
+                occurredAt: $correctedActivity->occurred_at,
+                correctionReason: 'Compte-rendu précisé après validation des décisions avec le client.',
+                expectedRevision: 1,
+                requestId: $this->requestId('audit-corrected-activity'),
+            );
+            $auditSeeded = true;
+        }
+
+        $removedActivity = DB::table('crm.activities')
+            ->where('workspace_id', $workspaceId)
+            ->where('client_id', $clientId)
+            ->where('summary', self::ACTIVITIES[1]['summary'])
+            ->first();
+
+        if ($removedActivity !== null && $removedActivity->status === 'Recorded') {
+            $this->removeActivity->handle(
+                actorUserId: $actorUserId,
+                workspaceId: $workspaceId,
+                activityId: $removedActivity->id,
+                removalReason: 'Appel dupliqué lors de la reprise de la chronologie commerciale.',
+                expectedRevision: (int) $removedActivity->version,
+                requestId: $this->requestId('audit-removed-activity'),
+            );
+            $auditSeeded = true;
+        }
+
+        return $auditSeeded;
     }
 
     /**

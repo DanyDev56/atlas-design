@@ -8,6 +8,7 @@ import {
     correctClientActivity,
     createOpportunity,
     getClient,
+    listClientActivityAudit,
     listClientActivities,
     listContacts,
     listOpportunities,
@@ -26,6 +27,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type {
+    ActivityAuditEntry,
     ActivityKind,
     ClientActivity,
     ClientBillingIdentifier,
@@ -71,6 +73,10 @@ function localDateTimeValue(date = new Date()): string {
     return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+function formatAuditActor(actorUserId: string): string {
+    return `${actorUserId.slice(0, 8)}…`;
+}
+
 const activityKindLabels: Record<ActivityKind, string> = {
     Note: 'Note',
     Call: 'Appel',
@@ -88,6 +94,9 @@ export function ClientDetailPage() {
     const [contacts, setContacts] = useState<ContactSummary[]>([]);
     const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
     const [activities, setActivities] = useState<ClientActivity[]>([]);
+    const [activityAudit, setActivityAudit] = useState<ActivityAuditEntry[] | null>(null);
+    const [showActivityAudit, setShowActivityAudit] = useState(false);
+    const [loadingActivityAudit, setLoadingActivityAudit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -173,6 +182,8 @@ export function ClientDetailPage() {
         async function load() {
             setLoading(true);
             setError(null);
+            setActivityAudit(null);
+            setShowActivityAudit(false);
             try {
                 const [clientData, contactData, allOpportunities, activityData] = await Promise.all([
                     getClient(activeToken, activeWorkspaceId, selectedClientId),
@@ -491,6 +502,8 @@ export function ClientDetailPage() {
                 expected_revision: activity.version,
             });
             setActivities(await listClientActivities(token, workspaceId, clientId));
+            setActivityAudit(null);
+            setShowActivityAudit(false);
             setEditingActivityId(null);
             setActivityCorrectionReason('');
             setSuccess('L’activité a été corrigée et sa version précédente reste auditée.');
@@ -531,6 +544,8 @@ export function ClientDetailPage() {
                 activity.version,
             );
             setActivities(await listClientActivities(token, workspaceId, clientId));
+            setActivityAudit(null);
+            setShowActivityAudit(false);
             setRemovingActivityId(null);
             setActivityRemovalReason('');
             setSuccess('L’activité a été retirée de la chronologie et reste conservée dans l’audit.');
@@ -541,6 +556,27 @@ export function ClientDetailPage() {
                 : message);
         } finally {
             setRemovingActivity(false);
+        }
+    }
+
+    async function toggleActivityAudit() {
+        if (showActivityAudit) {
+            setShowActivityAudit(false);
+            return;
+        }
+
+        setShowActivityAudit(true);
+        if (activityAudit !== null || !token || !workspaceId || !clientId) return;
+
+        setLoadingActivityAudit(true);
+        setError(null);
+        try {
+            setActivityAudit(await listClientActivityAudit(token, workspaceId, clientId));
+        } catch (err) {
+            setShowActivityAudit(false);
+            setError(err instanceof Error ? err.message : 'Chargement de l’audit impossible');
+        } finally {
+            setLoadingActivityAudit(false);
         }
     }
 
@@ -1401,16 +1437,135 @@ export function ClientDetailPage() {
                                         Les interactions passées utiles au suivi de ce client.
                                     </p>
                                 </div>
-                                {client.status === 'Active' && !showActivityForm && (
+                                <div className="flex flex-wrap items-center gap-3">
                                     <button
                                         type="button"
-                                        onClick={openActivityForm}
-                                        className="rounded-xl bg-atlas-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                                        aria-expanded={showActivityAudit}
+                                        onClick={() => void toggleActivityAudit()}
+                                        className="rounded-xl border border-atlas-border bg-white px-4 py-2 text-sm font-semibold text-atlas-ink-muted hover:border-atlas-accent hover:text-atlas-accent"
                                     >
-                                        Ajouter une activité
+                                        {showActivityAudit ? 'Fermer l’audit' : 'Consulter l’audit'}
                                     </button>
-                                )}
+                                    {client.status === 'Active' && !showActivityForm && (
+                                        <button
+                                            type="button"
+                                            onClick={openActivityForm}
+                                            className="rounded-xl bg-atlas-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                                        >
+                                            Ajouter une activité
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+
+                            {showActivityAudit && (
+                                <section
+                                    aria-label="Audit des activités commerciales"
+                                    className="mb-6 rounded-2xl border border-atlas-border bg-atlas-surface p-5 sm:p-6"
+                                >
+                                    <div className="mb-5">
+                                        <h4 className="font-semibold text-atlas-ink">Historique des modifications</h4>
+                                        <p className="mt-1 text-sm text-atlas-ink-muted">
+                                            Cette vue séparée conserve les anciennes valeurs et les retraits définitifs.
+                                        </p>
+                                    </div>
+
+                                    {loadingActivityAudit && (
+                                        <p className="text-sm text-atlas-ink-muted">Chargement de l’audit…</p>
+                                    )}
+
+                                    {!loadingActivityAudit && activityAudit?.length === 0 && (
+                                        <div className="rounded-xl border border-dashed border-atlas-border bg-white p-5">
+                                            <p className="text-sm font-semibold text-atlas-ink">Aucune modification auditée</p>
+                                            <p className="mt-1 text-sm text-atlas-ink-muted">
+                                                Les activités de ce client n’ont été ni corrigées ni retirées.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {!loadingActivityAudit && activityAudit && activityAudit.length > 0 && (
+                                        <ol className="space-y-4">
+                                            {activityAudit.map((entry) => (
+                                                <li key={entry.activity_id} className="rounded-xl border border-atlas-border bg-white p-5">
+                                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${entry.status === 'Removed'
+                                                                ? 'bg-red-50 text-red-800'
+                                                                : 'bg-atlas-surface text-atlas-accent'}`}
+                                                            >
+                                                                {entry.status === 'Removed' ? 'Retirée' : 'Corrigée'}
+                                                            </span>
+                                                            <span className="text-xs text-atlas-ink-muted">
+                                                                Version d’agrégat {entry.aggregate_version}
+                                                            </span>
+                                                        </div>
+                                                        <time dateTime={entry.updated_at} className="text-xs text-atlas-ink-muted">
+                                                            Dernière modification : {formatActivityDate(entry.updated_at)}
+                                                        </time>
+                                                    </div>
+
+                                                    <div className="mt-4 rounded-lg bg-atlas-surface p-4">
+                                                        <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">
+                                                            Valeur conservée · révision {entry.current_content.revision}
+                                                        </p>
+                                                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-atlas-ink-muted">
+                                                            <span>{activityKindLabels[entry.current_content.kind]}</span>
+                                                            <span aria-hidden="true">·</span>
+                                                            <time dateTime={entry.current_content.occurred_at}>
+                                                                {formatActivityDate(entry.current_content.occurred_at)}
+                                                            </time>
+                                                        </div>
+                                                        <p className="mt-2 whitespace-pre-wrap text-sm text-atlas-ink">
+                                                            {entry.current_content.summary}
+                                                        </p>
+                                                    </div>
+
+                                                    {entry.corrections.length > 0 && (
+                                                        <div className="mt-4">
+                                                            <p className="text-sm font-semibold text-atlas-ink">Révisions précédentes</p>
+                                                            <ol className="mt-3 space-y-3">
+                                                                {[...entry.corrections].reverse().map((correction) => (
+                                                                    <li key={correction.revision} className="rounded-lg border border-atlas-border p-4">
+                                                                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-atlas-ink-muted">
+                                                                            <span className="font-semibold">Révision {correction.revision}</span>
+                                                                            <span>
+                                                                                Corrigée le {formatActivityDate(correction.corrected_at)} · acteur{' '}
+                                                                                <span title={correction.actor_user_id}>{formatAuditActor(correction.actor_user_id)}</span>
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className="mt-2 text-xs text-atlas-ink-muted">
+                                                                            {activityKindLabels[correction.kind]} · {formatActivityDate(correction.occurred_at)}
+                                                                        </p>
+                                                                        <p className="mt-2 whitespace-pre-wrap text-sm text-atlas-ink">
+                                                                            {correction.summary}
+                                                                        </p>
+                                                                        <p className="mt-3 text-xs text-atlas-ink-muted">
+                                                                            <span className="font-semibold">Motif :</span> {correction.reason}
+                                                                        </p>
+                                                                    </li>
+                                                                ))}
+                                                            </ol>
+                                                        </div>
+                                                    )}
+
+                                                    {entry.removal && (
+                                                        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+                                                            <p className="font-semibold">Retrait définitif</p>
+                                                            <p className="mt-1 text-xs text-red-800">
+                                                                {formatActivityDate(entry.removal.removed_at)} · acteur{' '}
+                                                                <span title={entry.removal.actor_user_id}>{formatAuditActor(entry.removal.actor_user_id)}</span>
+                                                            </p>
+                                                            <p className="mt-2 text-sm">
+                                                                <span className="font-semibold">Motif :</span> {entry.removal.reason}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    )}
+                                </section>
+                            )}
 
                             {client.status === 'Active' && showActivityForm && (
                                 <form

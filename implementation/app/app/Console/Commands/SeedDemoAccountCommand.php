@@ -80,6 +80,7 @@ final class SeedDemoAccountCommand extends Command
             $this->line('- Collectif Cobalt: overdue, partially-paid invoice');
             $this->line('- Horizon Digital: paid invoice history');
             $this->line('- Commercial activity timelines linked to contacts and opportunities');
+            $this->line('- Activity audit with one corrected and one terminally removed entry');
             $this->line('- Business Health, Advisor decisions and Notifications');
         }
 

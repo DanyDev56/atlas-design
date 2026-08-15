@@ -1,5 +1,6 @@
 import { apiRequest } from '@/api/client';
 import type {
+    ActivityAuditEntry,
     ActivityKind,
     ClientBillingProfile,
     ClientActivity,
@@ -128,6 +129,19 @@ export async function listClientActivities(
     return apiRequest<ClientActivity[]>(
         'GET',
         workspacePath(workspaceId, `/clients/${clientId}/activities`),
+        undefined,
+        { token },
+    );
+}
+
+export async function listClientActivityAudit(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+): Promise<ActivityAuditEntry[]> {
+    return apiRequest<ActivityAuditEntry[]>(
+        'GET',
+        workspacePath(workspaceId, `/clients/${clientId}/activities/audit`),
         undefined,
         { token },
     );

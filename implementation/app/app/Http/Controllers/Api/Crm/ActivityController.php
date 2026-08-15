@@ -31,6 +31,15 @@ final class ActivityController extends Controller
         ));
     }
 
+    public function audit(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        return $this->respond(fn () => $this->queries->listClientActivityAudit(
+            $this->actorId($request),
+            $workspaceId,
+            $clientId,
+        ));
+    }
+
     public function store(Request $request, string $workspaceId, string $clientId): JsonResponse
     {
         $validated = $request->validate([

@@ -54,6 +54,14 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Camille Martin', { exact: true })).toBeVisible();
     await expect(page.getByText('Julien Morel', { exact: true })).toBeVisible();
     await expect(page.getByText('Principal', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Consulter l’audit' }).click();
+    const activityAudit = page.getByRole('region', { name: 'Audit des activités commerciales' });
+    await expect(activityAudit.getByText('Corrigée', { exact: true })).toBeVisible();
+    await expect(activityAudit.getByText('Retirée', { exact: true })).toBeVisible();
+    await expect(activityAudit.getByText('Révisions précédentes')).toBeVisible();
+    await expect(activityAudit.getByText('Compte-rendu précisé après validation des décisions avec le client.')).toBeVisible();
+    await expect(activityAudit.getByText('Appel dupliqué lors de la reprise de la chronologie commerciale.')).toBeVisible();
+    await page.getByRole('button', { name: 'Fermer l’audit' }).click();
     await expect(page.getByRole('button', { name: 'Retirer Camille Martin comme contact principal' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Définir Julien Morel comme contact principal' })).toBeVisible();
     await page.getByRole('button', { name: 'Archiver le client' }).click();

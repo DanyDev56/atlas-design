@@ -74,6 +74,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::put('/clients/{clientId}/primary-contact', [ClientController::class, 'changePrimaryContact']);
             Route::get('/clients/{clientId}/billing-context', [ClientController::class, 'billingContext']);
             Route::get('/clients/{clientId}/activities', [ActivityController::class, 'index']);
+            Route::get('/clients/{clientId}/activities/audit', [ActivityController::class, 'audit']);
             Route::post('/clients/{clientId}/activities', [ActivityController::class, 'store']);
             Route::patch('/activities/{activityId}', [ActivityController::class, 'update']);
             Route::post('/activities/{activityId}/remove', [ActivityController::class, 'remove']);

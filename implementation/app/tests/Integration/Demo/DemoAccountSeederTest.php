@@ -57,9 +57,22 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->where('workspace_id', $result->workspaceId)
             ->whereNotNull('primary_contact_id')
             ->count());
+        $this->assertSame(7, DB::table('crm.activities')
+            ->where('workspace_id', $result->workspaceId)
+            ->where('status', 'Recorded')
+            ->count());
+        $this->assertSame(1, DB::table('crm.activities')
+            ->where('workspace_id', $result->workspaceId)
+            ->where('status', 'Removed')
+            ->count());
+        $this->assertSame(1, DB::table('crm.activity_revisions')
+            ->where('workspace_id', $result->workspaceId)
+            ->count());
 
         $activity = DB::table('crm.activities')
             ->where('workspace_id', $result->workspaceId)
+            ->where('status', 'Recorded')
+            ->where('version', 1)
             ->orderBy('created_at')
             ->first();
         app(CorrectActivityHandler::class)->handle(
@@ -85,7 +98,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
         $second = app(DemoAccountSeeder::class)->seed();
         $this->assertFalse($second->sampleDataSeeded);
         $this->assertSame($result->resourceCounts, $second->resourceCounts);
-        $this->assertSame(7, DB::table('crm.activities')
+        $this->assertSame(6, DB::table('crm.activities')
             ->where('workspace_id', $result->workspaceId)
             ->where('status', 'Recorded')
             ->count());

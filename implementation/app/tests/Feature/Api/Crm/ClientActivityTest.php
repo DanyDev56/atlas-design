@@ -74,6 +74,11 @@ final class ClientActivityTest extends IntegrationTestCase
             ->assertJsonPath('0.kind', 'Call')
             ->assertJsonPath('1.kind', 'Meeting');
 
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/activities/audit",
+            $headers,
+        )->assertOk()->assertJsonCount(0);
+
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}", $headers)
             ->assertOk()
             ->assertJsonPath('version', 1);
@@ -223,6 +228,20 @@ final class ClientActivityTest extends IntegrationTestCase
             ->assertJsonPath('0.summary', $payload['content']['summary'])
             ->assertJsonPath('0.version', 2);
 
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities/audit",
+            $headers,
+        )->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.status', 'Recorded')
+            ->assertJsonPath('0.aggregate_version', 2)
+            ->assertJsonPath('0.current_content.revision', 2)
+            ->assertJsonPath('0.current_content.summary', $payload['content']['summary'])
+            ->assertJsonPath('0.corrections.0.revision', 1)
+            ->assertJsonPath('0.corrections.0.reason', $payload['correction_reason'])
+            ->assertJsonPath('0.corrections.0.actor_user_id', $owner['user_id'])
+            ->assertJsonPath('0.removal', null);
+
         $revision = DB::table('crm.activity_revisions')
             ->where('activity_id', $activityId)
             ->first();
@@ -297,6 +316,18 @@ final class ClientActivityTest extends IntegrationTestCase
             "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities",
             $headers,
         )->assertOk()->assertJsonCount(0);
+
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities/audit",
+            $headers,
+        )->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.status', 'Removed')
+            ->assertJsonPath('0.aggregate_version', 3)
+            ->assertJsonPath('0.current_content.revision', 2)
+            ->assertJsonPath('0.corrections.0.revision', 1)
+            ->assertJsonPath('0.removal.reason', $payload['removal_reason'])
+            ->assertJsonPath('0.removal.actor_user_id', $owner['user_id']);
 
         $activity = DB::table('crm.activities')->where('id', $activityId)->sole();
         $this->assertSame('Removed', $activity->status);
