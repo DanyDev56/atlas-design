@@ -164,6 +164,9 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
   validité issus de l’overview courant
 - États source insuffisante, source obsolète et absence justifiée de
   recommandation distingués ; rang interne non présenté comme une probabilité
+- Décisions Advisor complètes : confirmation explicite d’une action réalisée ou
+  rejet avec motif structuré, contrôle de révision, promotion immédiate de
+  l’alternative suivante et relecture autoritative après chaque choix
 - Navigation mobile fermable par Échap, focus restitué et défilement de fond
   bloqué pendant l'ouverture du menu
 - États de chargement annoncés sans exposer les squelettes décoratifs aux

@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 final class PostgresAdvisorIdempotencyStore
 {
+    public function lock(string $scope, string $key): void
+    {
+        DB::select('SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))', [$scope, $key]);
+    }
+
     /** @return array<string, mixed>|null */
     public function find(string $scope, string $key): ?array
     {

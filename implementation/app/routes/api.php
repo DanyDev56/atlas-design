@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
-use App\Http\Controllers\Api\Billing\PublicQuoteController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
+use App\Http\Controllers\Api\Billing\PublicQuoteController;
 use App\Http\Controllers\Api\Billing\QuoteController;
 use App\Http\Controllers\Api\BootstrapWorkspaceController;
 use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
@@ -93,6 +93,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/business-health/assessments/{assessmentId}', [BusinessHealthController::class, 'show']);
 
             Route::get('/advisor/overview', [AdvisorController::class, 'overview']);
+            Route::post('/advisor/recommendations/{recommendationId}/complete', [AdvisorController::class, 'complete']);
+            Route::post('/advisor/recommendations/{recommendationId}/dismiss', [AdvisorController::class, 'dismiss']);
 
             Route::get('/notifications', [NotificationController::class, 'index']);
             Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);

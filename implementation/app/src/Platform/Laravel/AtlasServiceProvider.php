@@ -16,6 +16,7 @@ use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
+use Atlas\Modules\Advisor\Application\RecommendationDecisionHandler;
 use Atlas\Modules\Advisor\Application\RecommendationPolicyEvaluator;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresAdvisorOverviewRepository;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepository;
@@ -202,6 +203,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresAdvisorOverviewRepository::class);
         $this->app->singleton(RecommendationPolicyEvaluator::class);
         $this->app->singleton(EvaluateRecommendationsHandler::class);
+        $this->app->singleton(RecommendationDecisionHandler::class);
         $this->app->singleton(AdvisorQueryHandler::class);
         $this->app->singleton(OutboxAdvisorEvaluateConsumer::class);
 

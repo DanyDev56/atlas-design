@@ -56,6 +56,7 @@ export interface AdvisorRecommendation {
     recommendation_key: string;
     rule_key: string;
     status: string;
+    revision: number;
     priority: string;
     rank_score: number;
     action_module: string;
@@ -66,6 +67,18 @@ export interface AdvisorRecommendation {
     effort: string;
     valid_until: string;
     generated_at: string;
+    terminal_decision: Record<string, string> | null;
+    terminal_at: string | null;
+}
+
+export type AdvisorDismissalReason = 'NotRelevant' | 'AlreadyDone' | 'NotNow' | 'IncorrectContext' | 'Other';
+
+export interface AdvisorDecisionResponse {
+    recommendation_id: string;
+    status: 'Completed' | 'Dismissed';
+    revision: number;
+    advisor_overview_version: number;
+    primary_recommendation_id: string | null;
 }
 
 export interface AdvisorOverview {

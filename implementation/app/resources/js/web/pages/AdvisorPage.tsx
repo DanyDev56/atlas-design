@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAdvisorOverview } from '@/api/advisor';
+import { completeAdvisorRecommendation, dismissAdvisorRecommendation, getAdvisorOverview } from '@/api/advisor';
 import { ApiClientError } from '@/api/client';
 import { ErrorBanner } from '@/components/auth/AuthLayout';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
-import type { AdvisorOverview, AdvisorRecommendation } from '@/types/api';
+import type { AdvisorDismissalReason, AdvisorOverview, AdvisorRecommendation } from '@/types/api';
 import { getRecommendationAction, getRecommendationPresentation } from '@/utils/advisor';
 import { formatConfidence, formatEffort, formatImpact, formatPriority, formatUrgency } from '@/utils/format';
 
@@ -43,12 +43,28 @@ function priorityClasses(priority: string, primary: boolean): string {
     return 'bg-slate-50 text-atlas-ink-muted ring-atlas-border';
 }
 
-function RecommendationCard({ recommendation, primary = false }: {
+const dismissalReasons: Array<{ value: AdvisorDismissalReason; label: string }> = [
+    { value: 'NotRelevant', label: 'Pas pertinente pour mon activité' },
+    { value: 'AlreadyDone', label: 'Action déjà réalisée' },
+    { value: 'NotNow', label: 'Pas maintenant' },
+    { value: 'IncorrectContext', label: 'Contexte incorrect' },
+    { value: 'Other', label: 'Autre raison' },
+];
+
+function RecommendationCard({ recommendation, primary = false, busy, submitting, onComplete, onDismiss }: {
     recommendation: AdvisorRecommendation;
     primary?: boolean;
+    busy: boolean;
+    submitting: boolean;
+    onComplete: (recommendation: AdvisorRecommendation) => Promise<void>;
+    onDismiss: (recommendation: AdvisorRecommendation, reason: AdvisorDismissalReason) => Promise<void>;
 }) {
     const presentation = getRecommendationPresentation(recommendation.recommendation_key);
     const action = getRecommendationAction(recommendation.route_key);
+    const [decision, setDecision] = useState<'complete' | 'dismiss' | null>(null);
+    const [completionConfirmed, setCompletionConfirmed] = useState(false);
+    const [dismissalReason, setDismissalReason] = useState<AdvisorDismissalReason | ''>('');
+    const inputId = `advisor-complete-${recommendation.recommendation_id}`;
 
     return (
         <article className={primary
@@ -110,6 +126,104 @@ function RecommendationCard({ recommendation, primary = false }: {
                     </p>
                 </div>
             </div>
+
+            <div className={`mt-6 border-t pt-5 ${primary ? 'border-white/10' : 'border-atlas-border'}`}>
+                {decision === null && (
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setDecision('complete')}
+                            className={primary
+                                ? 'rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50'
+                                : 'rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'}
+                        >
+                            Marquer comme réalisée
+                        </button>
+                        <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setDecision('dismiss')}
+                            className={`rounded-xl px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${primary ? 'text-white/70 hover:bg-white/10 hover:text-white' : 'text-atlas-ink-muted hover:bg-slate-50 hover:text-atlas-ink'}`}
+                        >
+                            Écarter cette recommandation
+                        </button>
+                    </div>
+                )}
+
+                {decision === 'complete' && (
+                    <fieldset disabled={busy} className="max-w-2xl">
+                        <legend className={`text-sm font-semibold ${primary ? 'text-white' : 'text-atlas-ink'}`}>
+                            Confirmer l’action réalisée
+                        </legend>
+                        <p className={`mt-1 text-sm ${primary ? 'text-white/65' : 'text-atlas-ink-muted'}`}>
+                            Cette confirmation enregistre votre choix. Atlas ne déduit aucune modification dans le CRM ou la facturation.
+                        </p>
+                        <label htmlFor={inputId} className={`mt-4 flex cursor-pointer items-start gap-3 text-sm ${primary ? 'text-white/85' : 'text-atlas-ink'}`}>
+                            <input
+                                id={inputId}
+                                type="checkbox"
+                                checked={completionConfirmed}
+                                onChange={(event) => setCompletionConfirmed(event.target.checked)}
+                                className="mt-0.5 size-4 rounded border-slate-300 text-atlas-accent focus:ring-atlas-accent"
+                            />
+                            J’ai bien réalisé l’action principale proposée.
+                        </label>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                disabled={!completionConfirmed || busy}
+                                aria-busy={submitting}
+                                onClick={() => void onComplete(recommendation)}
+                                className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {submitting ? 'Confirmation…' : 'Confirmer comme réalisée'}
+                            </button>
+                            <button type="button" onClick={() => setDecision(null)} className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${primary ? 'text-white/70 hover:text-white' : 'text-atlas-ink-muted hover:text-atlas-ink'}`}>
+                                Annuler
+                            </button>
+                        </div>
+                    </fieldset>
+                )}
+
+                {decision === 'dismiss' && (
+                    <fieldset disabled={busy} className="max-w-2xl">
+                        <legend className={`text-sm font-semibold ${primary ? 'text-white' : 'text-atlas-ink'}`}>
+                            Pourquoi l’écarter ?
+                        </legend>
+                        <p className={`mt-1 text-sm ${primary ? 'text-white/65' : 'text-atlas-ink-muted'}`}>
+                            Le motif aide Advisor à respecter votre décision. Aucun commentaire libre n’est enregistré.
+                        </p>
+                        <label className={`mt-4 block text-sm font-medium ${primary ? 'text-white/85' : 'text-atlas-ink'}`}>
+                            Motif
+                            <select
+                                value={dismissalReason}
+                                onChange={(event) => setDismissalReason(event.target.value as AdvisorDismissalReason | '')}
+                                className="mt-2 block min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3 py-2 text-sm text-atlas-ink focus:border-atlas-accent focus:outline-none focus:ring-2 focus:ring-atlas-accent/20"
+                            >
+                                <option value="">Sélectionner un motif</option>
+                                {dismissalReasons.map((reason) => (
+                                    <option key={reason.value} value={reason.value}>{reason.label}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                disabled={dismissalReason === '' || busy}
+                                aria-busy={submitting}
+                                onClick={() => dismissalReason !== '' && void onDismiss(recommendation, dismissalReason)}
+                                className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {submitting ? 'Enregistrement…' : 'Écarter la recommandation'}
+                            </button>
+                            <button type="button" onClick={() => setDecision(null)} className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${primary ? 'text-white/70 hover:text-white' : 'text-atlas-ink-muted hover:text-atlas-ink'}`}>
+                                Annuler
+                            </button>
+                        </div>
+                    </fieldset>
+                )}
+            </div>
         </article>
     );
 }
@@ -155,6 +269,9 @@ function AdvisorContent() {
     const [missing, setMissing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [decisionError, setDecisionError] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState<string | null>(null);
+    const [pendingRecommendationId, setPendingRecommendationId] = useState<string | null>(null);
 
     async function loadOverview() {
         setLoading(true);
@@ -179,6 +296,51 @@ function AdvisorContent() {
         void loadOverview();
     }, [token, workspaceId]);
 
+    async function applyDecision(
+        recommendation: AdvisorRecommendation,
+        action: () => Promise<unknown>,
+        successMessage: string,
+    ) {
+        setPendingRecommendationId(recommendation.recommendation_id);
+        setFeedback(null);
+        setDecisionError(null);
+        setError(null);
+
+        try {
+            await action();
+            await loadOverview();
+            setFeedback(successMessage);
+        } catch (err) {
+            const staleDecision = err instanceof ApiClientError
+                && (err.status === 409 || err.body.messages?.includes('Recommendation no longer active.'));
+
+            if (staleDecision) {
+                await loadOverview();
+                setDecisionError('Cette recommandation a changé depuis son affichage. La liste a été actualisée ; vérifiez la nouvelle priorité.');
+            } else {
+                setDecisionError(err instanceof Error ? err.message : 'Enregistrement de la décision impossible');
+            }
+        } finally {
+            setPendingRecommendationId(null);
+        }
+    }
+
+    async function handleComplete(recommendation: AdvisorRecommendation) {
+        await applyDecision(
+            recommendation,
+            () => completeAdvisorRecommendation(token, workspaceId, recommendation.recommendation_id, recommendation.revision),
+            'Action marquée comme réalisée. La liste Advisor a été actualisée.',
+        );
+    }
+
+    async function handleDismiss(recommendation: AdvisorRecommendation, reason: AdvisorDismissalReason) {
+        await applyDecision(
+            recommendation,
+            () => dismissAdvisorRecommendation(token, workspaceId, recommendation.recommendation_id, reason, recommendation.revision),
+            'Recommandation écartée. La liste Advisor a été actualisée.',
+        );
+    }
+
     const eligibleWithoutRecommendation = overview?.source_eligibility === 'Eligible'
         && overview.primary_recommendation === null;
 
@@ -200,6 +362,16 @@ function AdvisorContent() {
             </div>
 
             {loading && <div className="mt-8"><PageSkeleton rows={3} variant="cards" /></div>}
+
+            {feedback && !loading && (
+                <div role="status" className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                    {feedback}
+                </div>
+            )}
+
+            {decisionError && !loading && (
+                <div className="mt-8"><ErrorBanner message={decisionError} /></div>
+            )}
 
             {error && (
                 <div className="mt-8">
@@ -244,7 +416,14 @@ function AdvisorContent() {
 
             {!loading && !error && overview?.source_eligibility === 'Eligible' && overview.primary_recommendation && (
                 <div className="mt-8 space-y-8">
-                    <RecommendationCard recommendation={overview.primary_recommendation} primary />
+                    <RecommendationCard
+                        recommendation={overview.primary_recommendation}
+                        primary
+                        busy={pendingRecommendationId !== null}
+                        submitting={pendingRecommendationId === overview.primary_recommendation.recommendation_id}
+                        onComplete={handleComplete}
+                        onDismiss={handleDismiss}
+                    />
 
                     {overview.alternative_recommendations.length > 0 && (
                         <section aria-labelledby="advisor-alternatives-title">
@@ -252,7 +431,14 @@ function AdvisorContent() {
                             <p className="mt-1 text-sm text-atlas-ink-muted">Advisor limite cette vue aux trois recommandations les plus pertinentes.</p>
                             <div className="mt-4 grid gap-4 lg:grid-cols-2">
                                 {overview.alternative_recommendations.map((recommendation) => (
-                                    <RecommendationCard key={recommendation.recommendation_id} recommendation={recommendation} />
+                                    <RecommendationCard
+                                        key={recommendation.recommendation_id}
+                                        recommendation={recommendation}
+                                        busy={pendingRecommendationId !== null}
+                                        submitting={pendingRecommendationId === recommendation.recommendation_id}
+                                        onComplete={handleComplete}
+                                        onDismiss={handleDismiss}
+                                    />
                                 ))}
                             </div>
                         </section>

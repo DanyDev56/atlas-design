@@ -34,6 +34,7 @@ final class PostgresRecommendationRepository
             'recommendation_key' => $candidate['recommendation_key'],
             'rule_key' => $candidate['rule_key'],
             'status' => RecommendationPolicy::STATUS_GENERATED,
+            'revision' => 1,
             'priority' => $candidate['priority'],
             'rank_score' => $candidate['rank_score'],
             'action' => json_encode([
@@ -59,6 +60,89 @@ final class PostgresRecommendationRepository
             ->first();
 
         return $row !== null ? $this->mapRow((array) $row) : null;
+    }
+
+    /** @param array<string, string> $terminalDecision */
+    public function recordTerminalDecision(
+        string $workspaceId,
+        string $recommendationId,
+        int $expectedRevision,
+        string $status,
+        array $terminalDecision,
+        \DateTimeImmutable $decidedAt,
+    ): array {
+        $row = DB::table('advisor.recommendations')
+            ->where('workspace_id', $workspaceId)
+            ->where('id', $recommendationId)
+            ->lockForUpdate()
+            ->first();
+
+        if ($row === null) {
+            throw new \DomainException('Recommendation not found.');
+        }
+
+        if ($row->status !== RecommendationPolicy::STATUS_GENERATED) {
+            throw new \DomainException('Recommendation no longer active.');
+        }
+
+        if (new \DateTimeImmutable($row->valid_until) <= $decidedAt) {
+            throw new \DomainException('Recommendation no longer active.');
+        }
+
+        if ((int) $row->revision !== $expectedRevision) {
+            throw new \DomainException('Revision conflict.');
+        }
+
+        $nextRevision = $expectedRevision + 1;
+        $updated = DB::table('advisor.recommendations')
+            ->where('workspace_id', $workspaceId)
+            ->where('id', $recommendationId)
+            ->where('status', RecommendationPolicy::STATUS_GENERATED)
+            ->where('revision', $expectedRevision)
+            ->update([
+                'status' => $status,
+                'revision' => $nextRevision,
+                'terminal_decision' => json_encode($terminalDecision, JSON_THROW_ON_ERROR),
+                'terminal_at' => $decidedAt->format('Y-m-d H:i:sP'),
+            ]);
+
+        if ($updated !== 1) {
+            throw new \DomainException('Revision conflict.');
+        }
+
+        return [
+            'recommendation_id' => $recommendationId,
+            'status' => $status,
+            'revision' => $nextRevision,
+            'terminal_decision' => $terminalDecision,
+            'terminal_at' => $decidedAt->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return list<string>
+     */
+    public function findActiveIds(string $workspaceId, array $ids, \DateTimeImmutable $at): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $active = DB::table('advisor.recommendations')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('id', $ids)
+            ->where('status', RecommendationPolicy::STATUS_GENERATED)
+            ->where('valid_until', '>', $at->format('Y-m-d H:i:sP'))
+            ->pluck('id')
+            ->all();
+
+        $activeLookup = array_fill_keys($active, true);
+
+        return array_values(array_filter(
+            $ids,
+            static fn (string $id): bool => isset($activeLookup[$id]),
+        ));
     }
 
     /** @param list<string> $ids */
@@ -89,6 +173,7 @@ final class PostgresRecommendationRepository
             'recommendation_key' => $row['recommendation_key'],
             'rule_key' => $row['rule_key'],
             'status' => $row['status'],
+            'revision' => (int) $row['revision'],
             'priority' => $row['priority'],
             'rank_score' => (int) $row['rank_score'],
             'action_module' => $action['module'],
@@ -99,6 +184,10 @@ final class PostgresRecommendationRepository
             'effort' => $row['effort'],
             'valid_until' => $row['valid_until'],
             'generated_at' => $row['generated_at'],
+            'terminal_decision' => $row['terminal_decision'] !== null
+                ? json_decode($row['terminal_decision'], true, 512, JSON_THROW_ON_ERROR)
+                : null,
+            'terminal_at' => $row['terminal_at'],
         ];
     }
 }
