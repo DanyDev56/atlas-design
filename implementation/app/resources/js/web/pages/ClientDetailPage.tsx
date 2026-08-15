@@ -5,6 +5,7 @@ import {
     archiveClient,
     archiveContact,
     changePrimaryContact,
+    correctClientActivity,
     createOpportunity,
     getClient,
     listClientActivities,
@@ -122,6 +123,12 @@ export function ClientDetailPage() {
     const [activityContactId, setActivityContactId] = useState('');
     const [activityOpportunityId, setActivityOpportunityId] = useState('');
     const [recordingActivity, setRecordingActivity] = useState(false);
+    const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+    const [editActivityKind, setEditActivityKind] = useState<ActivityKind>('Note');
+    const [editActivitySummary, setEditActivitySummary] = useState('');
+    const [editActivityOccurredAt, setEditActivityOccurredAt] = useState('');
+    const [activityCorrectionReason, setActivityCorrectionReason] = useState('');
+    const [correctingActivity, setCorrectingActivity] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -223,6 +230,7 @@ export function ClientDetailPage() {
         setEditingClientProfile(false);
         setEditingBillingProfile(false);
         setShowActivityForm(false);
+        setEditingActivityId(null);
         setShowClientArchiveForm(true);
         setClientArchiveReason('');
         setError(null);
@@ -413,6 +421,7 @@ export function ClientDetailPage() {
         setActivityContactId('');
         setActivityOpportunityId('');
         setShowActivityForm(true);
+        setEditingActivityId(null);
         setError(null);
         setSuccess(null);
     }
@@ -443,6 +452,50 @@ export function ClientDetailPage() {
                 : message);
         } finally {
             setRecordingActivity(false);
+        }
+    }
+
+    function openActivityCorrection(activity: ClientActivity) {
+        setShowActivityForm(false);
+        setEditActivityKind(activity.kind);
+        setEditActivitySummary(activity.summary);
+        setEditActivityOccurredAt(localDateTimeValue(new Date(activity.occurred_at)));
+        setActivityCorrectionReason('');
+        setEditingActivityId(activity.activity_id);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onCorrectActivity(event: FormEvent, activity: ClientActivity) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId) return;
+
+        setCorrectingActivity(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await correctClientActivity(token, workspaceId, activity.activity_id, {
+                content: {
+                    kind: editActivityKind,
+                    summary: editActivitySummary.trim(),
+                    occurred_at: new Date(editActivityOccurredAt).toISOString(),
+                },
+                correction_reason: activityCorrectionReason.trim(),
+                expected_revision: activity.version,
+            });
+            setActivities(await listClientActivities(token, workspaceId, clientId));
+            setEditingActivityId(null);
+            setActivityCorrectionReason('');
+            setSuccess('L’activité a été corrigée et sa version précédente reste auditée.');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Correction de l’activité impossible';
+            setError(message === 'Activity unchanged.'
+                ? 'Modifiez au moins le type, le résumé ou la date de l’activité.'
+                : message === 'Activity occurred at is in the future.'
+                    ? 'La date de l’activité ne peut pas être dans le futur.'
+                    : message);
+        } finally {
+            setCorrectingActivity(false);
         }
     }
 
@@ -1429,23 +1482,113 @@ export function ClientDetailPage() {
                                         return (
                                             <li key={activity.activity_id} className="relative border-l-2 border-atlas-border py-5 pl-6 last:pb-6">
                                                 <span className="absolute -left-[7px] top-7 h-3 w-3 rounded-full bg-atlas-accent" aria-hidden="true" />
-                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                                    <span className="rounded-full bg-atlas-surface px-2.5 py-1 text-xs font-semibold text-atlas-accent">
-                                                        {activityKindLabels[activity.kind]}
-                                                    </span>
-                                                    <time dateTime={activity.occurred_at} className="text-xs text-atlas-ink-muted">
-                                                        {formatActivityDate(activity.occurred_at)}
-                                                    </time>
+                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                        <span className="rounded-full bg-atlas-surface px-2.5 py-1 text-xs font-semibold text-atlas-accent">
+                                                            {activityKindLabels[activity.kind]}
+                                                        </span>
+                                                        <time dateTime={activity.occurred_at} className="text-xs text-atlas-ink-muted">
+                                                            {formatActivityDate(activity.occurred_at)}
+                                                        </time>
+                                                        {activity.version > 1 && (
+                                                            <span className="text-xs font-medium text-atlas-ink-muted">
+                                                                Corrigée · révision {activity.version}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {client.status === 'Active' && editingActivityId === null && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openActivityCorrection(activity)}
+                                                            className="text-xs font-semibold text-atlas-accent hover:underline"
+                                                        >
+                                                            Corriger
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-atlas-ink">
-                                                    {activity.summary}
-                                                </p>
-                                                {(contact || opportunity) && (
-                                                    <p className="mt-2 text-xs text-atlas-ink-muted">
-                                                        {contact && `Avec ${contactProfileValue(contact, 'display_name') ?? 'un contact'}`}
-                                                        {contact && opportunity && ' · '}
-                                                        {opportunity && `Opportunité : ${opportunity.title}`}
-                                                    </p>
+                                                {editingActivityId !== activity.activity_id && (
+                                                    <>
+                                                        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-atlas-ink">
+                                                            {activity.summary}
+                                                        </p>
+                                                        {(contact || opportunity) && (
+                                                            <p className="mt-2 text-xs text-atlas-ink-muted">
+                                                                {contact && `Avec ${contactProfileValue(contact, 'display_name') ?? 'un contact'}`}
+                                                                {contact && opportunity && ' · '}
+                                                                {opportunity && `Opportunité : ${opportunity.title}`}
+                                                            </p>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {editingActivityId === activity.activity_id && (
+                                                    <form
+                                                        aria-label="Corriger une activité commerciale"
+                                                        onSubmit={(event) => void onCorrectActivity(event, activity)}
+                                                        className="mt-4 space-y-4 rounded-xl bg-atlas-surface p-4"
+                                                    >
+                                                        <fieldset disabled={correctingActivity} className="space-y-4">
+                                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                                <FormField label="Type corrigé">
+                                                                    <select
+                                                                        className={inputClassName}
+                                                                        value={editActivityKind}
+                                                                        onChange={(event) => setEditActivityKind(event.target.value as ActivityKind)}
+                                                                    >
+                                                                        {(Object.entries(activityKindLabels) as [ActivityKind, string][]).map(([value, label]) => (
+                                                                            <option key={value} value={value}>{label}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </FormField>
+                                                                <FormField label="Date et heure corrigées">
+                                                                    <input
+                                                                        required
+                                                                        type="datetime-local"
+                                                                        max={localDateTimeValue()}
+                                                                        className={inputClassName}
+                                                                        value={editActivityOccurredAt}
+                                                                        onChange={(event) => setEditActivityOccurredAt(event.target.value)}
+                                                                    />
+                                                                </FormField>
+                                                            </div>
+                                                            <FormField label="Résumé corrigé">
+                                                                <textarea
+                                                                    required
+                                                                    minLength={2}
+                                                                    maxLength={2000}
+                                                                    rows={4}
+                                                                    className={inputClassName}
+                                                                    value={editActivitySummary}
+                                                                    onChange={(event) => setEditActivitySummary(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <FormField
+                                                                label="Motif de la correction"
+                                                                hint="Ce motif est conservé dans l’audit interne."
+                                                            >
+                                                                <textarea
+                                                                    required
+                                                                    minLength={2}
+                                                                    maxLength={500}
+                                                                    rows={2}
+                                                                    className={inputClassName}
+                                                                    value={activityCorrectionReason}
+                                                                    onChange={(event) => setActivityCorrectionReason(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <div className="flex flex-col gap-3 sm:flex-row">
+                                                                <SubmitButton loading={correctingActivity} loadingLabel="Correction…">
+                                                                    Enregistrer la correction
+                                                                </SubmitButton>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setEditingActivityId(null)}
+                                                                    className="rounded-xl border border-atlas-border bg-white px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                                                >
+                                                                    Annuler
+                                                                </button>
+                                                            </div>
+                                                        </fieldset>
+                                                    </form>
                                                 )}
                                             </li>
                                         );

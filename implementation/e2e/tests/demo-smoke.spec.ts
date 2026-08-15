@@ -150,6 +150,16 @@ test('un client sans opportunité active peut être archivé puis réactivé', a
     const activityTimeline = page.getByRole('region', { name: 'Chronologie commerciale' });
     await expect(activityTimeline.getByText('Confirmation reçue : la migration cloud est terminée et la facture a été réglée.')).toBeVisible();
     await expect(activityTimeline.getByText('Avec Sarah Benali · Opportunité : Migration cloud')).toBeVisible();
+    const seededActivity = activityTimeline.getByRole('listitem')
+        .filter({ hasText: 'Confirmation reçue : la migration cloud est terminée et la facture a été réglée.' });
+    await seededActivity.getByRole('button', { name: 'Corriger' }).click();
+    const correctionForm = seededActivity.getByRole('form', { name: 'Corriger une activité commerciale' });
+    await expect(correctionForm.getByLabel('Type corrigé')).toHaveValue('Email');
+    await expect(correctionForm.getByLabel('Résumé corrigé')).toHaveValue(
+        'Confirmation reçue : la migration cloud est terminée et la facture a été réglée.',
+    );
+    await expect(correctionForm.getByLabel('Motif de la correction')).toBeVisible();
+    await correctionForm.getByRole('button', { name: 'Annuler' }).click();
     await activityTimeline.getByRole('button', { name: 'Ajouter une activité' }).click();
     const activityForm = page.getByRole('form', { name: 'Ajouter une activité commerciale' });
     await expect(activityForm.getByLabel('Type d’activité')).toHaveValue('Note');

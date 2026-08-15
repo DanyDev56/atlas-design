@@ -36,8 +36,8 @@ Le profil complet vérifie les parcours métier. Le profil vide utilise
 `demo-empty@atlas.test` / `DemoEmpty2026!` et couvre le premier démarrage sans
 supprimer de données existantes. La recette d’inscription intercepte uniquement
 ses appels HTTP : elle ne crée donc aucun utilisateur à chaque exécution.
-Le scénario complet couvre aussi la chronologie commerciale seedée d’un client
-et l’ouverture de son formulaire d’activité.
+Le scénario complet couvre aussi la chronologie commerciale seedée d’un client,
+l’ouverture de son formulaire d’activité et celle d’une correction auditée.
 
 Variables disponibles : `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_CHANNEL`,
 `ATLAS_DEMO_EMAIL`, `ATLAS_DEMO_PASSWORD`, `ATLAS_EMPTY_DEMO_EMAIL` et

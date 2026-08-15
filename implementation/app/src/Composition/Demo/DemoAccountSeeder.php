@@ -542,11 +542,24 @@ final class DemoAccountSeeder
                 ->orderBy('created_at')
                 ->first();
 
-            if ($client === null || DB::table('crm.activities')
+            if ($client === null) {
+                continue;
+            }
+
+            $clientActivityIds = DB::table('crm.activities')
+                ->select('id')
                 ->where('workspace_id', $workspaceId)
-                ->where('client_id', $client->id)
+                ->where('client_id', $client->id);
+            $activityAlreadySeeded = (clone $clientActivityIds)
                 ->where('summary', $definition['summary'])
-                ->exists()) {
+                ->exists()
+                || DB::table('crm.activity_revisions')
+                    ->where('workspace_id', $workspaceId)
+                    ->whereIn('activity_id', $clientActivityIds)
+                    ->where('summary', $definition['summary'])
+                    ->exists();
+
+            if ($activityAlreadySeeded) {
                 continue;
             }
 

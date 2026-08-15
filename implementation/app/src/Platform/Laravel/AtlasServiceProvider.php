@@ -55,6 +55,7 @@ use Atlas\Modules\Crm\Application\AddContactHandler;
 use Atlas\Modules\Crm\Application\ArchiveClientHandler;
 use Atlas\Modules\Crm\Application\ArchiveContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
+use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
@@ -167,6 +168,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOpportunityRepository::class);
         $this->app->singleton(PostgresActivityRepository::class);
         $this->app->singleton(CreateClientHandler::class);
+        $this->app->singleton(CorrectActivityHandler::class);
         $this->app->singleton(AddContactHandler::class);
         $this->app->singleton(ArchiveClientHandler::class);
         $this->app->singleton(ArchiveContactHandler::class);

@@ -153,6 +153,28 @@ export async function recordClientActivity(
     );
 }
 
+export async function correctClientActivity(
+    token: string,
+    workspaceId: string,
+    activityId: string,
+    payload: {
+        content: {
+            kind: ActivityKind;
+            summary: string;
+            occurred_at: string;
+        };
+        correction_reason: string;
+        expected_revision: number;
+    },
+): Promise<ClientActivity> {
+    return apiRequest(
+        'PATCH',
+        workspacePath(workspaceId, `/activities/${activityId}`),
+        payload,
+        { token },
+    );
+}
+
 export async function addContact(
     token: string,
     workspaceId: string,

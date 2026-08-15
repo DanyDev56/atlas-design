@@ -165,6 +165,83 @@ final class ClientActivityTest extends IntegrationTestCase
         $this->assertArrayNotHasKey('summary', $eventPayload);
     }
 
+    public function test_owner_corrects_activity_while_preserving_previous_revision(): void
+    {
+        $owner = $this->onboardOwner($this);
+        $headers = ['Authorization' => 'Bearer '.$owner['token']];
+        $client = $this->createClient($owner, 'Atelier Correction');
+        $originalOccurredAt = now()->subDays(2)->toIso8601String();
+        $recorded = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities",
+            [
+                'kind' => 'Call',
+                'summary' => 'Appel initial saisi avec une information erronée.',
+                'occurred_at' => $originalOccurredAt,
+            ],
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertCreated();
+        $activityId = $recorded->json('activity_id');
+        $payload = [
+            'content' => [
+                'kind' => 'Meeting',
+                'summary' => 'Réunion de cadrage confirmée avec le client.',
+                'occurred_at' => now()->subDay()->toIso8601String(),
+            ],
+            'correction_reason' => 'Le compte-rendu initial indiquait le mauvais canal.',
+            'expected_revision' => 1,
+        ];
+        $idempotencyKey = (string) Str::uuid();
+
+        $corrected = $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}",
+            $payload,
+            $headers + ['Idempotency-Key' => $idempotencyKey],
+        )->assertOk()
+            ->assertJsonPath('activity_id', $activityId)
+            ->assertJsonPath('kind', 'Meeting')
+            ->assertJsonPath('summary', $payload['content']['summary'])
+            ->assertJsonPath('version', 2);
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}",
+            $payload,
+            $headers + ['Idempotency-Key' => $idempotencyKey],
+        )->assertOk()->assertExactJson($corrected->json());
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}",
+            $payload,
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Revision conflict.');
+
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities",
+            $headers,
+        )->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.summary', $payload['content']['summary'])
+            ->assertJsonPath('0.version', 2);
+
+        $revision = DB::table('crm.activity_revisions')
+            ->where('activity_id', $activityId)
+            ->first();
+        $this->assertNotNull($revision);
+        $this->assertSame(1, (int) $revision->revision);
+        $this->assertSame('Call', $revision->kind);
+        $this->assertSame('Appel initial saisi avec une information erronée.', $revision->summary);
+        $this->assertSame($payload['correction_reason'], $revision->correction_reason);
+        $this->assertSame($owner['user_id'], $revision->corrected_by);
+
+        $event = DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.activity_corrected')
+            ->sole();
+        $eventPayload = json_decode($event->payload, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(2, $eventPayload['version']);
+        $this->assertArrayNotHasKey('summary', $eventPayload);
+        $this->assertArrayNotHasKey('correction_reason', $eventPayload);
+    }
+
     /** @param array{workspace_id: string, token: string} $owner */
     /** @return array{client_id: string} */
     private function createClient(array $owner, string $displayName): array

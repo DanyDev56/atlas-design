@@ -22,13 +22,13 @@ final class Activity
         private readonly ClientId $clientId,
         private readonly ?string $contactId,
         private readonly ?string $opportunityId,
-        private readonly string $kind,
-        private readonly string $summary,
-        private readonly \DateTimeImmutable $occurredAt,
-        private readonly string $status,
-        private readonly int $version,
+        private string $kind,
+        private string $summary,
+        private \DateTimeImmutable $occurredAt,
+        private string $status,
+        private int $version,
         private readonly \DateTimeImmutable $createdAt,
-        private readonly \DateTimeImmutable $updatedAt,
+        private \DateTimeImmutable $updatedAt,
     ) {}
 
     public static function record(
@@ -42,19 +42,8 @@ final class Activity
         \DateTimeImmutable $occurredAt,
         \DateTimeImmutable $now,
     ): self {
-        $summary = trim($summary);
-
-        if (! in_array($kind, self::kinds(), true)) {
-            throw new \DomainException('Activity kind invalid.');
-        }
-
-        if (mb_strlen($summary) < 2 || mb_strlen($summary) > 2000) {
-            throw new \DomainException('Activity summary invalid.');
-        }
-
-        if ($occurredAt > $now) {
-            throw new \DomainException('Activity occurred at is in the future.');
-        }
+        $summary = self::validatedSummary($summary);
+        self::assertContent($kind, $occurredAt, $now);
 
         return new self(
             id: $id,
@@ -70,6 +59,45 @@ final class Activity
             createdAt: $now,
             updatedAt: $now,
         );
+    }
+
+    /** @return array{kind: string, summary: string, occurred_at: \DateTimeImmutable, version: int} */
+    public function correct(
+        string $kind,
+        string $summary,
+        \DateTimeImmutable $occurredAt,
+        string $reason,
+        \DateTimeImmutable $now,
+    ): array {
+        if ($this->status !== self::STATUS_RECORDED) {
+            throw new \DomainException('Activity is not recorded.');
+        }
+
+        $summary = self::validatedSummary($summary);
+        self::assertContent($kind, $occurredAt, $now);
+        $reason = trim($reason);
+
+        if (mb_strlen($reason) < 2 || mb_strlen($reason) > 500) {
+            throw new \DomainException('Activity correction reason invalid.');
+        }
+
+        if ($kind === $this->kind && $summary === $this->summary && $occurredAt == $this->occurredAt) {
+            throw new \DomainException('Activity unchanged.');
+        }
+
+        $previous = [
+            'kind' => $this->kind,
+            'summary' => $this->summary,
+            'occurred_at' => $this->occurredAt,
+            'version' => $this->version,
+        ];
+        $this->kind = $kind;
+        $this->summary = $summary;
+        $this->occurredAt = $occurredAt;
+        $this->version++;
+        $this->updatedAt = $now;
+
+        return $previous;
     }
 
     /** @param array<string, mixed> $row */
@@ -95,6 +123,31 @@ final class Activity
     public static function kinds(): array
     {
         return [self::KIND_NOTE, self::KIND_CALL, self::KIND_MEETING, self::KIND_EMAIL];
+    }
+
+    private static function validatedSummary(string $summary): string
+    {
+        $summary = trim($summary);
+
+        if (mb_strlen($summary) < 2 || mb_strlen($summary) > 2000) {
+            throw new \DomainException('Activity summary invalid.');
+        }
+
+        return $summary;
+    }
+
+    private static function assertContent(
+        string $kind,
+        \DateTimeImmutable $occurredAt,
+        \DateTimeImmutable $now,
+    ): void {
+        if (! in_array($kind, self::kinds(), true)) {
+            throw new \DomainException('Activity kind invalid.');
+        }
+
+        if ($occurredAt > $now) {
+            throw new \DomainException('Activity occurred at is in the future.');
+        }
     }
 
     public function id(): ActivityId

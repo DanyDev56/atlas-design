@@ -282,13 +282,17 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Agrégat Activity indépendant du Client, idempotent et atomique ; événement
   `ActivityRecorded` sans résumé libre dans l'outbox
 - Scénario démo enrichi de huit interactions déterministes et contextualisées
+- Correction du type, du résumé ou de la date d'une activité avec motif
+  obligatoire, concurrence optimiste et rejeu idempotent
+- Ancienne valeur, motif, acteur et instant conservés dans l'audit interne ;
+  événement `ActivityCorrected` sans texte libre dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Permettre la correction auditée d'une activité enregistrée, sans écraser sa
-  valeur précédente
+- Permettre le retrait logique et terminal d'une activité inappropriée, avec
+  motif d'audit et disparition des lectures ordinaires
 
 ---
 

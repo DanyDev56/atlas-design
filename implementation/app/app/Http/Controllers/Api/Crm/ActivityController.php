@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Crm;
 
 use App\Http\Controllers\Controller;
+use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\RecordActivityHandler;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ final class ActivityController extends Controller
 {
     public function __construct(
         private readonly RecordActivityHandler $recordActivity,
+        private readonly CorrectActivityHandler $correctActivity,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -49,6 +51,31 @@ final class ActivityController extends Controller
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),
         ), 201);
+    }
+
+    public function update(Request $request, string $workspaceId, string $activityId): JsonResponse
+    {
+        $validated = $request->validate([
+            'content' => ['required', 'array:kind,summary,occurred_at'],
+            'content.kind' => ['required', 'in:Note,Call,Meeting,Email'],
+            'content.summary' => ['required', 'string', 'min:2', 'max:2000'],
+            'content.occurred_at' => ['required', 'date'],
+            'correction_reason' => ['required', 'string', 'min:2', 'max:500'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->correctActivity->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            activityId: $activityId,
+            kind: $validated['content']['kind'],
+            summary: $validated['content']['summary'],
+            occurredAt: $validated['content']['occurred_at'],
+            correctionReason: $validated['correction_reason'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
     }
 
     private function actorId(Request $request): string

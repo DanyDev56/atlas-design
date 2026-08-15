@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Demo;
 
 use Atlas\Composition\Demo\DemoAccountSeeder;
+use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Illuminate\Support\Facades\DB;
 use Tests\Integration\IntegrationTestCase;
 
@@ -55,6 +56,22 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->where('workspace_id', $result->workspaceId)
             ->whereNotNull('primary_contact_id')
             ->count());
+
+        $activity = DB::table('crm.activities')
+            ->where('workspace_id', $result->workspaceId)
+            ->orderBy('created_at')
+            ->first();
+        app(CorrectActivityHandler::class)->handle(
+            actorUserId: $result->userId,
+            workspaceId: $result->workspaceId,
+            activityId: $activity->id,
+            kind: $activity->kind,
+            summary: $activity->summary.' Correction démo.',
+            occurredAt: $activity->occurred_at,
+            correctionReason: 'Vérification de l’idempotence du scénario.',
+            expectedRevision: 1,
+            requestId: 'demo-test:correct-activity',
+        );
 
         $second = app(DemoAccountSeeder::class)->seed();
         $this->assertFalse($second->sampleDataSeeded);

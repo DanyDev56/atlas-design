@@ -39,6 +39,37 @@ final class PostgresActivityRepository
         return $row !== null ? Activity::reconstitute((array) $row) : null;
     }
 
+    /** @param array{kind: string, summary: string, occurred_at: \DateTimeImmutable, version: int} $previous */
+    public function updateWithRevision(
+        Activity $activity,
+        array $previous,
+        string $correctionReason,
+        string $correctedBy,
+        \DateTimeImmutable $correctedAt,
+    ): void {
+        DB::table('crm.activity_revisions')->insert([
+            'activity_id' => $activity->id()->value,
+            'workspace_id' => $activity->workspaceId(),
+            'revision' => $previous['version'],
+            'kind' => $previous['kind'],
+            'summary' => $previous['summary'],
+            'occurred_at' => $previous['occurred_at']->format('Y-m-d H:i:sP'),
+            'correction_reason' => $correctionReason,
+            'corrected_by' => $correctedBy,
+            'corrected_at' => $correctedAt->format('Y-m-d H:i:sP'),
+        ]);
+        DB::table('crm.activities')
+            ->where('workspace_id', $activity->workspaceId())
+            ->where('id', $activity->id()->value)
+            ->update([
+                'kind' => $activity->kind(),
+                'summary' => $activity->summary(),
+                'occurred_at' => $activity->occurredAt()->format('Y-m-d H:i:sP'),
+                'version' => $activity->version(),
+                'updated_at' => $activity->updatedAt()->format('Y-m-d H:i:sP'),
+            ]);
+    }
+
     /** @return list<array<string, mixed>> */
     public function listRecordedByClient(string $workspaceId, ClientId $clientId): array
     {
