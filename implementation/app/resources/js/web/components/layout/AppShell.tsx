@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { fetchUnreadCount } from '@/api/auth';
+import { getWorkspaceSummary } from '@/api/workspace';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface AppShellOutletContext {
@@ -73,6 +74,8 @@ export function AppShell() {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState<number | null>(null);
     const [notificationsUnavailable, setNotificationsUnavailable] = useState(false);
+    const [workspaceName, setWorkspaceName] = useState<string | null>(null);
+    const [workspaceNameUnavailable, setWorkspaceNameUnavailable] = useState(false);
     const { session } = useAuth();
     const location = useLocation();
     const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -115,6 +118,30 @@ export function AppShell() {
     useEffect(() => {
         void refreshUnreadCount();
     }, [location.pathname, refreshUnreadCount]);
+
+    useEffect(() => {
+        if (!token || !workspaceId) {
+            setWorkspaceName(null);
+            setWorkspaceNameUnavailable(false);
+            return;
+        }
+
+        let cancelled = false;
+        setWorkspaceName(null);
+        setWorkspaceNameUnavailable(false);
+
+        void getWorkspaceSummary(token, workspaceId)
+            .then((summary) => {
+                if (!cancelled) setWorkspaceName(summary.display_name);
+            })
+            .catch(() => {
+                if (!cancelled) setWorkspaceNameUnavailable(true);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [token, workspaceId]);
 
     useEffect(() => {
         if (!mobileNavOpen) return;
@@ -213,11 +240,21 @@ export function AppShell() {
                         >
                             Menu
                         </button>
-                        <div>
+                        <div className="min-w-0">
                             <p className="text-xs font-medium uppercase tracking-wide text-atlas-ink-muted">
                                 Espace de travail
                             </p>
-                            <p className="text-sm font-semibold text-atlas-ink">Actif</p>
+                            <p
+                                className="max-w-32 truncate text-sm font-semibold text-atlas-ink sm:max-w-64"
+                                title={workspaceName ?? undefined}
+                            >
+                                {workspaceName
+                                    ?? (workspaceNameUnavailable
+                                        ? 'Nom indisponible'
+                                        : workspaceId
+                                          ? 'Chargement…'
+                                          : 'Aucun espace')}
+                            </p>
                         </div>
                     </div>
                     <Link

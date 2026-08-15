@@ -120,6 +120,8 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Session locale : rejet automatique des credentials expirés ou historiques incomplets
 - Surfaces dev : `/api/dev/*`, `/api/spike/*` et jeton de vérification sous opt-in explicite
 - Layout responsive : menu mobile, paddings tablette
+- Workspace courant identifié par son nom autoritatif dans l’en-tête, via une
+  lecture Workspace isolée par membership actif
 - Composants `PageSkeleton` et `EmptyState` réutilisés
 - Dashboard orienté action : recommandation traduite, urgence et impact lisibles,
   actions vers CRM ou facturation

@@ -23,6 +23,13 @@ export interface WorkspaceBootstrapResponse {
     status: string;
 }
 
+export interface WorkspaceSummaryResponse {
+    workspace_id: string;
+    display_name: string;
+    access_state: string;
+    version: number;
+}
+
 export interface SessionContextResponse {
     user_id: string;
     workspace_id: string | null;

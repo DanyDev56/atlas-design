@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\RevokeSessionController;
 use App\Http\Controllers\Api\SessionContextController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\VerifyEmailController;
+use App\Http\Controllers\Api\Workspace\WorkspaceController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\CorrelationIdMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\DevelopmentOnlyMiddleware;
@@ -53,6 +54,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);
 
         Route::prefix('/workspaces/{workspaceId}')->group(function (): void {
+            Route::get('/summary', [WorkspaceController::class, 'summary']);
+
             Route::post('/memberships/{membershipId}/remove', RemoveMembershipController::class);
 
             Route::get('/clients', [ClientController::class, 'index']);

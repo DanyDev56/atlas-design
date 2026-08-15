@@ -82,6 +82,7 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationT
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
 use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
 use Atlas\Modules\Workspace\Application\CreateWorkspaceHandler;
+use Atlas\Modules\Workspace\Application\WorkspaceSummaryQueryHandler;
 use Atlas\Modules\Workspace\Domain\WorkspaceRepository;
 use Atlas\Modules\Workspace\Infrastructure\Persistence\PostgresWorkspaceRepository;
 use Atlas\Platform\Messaging\InboxStore;
@@ -143,6 +144,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(GetWorkspaceOwnerReadinessHandler::class);
         $this->app->singleton(CreateWorkspaceHandler::class);
         $this->app->singleton(ActivateWorkspaceHandler::class);
+        $this->app->singleton(WorkspaceSummaryQueryHandler::class);
         $this->app->singleton(BootstrapFirstWorkspaceHandler::class);
 
         $this->app->singleton(WorkspaceAuthorizer::class);
