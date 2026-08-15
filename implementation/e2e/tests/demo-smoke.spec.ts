@@ -106,6 +106,19 @@ test('le devis brouillon des Ateliers est accessible sans ambiguïté', async ({
     await expect(page.getByText('Audit express à qualifier', { exact: true })).toBeVisible();
 
     await page.getByRole('link').filter({ hasText: 'Audit express à qualifier' }).click();
+    await page.getByRole('button', { name: 'Marquer comme perdue' }).click();
+    const lossForm = page.getByRole('form', { name: 'Marquer l’opportunité comme perdue' });
+    await expect(lossForm.getByLabel('Raison de la perte').locator('option'))
+        .toContainText([
+            'Sélectionner une raison',
+            'Budget insuffisant',
+            'Calendrier ou priorité reportée',
+            'Concurrent retenu',
+            'Aucune décision',
+            'Autre raison',
+        ]);
+    await expect(lossForm.getByLabel('Contexte complémentaire (optionnel)')).toBeVisible();
+    await lossForm.getByRole('button', { name: 'Annuler' }).click();
     await page.getByRole('button', { name: 'Modifier l’opportunité' }).click();
     const editOpportunityForm = page.getByRole('form', { name: 'Modifier l’opportunité' });
     await expect(editOpportunityForm.getByLabel('Titre')).toHaveValue('Audit express à qualifier');

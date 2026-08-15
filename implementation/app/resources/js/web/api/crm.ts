@@ -209,3 +209,29 @@ export async function qualifyOpportunity(
         { token },
     );
 }
+
+export async function loseOpportunity(
+    token: string,
+    workspaceId: string,
+    opportunityId: string,
+    lossReasonCode: 'Budget' | 'Timing' | 'Competitor' | 'NoDecision' | 'Other',
+    lossNote: string | null,
+    expectedRevision: number,
+): Promise<{
+    opportunity_id: string;
+    status: string;
+    version: number;
+    loss_reason_code: string;
+    lost_at: string;
+}> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/opportunities/${opportunityId}/lose`),
+        {
+            loss_reason_code: lossReasonCode,
+            loss_note: lossNote,
+            expected_revision: expectedRevision,
+        },
+        { token },
+    );
+}

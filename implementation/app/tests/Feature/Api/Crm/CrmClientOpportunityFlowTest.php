@@ -379,6 +379,65 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             ->assertJsonPath('opportunity_status', 'Qualified')
             ->assertJsonPath('contact_id', null);
 
+        $loseOpportunityKey = (string) Str::uuid();
+        $opportunityLost = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}/lose",
+            [
+                'loss_reason_code' => 'Competitor',
+                'loss_note' => 'Le client a retenu une équipe déjà référencée.',
+                'expected_revision' => 3,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $loseOpportunityKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Lost')
+            ->assertJsonPath('version', 4)
+            ->assertJsonPath('loss_reason_code', 'Competitor')
+            ->assertJsonPath('lost_at', fn ($value) => is_string($value) && $value !== '');
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}/lose",
+            [
+                'loss_reason_code' => 'Competitor',
+                'loss_note' => 'Le client a retenu une équipe déjà référencée.',
+                'expected_revision' => 3,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $loseOpportunityKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($opportunityLost->json());
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}/lose",
+            [
+                'loss_reason_code' => 'Budget',
+                'expected_revision' => 4,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Opportunity is terminal.');
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('status', 'Lost')
+            ->assertJsonPath('loss_reason_code', 'Competitor')
+            ->assertJsonPath('loss_note', 'Le client a retenu une équipe déjà référencée.')
+            ->assertJsonPath('lost_at', fn ($value) => is_string($value) && $value !== '');
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/pipeline", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('counts_by_status.Qualified', 0)
+            ->assertJsonPath('counts_by_status.Lost', 1);
+
         $this->assertTrue(
             DB::table('platform.outbox_messages')
                 ->where('event_type', 'crm.client_created')
@@ -399,6 +458,9 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         $this->assertSame(1, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.opportunity_updated')
             ->count());
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.opportunity_lost')
+            ->count());
         $this->assertSame(
             ['version', 'client_id', 'contact_id', 'workspace_id'],
             array_keys(json_decode(
@@ -415,6 +477,17 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             array_keys(json_decode(
                 (string) DB::table('platform.outbox_messages')
                     ->where('event_type', 'crm.opportunity_updated')
+                    ->value('payload'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )),
+        );
+        $this->assertSame(
+            ['version', 'client_id', 'workspace_id', 'opportunity_id', 'loss_reason_code'],
+            array_keys(json_decode(
+                (string) DB::table('platform.outbox_messages')
+                    ->where('event_type', 'crm.opportunity_lost')
                     ->value('payload'),
                 true,
                 512,

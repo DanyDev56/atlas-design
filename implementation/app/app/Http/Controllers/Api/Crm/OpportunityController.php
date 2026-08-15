@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Api\Crm;
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
+use Atlas\Modules\Crm\Application\LoseOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\UpdateOpportunityHandler;
+use Atlas\Modules\Crm\Domain\Opportunity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 final class OpportunityController extends Controller
 {
@@ -19,6 +22,7 @@ final class OpportunityController extends Controller
         private readonly CreateOpportunityHandler $createOpportunity,
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
         private readonly UpdateOpportunityHandler $updateOpportunity,
+        private readonly LoseOpportunityHandler $loseOpportunity,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -95,6 +99,26 @@ final class OpportunityController extends Controller
             workspaceId: $workspaceId,
             opportunityId: $opportunityId,
             changes: $validated['changes'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function lose(Request $request, string $workspaceId, string $opportunityId): JsonResponse
+    {
+        $validated = $request->validate([
+            'loss_reason_code' => ['required', 'string', Rule::in(Opportunity::lossReasonCodes())],
+            'loss_note' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->loseOpportunity->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            opportunityId: $opportunityId,
+            lossReasonCode: $validated['loss_reason_code'],
+            lossNote: $validated['loss_note'] ?? null,
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

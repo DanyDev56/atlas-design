@@ -25,6 +25,9 @@ final class PostgresOpportunityRepository
             'created_at' => now()->toIso8601String(),
             'updated_at' => now()->toIso8601String(),
             'qualified_at' => null,
+            'loss_reason_code' => null,
+            'loss_note' => null,
+            'lost_at' => null,
         ]);
     }
 
@@ -41,6 +44,9 @@ final class PostgresOpportunityRepository
                 'version' => $opportunity->version(),
                 'updated_at' => now()->toIso8601String(),
                 'qualified_at' => $opportunity->qualifiedAt()?->format('Y-m-d H:i:sP'),
+                'loss_reason_code' => $opportunity->lossReasonCode(),
+                'loss_note' => $opportunity->lossNote(),
+                'lost_at' => $opportunity->lostAt()?->format('Y-m-d H:i:sP'),
             ]);
     }
 

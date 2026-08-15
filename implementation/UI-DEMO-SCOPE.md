@@ -249,13 +249,17 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Réaffectation idempotente avec contrôle de révision et événement
   `OpportunityUpdated` sans donnée personnelle ; les devis et snapshots passés
   restent inchangés
+- Clôture explicite d'une opportunité `Open` ou `Qualified` avec cinq raisons
+  structurées et une note interne optionnelle bornée
+- Résultat `Lost` terminal, idempotent et historisé ; événement
+  `OpportunityLost` sans note libre et nouveau fait Analytics pour le pipeline
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Clôturer explicitement une opportunité perdue avec un motif structuré afin de
-  compléter le cycle de vie commercial hors devis accepté
+- Archiver un client après contrôle de l'absence d'opportunités `Open` ou
+  `Qualified`, sans supprimer son historique commercial et de facturation
 
 ---
 

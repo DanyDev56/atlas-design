@@ -58,6 +58,7 @@ use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
+use Atlas\Modules\Crm\Application\LoseOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
@@ -168,6 +169,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(QualifyOpportunityHandler::class);
         $this->app->singleton(ReactivateContactHandler::class);
         $this->app->singleton(GetOpportunityAnalyticsFactHandler::class);
+        $this->app->singleton(LoseOpportunityHandler::class);
         $this->app->singleton(CrmQueryHandler::class);
 
         $this->app->singleton(PostgresBillingIdempotencyStore::class);

@@ -1,13 +1,31 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createQuote, listQuotes } from '@/api/billing';
-import { getClient, getOpportunity, listContacts, qualifyOpportunity, updateOpportunity } from '@/api/crm';
+import { getClient, getOpportunity, listContacts, loseOpportunity, qualifyOpportunity, updateOpportunity } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientDetail, ContactSummary, OpportunityDetail, QuoteSummary } from '@/types/api';
 import { formatMoney } from '@/utils/format';
+
+type LossReasonCode = NonNullable<OpportunityDetail['loss_reason_code']>;
+
+const lossReasons: Array<{ code: LossReasonCode; label: string }> = [
+    { code: 'Budget', label: 'Budget insuffisant' },
+    { code: 'Timing', label: 'Calendrier ou priorité reportée' },
+    { code: 'Competitor', label: 'Concurrent retenu' },
+    { code: 'NoDecision', label: 'Aucune décision' },
+    { code: 'Other', label: 'Autre raison' },
+];
+
+function lossReasonLabel(code: OpportunityDetail['loss_reason_code']): string | null {
+    return lossReasons.find((reason) => reason.code === code)?.label ?? null;
+}
+
+function formatDate(value: string): string {
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
+}
 
 export function OpportunityDetailPage() {
     const { opportunityId } = useParams<{ opportunityId: string }>();
@@ -33,6 +51,9 @@ export function OpportunityDetailPage() {
     const [editContactId, setEditContactId] = useState('');
     const [editAmount, setEditAmount] = useState('');
     const [editCurrency, setEditCurrency] = useState('EUR');
+    const [showLossForm, setShowLossForm] = useState(false);
+    const [lossReasonCode, setLossReasonCode] = useState<LossReasonCode | ''>('');
+    const [lossNote, setLossNote] = useState('');
 
     async function reload() {
         if (!opportunityId) return;
@@ -87,9 +108,46 @@ export function OpportunityDetailPage() {
             ? (opportunity.estimated_amount_cents / 100).toFixed(2).replace('.', ',')
             : '');
         setEditCurrency(opportunity.currency);
+        setShowLossForm(false);
         setShowEditForm(true);
         setError(null);
         setSuccess(null);
+    }
+
+    function openLossForm() {
+        setShowEditForm(false);
+        setShowQuoteForm(false);
+        setLossReasonCode('');
+        setLossNote('');
+        setShowLossForm(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onLoseOpportunity(event: FormEvent) {
+        event.preventDefault();
+        if (!opportunity || lossReasonCode === '') return;
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await loseOpportunity(
+                token,
+                workspaceId,
+                opportunity.opportunity_id,
+                lossReasonCode,
+                lossNote.trim() || null,
+                opportunity.version,
+            );
+            setShowLossForm(false);
+            await reload();
+            setSuccess('L’opportunité est clôturée comme perdue.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Clôture impossible');
+        } finally {
+            setActionLoading(false);
+        }
     }
 
     async function onUpdateOpportunity(event: FormEvent) {
@@ -218,17 +276,44 @@ export function OpportunityDetailPage() {
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <StatusBadge status={opportunity.status} />
-                                {['Open', 'Qualified'].includes(opportunity.status) && !showEditForm && (
-                                    <button
-                                        type="button"
-                                        onClick={openEditForm}
-                                        className="text-sm font-semibold text-atlas-accent hover:underline"
-                                    >
-                                        Modifier l’opportunité
-                                    </button>
+                                {['Open', 'Qualified'].includes(opportunity.status) && !showEditForm && !showLossForm && (
+                                    <div className="flex flex-col items-end gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={openEditForm}
+                                            className="text-sm font-semibold text-atlas-accent hover:underline"
+                                        >
+                                            Modifier l’opportunité
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={openLossForm}
+                                            className="text-sm font-semibold text-red-700 hover:underline"
+                                        >
+                                            Marquer comme perdue
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
+
+                        {opportunity.status === 'Lost' && opportunity.loss_reason_code && (
+                            <div className="mt-6 rounded-xl border border-atlas-border bg-atlas-card px-5 py-4">
+                                <p className="text-sm font-semibold text-atlas-ink">
+                                    Raison : {lossReasonLabel(opportunity.loss_reason_code) ?? opportunity.loss_reason_code}
+                                </p>
+                                {opportunity.lost_at && (
+                                    <p className="mt-1 text-xs text-atlas-ink-muted">
+                                        Clôturée le {formatDate(opportunity.lost_at)}
+                                    </p>
+                                )}
+                                {opportunity.loss_note && (
+                                    <p className="mt-3 whitespace-pre-wrap text-sm text-atlas-ink-muted">
+                                        {opportunity.loss_note}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {showEditForm && (
                             <form
@@ -312,7 +397,64 @@ export function OpportunityDetailPage() {
                             </form>
                         )}
 
-                        {opportunity.status === 'Open' && (
+                        {showLossForm && (
+                            <form
+                                aria-label="Marquer l’opportunité comme perdue"
+                                onSubmit={onLoseOpportunity}
+                                className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6"
+                            >
+                                <fieldset disabled={actionLoading} className="space-y-4">
+                                    <legend className="text-base font-semibold text-red-900">
+                                        Confirmer la perte de l’opportunité
+                                    </legend>
+                                    <p className="text-sm text-red-800">
+                                        Cette clôture est terminale. Elle ne modifie aucun devis déjà créé.
+                                    </p>
+                                    <FormField label="Raison de la perte">
+                                        <select
+                                            required
+                                            className={inputClassName}
+                                            value={lossReasonCode}
+                                            onChange={(event) => setLossReasonCode(event.target.value as LossReasonCode | '')}
+                                        >
+                                            <option value="">Sélectionner une raison</option>
+                                            {lossReasons.map((reason) => (
+                                                <option key={reason.code} value={reason.code}>{reason.label}</option>
+                                            ))}
+                                        </select>
+                                    </FormField>
+                                    <FormField
+                                        label="Contexte complémentaire (optionnel)"
+                                        hint="Cette note reste interne et n’est pas publiée dans les événements."
+                                    >
+                                        <textarea
+                                            maxLength={500}
+                                            rows={4}
+                                            className={inputClassName}
+                                            value={lossNote}
+                                            onChange={(event) => setLossNote(event.target.value)}
+                                        />
+                                    </FormField>
+                                    <div className="flex flex-col gap-3 sm:flex-row">
+                                        <button
+                                            type="submit"
+                                            className="rounded-xl bg-red-700 px-4 py-3 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {actionLoading ? 'Clôture…' : 'Confirmer la perte'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowLossForm(false)}
+                                            className="rounded-xl border border-atlas-border bg-white px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        )}
+
+                        {opportunity.status === 'Open' && !showEditForm && !showLossForm && (
                             <div className="mt-6 rounded-xl border border-atlas-border bg-atlas-card px-4 py-4">
                                 <p className="text-sm text-atlas-ink-muted">
                                     Qualifiez l'opportunité avant d'envoyer un devis au client.
@@ -331,7 +473,7 @@ export function OpportunityDetailPage() {
                         <section className="mt-10">
                             <div className="mb-4 flex items-center justify-between gap-4">
                                 <h3 className="text-lg font-semibold text-atlas-ink">Devis</h3>
-                                {!showQuoteForm && opportunity.status === 'Qualified' && (
+                                {!showQuoteForm && !showEditForm && !showLossForm && opportunity.status === 'Qualified' && (
                                     <button
                                         type="button"
                                         onClick={() => setShowQuoteForm(true)}

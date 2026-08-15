@@ -247,6 +247,9 @@ export interface OpportunityDetail extends OpportunitySummary {
     workspace_id: string;
     contact_id: string | null;
     qualified_at: string | null;
+    loss_reason_code: 'Budget' | 'Timing' | 'Competitor' | 'NoDecision' | 'Other' | null;
+    loss_note: string | null;
+    lost_at: string | null;
 }
 
 export interface QuoteLine {

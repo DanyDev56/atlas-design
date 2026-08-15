@@ -14,6 +14,16 @@ final class Opportunity
 
     public const STATUS_LOST = 'Lost';
 
+    public const LOSS_REASON_BUDGET = 'Budget';
+
+    public const LOSS_REASON_TIMING = 'Timing';
+
+    public const LOSS_REASON_COMPETITOR = 'Competitor';
+
+    public const LOSS_REASON_NO_DECISION = 'NoDecision';
+
+    public const LOSS_REASON_OTHER = 'Other';
+
     private function __construct(
         private readonly OpportunityId $id,
         private readonly string $workspaceId,
@@ -27,6 +37,9 @@ final class Opportunity
         private \DateTimeImmutable $createdAt,
         private \DateTimeImmutable $updatedAt,
         private ?\DateTimeImmutable $qualifiedAt,
+        private ?string $lossReasonCode,
+        private ?string $lossNote,
+        private ?\DateTimeImmutable $lostAt,
     ) {}
 
     public static function create(
@@ -52,6 +65,9 @@ final class Opportunity
             createdAt: $now,
             updatedAt: $now,
             qualifiedAt: null,
+            lossReasonCode: null,
+            lossNote: null,
+            lostAt: null,
         );
     }
 
@@ -71,6 +87,9 @@ final class Opportunity
             createdAt: new \DateTimeImmutable($row['created_at']),
             updatedAt: new \DateTimeImmutable($row['updated_at']),
             qualifiedAt: isset($row['qualified_at']) ? new \DateTimeImmutable($row['qualified_at']) : null,
+            lossReasonCode: $row['loss_reason_code'] ?? null,
+            lossNote: $row['loss_note'] ?? null,
+            lostAt: isset($row['lost_at']) ? new \DateTimeImmutable($row['lost_at']) : null,
         );
     }
 
@@ -161,6 +180,31 @@ final class Opportunity
         $this->updatedAt = $now;
     }
 
+    public function lose(string $reasonCode, ?string $note, \DateTimeImmutable $now): void
+    {
+        if (! $this->isNonTerminal()) {
+            throw new \DomainException('Opportunity is terminal.');
+        }
+
+        if (! in_array($reasonCode, self::lossReasonCodes(), true)) {
+            throw new \DomainException('Opportunity loss reason invalid.');
+        }
+
+        $note = $note !== null ? trim($note) : null;
+        $note = $note !== '' ? $note : null;
+
+        if ($note !== null && mb_strlen($note) > 500) {
+            throw new \DomainException('Opportunity loss note invalid.');
+        }
+
+        $this->status = self::STATUS_LOST;
+        $this->lossReasonCode = $reasonCode;
+        $this->lossNote = $note;
+        $this->lostAt = $now;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function id(): OpportunityId
     {
         return $this->id;
@@ -214,5 +258,32 @@ final class Opportunity
     public function qualifiedAt(): ?\DateTimeImmutable
     {
         return $this->qualifiedAt;
+    }
+
+    /** @return list<string> */
+    public static function lossReasonCodes(): array
+    {
+        return [
+            self::LOSS_REASON_BUDGET,
+            self::LOSS_REASON_TIMING,
+            self::LOSS_REASON_COMPETITOR,
+            self::LOSS_REASON_NO_DECISION,
+            self::LOSS_REASON_OTHER,
+        ];
+    }
+
+    public function lossReasonCode(): ?string
+    {
+        return $this->lossReasonCode;
+    }
+
+    public function lossNote(): ?string
+    {
+        return $this->lossNote;
+    }
+
+    public function lostAt(): ?\DateTimeImmutable
+    {
+        return $this->lostAt;
     }
 }

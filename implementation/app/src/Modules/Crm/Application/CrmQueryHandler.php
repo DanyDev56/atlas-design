@@ -206,6 +206,9 @@ final class CrmQueryHandler
             'status' => $opportunity->status(),
             'version' => $opportunity->version(),
             'qualified_at' => $opportunity->qualifiedAt()?->format(DATE_ATOM),
+            'loss_reason_code' => $opportunity->lossReasonCode(),
+            'loss_note' => $opportunity->lossNote(),
+            'lost_at' => $opportunity->lostAt()?->format(DATE_ATOM),
         ];
     }
 }

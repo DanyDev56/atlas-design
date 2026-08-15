@@ -72,6 +72,33 @@ final class AnalyticsIngestIntegrationTest extends IntegrationTestCase
             json_decode($updatedFact->payload, true, 512, JSON_THROW_ON_ERROR)['estimated_amount_cents'],
         );
 
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunity->json('opportunity_id')}/lose",
+            [
+                'loss_reason_code' => 'NoDecision',
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('version', 3);
+
+        $processor->processPending();
+
+        $lostFact = DB::table('analytics.source_facts')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->where('source_event_type', 'crm.opportunity_lost')
+            ->first();
+
+        $this->assertNotNull($lostFact);
+        $this->assertSame(3, (int) $lostFact->aggregate_version);
+        $this->assertSame(
+            'Lost',
+            json_decode($lostFact->payload, true, 512, JSON_THROW_ON_ERROR)['status'],
+        );
+
         $afterUpdateCount = DB::table('analytics.source_facts')
             ->where('workspace_id', $owner['workspace_id'])
             ->count();

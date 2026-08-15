@@ -21,6 +21,7 @@ final class IngestSourceFactHandler
         'crm.opportunity_created',
         'crm.opportunity_qualified',
         'crm.opportunity_updated',
+        'crm.opportunity_lost',
         'crm.opportunity_won',
         'billing.quote_sent',
         'billing.quote_accepted',
@@ -99,7 +100,7 @@ final class IngestSourceFactHandler
     private function resolveFact(string $eventType, string $workspaceId, array $payload): array
     {
         return match ($eventType) {
-            'crm.opportunity_created', 'crm.opportunity_qualified', 'crm.opportunity_updated', 'crm.opportunity_won' => (function () use ($workspaceId, $payload): array {
+            'crm.opportunity_created', 'crm.opportunity_qualified', 'crm.opportunity_updated', 'crm.opportunity_won', 'crm.opportunity_lost' => (function () use ($workspaceId, $payload): array {
                 $opportunityId = $payload['opportunity_id'];
                 $version = (int) DB::table('crm.opportunities')->where('id', $opportunityId)->value('version');
                 $fact = $this->opportunityFacts->handle($workspaceId, $opportunityId, $version);
