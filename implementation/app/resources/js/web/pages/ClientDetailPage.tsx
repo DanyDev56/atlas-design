@@ -9,6 +9,7 @@ import {
     getClient,
     listContacts,
     listOpportunities,
+    reactivateClient,
     reactivateContact,
     updateContact,
 } from '@/api/crm';
@@ -47,6 +48,8 @@ export function ClientDetailPage() {
     const [showClientArchiveForm, setShowClientArchiveForm] = useState(false);
     const [clientArchiveReason, setClientArchiveReason] = useState('');
     const [archivingClient, setArchivingClient] = useState(false);
+    const [showClientReactivateConfirm, setShowClientReactivateConfirm] = useState(false);
+    const [reactivatingClient, setReactivatingClient] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -169,6 +172,24 @@ export function ClientDetailPage() {
                 : message);
         } finally {
             setArchivingClient(false);
+        }
+    }
+
+    async function onReactivateClient() {
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setReactivatingClient(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await reactivateClient(token, workspaceId, clientId, client.version);
+            setClient(await getClient(token, workspaceId, clientId));
+            setShowClientReactivateConfirm(false);
+            setSuccess(`Le client « ${client.display_name} » est de nouveau actif.`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Réactivation du client impossible');
+        } finally {
+            setReactivatingClient(false);
         }
     }
 
@@ -459,11 +480,54 @@ export function ClientDetailPage() {
 
                         {client.status === 'Archived' && (
                             <div className="mt-6 rounded-2xl border border-atlas-border bg-atlas-surface p-5">
-                                <p className="font-semibold text-atlas-ink">Client conservé dans l’historique</p>
-                                <p className="mt-1 text-sm text-atlas-ink-muted">
-                                    Les contacts, opportunités et documents restent consultables, mais aucune nouvelle action courante n’est disponible.
-                                    {client.archived_at ? ` Archivé le ${formatContactDate(client.archived_at)}.` : ''}
-                                </p>
+                                <div className="flex flex-wrap items-start justify-between gap-4">
+                                    <div>
+                                        <p className="font-semibold text-atlas-ink">Client conservé dans l’historique</p>
+                                        <p className="mt-1 text-sm text-atlas-ink-muted">
+                                            Les contacts, opportunités et documents restent consultables, mais aucune nouvelle action courante n’est disponible.
+                                            {client.archived_at ? ` Archivé le ${formatContactDate(client.archived_at)}.` : ''}
+                                        </p>
+                                    </div>
+                                    {!showClientReactivateConfirm && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowClientReactivateConfirm(true);
+                                                setError(null);
+                                                setSuccess(null);
+                                            }}
+                                            className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                                        >
+                                            Réactiver le client
+                                        </button>
+                                    )}
+                                </div>
+                                {showClientReactivateConfirm && (
+                                    <div role="group" aria-label="Confirmer la réactivation du client" className="mt-5 border-t border-atlas-border pt-5">
+                                        <p className="text-sm text-atlas-ink">
+                                            Le client redeviendra disponible pour les actions courantes. Ses contacts archivés resteront archivés.
+                                        </p>
+                                        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                                            <button
+                                                type="button"
+                                                disabled={reactivatingClient}
+                                                aria-busy={reactivatingClient}
+                                                onClick={() => void onReactivateClient()}
+                                                className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {reactivatingClient ? 'Réactivation…' : 'Confirmer la réactivation'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={reactivatingClient}
+                                                onClick={() => setShowClientReactivateConfirm(false)}
+                                                className="rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 

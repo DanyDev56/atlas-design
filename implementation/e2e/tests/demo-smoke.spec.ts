@@ -127,8 +127,11 @@ test('le devis brouillon des Ateliers est accessible sans ambiguïté', async ({
     await page.getByRole('button', { name: 'Modifier l’opportunité' }).click();
     const editOpportunityForm = page.getByRole('form', { name: 'Modifier l’opportunité' });
     await expect(editOpportunityForm.getByLabel('Titre')).toHaveValue('Audit express à qualifier');
-    await expect(editOpportunityForm.getByLabel('Contact associé (optionnel)').locator('option'))
-        .toContainText(['Aucun contact associé', 'Camille Martin — principal', 'Julien Morel']);
+    const contactSelect = editOpportunityForm.getByLabel('Contact associé (optionnel)');
+    await expect(contactSelect.getByRole('option')).toHaveCount(3);
+    await expect(contactSelect.getByRole('option', { name: 'Aucun contact associé' })).toBeAttached();
+    await expect(contactSelect.getByRole('option', { name: 'Camille Martin — principal' })).toBeAttached();
+    await expect(contactSelect.getByRole('option', { name: 'Julien Morel' })).toBeAttached();
     await editOpportunityForm.getByRole('button', { name: 'Annuler' }).click();
     await page.goBack();
 
@@ -136,6 +139,27 @@ test('le devis brouillon des Ateliers est accessible sans ambiguïté', async ({
     await expect(page.getByRole('heading', { name: 'Refonte identité visuelle' })).toBeVisible();
     await page.getByRole('link', { name: 'Vérifier et envoyer' }).click();
     await expect(page.getByRole('button', { name: 'Envoyer au client' })).toBeVisible();
+});
+
+test('un client sans opportunité active peut être archivé puis réactivé', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le cycle métier complet suffit sur un viewport.');
+
+    await navigateFromShell(page, 'CRM');
+    await page.getByRole('link').filter({ hasText: 'Horizon Digital' }).click();
+    await expect(page.getByRole('heading', { name: 'Horizon Digital' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Archiver le client' }).click();
+    const archiveForm = page.getByRole('form', { name: 'Archiver le client' });
+    await archiveForm.getByLabel('Motif d’archivage').fill('Fin du dossier de démonstration');
+    await archiveForm.getByRole('button', { name: 'Confirmer l’archivage du client' }).click();
+    await expect(page.getByText('Client conservé dans l’historique')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Réactiver le client' }).click();
+    const reactivateGroup = page.getByRole('group', { name: 'Confirmer la réactivation du client' });
+    await expect(reactivateGroup.getByText('Ses contacts archivés resteront archivés.', { exact: false })).toBeVisible();
+    await reactivateGroup.getByRole('button', { name: 'Confirmer la réactivation' }).click();
+    await expect(page.getByText('Le client « Horizon Digital » est de nouveau actif.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Archiver le client' })).toBeVisible();
 });
 
 test('les trois états de facturation actionnables ouvrent le bon écran', async ({ page }, testInfo) => {

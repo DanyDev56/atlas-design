@@ -258,13 +258,17 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Client archivé conservé dans les listes et sur une fiche historique en lecture
   seule ; contacts, opportunités et documents restent intacts et consultables
 - Événement `ClientArchived` idempotent et sans donnée personnelle dans l'outbox
+- Réactivation confirmée d'un client archivé avec contrôle de révision et
+  idempotence, après validation du profil courant
+- Retour à l'usage courant sans réactivation implicite des contacts archivés ;
+  événement `ClientReactivated` sans donnée personnelle et audit d'archivage conservé
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Réactiver explicitement un client archivé sans modifier automatiquement le
-  cycle de vie de ses contacts
+- Modifier le profil commercial d'un client actif depuis sa fiche, sans altérer
+  les snapshots de facturation existants
 
 ---
 

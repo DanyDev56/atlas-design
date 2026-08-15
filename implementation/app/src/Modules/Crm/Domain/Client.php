@@ -104,6 +104,31 @@ final class Client
         $this->updatedAt = $now;
     }
 
+    public function reactivate(\DateTimeImmutable $now): void
+    {
+        if ($this->status !== self::STATUS_ARCHIVED) {
+            throw new \DomainException('Client is not archived.');
+        }
+
+        $displayName = trim($this->displayName);
+        $profileDisplayName = $this->profile['display_name'] ?? null;
+
+        if (
+            ! in_array($this->kind, [self::KIND_INDIVIDUAL, self::KIND_ORGANIZATION], true)
+            || mb_strlen($displayName) < 2
+            || mb_strlen($displayName) > 160
+            || ! is_string($profileDisplayName)
+            || mb_strlen(trim($profileDisplayName)) < 2
+            || mb_strlen(trim($profileDisplayName)) > 160
+        ) {
+            throw new \DomainException('Client profile invalid.');
+        }
+
+        $this->status = self::STATUS_ACTIVE;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function assignPrimaryContact(ContactId $contactId, \DateTimeImmutable $now): void
     {
         $this->changePrimaryContact($contactId, $now);

@@ -507,7 +507,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         );
     }
 
-    public function test_owner_archives_client_only_after_all_opportunities_are_terminal(): void
+    public function test_owner_archives_and_reactivates_client_without_reactivating_archived_contacts(): void
     {
         $owner = $this->onboardOwner($this);
         $headers = [
@@ -530,6 +530,29 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             'Idempotency-Key' => (string) Str::uuid(),
         ])->assertCreated();
 
+        $archivedContact = $this->postJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'profile' => ['display_name' => 'Benoît Leroy'],
+            'make_primary' => false,
+            'expected_revision' => 2,
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertCreated();
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$archivedContact->json('contact_id')}/archive",
+            [
+                'reason' => 'Ancien interlocuteur',
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Archived')
+            ->assertJsonPath('client_version', 3);
+
         $opportunity = $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
             'client_id' => $clientId,
             'contact_id' => $contact->json('contact_id'),
@@ -544,7 +567,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
 
         $archivePayload = [
             'reason' => 'Fin de la relation commerciale',
-            'expected_revision' => 2,
+            'expected_revision' => 3,
         ];
 
         $this->postJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/archive", $archivePayload, [
@@ -592,7 +615,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         )->assertOk()
             ->assertJsonPath('client_id', $clientId)
             ->assertJsonPath('status', 'Archived')
-            ->assertJsonPath('version', 3)
+            ->assertJsonPath('version', 4)
             ->assertJsonPath('archived_at', fn ($value) => is_string($value) && $value !== '');
 
         $this->postJson(
@@ -607,7 +630,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
 
         $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/archive",
-            ['reason' => 'Autre motif', 'expected_revision' => 3],
+            ['reason' => 'Autre motif', 'expected_revision' => 4],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => (string) Str::uuid(),
@@ -619,15 +642,17 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
             ->assertJsonPath('status', 'Archived')
-            ->assertJsonPath('version', 3)
+            ->assertJsonPath('version', 4)
             ->assertJsonPath('archived_at', fn ($value) => is_string($value) && $value !== '');
 
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
-            ->assertJsonCount(1)
+            ->assertJsonCount(2)
             ->assertJsonPath('0.status', 'Active')
-            ->assertJsonPath('0.is_primary', true);
+            ->assertJsonPath('0.is_primary', true)
+            ->assertJsonPath('1.contact_id', $archivedContact->json('contact_id'))
+            ->assertJsonPath('1.status', 'Archived');
 
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients", [
             'Authorization' => 'Bearer '.$owner['token'],
@@ -648,6 +673,74 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             array_keys(json_decode(
                 (string) DB::table('platform.outbox_messages')
                     ->where('event_type', 'crm.client_archived')
+                    ->value('payload'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )),
+        );
+
+        $reactivatePayload = ['expected_revision' => 4];
+        $reactivateKey = (string) Str::uuid();
+        $reactivated = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/reactivate",
+            $reactivatePayload,
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $reactivateKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('client_id', $clientId)
+            ->assertJsonPath('status', 'Active')
+            ->assertJsonPath('version', 5);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/reactivate",
+            $reactivatePayload,
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $reactivateKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($reactivated->json());
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/reactivate",
+            ['expected_revision' => 5],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Client is not archived.');
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('status', 'Active')
+            ->assertJsonPath('version', 5)
+            ->assertJsonPath('archived_at', fn ($value) => is_string($value) && $value !== '');
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('0.status', 'Active')
+            ->assertJsonPath('1.contact_id', $archivedContact->json('contact_id'))
+            ->assertJsonPath('1.status', 'Archived');
+
+        $this->assertDatabaseHas('crm.clients', [
+            'id' => $clientId,
+            'status' => 'Active',
+            'archive_reason' => 'Fin de la relation commerciale',
+        ]);
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.client_reactivated')
+            ->count());
+        $this->assertSame(
+            ['version', 'client_id', 'workspace_id'],
+            array_keys(json_decode(
+                (string) DB::table('platform.outbox_messages')
+                    ->where('event_type', 'crm.client_reactivated')
                     ->value('payload'),
                 true,
                 512,

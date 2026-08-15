@@ -28,6 +28,20 @@ export async function archiveClient(
     );
 }
 
+export async function reactivateClient(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    expectedRevision: number,
+): Promise<{ client_id: string; status: string; version: number }> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/clients/${clientId}/reactivate`),
+        { expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function createClient(
     token: string,
     workspaceId: string,

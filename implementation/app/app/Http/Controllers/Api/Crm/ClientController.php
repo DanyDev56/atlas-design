@@ -11,6 +11,7 @@ use Atlas\Modules\Crm\Application\ArchiveContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
+use Atlas\Modules\Crm\Application\ReactivateClientHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,7 @@ final class ClientController extends Controller
     public function __construct(
         private readonly CreateClientHandler $createClient,
         private readonly ArchiveClientHandler $archiveClient,
+        private readonly ReactivateClientHandler $reactivateClient,
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
         private readonly UpdateContactHandler $updateContact,
@@ -104,6 +106,22 @@ final class ClientController extends Controller
             workspaceId: $workspaceId,
             clientId: $clientId,
             reason: $validated['reason'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function reactivate(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        $validated = $request->validate([
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->reactivateClient->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

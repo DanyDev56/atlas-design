@@ -164,7 +164,9 @@ export function CrmClientsPage() {
                                         <p className="font-medium text-atlas-ink">{client.display_name}</p>
                                         <p className="mt-0.5 text-xs text-atlas-ink-muted">
                                             {client.kind === 'Organization' ? 'Organisation' : 'Particulier'}
-                                            {client.archived_at ? ` · Archivé le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(client.archived_at))}` : ''}
+                                            {client.status === 'Archived' && client.archived_at
+                                                ? ` · Archivé le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(client.archived_at))}`
+                                                : ''}
                                         </p>
                                     </div>
                                     <StatusBadge status={client.status} />

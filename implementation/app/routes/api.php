@@ -62,6 +62,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/clients', [ClientController::class, 'store']);
             Route::get('/clients/{clientId}', [ClientController::class, 'show']);
             Route::post('/clients/{clientId}/archive', [ClientController::class, 'archive']);
+            Route::post('/clients/{clientId}/reactivate', [ClientController::class, 'reactivate']);
             Route::get('/clients/{clientId}/contacts', [ClientController::class, 'contacts']);
             Route::post('/clients/{clientId}/contacts', [ClientController::class, 'addContact']);
             Route::patch('/clients/{clientId}/contacts/{contactId}', [ClientController::class, 'updateContact']);
