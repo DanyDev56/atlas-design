@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\RecordActivityHandler;
+use Atlas\Modules\Crm\Application\RemoveActivityHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,6 +18,7 @@ final class ActivityController extends Controller
     public function __construct(
         private readonly RecordActivityHandler $recordActivity,
         private readonly CorrectActivityHandler $correctActivity,
+        private readonly RemoveActivityHandler $removeActivity,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -72,6 +74,24 @@ final class ActivityController extends Controller
             summary: $validated['content']['summary'],
             occurredAt: $validated['content']['occurred_at'],
             correctionReason: $validated['correction_reason'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function remove(Request $request, string $workspaceId, string $activityId): JsonResponse
+    {
+        $validated = $request->validate([
+            'removal_reason' => ['required', 'string', 'min:2', 'max:500'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->removeActivity->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            activityId: $activityId,
+            removalReason: $validated['removal_reason'],
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

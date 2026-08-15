@@ -76,6 +76,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/clients/{clientId}/activities', [ActivityController::class, 'index']);
             Route::post('/clients/{clientId}/activities', [ActivityController::class, 'store']);
             Route::patch('/activities/{activityId}', [ActivityController::class, 'update']);
+            Route::post('/activities/{activityId}/remove', [ActivityController::class, 'remove']);
 
             Route::get('/opportunities', [OpportunityController::class, 'index']);
             Route::post('/opportunities', [OpportunityController::class, 'store']);

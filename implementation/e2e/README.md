@@ -37,7 +37,8 @@ Le profil complet vérifie les parcours métier. Le profil vide utilise
 supprimer de données existantes. La recette d’inscription intercepte uniquement
 ses appels HTTP : elle ne crée donc aucun utilisateur à chaque exécution.
 Le scénario complet couvre aussi la chronologie commerciale seedée d’un client,
-l’ouverture de son formulaire d’activité et celle d’une correction auditée.
+l’ouverture de son formulaire d’activité, d’une correction auditée et d’un
+retrait terminal avec motif obligatoire.
 
 Variables disponibles : `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_CHANNEL`,
 `ATLAS_DEMO_EMAIL`, `ATLAS_DEMO_PASSWORD`, `ATLAS_EMPTY_DEMO_EMAIL` et

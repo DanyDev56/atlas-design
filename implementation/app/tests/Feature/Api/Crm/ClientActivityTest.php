@@ -242,6 +242,100 @@ final class ClientActivityTest extends IntegrationTestCase
         $this->assertArrayNotHasKey('correction_reason', $eventPayload);
     }
 
+    public function test_owner_removes_activity_terminally_without_deleting_its_audit(): void
+    {
+        $owner = $this->onboardOwner($this);
+        $headers = ['Authorization' => 'Bearer '.$owner['token']];
+        $client = $this->createClient($owner, 'Atelier Retrait');
+        $recorded = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities",
+            [
+                'kind' => 'Call',
+                'summary' => 'Appel attribué par erreur à ce dossier.',
+                'occurred_at' => now()->subDays(2)->toIso8601String(),
+            ],
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertCreated();
+        $activityId = $recorded->json('activity_id');
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}",
+            [
+                'content' => [
+                    'kind' => 'Call',
+                    'summary' => 'Appel attribué au mauvais dossier client.',
+                    'occurred_at' => now()->subDays(2)->toIso8601String(),
+                ],
+                'correction_reason' => 'Précision apportée avant le retrait définitif.',
+                'expected_revision' => 1,
+            ],
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertOk()->assertJsonPath('version', 2);
+
+        $payload = [
+            'removal_reason' => 'Cette activité concerne un autre client.',
+            'expected_revision' => 2,
+        ];
+        $idempotencyKey = (string) Str::uuid();
+        $removed = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}/remove",
+            $payload,
+            $headers + ['Idempotency-Key' => $idempotencyKey],
+        )->assertOk()
+            ->assertJsonPath('activity_id', $activityId)
+            ->assertJsonPath('status', 'Removed')
+            ->assertJsonPath('version', 3)
+            ->assertJsonStructure(['removed_at']);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}/remove",
+            $payload,
+            $headers + ['Idempotency-Key' => $idempotencyKey],
+        )->assertOk()->assertExactJson($removed->json());
+
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$client['client_id']}/activities",
+            $headers,
+        )->assertOk()->assertJsonCount(0);
+
+        $activity = DB::table('crm.activities')->where('id', $activityId)->sole();
+        $this->assertSame('Removed', $activity->status);
+        $this->assertSame($payload['removal_reason'], $activity->removal_reason);
+        $this->assertSame($owner['user_id'], $activity->removed_by);
+        $this->assertNotNull($activity->removed_at);
+        $this->assertSame(1, DB::table('crm.activity_revisions')->where('activity_id', $activityId)->count());
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}/remove",
+            ['removal_reason' => 'Nouvelle demande.', 'expected_revision' => 3],
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Activity is not recorded.');
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/activities/{$activityId}",
+            [
+                'content' => [
+                    'kind' => 'Meeting',
+                    'summary' => 'Une activité retirée ne peut plus être corrigée.',
+                    'occurred_at' => now()->subDay()->toIso8601String(),
+                ],
+                'correction_reason' => 'Tentative interdite après retrait.',
+                'expected_revision' => 3,
+            ],
+            $headers + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Activity is not recorded.');
+
+        $event = DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.activity_removed')
+            ->sole();
+        $eventPayload = json_decode($event->payload, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(3, $eventPayload['version']);
+        $this->assertArrayNotHasKey('summary', $eventPayload);
+        $this->assertArrayNotHasKey('removal_reason', $eventPayload);
+    }
+
     /** @param array{workspace_id: string, token: string} $owner */
     /** @return array{client_id: string} */
     private function createClient(array $owner, string $displayName): array

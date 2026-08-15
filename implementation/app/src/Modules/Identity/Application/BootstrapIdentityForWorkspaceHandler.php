@@ -48,6 +48,7 @@ final class BootstrapIdentityForWorkspaceHandler
         'crm.activities.read',
         'crm.activities.record',
         'crm.activities.correct',
+        'crm.activities.remove',
         'billing.quotes.read',
         'billing.quotes.create',
         'billing.quotes.update-draft',

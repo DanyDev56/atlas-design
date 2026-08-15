@@ -16,6 +16,8 @@ final class Activity
 
     public const STATUS_RECORDED = 'Recorded';
 
+    public const STATUS_REMOVED = 'Removed';
+
     private function __construct(
         private readonly ActivityId $id,
         private readonly string $workspaceId,
@@ -29,6 +31,9 @@ final class Activity
         private int $version,
         private readonly \DateTimeImmutable $createdAt,
         private \DateTimeImmutable $updatedAt,
+        private ?string $removalReason,
+        private ?string $removedBy,
+        private ?\DateTimeImmutable $removedAt,
     ) {}
 
     public static function record(
@@ -58,6 +63,9 @@ final class Activity
             version: 1,
             createdAt: $now,
             updatedAt: $now,
+            removalReason: null,
+            removedBy: null,
+            removedAt: null,
         );
     }
 
@@ -100,6 +108,26 @@ final class Activity
         return $previous;
     }
 
+    public function remove(string $reason, string $actorUserId, \DateTimeImmutable $now): void
+    {
+        if ($this->status !== self::STATUS_RECORDED) {
+            throw new \DomainException('Activity is not recorded.');
+        }
+
+        $reason = trim($reason);
+
+        if (mb_strlen($reason) < 2 || mb_strlen($reason) > 500) {
+            throw new \DomainException('Activity removal reason invalid.');
+        }
+
+        $this->status = self::STATUS_REMOVED;
+        $this->removalReason = $reason;
+        $this->removedBy = $actorUserId;
+        $this->removedAt = $now;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     /** @param array<string, mixed> $row */
     public static function reconstitute(array $row): self
     {
@@ -116,6 +144,9 @@ final class Activity
             version: (int) $row['version'],
             createdAt: new \DateTimeImmutable($row['created_at']),
             updatedAt: new \DateTimeImmutable($row['updated_at']),
+            removalReason: $row['removal_reason'] ?? null,
+            removedBy: $row['removed_by'] ?? null,
+            removedAt: isset($row['removed_at']) ? new \DateTimeImmutable($row['removed_at']) : null,
         );
     }
 
@@ -208,5 +239,20 @@ final class Activity
     public function updatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function removalReason(): ?string
+    {
+        return $this->removalReason;
+    }
+
+    public function removedBy(): ?string
+    {
+        return $this->removedBy;
+    }
+
+    public function removedAt(): ?\DateTimeImmutable
+    {
+        return $this->removedAt;
     }
 }

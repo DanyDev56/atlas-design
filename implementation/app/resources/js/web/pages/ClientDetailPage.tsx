@@ -14,6 +14,7 @@ import {
     reactivateClient,
     reactivateContact,
     recordClientActivity,
+    removeClientActivity,
     updateClientBillingProfile,
     updateClientProfile,
     updateContact,
@@ -129,6 +130,9 @@ export function ClientDetailPage() {
     const [editActivityOccurredAt, setEditActivityOccurredAt] = useState('');
     const [activityCorrectionReason, setActivityCorrectionReason] = useState('');
     const [correctingActivity, setCorrectingActivity] = useState(false);
+    const [removingActivityId, setRemovingActivityId] = useState<string | null>(null);
+    const [activityRemovalReason, setActivityRemovalReason] = useState('');
+    const [removingActivity, setRemovingActivity] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -231,6 +235,7 @@ export function ClientDetailPage() {
         setEditingBillingProfile(false);
         setShowActivityForm(false);
         setEditingActivityId(null);
+        setRemovingActivityId(null);
         setShowClientArchiveForm(true);
         setClientArchiveReason('');
         setError(null);
@@ -422,6 +427,7 @@ export function ClientDetailPage() {
         setActivityOpportunityId('');
         setShowActivityForm(true);
         setEditingActivityId(null);
+        setRemovingActivityId(null);
         setError(null);
         setSuccess(null);
     }
@@ -462,6 +468,7 @@ export function ClientDetailPage() {
         setEditActivityOccurredAt(localDateTimeValue(new Date(activity.occurred_at)));
         setActivityCorrectionReason('');
         setEditingActivityId(activity.activity_id);
+        setRemovingActivityId(null);
         setError(null);
         setSuccess(null);
     }
@@ -496,6 +503,44 @@ export function ClientDetailPage() {
                     : message);
         } finally {
             setCorrectingActivity(false);
+        }
+    }
+
+    function openActivityRemoval(activity: ClientActivity) {
+        setShowActivityForm(false);
+        setEditingActivityId(null);
+        setActivityRemovalReason('');
+        setRemovingActivityId(activity.activity_id);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onRemoveActivity(event: FormEvent, activity: ClientActivity) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId) return;
+
+        setRemovingActivity(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await removeClientActivity(
+                token,
+                workspaceId,
+                activity.activity_id,
+                activityRemovalReason.trim(),
+                activity.version,
+            );
+            setActivities(await listClientActivities(token, workspaceId, clientId));
+            setRemovingActivityId(null);
+            setActivityRemovalReason('');
+            setSuccess('L’activité a été retirée de la chronologie et reste conservée dans l’audit.');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Retrait de l’activité impossible';
+            setError(message === 'Activity is not recorded.'
+                ? 'Cette activité a déjà été retirée.'
+                : message);
+        } finally {
+            setRemovingActivity(false);
         }
     }
 
@@ -1496,14 +1541,25 @@ export function ClientDetailPage() {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    {client.status === 'Active' && editingActivityId === null && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openActivityCorrection(activity)}
-                                                            className="text-xs font-semibold text-atlas-accent hover:underline"
-                                                        >
-                                                            Corriger
-                                                        </button>
+                                                    {client.status === 'Active'
+                                                        && editingActivityId === null
+                                                        && removingActivityId === null && (
+                                                        <div className="flex items-center gap-3">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openActivityCorrection(activity)}
+                                                                className="text-xs font-semibold text-atlas-accent hover:underline"
+                                                            >
+                                                                Corriger
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openActivityRemoval(activity)}
+                                                                className="text-xs font-semibold text-red-700 hover:underline"
+                                                            >
+                                                                Retirer
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                                 {editingActivityId !== activity.activity_id && (
@@ -1583,6 +1639,56 @@ export function ClientDetailPage() {
                                                                     type="button"
                                                                     onClick={() => setEditingActivityId(null)}
                                                                     className="rounded-xl border border-atlas-border bg-white px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                                                >
+                                                                    Annuler
+                                                                </button>
+                                                            </div>
+                                                        </fieldset>
+                                                    </form>
+                                                )}
+                                                {removingActivityId === activity.activity_id && (
+                                                    <form
+                                                        aria-label="Retirer une activité commerciale"
+                                                        onSubmit={(event) => void onRemoveActivity(event, activity)}
+                                                        className="mt-4 space-y-4 rounded-xl border border-red-200 bg-red-50 p-4"
+                                                    >
+                                                        <fieldset disabled={removingActivity} className="space-y-4">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-red-900">
+                                                                    Retirer cette activité ?
+                                                                </p>
+                                                                <p className="mt-1 text-xs text-red-800">
+                                                                    Elle disparaîtra de la chronologie. Le retrait est définitif, mais son contenu et ses corrections resteront dans l’audit interne.
+                                                                </p>
+                                                            </div>
+                                                            <FormField
+                                                                label="Motif du retrait"
+                                                                hint="Ce motif est obligatoire et conservé dans l’audit interne."
+                                                            >
+                                                                <textarea
+                                                                    required
+                                                                    minLength={2}
+                                                                    maxLength={500}
+                                                                    rows={3}
+                                                                    className={inputClassName}
+                                                                    value={activityRemovalReason}
+                                                                    onChange={(event) => setActivityRemovalReason(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <div className="flex flex-col gap-2 sm:flex-row">
+                                                                <button
+                                                                    type="submit"
+                                                                    className="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                                >
+                                                                    {removingActivity ? 'Retrait…' : 'Confirmer le retrait'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setRemovingActivityId(null);
+                                                                        setActivityRemovalReason('');
+                                                                    }}
+                                                                    className="rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
                                                                 >
                                                                     Annuler
                                                                 </button>

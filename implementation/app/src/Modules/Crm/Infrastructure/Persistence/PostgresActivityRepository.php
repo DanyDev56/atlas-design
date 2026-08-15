@@ -26,7 +26,25 @@ final class PostgresActivityRepository
             'version' => $activity->version(),
             'created_at' => $activity->createdAt()->format('Y-m-d H:i:sP'),
             'updated_at' => $activity->updatedAt()->format('Y-m-d H:i:sP'),
+            'removal_reason' => null,
+            'removed_by' => null,
+            'removed_at' => null,
         ]);
+    }
+
+    public function updateRemoval(Activity $activity): void
+    {
+        DB::table('crm.activities')
+            ->where('workspace_id', $activity->workspaceId())
+            ->where('id', $activity->id()->value)
+            ->update([
+                'status' => $activity->status(),
+                'version' => $activity->version(),
+                'updated_at' => $activity->updatedAt()->format('Y-m-d H:i:sP'),
+                'removal_reason' => $activity->removalReason(),
+                'removed_by' => $activity->removedBy(),
+                'removed_at' => $activity->removedAt()?->format('Y-m-d H:i:sP'),
+            ]);
     }
 
     public function findById(string $workspaceId, ActivityId $id): ?Activity
@@ -34,6 +52,7 @@ final class PostgresActivityRepository
         $row = DB::table('crm.activities')
             ->where('workspace_id', $workspaceId)
             ->where('id', $id->value)
+            ->lockForUpdate()
             ->first();
 
         return $row !== null ? Activity::reconstitute((array) $row) : null;

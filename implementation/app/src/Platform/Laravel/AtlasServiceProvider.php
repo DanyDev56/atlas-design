@@ -65,6 +65,7 @@ use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\ReactivateClientHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
 use Atlas\Modules\Crm\Application\RecordActivityHandler;
+use Atlas\Modules\Crm\Application\RemoveActivityHandler;
 use Atlas\Modules\Crm\Application\UpdateClientBillingProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateClientProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
@@ -180,6 +181,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(CreateOpportunityHandler::class);
         $this->app->singleton(QualifyOpportunityHandler::class);
         $this->app->singleton(RecordActivityHandler::class);
+        $this->app->singleton(RemoveActivityHandler::class);
         $this->app->singleton(ReactivateClientHandler::class);
         $this->app->singleton(ReactivateContactHandler::class);
         $this->app->singleton(GetOpportunityAnalyticsFactHandler::class);

@@ -6,6 +6,7 @@ namespace Tests\Integration\Demo;
 
 use Atlas\Composition\Demo\DemoAccountSeeder;
 use Atlas\Modules\Crm\Application\CorrectActivityHandler;
+use Atlas\Modules\Crm\Application\RemoveActivityHandler;
 use Illuminate\Support\Facades\DB;
 use Tests\Integration\IntegrationTestCase;
 
@@ -72,10 +73,22 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             expectedRevision: 1,
             requestId: 'demo-test:correct-activity',
         );
+        app(RemoveActivityHandler::class)->handle(
+            actorUserId: $result->userId,
+            workspaceId: $result->workspaceId,
+            activityId: $activity->id,
+            removalReason: 'Vérification du retrait terminal dans le scénario.',
+            expectedRevision: 2,
+            requestId: 'demo-test:remove-activity',
+        );
 
         $second = app(DemoAccountSeeder::class)->seed();
         $this->assertFalse($second->sampleDataSeeded);
         $this->assertSame($result->resourceCounts, $second->resourceCounts);
+        $this->assertSame(7, DB::table('crm.activities')
+            ->where('workspace_id', $result->workspaceId)
+            ->where('status', 'Recorded')
+            ->count());
     }
 
     public function test_upgrades_the_previous_two_client_scenario_without_deleting_it(): void

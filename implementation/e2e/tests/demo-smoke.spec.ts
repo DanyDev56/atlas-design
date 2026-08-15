@@ -160,6 +160,12 @@ test('un client sans opportunité active peut être archivé puis réactivé', a
     );
     await expect(correctionForm.getByLabel('Motif de la correction')).toBeVisible();
     await correctionForm.getByRole('button', { name: 'Annuler' }).click();
+    await seededActivity.getByRole('button', { name: 'Retirer' }).click();
+    const removalForm = seededActivity.getByRole('form', { name: 'Retirer une activité commerciale' });
+    await expect(removalForm.getByText('Le retrait est définitif', { exact: false })).toBeVisible();
+    await expect(removalForm.getByLabel('Motif du retrait')).toBeVisible();
+    await expect(removalForm.getByRole('button', { name: 'Confirmer le retrait' })).toBeVisible();
+    await removalForm.getByRole('button', { name: 'Annuler' }).click();
     await activityTimeline.getByRole('button', { name: 'Ajouter une activité' }).click();
     const activityForm = page.getByRole('form', { name: 'Ajouter une activité commerciale' });
     await expect(activityForm.getByLabel('Type d’activité')).toHaveValue('Note');

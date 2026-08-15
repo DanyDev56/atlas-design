@@ -175,6 +175,21 @@ export async function correctClientActivity(
     );
 }
 
+export async function removeClientActivity(
+    token: string,
+    workspaceId: string,
+    activityId: string,
+    removalReason: string,
+    expectedRevision: number,
+): Promise<{ activity_id: string; status: 'Removed'; version: number; removed_at: string }> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/activities/${activityId}/remove`),
+        { removal_reason: removalReason, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function addContact(
     token: string,
     workspaceId: string,

@@ -286,13 +286,18 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   obligatoire, concurrence optimiste et rejeu idempotent
 - Ancienne valeur, motif, acteur et instant conservés dans l'audit interne ;
   événement `ActivityCorrected` sans texte libre dans l'outbox
+- Retrait logique et terminal d'une activité avec motif, acteur, instant,
+  concurrence optimiste et rejeu idempotent
+- Activité retirée absente de la chronologie courante sans suppression physique
+  de son contenu ni de ses corrections ; événement `ActivityRemoved` sans texte
+  libre dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Permettre le retrait logique et terminal d'une activité inappropriée, avec
-  motif d'audit et disparition des lectures ordinaires
+- Rendre l'historique des corrections et retraits consultable dans une vue
+  d'audit autorisée, distincte de la chronologie commerciale ordinaire
 
 ---
 
