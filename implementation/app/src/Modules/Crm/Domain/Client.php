@@ -103,6 +103,12 @@ final class Client
         $this->updatedAt = $now;
     }
 
+    public function recordContactReactivated(\DateTimeImmutable $now): void
+    {
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function id(): ClientId
     {
         return $this->id;

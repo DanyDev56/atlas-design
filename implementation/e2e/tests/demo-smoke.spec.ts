@@ -60,7 +60,12 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     const archiveContactForm = page.getByRole('form', { name: 'Archiver Julien Morel' });
     await expect(archiveContactForm.getByLabel('Motif d’archivage')).toBeVisible();
     await expect(archiveContactForm.getByRole('button', { name: 'Confirmer l’archivage' })).toBeVisible();
-    await archiveContactForm.getByRole('button', { name: 'Annuler' }).click();
+    await archiveContactForm.getByLabel('Motif d’archivage').fill('Validation du cycle de vie en démonstration');
+    await archiveContactForm.getByRole('button', { name: 'Confirmer l’archivage' }).click();
+    const julienCard = page.getByRole('listitem').filter({ hasText: 'Julien Morel' });
+    await expect(julienCard.getByText('Archivé', { exact: true })).toBeVisible();
+    await julienCard.getByRole('button', { name: 'Réactiver Julien Morel' }).click();
+    await expect(page.getByRole('button', { name: 'Archiver Julien Morel' })).toBeVisible();
     await page.getByRole('button', { name: 'Modifier Camille Martin' }).click();
     const editContactForm = page.getByRole('form', { name: 'Modifier Camille Martin' });
     await expect(editContactForm.getByLabel('Nom complet')).toHaveValue('Camille Martin');

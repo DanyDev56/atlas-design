@@ -8,6 +8,7 @@ import {
     getClient,
     listContacts,
     listOpportunities,
+    reactivateContact,
     updateContact,
 } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
@@ -23,6 +24,10 @@ function contactProfileValue(contact: ContactSummary, key: string): string | nul
     const value = contact.profile[key];
 
     return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function formatContactDate(value: string): string {
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
 }
 
 export function ClientDetailPage() {
@@ -55,6 +60,7 @@ export function ClientDetailPage() {
     const [archivingContactId, setArchivingContactId] = useState<string | null>(null);
     const [archiveReason, setArchiveReason] = useState('');
     const [archiveBusyContactId, setArchiveBusyContactId] = useState<string | null>(null);
+    const [reactivatingContactId, setReactivatingContactId] = useState<string | null>(null);
 
     const [showOpportunityForm, setShowOpportunityForm] = useState(false);
     const [opportunityContactId, setOpportunityContactId] = useState('');
@@ -294,6 +300,28 @@ export function ClientDetailPage() {
                 : message);
         } finally {
             setArchiveBusyContactId(null);
+        }
+    }
+
+    async function onReactivateContact(contact: ContactSummary, contactName: string) {
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setReactivatingContactId(contact.contact_id);
+        setError(null);
+        setSuccess(null);
+        try {
+            await reactivateContact(token, workspaceId, clientId, contact.contact_id, client.version);
+            const [clientData, contactData] = await Promise.all([
+                getClient(token, workspaceId, clientId),
+                listContacts(token, workspaceId, clientId),
+            ]);
+            setClient(clientData);
+            setContacts(contactData);
+            setSuccess(`« ${contactName} » est de nouveau actif. Vous pouvez le définir comme principal si nécessaire.`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Réactivation du contact impossible');
+        } finally {
+            setReactivatingContactId(null);
         }
     }
 
@@ -579,6 +607,30 @@ export function ClientDetailPage() {
                                                         >
                                                             Archiver
                                                         </button>
+                                                    </div>
+                                                )}
+                                                {contact.status === 'Archived' && (
+                                                    <div className="mt-4 border-t border-atlas-border pt-4">
+                                                        {contact.archived_at && (
+                                                            <p className="mb-2 text-xs text-atlas-ink-muted">
+                                                                Archivé le {formatContactDate(contact.archived_at)}
+                                                            </p>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            disabled={reactivatingContactId !== null}
+                                                            aria-busy={reactivatingContactId === contact.contact_id}
+                                                            aria-label={`Réactiver ${name}`}
+                                                            onClick={() => void onReactivateContact(contact, name)}
+                                                            className="text-xs font-semibold text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {reactivatingContactId === contact.contact_id
+                                                                ? 'Réactivation…'
+                                                                : 'Réactiver le contact'}
+                                                        </button>
+                                                        <p className="mt-1 text-xs text-atlas-ink-muted">
+                                                            Il restera secondaire après sa réactivation.
+                                                        </p>
                                                     </div>
                                                 )}
                                                 {editingContactId === contact.contact_id && (

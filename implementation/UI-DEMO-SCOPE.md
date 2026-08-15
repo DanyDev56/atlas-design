@@ -240,12 +240,17 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   `ContactArchived` et `ClientPrimaryContactChanged` sans donnée personnelle
 - Contacts archivés conservés dans l'historique de la fiche, sans action de
   communication, d'édition ou d'affectation aux nouvelles opportunités
+- Réactivation explicite d'un contact archivé, sans restauration automatique du
+  statut principal, avec contrôle de révision et idempotence
+- Événement `ContactReactivated` sans donnée personnelle et conservation des
+  informations du dernier archivage pour l'audit interne
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Réactiver un contact archivé en restaurant explicitement son usage courant
+- Réaffecter le contact d'une opportunité active afin de pouvoir archiver un
+  interlocuteur devenu obsolète
 
 ---
 

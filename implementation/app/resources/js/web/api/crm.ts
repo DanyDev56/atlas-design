@@ -113,6 +113,28 @@ export async function archiveContact(
     );
 }
 
+export async function reactivateContact(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    contactId: string,
+    expectedRevision: number,
+): Promise<{
+    contact_id: string;
+    client_id: string;
+    status: string;
+    contact_version: number;
+    client_version: number;
+    primary_contact_id: string | null;
+}> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}/reactivate`),
+        { expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function listOpportunities(
     token: string,
     workspaceId: string,

@@ -115,6 +115,29 @@ final class Contact
         $this->version++;
     }
 
+    public function reactivate(): void
+    {
+        if (! $this->isArchived()) {
+            throw new \DomainException('Contact is not archived.');
+        }
+
+        $displayName = $this->profile['display_name'] ?? null;
+
+        if (! is_string($displayName)) {
+            throw new \DomainException('Contact profile invalid.');
+        }
+
+        $displayName = trim($displayName);
+
+        if (mb_strlen($displayName) < 2 || mb_strlen($displayName) > 160) {
+            throw new \DomainException('Contact profile invalid.');
+        }
+
+        $this->profile['display_name'] = $displayName;
+        $this->status = self::STATUS_ACTIVE;
+        $this->version++;
+    }
+
     public function id(): ContactId
     {
         return $this->id;
@@ -134,6 +157,11 @@ final class Contact
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->status === self::STATUS_ARCHIVED;
     }
 
     public function status(): string

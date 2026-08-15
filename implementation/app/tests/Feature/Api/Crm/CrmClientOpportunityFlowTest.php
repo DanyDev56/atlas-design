@@ -230,6 +230,54 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             'status' => 'Archived',
         ]);
 
+        $reactivateContactKey = (string) Str::uuid();
+        $contactReactivated = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
+            ['expected_revision' => 7],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $reactivateContactKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Active')
+            ->assertJsonPath('contact_version', 3)
+            ->assertJsonPath('client_version', 8)
+            ->assertJsonPath('primary_contact_id', null);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
+            ['expected_revision' => 7],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $reactivateContactKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($contactReactivated->json());
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
+            ['expected_revision' => 8],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Contact is not archived.');
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('1.status', 'Active')
+            ->assertJsonPath('1.is_primary', false)
+            ->assertJsonPath('1.version', 3)
+            ->assertJsonPath('1.archived_at', fn ($value) => is_string($value) && $value !== '');
+
+        $this->assertDatabaseHas('crm.contacts', [
+            'id' => $alternateContact->json('contact_id'),
+            'archive_reason' => 'Doublon de contact',
+            'status' => 'Active',
+        ]);
+
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/pipeline", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
@@ -260,11 +308,25 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         $this->assertSame(1, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.contact_archived')
             ->count());
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.contact_reactivated')
+            ->count());
         $this->assertSame(
             ['version', 'client_id', 'contact_id', 'workspace_id'],
             array_keys(json_decode(
                 (string) DB::table('platform.outbox_messages')
                     ->where('event_type', 'crm.contact_archived')
+                    ->value('payload'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )),
+        );
+        $this->assertSame(
+            ['version', 'client_id', 'contact_id', 'workspace_id'],
+            array_keys(json_decode(
+                (string) DB::table('platform.outbox_messages')
+                    ->where('event_type', 'crm.contact_reactivated')
                     ->value('payload'),
                 true,
                 512,
