@@ -54,6 +54,8 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Camille Martin', { exact: true })).toBeVisible();
     await expect(page.getByText('Julien Morel', { exact: true })).toBeVisible();
     await expect(page.getByText('Principal', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Retirer Camille Martin comme contact principal' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Définir Julien Morel comme contact principal' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Nouvelle opportunité' }).click();
     await expect(page.getByLabel('Contact associé (optionnel)').locator('option:checked'))

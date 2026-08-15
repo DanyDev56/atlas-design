@@ -1,6 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { addContact, createOpportunity, getClient, listContacts, listOpportunities } from '@/api/crm';
+import {
+    addContact,
+    changePrimaryContact,
+    createOpportunity,
+    getClient,
+    listContacts,
+    listOpportunities,
+} from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
@@ -36,6 +43,7 @@ export function ClientDetailPage() {
     const [contactRole, setContactRole] = useState('');
     const [makePrimary, setMakePrimary] = useState(false);
     const [creatingContact, setCreatingContact] = useState(false);
+    const [changingPrimaryContactId, setChangingPrimaryContactId] = useState<string | null>(null);
 
     const [showOpportunityForm, setShowOpportunityForm] = useState(false);
     const [opportunityContactId, setOpportunityContactId] = useState('');
@@ -152,6 +160,40 @@ export function ClientDetailPage() {
             setError(err instanceof Error ? err.message : 'Ajout du contact impossible');
         } finally {
             setCreatingContact(false);
+        }
+    }
+
+    async function onChangePrimaryContact(
+        newPrimaryContactId: string | null,
+        selectedContactId: string,
+        contactName: string,
+    ) {
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setChangingPrimaryContactId(selectedContactId);
+        setError(null);
+        setSuccess(null);
+        try {
+            await changePrimaryContact(
+                token,
+                workspaceId,
+                clientId,
+                newPrimaryContactId,
+                client.version,
+            );
+            const [clientData, contactData] = await Promise.all([
+                getClient(token, workspaceId, clientId),
+                listContacts(token, workspaceId, clientId),
+            ]);
+            setClient(clientData);
+            setContacts(contactData);
+            setSuccess(newPrimaryContactId
+                ? `« ${contactName} » est maintenant le contact principal.`
+                : `« ${contactName} » n’est plus le contact principal.`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Changement du contact principal impossible');
+        } finally {
+            setChangingPrimaryContactId(null);
         }
     }
 
@@ -385,6 +427,28 @@ export function ClientDetailPage() {
                                                             </a>
                                                         )}
                                                     </div>
+                                                )}
+                                                {contact.status === 'Active' && (
+                                                    <button
+                                                        type="button"
+                                                        disabled={changingPrimaryContactId !== null}
+                                                        aria-busy={changingPrimaryContactId === contact.contact_id}
+                                                        aria-label={contact.is_primary
+                                                            ? `Retirer ${name} comme contact principal`
+                                                            : `Définir ${name} comme contact principal`}
+                                                        onClick={() => void onChangePrimaryContact(
+                                                            contact.is_primary ? null : contact.contact_id,
+                                                            contact.contact_id,
+                                                            name,
+                                                        )}
+                                                        className="mt-4 text-xs font-semibold text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {changingPrimaryContactId === contact.contact_id
+                                                            ? 'Mise à jour…'
+                                                            : contact.is_primary
+                                                                ? 'Retirer comme principal'
+                                                                : 'Définir comme principal'}
+                                                    </button>
                                                 )}
                                             </li>
                                         );

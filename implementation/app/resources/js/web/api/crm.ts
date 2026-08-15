@@ -52,6 +52,21 @@ export async function addContact(
     return apiRequest('POST', workspacePath(workspaceId, `/clients/${clientId}/contacts`), payload, { token });
 }
 
+export async function changePrimaryContact(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    contactId: string | null,
+    expectedRevision: number,
+): Promise<{ client_id: string; primary_contact_id: string | null; version: number }> {
+    return apiRequest(
+        'PUT',
+        workspacePath(workspaceId, `/clients/${clientId}/primary-contact`),
+        { contact_id: contactId, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function listOpportunities(
     token: string,
     workspaceId: string,

@@ -47,6 +47,54 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             ->assertJsonPath('0.is_primary', true)
             ->assertJsonPath('0.status', 'Active');
 
+        $alternateContact = $this->postJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'profile' => ['display_name' => 'John Smith', 'email' => 'john@acme.test'],
+            'make_primary' => false,
+            'expected_revision' => 2,
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertCreated();
+
+        $changePrimaryKey = (string) Str::uuid();
+        $primaryChanged = $this->putJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/primary-contact",
+            [
+                'contact_id' => $alternateContact->json('contact_id'),
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $changePrimaryKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('primary_contact_id', $alternateContact->json('contact_id'))
+            ->assertJsonPath('version', 3);
+
+        $this->putJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/primary-contact",
+            [
+                'contact_id' => $alternateContact->json('contact_id'),
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $changePrimaryKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($primaryChanged->json());
+
+        $this->putJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/primary-contact",
+            ['contact_id' => null, 'expected_revision' => 3],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('primary_contact_id', null)
+            ->assertJsonPath('version', 4);
+
         $opportunity = $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
             'client_id' => $clientId,
             'contact_id' => $contact->json('contact_id'),
@@ -95,5 +143,8 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
                 ->where('event_type', 'crm.client_created')
                 ->exists()
         );
+        $this->assertSame(3, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.client_primary_contact_changed')
+            ->count());
     }
 }

@@ -6,8 +6,6 @@ namespace Atlas\Modules\Crm\Application;
 
 use Atlas\Modules\Crm\Domain\ClientId;
 use Atlas\Modules\Crm\Domain\ClientPrimaryContactChanged;
-use Atlas\Modules\Crm\Domain\Contact;
-use Atlas\Modules\Crm\Domain\ContactAdded;
 use Atlas\Modules\Crm\Domain\ContactId;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
@@ -18,7 +16,7 @@ use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
-final class AddContactHandler
+final class ChangeClientPrimaryContactHandler
 {
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
@@ -28,27 +26,21 @@ final class AddContactHandler
         private readonly OutboxWriter $outbox,
     ) {}
 
-    /** @param array<string, mixed> $profile */
     /** @return array<string, mixed> */
     public function handle(
         string $actorUserId,
         string $workspaceId,
         string $clientId,
-        array $profile,
-        bool $makePrimary,
+        ?string $newPrimaryContactId,
         int $expectedRevision,
         string $requestId,
         ?string $correlationId = null,
     ): array {
-        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.create');
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.change-primary');
 
-        if ($makePrimary) {
-            $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.change-primary');
-        }
-
-        $scope = 'crm.add_contact';
+        $scope = 'crm.change_primary_contact';
         $fingerprint = hash('sha256', json_encode([
-            $workspaceId, $clientId, $profile, $makePrimary, $expectedRevision,
+            $workspaceId, $clientId, $newPrimaryContactId, $expectedRevision,
         ], JSON_THROW_ON_ERROR));
         $cached = $this->idempotency->find($scope, $requestId);
 
@@ -61,7 +53,7 @@ final class AddContactHandler
         }
 
         return DB::transaction(function () use (
-            $workspaceId, $clientId, $profile, $makePrimary, $expectedRevision,
+            $workspaceId, $clientId, $newPrimaryContactId, $expectedRevision,
             $requestId, $scope, $fingerprint, $correlationId,
         ): array {
             $client = $this->clients->findById($workspaceId, new ClientId($clientId));
@@ -74,57 +66,46 @@ final class AddContactHandler
                 throw new \DomainException('Client version conflict.');
             }
 
-            $previousPrimaryContactId = $client->primaryContactId() !== null
+            if ($client->primaryContactId() === $newPrimaryContactId) {
+                throw new \DomainException('Primary contact unchanged.');
+            }
+
+            $newContactId = $newPrimaryContactId !== null ? new ContactId($newPrimaryContactId) : null;
+
+            if ($newContactId !== null) {
+                $contact = $this->contacts->findById(
+                    $workspaceId,
+                    new ClientId($clientId),
+                    $newContactId,
+                );
+
+                if ($contact === null || ! $contact->isActive()) {
+                    throw new \DomainException('Contact reference conflict.');
+                }
+            }
+
+            $previousContactId = $client->primaryContactId() !== null
                 ? new ContactId($client->primaryContactId())
                 : null;
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-            $contactId = ContactId::generate();
-            $contact = Contact::create(
-                id: $contactId,
-                workspaceId: $workspaceId,
-                clientId: new ClientId($clientId),
-                profile: $profile,
-                now: $now,
-            );
+            $client->changePrimaryContact($newContactId, $now);
+            $this->clients->update($client);
 
-            $this->contacts->insertWithWorkspace($contact, $workspaceId);
-
-            if ($makePrimary) {
-                $client->assignPrimaryContact($contactId, $now);
-                $this->clients->update($client);
-            }
-
-            $event = new ContactAdded(
-                contactId: $contactId,
+            $event = new ClientPrimaryContactChanged(
                 clientId: new ClientId($clientId),
                 workspaceId: $workspaceId,
+                previousPrimaryContactId: $previousContactId,
+                newPrimaryContactId: $newContactId,
                 eventId: EventId::generate(),
                 occurredAt: $now,
             );
             $this->outbox->append(OutgoingMessage::fromDomainEvent($event, correlationId: $correlationId));
 
-            if ($makePrimary) {
-                $primaryChanged = new ClientPrimaryContactChanged(
-                    clientId: new ClientId($clientId),
-                    workspaceId: $workspaceId,
-                    previousPrimaryContactId: $previousPrimaryContactId,
-                    newPrimaryContactId: $contactId,
-                    eventId: EventId::generate(),
-                    occurredAt: $now,
-                );
-                $this->outbox->append(OutgoingMessage::fromDomainEvent(
-                    $primaryChanged,
-                    correlationId: $correlationId,
-                ));
-            }
-
             $response = [
-                'contact_id' => $contactId->value,
                 'client_id' => $clientId,
-                'is_primary' => $makePrimary,
-                'client_version' => $client->version(),
+                'primary_contact_id' => $client->primaryContactId(),
+                'version' => $client->version(),
             ];
-
             $this->idempotency->store($scope, $requestId, $fingerprint, $response);
 
             return $response;

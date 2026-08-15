@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Crm;
 
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\AddContactHandler;
+use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,7 @@ final class ClientController extends Controller
     public function __construct(
         private readonly CreateClientHandler $createClient,
         private readonly AddContactHandler $addContact,
+        private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -88,6 +90,24 @@ final class ClientController extends Controller
             $this->actorId($request),
             $workspaceId,
             $clientId,
+        ));
+    }
+
+    public function changePrimaryContact(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        $validated = $request->validate([
+            'contact_id' => ['present', 'nullable', 'uuid'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->changePrimaryContact->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            newPrimaryContactId: $validated['contact_id'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
         ));
     }
 

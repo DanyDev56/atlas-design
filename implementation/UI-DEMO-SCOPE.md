@@ -226,13 +226,18 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Création d'opportunité enrichie d'un contact optionnel, avec présélection du
   contact principal et vérification de l'appartenance côté domaine
 - Contact associé relu et présenté sur le détail de l'opportunité
+- Contact principal modifiable ou effaçable depuis la fiche client, avec
+  autorisation élevée, contrôle de révision, idempotence et relecture immédiate
+- Événement `ClientPrimaryContactChanged` publié aussi bien lors de l'ajout d'un
+  contact principal que lors d'un changement explicite
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Ajouter les opérations d'édition, changement de contact principal et archivage
-  lorsque leurs contrats applicatifs seront disponibles
+- Ajouter l'édition du profil d'un contact
+- Archiver un contact après contrôle des opportunités non terminales qui le
+  référencent
 
 ---
 

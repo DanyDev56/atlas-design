@@ -81,7 +81,12 @@ final class Client
 
     public function assignPrimaryContact(ContactId $contactId, \DateTimeImmutable $now): void
     {
-        $this->primaryContactId = $contactId->value;
+        $this->changePrimaryContact($contactId, $now);
+    }
+
+    public function changePrimaryContact(?ContactId $contactId, \DateTimeImmutable $now): void
+    {
+        $this->primaryContactId = $contactId?->value;
         $this->version++;
         $this->updatedAt = $now;
     }
