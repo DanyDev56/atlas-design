@@ -163,6 +163,34 @@ test('un client sans opportunité active peut être archivé puis réactivé', a
     await expect(page.getByText('Les informations de « Horizon Digital » sont enregistrées.')).toBeVisible();
     await expect(page.getByText('Horizon Digital SAS', { exact: true })).toHaveCount(0);
 
+    await page.getByRole('button', { name: 'Modifier la facturation' }).click();
+    let billingForm = page.getByRole('form', { name: 'Modifier les informations de facturation' });
+    await billingForm.getByLabel('Nom de facturation (optionnel)').fill('Horizon Digital SAS');
+    await billingForm.getByLabel('Email de facturation (optionnel)').fill('facturation@horizon-digital.test');
+    await billingForm.getByLabel('Adresse (optionnel)', { exact: true }).fill('14 rue des Entrepreneurs');
+    await billingForm.getByLabel('Code postal (optionnel)').fill('44000');
+    await billingForm.getByLabel('Ville (optionnel)').fill('Nantes');
+    await billingForm.getByLabel('Code pays (optionnel)').fill('FR');
+    await billingForm.getByRole('button', { name: 'Ajouter un identifiant', exact: true }).click();
+    await billingForm.getByLabel('Type 1').fill('SIRET');
+    await billingForm.getByLabel('Valeur 1').fill('123 456 789 00012');
+    await billingForm.getByRole('button', { name: 'Enregistrer la facturation' }).click();
+    await expect(page.getByText('Les informations de facturation sont enregistrées pour les prochains documents.')).toBeVisible();
+    await expect(page.getByText('Horizon Digital SAS', { exact: true })).toBeVisible();
+    await expect(page.getByText('SIRET : 123 456 789 00012', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Modifier la facturation' }).click();
+    billingForm = page.getByRole('form', { name: 'Modifier les informations de facturation' });
+    await billingForm.getByLabel('Nom de facturation (optionnel)').fill('');
+    await billingForm.getByLabel('Email de facturation (optionnel)').fill('');
+    await billingForm.getByLabel('Adresse (optionnel)', { exact: true }).fill('');
+    await billingForm.getByLabel('Code postal (optionnel)').fill('');
+    await billingForm.getByLabel('Ville (optionnel)').fill('');
+    await billingForm.getByLabel('Code pays (optionnel)').fill('');
+    await billingForm.getByRole('button', { name: 'Retirer l’identifiant d’entreprise 1' }).click();
+    await billingForm.getByRole('button', { name: 'Enregistrer la facturation' }).click();
+    await expect(page.getByText('Aucune information administrative n’est encore renseignée.')).toBeVisible();
+
     await page.getByRole('button', { name: 'Archiver le client' }).click();
     const archiveForm = page.getByRole('form', { name: 'Archiver le client' });
     await archiveForm.getByLabel('Motif d’archivage').fill('Fin du dossier de démonstration');

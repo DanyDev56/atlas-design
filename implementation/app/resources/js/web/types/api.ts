@@ -217,10 +217,31 @@ export interface ClientSummary {
 export interface ClientDetail extends ClientSummary {
     workspace_id: string;
     profile: Record<string, unknown>;
-    billing_profile: Record<string, unknown> | null;
+    billing_profile: ClientBillingProfile | null;
     primary_contact_id: string | null;
     profile_version: number;
     billing_profile_version: number;
+}
+
+export interface ClientBillingIdentifier {
+    type: string;
+    value: string;
+}
+
+export interface ClientBillingAddress {
+    line1?: string;
+    line2?: string;
+    postal_code?: string;
+    city?: string;
+    country_code?: string;
+}
+
+export interface ClientBillingProfile {
+    billing_name?: string;
+    billing_email?: string;
+    billing_address?: ClientBillingAddress;
+    registration_identifiers?: ClientBillingIdentifier[];
+    tax_identifiers?: ClientBillingIdentifier[];
 }
 
 export interface ContactSummary {

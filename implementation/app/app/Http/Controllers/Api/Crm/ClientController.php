@@ -13,6 +13,7 @@ use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\ReactivateClientHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
+use Atlas\Modules\Crm\Application\UpdateClientBillingProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateClientProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +26,7 @@ final class ClientController extends Controller
         private readonly CreateClientHandler $createClient,
         private readonly ArchiveClientHandler $archiveClient,
         private readonly ReactivateClientHandler $reactivateClient,
+        private readonly UpdateClientBillingProfileHandler $updateClientBillingProfile,
         private readonly UpdateClientProfileHandler $updateClientProfile,
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
@@ -154,6 +156,40 @@ final class ClientController extends Controller
             workspaceId: $workspaceId,
             clientId: $clientId,
             changes: $validated['changes'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function updateBillingProfile(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        $validated = $request->validate([
+            'billing_profile' => ['present', 'array:billing_name,billing_email,billing_address,registration_identifiers,tax_identifiers'],
+            'billing_profile.billing_name' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'billing_profile.billing_email' => ['sometimes', 'nullable', 'email', 'max:254'],
+            'billing_profile.billing_address' => ['sometimes', 'nullable', 'array:line1,line2,postal_code,city,country_code'],
+            'billing_profile.billing_address.line1' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'billing_profile.billing_address.line2' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'billing_profile.billing_address.postal_code' => ['sometimes', 'nullable', 'string', 'max:32'],
+            'billing_profile.billing_address.city' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'billing_profile.billing_address.country_code' => ['sometimes', 'nullable', 'string', 'size:2'],
+            'billing_profile.registration_identifiers' => ['sometimes', 'array'],
+            'billing_profile.registration_identifiers.*' => ['required', 'array:type,value'],
+            'billing_profile.registration_identifiers.*.type' => ['required', 'string', 'max:32', 'regex:/^[A-Za-z][A-Za-z0-9_-]*$/'],
+            'billing_profile.registration_identifiers.*.value' => ['required', 'string', 'max:160'],
+            'billing_profile.tax_identifiers' => ['sometimes', 'array'],
+            'billing_profile.tax_identifiers.*' => ['required', 'array:type,value'],
+            'billing_profile.tax_identifiers.*.type' => ['required', 'string', 'max:32', 'regex:/^[A-Za-z][A-Za-z0-9_-]*$/'],
+            'billing_profile.tax_identifiers.*.value' => ['required', 'string', 'max:160'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->updateClientBillingProfile->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            billingProfile: $validated['billing_profile'],
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

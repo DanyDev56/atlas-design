@@ -268,13 +268,20 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   perdre les métadonnées existantes ni modifier les snapshots Billing antérieurs
 - Événement `ClientProfileUpdated` limité aux identifiants et versions, sans
   coordonnées ni description dans l'outbox
+- Profil administratif d'un client actif consultable et remplaçable séparément :
+  nom et e-mail de facturation, adresse, identifiants d'entreprise et fiscaux
+- Données administratives normalisées et versionnées, avec rejet des types
+  d'identifiants dupliqués, contrôle de révision et idempotence
+- Les devis déjà créés conservent leur snapshot tandis que les documents futurs
+  utilisent le nouveau profil ; événement `ClientBillingProfileUpdated` sans
+  donnée administrative dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Modifier séparément le profil administratif utilisé pour les futurs devis et
-  factures, sans réécrire les documents existants
+- Afficher puis enregistrer les activités commerciales d'un client (note, appel,
+  réunion ou e-mail) pour construire sa chronologie
 
 ---
 

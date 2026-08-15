@@ -11,6 +11,7 @@ import {
     listOpportunities,
     reactivateClient,
     reactivateContact,
+    updateClientBillingProfile,
     updateClientProfile,
     updateContact,
 } from '@/api/crm';
@@ -20,7 +21,7 @@ import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
-import type { ClientDetail, ContactSummary, OpportunitySummary } from '@/types/api';
+import type { ClientBillingIdentifier, ClientDetail, ContactSummary, OpportunitySummary } from '@/types/api';
 import { formatMoney } from '@/utils/format';
 
 function contactProfileValue(contact: ContactSummary, key: string): string | null {
@@ -33,6 +34,18 @@ function clientProfileValue(client: ClientDetail, key: string): string | null {
     const value = client.profile[key];
 
     return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function billingProfileValue(client: ClientDetail, key: 'billing_name' | 'billing_email'): string | null {
+    const value = client.billing_profile?.[key];
+
+    return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function billingAddressValue(client: ClientDetail, key: 'line1' | 'line2' | 'postal_code' | 'city' | 'country_code'): string {
+    const value = client.billing_profile?.billing_address?.[key];
+
+    return typeof value === 'string' ? value : '';
 }
 
 function formatContactDate(value: string): string {
@@ -65,6 +78,17 @@ export function ClientDetailPage() {
     const [clientPhone, setClientPhone] = useState('');
     const [clientWebsite, setClientWebsite] = useState('');
     const [updatingClientProfile, setUpdatingClientProfile] = useState(false);
+    const [editingBillingProfile, setEditingBillingProfile] = useState(false);
+    const [billingName, setBillingName] = useState('');
+    const [billingEmail, setBillingEmail] = useState('');
+    const [billingAddressLine1, setBillingAddressLine1] = useState('');
+    const [billingAddressLine2, setBillingAddressLine2] = useState('');
+    const [billingPostalCode, setBillingPostalCode] = useState('');
+    const [billingCity, setBillingCity] = useState('');
+    const [billingCountryCode, setBillingCountryCode] = useState('');
+    const [registrationIdentifiers, setRegistrationIdentifiers] = useState<ClientBillingIdentifier[]>([]);
+    const [taxIdentifiers, setTaxIdentifiers] = useState<ClientBillingIdentifier[]>([]);
+    const [updatingBillingProfile, setUpdatingBillingProfile] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -162,6 +186,7 @@ export function ClientDetailPage() {
         setArchivingContactId(null);
         setArchiveReason('');
         setEditingClientProfile(false);
+        setEditingBillingProfile(false);
         setShowClientArchiveForm(true);
         setClientArchiveReason('');
         setError(null);
@@ -214,6 +239,7 @@ export function ClientDetailPage() {
 
         setShowClientArchiveForm(false);
         setClientArchiveReason('');
+        setEditingBillingProfile(false);
         setClientDisplayName(client.display_name);
         setClientLegalName(clientProfileValue(client, 'legal_name') ?? '');
         setClientDescription(clientProfileValue(client, 'description') ?? '');
@@ -250,6 +276,83 @@ export function ClientDetailPage() {
             setError(message === 'Client profile unchanged.' ? 'Aucune information n’a été modifiée.' : message);
         } finally {
             setUpdatingClientProfile(false);
+        }
+    }
+
+    function openBillingProfileForm() {
+        if (!client) return;
+
+        setShowClientArchiveForm(false);
+        setClientArchiveReason('');
+        setEditingClientProfile(false);
+        setBillingName(billingProfileValue(client, 'billing_name') ?? '');
+        setBillingEmail(billingProfileValue(client, 'billing_email') ?? '');
+        setBillingAddressLine1(billingAddressValue(client, 'line1'));
+        setBillingAddressLine2(billingAddressValue(client, 'line2'));
+        setBillingPostalCode(billingAddressValue(client, 'postal_code'));
+        setBillingCity(billingAddressValue(client, 'city'));
+        setBillingCountryCode(billingAddressValue(client, 'country_code'));
+        setRegistrationIdentifiers(client.billing_profile?.registration_identifiers?.map((identifier) => ({ ...identifier })) ?? []);
+        setTaxIdentifiers(client.billing_profile?.tax_identifiers?.map((identifier) => ({ ...identifier })) ?? []);
+        setEditingBillingProfile(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    function updateIdentifier(
+        collection: ClientBillingIdentifier[],
+        setter: (identifiers: ClientBillingIdentifier[]) => void,
+        index: number,
+        field: keyof ClientBillingIdentifier,
+        value: string,
+    ) {
+        setter(collection.map((identifier, currentIndex) => (
+            currentIndex === index ? { ...identifier, [field]: value } : identifier
+        )));
+    }
+
+    async function onUpdateBillingProfile(event: FormEvent) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setUpdatingBillingProfile(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const address = {
+                ...(billingAddressLine1.trim() ? { line1: billingAddressLine1.trim() } : {}),
+                ...(billingAddressLine2.trim() ? { line2: billingAddressLine2.trim() } : {}),
+                ...(billingPostalCode.trim() ? { postal_code: billingPostalCode.trim() } : {}),
+                ...(billingCity.trim() ? { city: billingCity.trim() } : {}),
+                ...(billingCountryCode.trim() ? { country_code: billingCountryCode.trim().toUpperCase() } : {}),
+            };
+            await updateClientBillingProfile(token, workspaceId, clientId, {
+                ...(billingName.trim() ? { billing_name: billingName.trim() } : {}),
+                ...(billingEmail.trim() ? { billing_email: billingEmail.trim() } : {}),
+                ...(Object.keys(address).length > 0 ? { billing_address: address } : {}),
+                ...(registrationIdentifiers.length > 0
+                    ? { registration_identifiers: registrationIdentifiers.map((identifier) => ({
+                        type: identifier.type.trim().toUpperCase(),
+                        value: identifier.value.trim(),
+                    })) }
+                    : {}),
+                ...(taxIdentifiers.length > 0
+                    ? { tax_identifiers: taxIdentifiers.map((identifier) => ({
+                        type: identifier.type.trim().toUpperCase(),
+                        value: identifier.value.trim(),
+                    })) }
+                    : {}),
+            }, client.version);
+            setClient(await getClient(token, workspaceId, clientId));
+            setEditingBillingProfile(false);
+            setSuccess('Les informations de facturation sont enregistrées pour les prochains documents.');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Modification des informations de facturation impossible';
+            setError(message === 'Client billing profile unchanged.'
+                ? 'Aucune information de facturation n’a été modifiée.'
+                : message);
+        } finally {
+            setUpdatingBillingProfile(false);
         }
     }
 
@@ -526,7 +629,7 @@ export function ClientDetailPage() {
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <StatusBadge status={client.status} />
-                                {client.status === 'Active' && !showClientArchiveForm && !editingClientProfile && (
+                                {client.status === 'Active' && !showClientArchiveForm && !editingClientProfile && !editingBillingProfile && (
                                     <button
                                         type="button"
                                         onClick={openClientArchiveForm}
@@ -653,7 +756,7 @@ export function ClientDetailPage() {
                                         Les coordonnées commerciales utilisées pour les prochains échanges.
                                     </p>
                                 </div>
-                                {client.status === 'Active' && !editingClientProfile && (
+                                {client.status === 'Active' && !editingClientProfile && !editingBillingProfile && (
                                     <button
                                         type="button"
                                         onClick={openClientProfileForm}
@@ -813,6 +916,288 @@ export function ClientDetailPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingClientProfile(false)}
+                                                className="rounded-xl border border-atlas-border px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            )}
+                        </section>
+
+                        <section className="mt-10" aria-labelledby="billing-profile-heading">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <h3 id="billing-profile-heading" className="text-lg font-semibold text-atlas-ink">
+                                        Informations de facturation
+                                    </h3>
+                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                        Elles seront copiées dans les prochains devis et factures.
+                                    </p>
+                                </div>
+                                {client.status === 'Active' && !editingBillingProfile && !editingClientProfile && (
+                                    <button
+                                        type="button"
+                                        onClick={openBillingProfileForm}
+                                        className="rounded-xl border border-atlas-accent px-4 py-2 text-sm font-semibold text-atlas-accent hover:bg-atlas-accent/5"
+                                    >
+                                        Modifier la facturation
+                                    </button>
+                                )}
+                            </div>
+
+                            {!editingBillingProfile && (
+                                <div className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                                    {Object.keys(client.billing_profile ?? {}).length === 0 && (
+                                        <p className="text-sm text-atlas-ink-muted">
+                                            Aucune information administrative n’est encore renseignée.
+                                        </p>
+                                    )}
+                                    {Object.keys(client.billing_profile ?? {}).length > 0 && (
+                                        <div className="space-y-5">
+                                            <dl className="grid gap-5 sm:grid-cols-2">
+                                                {billingProfileValue(client, 'billing_name') && (
+                                                    <div>
+                                                        <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Nom de facturation</dt>
+                                                        <dd className="mt-1 text-sm text-atlas-ink">{billingProfileValue(client, 'billing_name')}</dd>
+                                                    </div>
+                                                )}
+                                                {billingProfileValue(client, 'billing_email') && (
+                                                    <div>
+                                                        <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Email de facturation</dt>
+                                                        <dd className="mt-1 text-sm text-atlas-ink">{billingProfileValue(client, 'billing_email')}</dd>
+                                                    </div>
+                                                )}
+                                            </dl>
+                                            {client.billing_profile?.billing_address && (
+                                                <div className="border-t border-atlas-border pt-5">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Adresse de facturation</p>
+                                                    <address className="mt-2 text-sm not-italic text-atlas-ink">
+                                                        {billingAddressValue(client, 'line1') && <span className="block">{billingAddressValue(client, 'line1')}</span>}
+                                                        {billingAddressValue(client, 'line2') && <span className="block">{billingAddressValue(client, 'line2')}</span>}
+                                                        {(billingAddressValue(client, 'postal_code') || billingAddressValue(client, 'city')) && (
+                                                            <span className="block">
+                                                                {[billingAddressValue(client, 'postal_code'), billingAddressValue(client, 'city')].filter(Boolean).join(' ')}
+                                                            </span>
+                                                        )}
+                                                        {billingAddressValue(client, 'country_code') && <span className="block">{billingAddressValue(client, 'country_code')}</span>}
+                                                    </address>
+                                                </div>
+                                            )}
+                                            {((client.billing_profile?.registration_identifiers?.length ?? 0) > 0
+                                                || (client.billing_profile?.tax_identifiers?.length ?? 0) > 0) && (
+                                                <div className="grid gap-5 border-t border-atlas-border pt-5 sm:grid-cols-2">
+                                                    {(client.billing_profile?.registration_identifiers?.length ?? 0) > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Identifiants d’entreprise</p>
+                                                            <ul className="mt-2 space-y-1 text-sm text-atlas-ink">
+                                                                {client.billing_profile?.registration_identifiers?.map((identifier) => (
+                                                                    <li key={identifier.type}>{identifier.type} : {identifier.value}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {(client.billing_profile?.tax_identifiers?.length ?? 0) > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Identifiants fiscaux</p>
+                                                            <ul className="mt-2 space-y-1 text-sm text-atlas-ink">
+                                                                {client.billing_profile?.tax_identifiers?.map((identifier) => (
+                                                                    <li key={identifier.type}>{identifier.type} : {identifier.value}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {client.status === 'Active' && editingBillingProfile && (
+                                <form
+                                    aria-label="Modifier les informations de facturation"
+                                    onSubmit={onUpdateBillingProfile}
+                                    className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"
+                                >
+                                    <fieldset disabled={updatingBillingProfile} className="space-y-6">
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <FormField label="Nom de facturation (optionnel)">
+                                                <input
+                                                    maxLength={160}
+                                                    className={inputClassName}
+                                                    value={billingName}
+                                                    onChange={(event) => setBillingName(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <FormField label="Email de facturation (optionnel)">
+                                                <input
+                                                    type="email"
+                                                    maxLength={254}
+                                                    className={inputClassName}
+                                                    value={billingEmail}
+                                                    onChange={(event) => setBillingEmail(event.target.value)}
+                                                />
+                                            </FormField>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-sm font-semibold text-atlas-ink">Adresse de facturation</h4>
+                                            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                                                <div className="sm:col-span-2">
+                                                    <FormField label="Adresse (optionnel)">
+                                                        <input
+                                                            maxLength={160}
+                                                            className={inputClassName}
+                                                            value={billingAddressLine1}
+                                                            onChange={(event) => setBillingAddressLine1(event.target.value)}
+                                                        />
+                                                    </FormField>
+                                                </div>
+                                                <div className="sm:col-span-2">
+                                                    <FormField label="Complément d’adresse (optionnel)">
+                                                        <input
+                                                            maxLength={160}
+                                                            className={inputClassName}
+                                                            value={billingAddressLine2}
+                                                            onChange={(event) => setBillingAddressLine2(event.target.value)}
+                                                        />
+                                                    </FormField>
+                                                </div>
+                                                <FormField label="Code postal (optionnel)">
+                                                    <input
+                                                        maxLength={32}
+                                                        className={inputClassName}
+                                                        value={billingPostalCode}
+                                                        onChange={(event) => setBillingPostalCode(event.target.value)}
+                                                    />
+                                                </FormField>
+                                                <FormField label="Ville (optionnel)">
+                                                    <input
+                                                        maxLength={100}
+                                                        className={inputClassName}
+                                                        value={billingCity}
+                                                        onChange={(event) => setBillingCity(event.target.value)}
+                                                    />
+                                                </FormField>
+                                                <FormField label="Code pays (optionnel)" hint="Deux lettres, par exemple FR.">
+                                                    <input
+                                                        minLength={2}
+                                                        maxLength={2}
+                                                        className={inputClassName}
+                                                        value={billingCountryCode}
+                                                        onChange={(event) => setBillingCountryCode(event.target.value.toUpperCase())}
+                                                    />
+                                                </FormField>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <h4 className="text-sm font-semibold text-atlas-ink">Identifiants d’entreprise</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRegistrationIdentifiers([...registrationIdentifiers, { type: '', value: '' }])}
+                                                    className="text-xs font-semibold text-atlas-accent hover:underline"
+                                                >
+                                                    Ajouter un identifiant
+                                                </button>
+                                            </div>
+                                            {registrationIdentifiers.length === 0 && (
+                                                <p className="mt-2 text-xs text-atlas-ink-muted">Par exemple SIRET, RCS ou CompanyNumber.</p>
+                                            )}
+                                            <div className="mt-3 space-y-3">
+                                                {registrationIdentifiers.map((identifier, index) => (
+                                                    <div key={`registration-${index}`} className="grid gap-3 rounded-xl bg-atlas-surface p-4 sm:grid-cols-[1fr_2fr_auto]">
+                                                        <FormField label={`Type ${index + 1}`}>
+                                                            <input
+                                                                required
+                                                                maxLength={32}
+                                                                className={inputClassName}
+                                                                value={identifier.type}
+                                                                onChange={(event) => updateIdentifier(registrationIdentifiers, setRegistrationIdentifiers, index, 'type', event.target.value)}
+                                                                placeholder="SIRET"
+                                                            />
+                                                        </FormField>
+                                                        <FormField label={`Valeur ${index + 1}`}>
+                                                            <input
+                                                                required
+                                                                maxLength={160}
+                                                                className={inputClassName}
+                                                                value={identifier.value}
+                                                                onChange={(event) => updateIdentifier(registrationIdentifiers, setRegistrationIdentifiers, index, 'value', event.target.value)}
+                                                            />
+                                                        </FormField>
+                                                        <button
+                                                            type="button"
+                                                            aria-label={`Retirer l’identifiant d’entreprise ${index + 1}`}
+                                                            onClick={() => setRegistrationIdentifiers(registrationIdentifiers.filter((_, currentIndex) => currentIndex !== index))}
+                                                            className="self-end rounded-xl border border-atlas-border px-3 py-3 text-xs font-semibold text-red-700"
+                                                        >
+                                                            Retirer
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <h4 className="text-sm font-semibold text-atlas-ink">Identifiants fiscaux</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTaxIdentifiers([...taxIdentifiers, { type: '', value: '' }])}
+                                                    className="text-xs font-semibold text-atlas-accent hover:underline"
+                                                >
+                                                    Ajouter un identifiant fiscal
+                                                </button>
+                                            </div>
+                                            {taxIdentifiers.length === 0 && (
+                                                <p className="mt-2 text-xs text-atlas-ink-muted">Par exemple VAT ou TVA.</p>
+                                            )}
+                                            <div className="mt-3 space-y-3">
+                                                {taxIdentifiers.map((identifier, index) => (
+                                                    <div key={`tax-${index}`} className="grid gap-3 rounded-xl bg-atlas-surface p-4 sm:grid-cols-[1fr_2fr_auto]">
+                                                        <FormField label={`Type fiscal ${index + 1}`}>
+                                                            <input
+                                                                required
+                                                                maxLength={32}
+                                                                className={inputClassName}
+                                                                value={identifier.type}
+                                                                onChange={(event) => updateIdentifier(taxIdentifiers, setTaxIdentifiers, index, 'type', event.target.value)}
+                                                                placeholder="VAT"
+                                                            />
+                                                        </FormField>
+                                                        <FormField label={`Valeur fiscale ${index + 1}`}>
+                                                            <input
+                                                                required
+                                                                maxLength={160}
+                                                                className={inputClassName}
+                                                                value={identifier.value}
+                                                                onChange={(event) => updateIdentifier(taxIdentifiers, setTaxIdentifiers, index, 'value', event.target.value)}
+                                                            />
+                                                        </FormField>
+                                                        <button
+                                                            type="button"
+                                                            aria-label={`Retirer l’identifiant fiscal ${index + 1}`}
+                                                            onClick={() => setTaxIdentifiers(taxIdentifiers.filter((_, currentIndex) => currentIndex !== index))}
+                                                            className="self-end rounded-xl border border-atlas-border px-3 py-3 text-xs font-semibold text-red-700"
+                                                        >
+                                                            Retirer
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                            <SubmitButton loading={updatingBillingProfile} loadingLabel="Enregistrement…">
+                                                Enregistrer la facturation
+                                            </SubmitButton>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingBillingProfile(false)}
                                                 className="rounded-xl border border-atlas-border px-4 py-3 text-sm font-medium text-atlas-ink-muted"
                                             >
                                                 Annuler

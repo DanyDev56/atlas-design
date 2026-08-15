@@ -22,6 +22,13 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Billing Client',
             'profile' => ['email' => 'billing@client.test'],
+            'billing_profile' => [
+                'billing_name' => 'Billing Client SARL',
+                'billing_email' => 'factures@client.test',
+                'registration_identifiers' => [
+                    ['type' => 'SIRET', 'value' => '111 222 333 00044'],
+                ],
+            ],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),
@@ -86,6 +93,33 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
                 512,
                 JSON_THROW_ON_ERROR,
             )['display_name'],
+        );
+
+        $this->putJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/billing-profile", [
+            'billing_profile' => [
+                'billing_name' => 'Billing Client SAS',
+                'billing_email' => 'comptabilite@client.test',
+                'tax_identifiers' => [
+                    ['type' => 'VAT', 'value' => 'FR12999888777'],
+                ],
+            ],
+            'expected_revision' => 2,
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertOk()
+            ->assertJsonPath('billing_profile.billing_name', 'Billing Client SAS')
+            ->assertJsonPath('billing_profile_version', 2)
+            ->assertJsonPath('version', 3);
+
+        $this->assertSame(
+            'Billing Client SARL',
+            json_decode(
+                (string) DB::table('billing.quotes')->where('id', $quoteId)->value('client_snapshot'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )['billing_profile']['billing_name'],
         );
 
         $this->patchJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}", [

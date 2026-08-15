@@ -277,6 +277,147 @@ final class Client
         $this->updatedAt = $now;
     }
 
+    /** @param array<string, mixed> $profile */
+    public function updateBillingProfile(array $profile, \DateTimeImmutable $now): void
+    {
+        if (! $this->isActive()) {
+            throw new \DomainException('Client is not active.');
+        }
+
+        $allowed = [
+            'billing_name', 'billing_email', 'billing_address',
+            'registration_identifiers', 'tax_identifiers',
+        ];
+
+        if (array_diff(array_keys($profile), $allowed) !== []) {
+            throw new \DomainException('Client billing profile field invalid.');
+        }
+
+        $result = [];
+
+        foreach (['billing_name' => 160, 'billing_email' => 254] as $key => $maxLength) {
+            $value = $profile[$key] ?? null;
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            if (! is_string($value)) {
+                throw new \DomainException('Client billing profile invalid.');
+            }
+
+            $value = trim($value);
+
+            if ($value === '' || mb_strlen($value) > $maxLength) {
+                throw new \DomainException('Client billing profile invalid.');
+            }
+
+            $result[$key] = $value;
+        }
+
+        if (isset($result['billing_email']) && filter_var($result['billing_email'], FILTER_VALIDATE_EMAIL) === false) {
+            throw new \DomainException('Client billing email invalid.');
+        }
+
+        $billingAddress = $profile['billing_address'] ?? null;
+
+        if ($billingAddress !== null && $billingAddress !== []) {
+            if (! is_array($billingAddress)) {
+                throw new \DomainException('Client billing address invalid.');
+            }
+
+            $address = [];
+            $addressLimits = [
+                'line1' => 160,
+                'line2' => 160,
+                'postal_code' => 32,
+                'city' => 100,
+                'country_code' => 2,
+            ];
+
+            if (array_diff(array_keys($billingAddress), array_keys($addressLimits)) !== []) {
+                throw new \DomainException('Client billing address invalid.');
+            }
+
+            foreach ($billingAddress as $key => $value) {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+
+                if (! is_string($value)) {
+                    throw new \DomainException('Client billing address invalid.');
+                }
+
+                $value = trim($value);
+
+                if ($value === '' || mb_strlen($value) > $addressLimits[$key]) {
+                    throw new \DomainException('Client billing address invalid.');
+                }
+
+                $address[$key] = $key === 'country_code' ? strtoupper($value) : $value;
+            }
+
+            if (isset($address['country_code']) && ! preg_match('/^[A-Z]{2}$/', $address['country_code'])) {
+                throw new \DomainException('Client billing address invalid.');
+            }
+
+            if ($address !== []) {
+                $result['billing_address'] = $address;
+            }
+        }
+
+        foreach (['registration_identifiers', 'tax_identifiers'] as $collectionKey) {
+            $identifiers = $profile[$collectionKey] ?? [];
+
+            if (! is_array($identifiers) || ! array_is_list($identifiers)) {
+                throw new \DomainException('Client billing identifiers invalid.');
+            }
+
+            $normalized = [];
+            $declaredTypes = [];
+
+            foreach ($identifiers as $identifier) {
+                if (
+                    ! is_array($identifier)
+                    || array_diff(array_keys($identifier), ['type', 'value']) !== []
+                    || ! isset($identifier['type'], $identifier['value'])
+                    || ! is_string($identifier['type'])
+                    || ! is_string($identifier['value'])
+                ) {
+                    throw new \DomainException('Client billing identifiers invalid.');
+                }
+
+                $type = strtoupper(trim($identifier['type']));
+                $value = trim($identifier['value']);
+
+                if (
+                    ! preg_match('/^[A-Z][A-Z0-9_-]{0,31}$/', $type)
+                    || $value === ''
+                    || mb_strlen($value) > 160
+                    || isset($declaredTypes[$type])
+                ) {
+                    throw new \DomainException('Client billing identifiers invalid.');
+                }
+
+                $declaredTypes[$type] = true;
+                $normalized[] = ['type' => $type, 'value' => $value];
+            }
+
+            if ($normalized !== []) {
+                $result[$collectionKey] = $normalized;
+            }
+        }
+
+        if ($this->canonicalize($result) === $this->canonicalize($this->billingProfile)) {
+            throw new \DomainException('Client billing profile unchanged.');
+        }
+
+        $this->billingProfile = $result;
+        $this->billingProfileVersion++;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function assignPrimaryContact(ContactId $contactId, \DateTimeImmutable $now): void
     {
         $this->changePrimaryContact($contactId, $now);

@@ -1,5 +1,12 @@
 import { apiRequest } from '@/api/client';
-import type { ClientDetail, ClientSummary, ContactSummary, OpportunityDetail, OpportunitySummary } from '@/types/api';
+import type {
+    ClientBillingProfile,
+    ClientDetail,
+    ClientSummary,
+    ContactSummary,
+    OpportunityDetail,
+    OpportunitySummary,
+} from '@/types/api';
 
 function workspacePath(workspaceId: string, suffix: string): string {
     return `/workspaces/${workspaceId}${suffix}`;
@@ -66,6 +73,26 @@ export async function updateClientProfile(
         'PATCH',
         workspacePath(workspaceId, `/clients/${clientId}/profile`),
         { changes, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
+export async function updateClientBillingProfile(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    billingProfile: ClientBillingProfile,
+    expectedRevision: number,
+): Promise<{
+    client_id: string;
+    billing_profile: ClientBillingProfile;
+    billing_profile_version: number;
+    version: number;
+}> {
+    return apiRequest(
+        'PUT',
+        workspacePath(workspaceId, `/clients/${clientId}/billing-profile`),
+        { billing_profile: billingProfile, expected_revision: expectedRevision },
         { token },
     );
 }
