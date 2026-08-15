@@ -52,6 +52,7 @@ use Atlas\Modules\BusinessHealth\Infrastructure\Persistence\PostgresBusinessHeal
 use Atlas\Modules\BusinessHealth\Infrastructure\Persistence\PostgresCurrentBusinessHealthRepository;
 use Atlas\Modules\BusinessHealth\Infrastructure\PostgresBusinessHealthIdempotencyStore;
 use Atlas\Modules\Crm\Application\AddContactHandler;
+use Atlas\Modules\Crm\Application\ArchiveContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
@@ -157,6 +158,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOpportunityRepository::class);
         $this->app->singleton(CreateClientHandler::class);
         $this->app->singleton(AddContactHandler::class);
+        $this->app->singleton(ArchiveContactHandler::class);
         $this->app->singleton(ChangeClientPrimaryContactHandler::class);
         $this->app->singleton(UpdateContactHandler::class);
         $this->app->singleton(CreateOpportunityHandler::class);

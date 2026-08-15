@@ -86,4 +86,14 @@ final class PostgresOpportunityRepository
 
         return $counts;
     }
+
+    public function hasNonTerminalForContact(string $workspaceId, string $clientId, string $contactId): bool
+    {
+        return DB::table('crm.opportunities')
+            ->where('workspace_id', $workspaceId)
+            ->where('client_id', $clientId)
+            ->where('contact_id', $contactId)
+            ->whereIn('status', [Opportunity::STATUS_OPEN, Opportunity::STATUS_QUALIFIED])
+            ->exists();
+    }
 }

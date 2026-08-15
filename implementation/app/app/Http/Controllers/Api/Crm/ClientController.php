@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Crm;
 
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\AddContactHandler;
+use Atlas\Modules\Crm\Application\ArchiveContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
@@ -21,6 +22,7 @@ final class ClientController extends Controller
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
         private readonly UpdateContactHandler $updateContact,
+        private readonly ArchiveContactHandler $archiveContact,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -134,6 +136,29 @@ final class ClientController extends Controller
             workspaceId: $workspaceId,
             clientId: $clientId,
             newPrimaryContactId: $validated['contact_id'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function archiveContact(
+        Request $request,
+        string $workspaceId,
+        string $clientId,
+        string $contactId,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:2', 'max:160'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->archiveContact->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            contactId: $contactId,
+            reason: $validated['reason'],
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

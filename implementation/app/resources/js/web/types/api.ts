@@ -230,6 +230,7 @@ export interface ContactSummary {
     is_primary: boolean;
     version: number;
     created_at: string;
+    archived_at: string | null;
 }
 
 export interface OpportunitySummary {

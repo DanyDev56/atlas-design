@@ -234,13 +234,18 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   avec suppression explicite des champs optionnels laissés vides
 - Mise à jour atomique des versions Client et Contact, idempotence et événement
   `ContactUpdated` sans donnée personnelle dans l'outbox
+- Archivage confirmé par un motif conservé pour l'audit interne, refusé tant
+  qu'une opportunité non terminale référence le contact
+- Effacement atomique du contact principal lors de son archivage, avec événements
+  `ContactArchived` et `ClientPrimaryContactChanged` sans donnée personnelle
+- Contacts archivés conservés dans l'historique de la fiche, sans action de
+  communication, d'édition ou d'affectation aux nouvelles opportunités
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Archiver un contact après contrôle des opportunités non terminales qui le
-  référencent
+- Réactiver un contact archivé en restaurant explicitement son usage courant
 
 ---
 

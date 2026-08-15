@@ -56,6 +56,7 @@ final class CrmQueryHandler
                 'is_primary' => $row['id'] === $client->primaryContactId(),
                 'version' => (int) $row['version'],
                 'created_at' => $row['created_at'],
+                'archived_at' => $row['archived_at'] ?? null,
             ],
             $this->contacts->listByClient($workspaceId, new ClientId($clientId)),
         );

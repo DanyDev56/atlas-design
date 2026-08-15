@@ -8,6 +8,8 @@ final class Contact
 {
     public const STATUS_ACTIVE = 'Active';
 
+    public const STATUS_ARCHIVED = 'Archived';
+
     /** @param array<string, mixed> $profile */
     private function __construct(
         private readonly ContactId $id,
@@ -17,6 +19,8 @@ final class Contact
         private string $status,
         private int $version,
         private \DateTimeImmutable $createdAt,
+        private ?string $archiveReason,
+        private ?\DateTimeImmutable $archivedAt,
     ) {}
 
     /** @param array<string, mixed> $profile */
@@ -35,6 +39,8 @@ final class Contact
             status: self::STATUS_ACTIVE,
             version: 1,
             createdAt: $now,
+            archiveReason: null,
+            archivedAt: null,
         );
     }
 
@@ -49,6 +55,8 @@ final class Contact
             status: $row['status'],
             version: (int) $row['version'],
             createdAt: new \DateTimeImmutable($row['created_at']),
+            archiveReason: $row['archive_reason'] ?? null,
+            archivedAt: isset($row['archived_at']) ? new \DateTimeImmutable($row['archived_at']) : null,
         );
     }
 
@@ -89,6 +97,24 @@ final class Contact
         $this->version++;
     }
 
+    public function archive(string $reason, \DateTimeImmutable $now): void
+    {
+        if (! $this->isActive()) {
+            throw new \DomainException('Contact is not active.');
+        }
+
+        $reason = trim($reason);
+
+        if (mb_strlen($reason) < 2 || mb_strlen($reason) > 160) {
+            throw new \DomainException('Archive reason invalid.');
+        }
+
+        $this->status = self::STATUS_ARCHIVED;
+        $this->archiveReason = $reason;
+        $this->archivedAt = $now;
+        $this->version++;
+    }
+
     public function id(): ContactId
     {
         return $this->id;
@@ -118,5 +144,15 @@ final class Contact
     public function version(): int
     {
         return $this->version;
+    }
+
+    public function archiveReason(): ?string
+    {
+        return $this->archiveReason;
+    }
+
+    public function archivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
     }
 }

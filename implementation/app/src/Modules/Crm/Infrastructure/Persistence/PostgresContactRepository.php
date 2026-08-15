@@ -21,6 +21,8 @@ final class PostgresContactRepository
             'status' => 'Active',
             'version' => 1,
             'created_at' => now()->toIso8601String(),
+            'archive_reason' => null,
+            'archived_at' => null,
         ]);
     }
 
@@ -43,6 +45,8 @@ final class PostgresContactRepository
                 'profile' => json_encode($contact->profile(), JSON_THROW_ON_ERROR),
                 'status' => $contact->status(),
                 'version' => $contact->version(),
+                'archive_reason' => $contact->archiveReason(),
+                'archived_at' => $contact->archivedAt()?->format('Y-m-d H:i:sP'),
             ]);
     }
 

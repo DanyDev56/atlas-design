@@ -90,6 +90,29 @@ export async function updateContact(
     );
 }
 
+export async function archiveContact(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    contactId: string,
+    reason: string,
+    expectedRevision: number,
+): Promise<{
+    contact_id: string;
+    client_id: string;
+    status: string;
+    contact_version: number;
+    client_version: number;
+    primary_contact_id: string | null;
+}> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}/archive`),
+        { reason, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function listOpportunities(
     token: string,
     workspaceId: string,

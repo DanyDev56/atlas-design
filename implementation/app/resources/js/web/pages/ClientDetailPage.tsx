@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
     addContact,
+    archiveContact,
     changePrimaryContact,
     createOpportunity,
     getClient,
@@ -51,6 +52,9 @@ export function ClientDetailPage() {
     const [editContactPhone, setEditContactPhone] = useState('');
     const [editContactRole, setEditContactRole] = useState('');
     const [updatingContactId, setUpdatingContactId] = useState<string | null>(null);
+    const [archivingContactId, setArchivingContactId] = useState<string | null>(null);
+    const [archiveReason, setArchiveReason] = useState('');
+    const [archiveBusyContactId, setArchiveBusyContactId] = useState<string | null>(null);
 
     const [showOpportunityForm, setShowOpportunityForm] = useState(false);
     const [opportunityContactId, setOpportunityContactId] = useState('');
@@ -102,6 +106,7 @@ export function ClientDetailPage() {
     const sortedContacts = useMemo(
         () => [...contacts].sort((a, b) => {
             if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+            if (a.status !== b.status) return a.status === 'Active' ? -1 : 1;
 
             return (contactProfileValue(a, 'display_name') ?? '').localeCompare(
                 contactProfileValue(b, 'display_name') ?? '',
@@ -205,6 +210,8 @@ export function ClientDetailPage() {
     }
 
     function openEditContact(contact: ContactSummary) {
+        setArchivingContactId(null);
+        setArchiveReason('');
         setEditingContactId(contact.contact_id);
         setEditContactName(contactProfileValue(contact, 'display_name') ?? '');
         setEditContactEmail(contactProfileValue(contact, 'email') ?? '');
@@ -244,6 +251,49 @@ export function ClientDetailPage() {
             setError(err instanceof Error ? err.message : 'Modification du contact impossible');
         } finally {
             setUpdatingContactId(null);
+        }
+    }
+
+    function openArchiveContact(contactId: string) {
+        setEditingContactId(null);
+        setArchivingContactId(contactId);
+        setArchiveReason('');
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onArchiveContact(event: FormEvent, contact: ContactSummary, contactName: string) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setArchiveBusyContactId(contact.contact_id);
+        setError(null);
+        setSuccess(null);
+        try {
+            await archiveContact(
+                token,
+                workspaceId,
+                clientId,
+                contact.contact_id,
+                archiveReason.trim(),
+                client.version,
+            );
+            const [clientData, contactData] = await Promise.all([
+                getClient(token, workspaceId, clientId),
+                listContacts(token, workspaceId, clientId),
+            ]);
+            setClient(clientData);
+            setContacts(contactData);
+            setArchivingContactId(null);
+            setArchiveReason('');
+            setSuccess(`« ${contactName} » a bien été archivé.`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Archivage du contact impossible';
+            setError(message === 'Contact in use.'
+                ? 'Ce contact est associé à une opportunité en cours. Réaffectez ou terminez cette opportunité avant de l’archiver.'
+                : message);
+        } finally {
+            setArchiveBusyContactId(null);
         }
     }
 
@@ -463,18 +513,29 @@ export function ClientDetailPage() {
                                                             Principal
                                                         </span>
                                                     )}
+                                                    {contact.status === 'Archived' && (
+                                                        <span className="rounded-full bg-atlas-surface px-2.5 py-1 text-xs font-semibold text-atlas-ink-muted">
+                                                            Archivé
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 {(email || phone) && (
                                                     <div className="mt-4 space-y-1.5 text-sm">
-                                                        {email && (
+                                                        {email && contact.status === 'Active' && (
                                                             <a className="block text-atlas-accent hover:underline" href={`mailto:${email}`}>
                                                                 {email}
                                                             </a>
                                                         )}
-                                                        {phone && (
+                                                        {email && contact.status !== 'Active' && (
+                                                            <p className="text-atlas-ink-muted">{email}</p>
+                                                        )}
+                                                        {phone && contact.status === 'Active' && (
                                                             <a className="block text-atlas-accent hover:underline" href={`tel:${phone}`}>
                                                                 {phone}
                                                             </a>
+                                                        )}
+                                                        {phone && contact.status !== 'Active' && (
+                                                            <p className="text-atlas-ink-muted">{phone}</p>
                                                         )}
                                                     </div>
                                                 )}
@@ -482,7 +543,7 @@ export function ClientDetailPage() {
                                                     <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
                                                         <button
                                                             type="button"
-                                                            disabled={changingPrimaryContactId !== null || updatingContactId !== null}
+                                                            disabled={changingPrimaryContactId !== null || updatingContactId !== null || archiveBusyContactId !== null}
                                                             aria-busy={changingPrimaryContactId === contact.contact_id}
                                                             aria-label={contact.is_primary
                                                                 ? `Retirer ${name} comme contact principal`
@@ -502,12 +563,21 @@ export function ClientDetailPage() {
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            disabled={updatingContactId !== null || changingPrimaryContactId !== null}
+                                                            disabled={updatingContactId !== null || changingPrimaryContactId !== null || archiveBusyContactId !== null}
                                                             aria-label={`Modifier ${name}`}
                                                             onClick={() => openEditContact(contact)}
                                                             className="text-xs font-semibold text-atlas-ink-muted hover:text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                                                         >
                                                             Modifier
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={updatingContactId !== null || changingPrimaryContactId !== null || archiveBusyContactId !== null}
+                                                            aria-label={`Archiver ${name}`}
+                                                            onClick={() => openArchiveContact(contact.contact_id)}
+                                                            className="text-xs font-semibold text-red-700 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            Archiver
                                                         </button>
                                                     </div>
                                                 )}
@@ -564,6 +634,55 @@ export function ClientDetailPage() {
                                                                     type="button"
                                                                     onClick={() => setEditingContactId(null)}
                                                                     className="rounded-xl border border-atlas-border px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
+                                                                >
+                                                                    Annuler
+                                                                </button>
+                                                            </div>
+                                                        </fieldset>
+                                                    </form>
+                                                )}
+                                                {archivingContactId === contact.contact_id && (
+                                                    <form
+                                                        aria-label={`Archiver ${name}`}
+                                                        onSubmit={(event) => void onArchiveContact(event, contact, name)}
+                                                        className="mt-5 space-y-3 rounded-xl border border-red-200 bg-red-50 p-4"
+                                                    >
+                                                        <fieldset disabled={archiveBusyContactId === contact.contact_id} className="space-y-3">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-red-900">
+                                                                    Archiver ce contact ?
+                                                                </p>
+                                                                <p className="mt-1 text-xs text-red-800">
+                                                                    Il ne pourra plus être utilisé pour les actions courantes. L’archivage est refusé si une opportunité en cours le référence.
+                                                                </p>
+                                                            </div>
+                                                            <FormField label="Motif d’archivage">
+                                                                <textarea
+                                                                    required
+                                                                    minLength={2}
+                                                                    maxLength={160}
+                                                                    rows={3}
+                                                                    className={inputClassName}
+                                                                    value={archiveReason}
+                                                                    onChange={(event) => setArchiveReason(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <div className="flex flex-col gap-2">
+                                                                <button
+                                                                    type="submit"
+                                                                    className="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                                >
+                                                                    {archiveBusyContactId === contact.contact_id
+                                                                        ? 'Archivage…'
+                                                                        : 'Confirmer l’archivage'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setArchivingContactId(null);
+                                                                        setArchiveReason('');
+                                                                    }}
+                                                                    className="rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
                                                                 >
                                                                     Annuler
                                                                 </button>

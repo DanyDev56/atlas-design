@@ -169,6 +169,67 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         ])->assertOk()
             ->assertJsonPath('status', 'Qualified');
 
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$contact->json('contact_id')}/archive",
+            ['reason' => 'A quitté l’entreprise', 'expected_revision' => 5],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Contact in use.');
+
+        $this->putJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/primary-contact",
+            [
+                'contact_id' => $alternateContact->json('contact_id'),
+                'expected_revision' => 5,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('version', 6);
+
+        $archiveContactKey = (string) Str::uuid();
+        $contactArchived = $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/archive",
+            ['reason' => 'Doublon de contact', 'expected_revision' => 6],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $archiveContactKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Archived')
+            ->assertJsonPath('contact_version', 2)
+            ->assertJsonPath('client_version', 7)
+            ->assertJsonPath('primary_contact_id', null);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/archive",
+            ['reason' => 'Doublon de contact', 'expected_revision' => 6],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $archiveContactKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($contactArchived->json());
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('1.status', 'Archived')
+            ->assertJsonPath('1.is_primary', false)
+            ->assertJsonPath('1.version', 2)
+            ->assertJsonPath('1.archived_at', fn ($value) => is_string($value) && $value !== '');
+
+        $this->assertDatabaseHas('crm.contacts', [
+            'id' => $alternateContact->json('contact_id'),
+            'archive_reason' => 'Doublon de contact',
+            'status' => 'Archived',
+        ]);
+
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/pipeline", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
@@ -190,11 +251,25 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
                 ->where('event_type', 'crm.client_created')
                 ->exists()
         );
-        $this->assertSame(3, DB::table('platform.outbox_messages')
+        $this->assertSame(5, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.client_primary_contact_changed')
             ->count());
         $this->assertSame(1, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.contact_updated')
             ->count());
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.contact_archived')
+            ->count());
+        $this->assertSame(
+            ['version', 'client_id', 'contact_id', 'workspace_id'],
+            array_keys(json_decode(
+                (string) DB::table('platform.outbox_messages')
+                    ->where('event_type', 'crm.contact_archived')
+                    ->value('payload'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )),
+        );
     }
 }
