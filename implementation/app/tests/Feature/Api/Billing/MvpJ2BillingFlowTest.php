@@ -68,6 +68,26 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
 
         $quoteId = $quote->json('quote_id');
 
+        $this->patchJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/profile", [
+            'changes' => ['display_name' => 'Billing Client Renamed'],
+            'expected_revision' => 1,
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertOk()
+            ->assertJsonPath('display_name', 'Billing Client Renamed')
+            ->assertJsonPath('profile_version', 2);
+
+        $this->assertSame(
+            'Billing Client',
+            json_decode(
+                (string) DB::table('billing.quotes')->where('id', $quoteId)->value('client_snapshot'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )['display_name'],
+        );
+
         $this->patchJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}", [
             'expected_revision' => 1,
             'lines' => [

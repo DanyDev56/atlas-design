@@ -42,6 +42,34 @@ export async function reactivateClient(
     );
 }
 
+export async function updateClientProfile(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    changes: {
+        display_name: string;
+        legal_name: string | null;
+        description: string | null;
+        email: string | null;
+        phone: string | null;
+        website: string | null;
+    },
+    expectedRevision: number,
+): Promise<{
+    client_id: string;
+    display_name: string;
+    profile: Record<string, unknown>;
+    profile_version: number;
+    version: number;
+}> {
+    return apiRequest(
+        'PATCH',
+        workspacePath(workspaceId, `/clients/${clientId}/profile`),
+        { changes, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function createClient(
     token: string,
     workspaceId: string,

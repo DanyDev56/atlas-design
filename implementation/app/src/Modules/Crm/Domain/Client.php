@@ -129,6 +129,154 @@ final class Client
         $this->updatedAt = $now;
     }
 
+    /** @param array<string, mixed> $changes */
+    public function updateProfile(array $changes, \DateTimeImmutable $now): void
+    {
+        if (! $this->isActive()) {
+            throw new \DomainException('Client is not active.');
+        }
+
+        if ($changes === []) {
+            throw new \DomainException('Client profile changes required.');
+        }
+
+        $allowed = [
+            'display_name', 'legal_name', 'description', 'email', 'phone', 'website', 'postal_address',
+        ];
+
+        if (array_diff(array_keys($changes), $allowed) !== []) {
+            throw new \DomainException('Client profile field invalid.');
+        }
+
+        $result = $this->profile;
+
+        foreach ($changes as $key => $value) {
+            if ($key === 'display_name') {
+                if (! is_string($value)) {
+                    throw new \DomainException('Client display name invalid.');
+                }
+
+                $result[$key] = trim($value);
+
+                continue;
+            }
+
+            if ($key === 'postal_address') {
+                if ($value === null || $value === []) {
+                    unset($result[$key]);
+
+                    continue;
+                }
+
+                if (! is_array($value)) {
+                    throw new \DomainException('Client postal address invalid.');
+                }
+
+                $address = [];
+                $addressLimits = [
+                    'line1' => 160,
+                    'line2' => 160,
+                    'postal_code' => 32,
+                    'city' => 100,
+                    'country_code' => 2,
+                ];
+
+                if (array_diff(array_keys($value), array_keys($addressLimits)) !== []) {
+                    throw new \DomainException('Client postal address invalid.');
+                }
+
+                foreach ($value as $addressKey => $addressValue) {
+                    if ($addressValue === null || $addressValue === '') {
+                        continue;
+                    }
+
+                    if (! is_string($addressValue)) {
+                        throw new \DomainException('Client postal address invalid.');
+                    }
+
+                    $addressValue = trim($addressValue);
+
+                    if ($addressValue === '' || mb_strlen($addressValue) > $addressLimits[$addressKey]) {
+                        throw new \DomainException('Client postal address invalid.');
+                    }
+
+                    $address[$addressKey] = $addressKey === 'country_code'
+                        ? strtoupper($addressValue)
+                        : $addressValue;
+                }
+
+                if (isset($address['country_code']) && ! preg_match('/^[A-Z]{2}$/', $address['country_code'])) {
+                    throw new \DomainException('Client postal address invalid.');
+                }
+
+                if ($address === []) {
+                    unset($result[$key]);
+                } else {
+                    $result[$key] = $address;
+                }
+
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                unset($result[$key]);
+
+                continue;
+            }
+
+            if (! is_string($value)) {
+                throw new \DomainException('Client profile invalid.');
+            }
+
+            $value = trim($value);
+
+            if ($value === '') {
+                unset($result[$key]);
+            } else {
+                $result[$key] = $value;
+            }
+        }
+
+        $displayName = $result['display_name'] ?? null;
+
+        if (! is_string($displayName) || mb_strlen($displayName) < 2 || mb_strlen($displayName) > 160) {
+            throw new \DomainException('Client display name invalid.');
+        }
+
+        foreach (['legal_name' => 160, 'description' => 2000, 'phone' => 50] as $key => $maxLength) {
+            if (isset($result[$key]) && (! is_string($result[$key]) || mb_strlen($result[$key]) > $maxLength)) {
+                throw new \DomainException('Client profile invalid.');
+            }
+        }
+
+        if (isset($result['email']) && (
+            ! is_string($result['email'])
+            || mb_strlen($result['email']) > 254
+            || filter_var($result['email'], FILTER_VALIDATE_EMAIL) === false
+        )) {
+            throw new \DomainException('Client email invalid.');
+        }
+
+        if (isset($result['website']) && (
+            ! is_string($result['website'])
+            || mb_strlen($result['website']) > 2048
+            || filter_var($result['website'], FILTER_VALIDATE_URL) === false
+            || ! in_array(parse_url($result['website'], PHP_URL_SCHEME), ['http', 'https'], true)
+        )) {
+            throw new \DomainException('Client website invalid.');
+        }
+
+        if ($this->canonicalize($result) === $this->canonicalize($this->profile)) {
+            throw new \DomainException('Client profile unchanged.');
+        }
+
+        $this->displayName = $displayName;
+        $this->profile = $result;
+        $this->profileVersion++;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function assignPrimaryContact(ContactId $contactId, \DateTimeImmutable $now): void
     {
         $this->changePrimaryContact($contactId, $now);
@@ -239,5 +387,20 @@ final class Client
     public function updatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    /** @param array<string|int, mixed> $values */
+    /** @return array<string|int, mixed> */
+    private function canonicalize(array $values): array
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = $this->canonicalize($value);
+            }
+        }
+
+        ksort($values);
+
+        return $values;
     }
 }

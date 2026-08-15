@@ -11,6 +11,7 @@ import {
     listOpportunities,
     reactivateClient,
     reactivateContact,
+    updateClientProfile,
     updateContact,
 } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
@@ -24,6 +25,12 @@ import { formatMoney } from '@/utils/format';
 
 function contactProfileValue(contact: ContactSummary, key: string): string | null {
     const value = contact.profile[key];
+
+    return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function clientProfileValue(client: ClientDetail, key: string): string | null {
+    const value = client.profile[key];
 
     return typeof value === 'string' && value.trim() !== '' ? value : null;
 }
@@ -50,6 +57,14 @@ export function ClientDetailPage() {
     const [archivingClient, setArchivingClient] = useState(false);
     const [showClientReactivateConfirm, setShowClientReactivateConfirm] = useState(false);
     const [reactivatingClient, setReactivatingClient] = useState(false);
+    const [editingClientProfile, setEditingClientProfile] = useState(false);
+    const [clientDisplayName, setClientDisplayName] = useState('');
+    const [clientLegalName, setClientLegalName] = useState('');
+    const [clientDescription, setClientDescription] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
+    const [clientPhone, setClientPhone] = useState('');
+    const [clientWebsite, setClientWebsite] = useState('');
+    const [updatingClientProfile, setUpdatingClientProfile] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -146,6 +161,7 @@ export function ClientDetailPage() {
         setEditingContactId(null);
         setArchivingContactId(null);
         setArchiveReason('');
+        setEditingClientProfile(false);
         setShowClientArchiveForm(true);
         setClientArchiveReason('');
         setError(null);
@@ -190,6 +206,50 @@ export function ClientDetailPage() {
             setError(err instanceof Error ? err.message : 'Réactivation du client impossible');
         } finally {
             setReactivatingClient(false);
+        }
+    }
+
+    function openClientProfileForm() {
+        if (!client) return;
+
+        setShowClientArchiveForm(false);
+        setClientArchiveReason('');
+        setClientDisplayName(client.display_name);
+        setClientLegalName(clientProfileValue(client, 'legal_name') ?? '');
+        setClientDescription(clientProfileValue(client, 'description') ?? '');
+        setClientEmail(clientProfileValue(client, 'email') ?? '');
+        setClientPhone(clientProfileValue(client, 'phone') ?? '');
+        setClientWebsite(clientProfileValue(client, 'website') ?? '');
+        setEditingClientProfile(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onUpdateClientProfile(event: FormEvent) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setUpdatingClientProfile(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const displayName = clientDisplayName.trim();
+            await updateClientProfile(token, workspaceId, clientId, {
+                display_name: displayName,
+                legal_name: clientLegalName.trim() || null,
+                description: clientDescription.trim() || null,
+                email: clientEmail.trim() || null,
+                phone: clientPhone.trim() || null,
+                website: clientWebsite.trim() || null,
+            }, client.version);
+            setClient(await getClient(token, workspaceId, clientId));
+            setEditingClientProfile(false);
+            setSuccess(`Les informations de « ${displayName} » sont enregistrées.`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Modification du client impossible';
+            setError(message === 'Client profile unchanged.' ? 'Aucune information n’a été modifiée.' : message);
+        } finally {
+            setUpdatingClientProfile(false);
         }
     }
 
@@ -466,7 +526,7 @@ export function ClientDetailPage() {
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <StatusBadge status={client.status} />
-                                {client.status === 'Active' && !showClientArchiveForm && (
+                                {client.status === 'Active' && !showClientArchiveForm && !editingClientProfile && (
                                     <button
                                         type="button"
                                         onClick={openClientArchiveForm}
@@ -582,6 +642,186 @@ export function ClientDetailPage() {
                                 </fieldset>
                             </form>
                         )}
+
+                        <section className="mt-10" aria-labelledby="client-profile-heading">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <h3 id="client-profile-heading" className="text-lg font-semibold text-atlas-ink">
+                                        Informations client
+                                    </h3>
+                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                        Les coordonnées commerciales utilisées pour les prochains échanges.
+                                    </p>
+                                </div>
+                                {client.status === 'Active' && !editingClientProfile && (
+                                    <button
+                                        type="button"
+                                        onClick={openClientProfileForm}
+                                        className="rounded-xl border border-atlas-accent px-4 py-2 text-sm font-semibold text-atlas-accent hover:bg-atlas-accent/5"
+                                    >
+                                        Modifier les informations
+                                    </button>
+                                )}
+                            </div>
+
+                            {!editingClientProfile && (
+                                <div className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                                    <dl className="grid gap-5 sm:grid-cols-2">
+                                        <div>
+                                            <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Nom affiché</dt>
+                                            <dd className="mt-1 text-sm text-atlas-ink">{client.display_name}</dd>
+                                        </div>
+                                        {clientProfileValue(client, 'legal_name') && (
+                                            <div>
+                                                <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Raison sociale</dt>
+                                                <dd className="mt-1 text-sm text-atlas-ink">{clientProfileValue(client, 'legal_name')}</dd>
+                                            </div>
+                                        )}
+                                        {clientProfileValue(client, 'email') && (
+                                            <div>
+                                                <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Email</dt>
+                                                <dd className="mt-1 text-sm">
+                                                    {client.status === 'Active' ? (
+                                                        <a className="text-atlas-accent hover:underline" href={`mailto:${clientProfileValue(client, 'email')}`}>
+                                                            {clientProfileValue(client, 'email')}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-atlas-ink">{clientProfileValue(client, 'email')}</span>
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        )}
+                                        {clientProfileValue(client, 'phone') && (
+                                            <div>
+                                                <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Téléphone</dt>
+                                                <dd className="mt-1 text-sm">
+                                                    {client.status === 'Active' ? (
+                                                        <a className="text-atlas-accent hover:underline" href={`tel:${clientProfileValue(client, 'phone')}`}>
+                                                            {clientProfileValue(client, 'phone')}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-atlas-ink">{clientProfileValue(client, 'phone')}</span>
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        )}
+                                        {clientProfileValue(client, 'website') && (
+                                            <div>
+                                                <dt className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Site web</dt>
+                                                <dd className="mt-1 text-sm">
+                                                    {client.status === 'Active' ? (
+                                                        <a
+                                                            className="break-all text-atlas-accent hover:underline"
+                                                            href={clientProfileValue(client, 'website') ?? undefined}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            {clientProfileValue(client, 'website')}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="break-all text-atlas-ink">{clientProfileValue(client, 'website')}</span>
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        )}
+                                    </dl>
+                                    {clientProfileValue(client, 'description') && (
+                                        <div className="mt-5 border-t border-atlas-border pt-5">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">Contexte commercial</p>
+                                            <p className="mt-2 whitespace-pre-wrap text-sm text-atlas-ink">
+                                                {clientProfileValue(client, 'description')}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {client.status === 'Active' && editingClientProfile && (
+                                <form
+                                    aria-label="Modifier les informations du client"
+                                    onSubmit={onUpdateClientProfile}
+                                    className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"
+                                >
+                                    <fieldset disabled={updatingClientProfile} className="space-y-4">
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <FormField label="Nom affiché">
+                                                <input
+                                                    required
+                                                    minLength={2}
+                                                    maxLength={160}
+                                                    className={inputClassName}
+                                                    value={clientDisplayName}
+                                                    onChange={(event) => setClientDisplayName(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <FormField label="Raison sociale (optionnel)">
+                                                <input
+                                                    maxLength={160}
+                                                    className={inputClassName}
+                                                    value={clientLegalName}
+                                                    onChange={(event) => setClientLegalName(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <FormField label="Email (optionnel)">
+                                                <input
+                                                    type="email"
+                                                    autoComplete="email"
+                                                    maxLength={254}
+                                                    className={inputClassName}
+                                                    value={clientEmail}
+                                                    onChange={(event) => setClientEmail(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <FormField label="Téléphone (optionnel)">
+                                                <input
+                                                    type="tel"
+                                                    autoComplete="tel"
+                                                    maxLength={50}
+                                                    className={inputClassName}
+                                                    value={clientPhone}
+                                                    onChange={(event) => setClientPhone(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <div className="sm:col-span-2">
+                                                <FormField label="Site web (optionnel)">
+                                                    <input
+                                                        type="url"
+                                                        maxLength={2048}
+                                                        className={inputClassName}
+                                                        value={clientWebsite}
+                                                        onChange={(event) => setClientWebsite(event.target.value)}
+                                                        placeholder="https://entreprise.fr"
+                                                    />
+                                                </FormField>
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <FormField label="Contexte commercial (optionnel)">
+                                                    <textarea
+                                                        maxLength={2000}
+                                                        rows={4}
+                                                        className={inputClassName}
+                                                        value={clientDescription}
+                                                        onChange={(event) => setClientDescription(event.target.value)}
+                                                    />
+                                                </FormField>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                            <SubmitButton loading={updatingClientProfile} loadingLabel="Enregistrement…">
+                                                Enregistrer les informations
+                                            </SubmitButton>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingClientProfile(false)}
+                                                className="rounded-xl border border-atlas-border px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            )}
+                        </section>
 
                         <section className="mt-10" aria-labelledby="contacts-heading">
                             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">

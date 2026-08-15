@@ -262,13 +262,19 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   idempotence, après validation du profil courant
 - Retour à l'usage courant sans réactivation implicite des contacts archivés ;
   événement `ClientReactivated` sans donnée personnelle et audit d'archivage conservé
+- Profil commercial d'un client actif consultable et modifiable depuis sa fiche :
+  nom affiché, raison sociale, contexte, e-mail, téléphone et site web
+- Mise à jour partielle validée par le domaine, idempotente et versionnée, sans
+  perdre les métadonnées existantes ni modifier les snapshots Billing antérieurs
+- Événement `ClientProfileUpdated` limité aux identifiants et versions, sans
+  coordonnées ni description dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Modifier le profil commercial d'un client actif depuis sa fiche, sans altérer
-  les snapshots de facturation existants
+- Modifier séparément le profil administratif utilisé pour les futurs devis et
+  factures, sans réécrire les documents existants
 
 ---
 

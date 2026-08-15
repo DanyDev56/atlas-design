@@ -148,6 +148,21 @@ test('un client sans opportunité active peut être archivé puis réactivé', a
     await page.getByRole('link').filter({ hasText: 'Horizon Digital' }).click();
     await expect(page.getByRole('heading', { name: 'Horizon Digital' })).toBeVisible();
 
+    await page.getByRole('button', { name: 'Modifier les informations' }).click();
+    let profileForm = page.getByRole('form', { name: 'Modifier les informations du client' });
+    await expect(profileForm.getByLabel('Nom affiché')).toHaveValue('Horizon Digital');
+    await expect(profileForm.getByLabel('Email (optionnel)')).toHaveValue('projets@horizon-digital.test');
+    await profileForm.getByLabel('Raison sociale (optionnel)').fill('Horizon Digital SAS');
+    await profileForm.getByRole('button', { name: 'Enregistrer les informations' }).click();
+    await expect(page.getByText('Horizon Digital SAS', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Modifier les informations' }).click();
+    profileForm = page.getByRole('form', { name: 'Modifier les informations du client' });
+    await profileForm.getByLabel('Raison sociale (optionnel)').fill('');
+    await profileForm.getByRole('button', { name: 'Enregistrer les informations' }).click();
+    await expect(page.getByText('Les informations de « Horizon Digital » sont enregistrées.')).toBeVisible();
+    await expect(page.getByText('Horizon Digital SAS', { exact: true })).toHaveCount(0);
+
     await page.getByRole('button', { name: 'Archiver le client' }).click();
     const archiveForm = page.getByRole('form', { name: 'Archiver le client' });
     await archiveForm.getByLabel('Motif d’archivage').fill('Fin du dossier de démonstration');

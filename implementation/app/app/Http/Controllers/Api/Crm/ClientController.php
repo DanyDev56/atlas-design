@@ -13,6 +13,7 @@ use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\ReactivateClientHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
+use Atlas\Modules\Crm\Application\UpdateClientProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ final class ClientController extends Controller
         private readonly CreateClientHandler $createClient,
         private readonly ArchiveClientHandler $archiveClient,
         private readonly ReactivateClientHandler $reactivateClient,
+        private readonly UpdateClientProfileHandler $updateClientProfile,
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
         private readonly UpdateContactHandler $updateContact,
@@ -122,6 +124,36 @@ final class ClientController extends Controller
             actorUserId: $this->actorId($request),
             workspaceId: $workspaceId,
             clientId: $clientId,
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function updateProfile(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        $validated = $request->validate([
+            'changes' => ['required', 'array:display_name,legal_name,description,email,phone,website,postal_address', 'min:1'],
+            'changes.display_name' => ['sometimes', 'string', 'min:2', 'max:160'],
+            'changes.legal_name' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'changes.description' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'changes.email' => ['sometimes', 'nullable', 'email', 'max:254'],
+            'changes.phone' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'changes.website' => ['sometimes', 'nullable', 'url:http,https', 'max:2048'],
+            'changes.postal_address' => ['sometimes', 'nullable', 'array:line1,line2,postal_code,city,country_code'],
+            'changes.postal_address.line1' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'changes.postal_address.line2' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'changes.postal_address.postal_code' => ['sometimes', 'nullable', 'string', 'max:32'],
+            'changes.postal_address.city' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'changes.postal_address.country_code' => ['sometimes', 'nullable', 'string', 'size:2'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->updateClientProfile->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            changes: $validated['changes'],
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),
