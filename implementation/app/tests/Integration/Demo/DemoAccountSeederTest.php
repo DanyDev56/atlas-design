@@ -10,19 +10,97 @@ use Tests\Integration\IntegrationTestCase;
 
 final class DemoAccountSeederTest extends IntegrationTestCase
 {
-    public function test_seeds_demo_account_with_crm_and_billing_sample_data(): void
+    public function test_seeds_a_complete_and_idempotent_ui_test_scenario(): void
     {
         $result = app(DemoAccountSeeder::class)->seed();
 
         $this->assertSame(DemoAccountSeeder::EMAIL, $result->email);
         $this->assertTrue($result->sampleDataSeeded);
 
-        $this->assertSame(2, DB::table('crm.clients')->where('workspace_id', $result->workspaceId)->count());
-        $this->assertTrue(
-            DB::table('billing.quotes')->where('workspace_id', $result->workspaceId)->where('status', 'Accepted')->exists()
-        );
+        $this->assertSame(6, $result->resourceCounts['clients']);
+        $this->assertSame(7, $result->resourceCounts['opportunities']);
+        $this->assertSame(6, $result->resourceCounts['quotes']);
+        $this->assertSame(3, $result->resourceCounts['invoices']);
+
+        $this->assertSame(1, DB::table('crm.opportunities')
+            ->where('workspace_id', $result->workspaceId)->where('status', 'Open')->count());
+        $this->assertSame(1, DB::table('billing.quotes')
+            ->where('workspace_id', $result->workspaceId)->where('status', 'Draft')->count());
+        $this->assertSame(1, DB::table('billing.quotes')
+            ->where('workspace_id', $result->workspaceId)->where('status', 'Sent')->count());
+        $this->assertSame(4, DB::table('billing.quotes')
+            ->where('workspace_id', $result->workspaceId)->where('status', 'Accepted')->count());
+
+        $this->assertSame(1, DB::table('billing.invoices')
+            ->where('workspace_id', $result->workspaceId)->where('status', 'Draft')->count());
+        $this->assertTrue(DB::table('billing.invoices')
+            ->where('workspace_id', $result->workspaceId)
+            ->where('settlement_status', 'PartiallyPaid')
+            ->where('due_date', '<', now())
+            ->where('balance_cents', 240000)
+            ->exists());
+        $this->assertTrue(DB::table('billing.invoices')
+            ->where('workspace_id', $result->workspaceId)
+            ->where('settlement_status', 'Paid')
+            ->exists());
+
+        $this->assertTrue(DB::table('analytics.snapshots')->where('workspace_id', $result->workspaceId)->exists());
+        $this->assertTrue(DB::table('business_health.current_assessments')->where('workspace_id', $result->workspaceId)->exists());
+        $this->assertTrue(DB::table('advisor.overviews')->where('workspace_id', $result->workspaceId)->exists());
+        $this->assertGreaterThanOrEqual(1, $result->resourceCounts['active_recommendations']);
+        $this->assertGreaterThanOrEqual(1, $result->resourceCounts['unread_notifications']);
 
         $second = app(DemoAccountSeeder::class)->seed();
         $this->assertFalse($second->sampleDataSeeded);
+        $this->assertSame($result->resourceCounts, $second->resourceCounts);
+    }
+
+    public function test_upgrades_the_previous_two_client_scenario_without_deleting_it(): void
+    {
+        $initial = app(DemoAccountSeeder::class)->seed();
+        $enhancedNames = ['Maison Lumen', 'Nova Conseil', 'Cabinet Rivoli', 'Collectif Cobalt'];
+        $enhancedClientIds = DB::table('crm.clients')
+            ->where('workspace_id', $initial->workspaceId)
+            ->whereIn('display_name', $enhancedNames)
+            ->pluck('id')
+            ->all();
+        $enhancedQuoteIds = DB::table('billing.quotes')
+            ->where('workspace_id', $initial->workspaceId)
+            ->whereIn('client_id', $enhancedClientIds)
+            ->pluck('id')
+            ->all();
+        $enhancedInvoiceIds = DB::table('billing.invoices')
+            ->where('workspace_id', $initial->workspaceId)
+            ->whereIn('client_id', $enhancedClientIds)
+            ->pluck('id')
+            ->all();
+
+        DB::table('billing.payments')->whereIn('invoice_id', $enhancedInvoiceIds)->delete();
+        DB::table('billing.invoices')->whereIn('id', $enhancedInvoiceIds)->delete();
+        DB::table('billing.public_document_proofs')->whereIn('document_id', $enhancedQuoteIds)->delete();
+        DB::table('billing.quotes')->whereIn('id', $enhancedQuoteIds)->delete();
+        DB::table('crm.opportunities')->whereIn('client_id', $enhancedClientIds)->delete();
+        DB::table('crm.clients')->whereIn('id', $enhancedClientIds)->delete();
+
+        foreach (['crm', 'billing', 'analytics'] as $schema) {
+            DB::table($schema.'.idempotency_keys')
+                ->where('key', 'like', 'demo-seed:v2:%')
+                ->delete();
+        }
+
+        $upgraded = app(DemoAccountSeeder::class)->seed();
+
+        $this->assertTrue($upgraded->sampleDataSeeded);
+        $this->assertSame(6, $upgraded->resourceCounts['clients']);
+        $this->assertSame(6, $upgraded->resourceCounts['quotes']);
+        $this->assertSame(3, $upgraded->resourceCounts['invoices']);
+        $this->assertSame(1, DB::table('crm.clients')
+            ->where('workspace_id', $initial->workspaceId)
+            ->where('display_name', 'Les Ateliers du Marais')
+            ->count());
+        $this->assertSame(1, DB::table('crm.clients')
+            ->where('workspace_id', $initial->workspaceId)
+            ->where('display_name', 'Horizon Digital')
+            ->count());
     }
 }

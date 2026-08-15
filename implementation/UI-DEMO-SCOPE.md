@@ -113,7 +113,11 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 ### Livré
 
 - Commande `make demo-seed` → compte `demo@atlas.test` / `DemoAtlas2026!`
-- Données : 2 clients, opportunités (Open + Qualified), devis brouillon + accepté, facture payée
+- Scénario démo versionné et rejouable : 6 clients, 7 opportunités, devis
+  brouillon/envoyé/accepté, facture à créer, brouillon à émettre, impayé
+  partiellement réglé et historique soldé
+- États Analytics, Santé, Advisor et Notifications reconstruits automatiquement ;
+  un ancien compte démo est enrichi sans suppression de ses données
 - Dashboard alimenté (outbox + snapshot analytics)
 - Login : encart compte démo + pré-remplissage
 - Déconnexion : révocation de la session serveur avant oubli local

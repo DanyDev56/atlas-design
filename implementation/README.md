@@ -104,7 +104,9 @@ make up-observability  # Jaeger + OTLP collector
 ```
 
 UI démo Palier 4 : [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
-Compte présentation : `make demo-seed` puis connexion `demo@atlas.test`.
+Compte présentation : `make demo-seed` puis connexion `demo@atlas.test`. La
+commande crée ou met à niveau un scénario rejouable couvrant les principaux
+états CRM, devis, factures, Santé, Advisor et Notifications.
 
 Runbooks Palier 3 : [`runbooks/`](runbooks/) · Clôture Track A :
 [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Matrice SEC-TEST :

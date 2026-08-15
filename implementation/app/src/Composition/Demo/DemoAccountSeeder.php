@@ -11,6 +11,7 @@ use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
+use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
@@ -20,10 +21,11 @@ use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 final class DemoAccountSeeder
 {
+    public const SCENARIO_VERSION = '2';
+
     public const EMAIL = 'demo@atlas.test';
 
     public const PASSWORD = 'DemoAtlas2026!';
@@ -31,6 +33,15 @@ final class DemoAccountSeeder
     public const DISPLAY_NAME = 'Présentation Atlas';
 
     public const WORKSPACE_NAME = 'Studio Atlas Démo';
+
+    private const EXPECTED_CLIENT_NAMES = [
+        'Les Ateliers du Marais',
+        'Horizon Digital',
+        'Maison Lumen',
+        'Nova Conseil',
+        'Cabinet Rivoli',
+        'Collectif Cobalt',
+    ];
 
     public function __construct(
         private readonly PostgresUserRepository $users,
@@ -45,6 +56,7 @@ final class DemoAccountSeeder
         private readonly AcceptQuoteHandler $acceptQuote,
         private readonly CreateFinalInvoiceFromQuoteHandler $createInvoiceFromQuote,
         private readonly IssueInvoiceHandler $issueInvoice,
+        private readonly SendInvoiceHandler $sendInvoice,
         private readonly RecordPaymentHandler $recordPayment,
         private readonly PublishAnalyticsSnapshotHandler $publishSnapshot,
         private readonly OutboxProcessor $outbox,
@@ -82,7 +94,7 @@ final class DemoAccountSeeder
 
         $sampleDataSeeded = false;
 
-        if ($this->workspaceHasNoClients($workspaceId)) {
+        if (! $this->workspaceHasCurrentScenario($workspaceId)) {
             $this->seedSampleData($userId, $workspaceId);
             $this->drainOutbox();
             $sampleDataSeeded = true;
@@ -95,148 +107,21 @@ final class DemoAccountSeeder
             workspaceId: $workspaceId,
             userCreated: $userCreated,
             sampleDataSeeded: $sampleDataSeeded,
+            resourceCounts: $this->resourceCounts($workspaceId),
         );
     }
 
     private function seedSampleData(string $actorUserId, string $workspaceId): void
     {
-        $ateliers = $this->createClient->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            kind: 'Organization',
-            displayName: 'Les Ateliers du Marais',
-            profile: ['email' => 'contact@ateliers-marais.test'],
-            billingProfile: null,
-            requestId: $this->requestId('client-ateliers'),
-        );
+        if (! $this->legacyBaselineExists($workspaceId)) {
+            $this->seedDraftQuoteJourney($actorUserId, $workspaceId);
+            $this->seedPaidInvoiceJourney($actorUserId, $workspaceId);
+        }
 
-        $this->createOpportunity->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            clientId: $ateliers['client_id'],
-            contactId: null,
-            title: 'Audit express',
-            estimatedAmountCents: 80000,
-            currency: 'EUR',
-            requestId: $this->requestId('opp-audit'),
-        );
-
-        $refonte = $this->createOpportunity->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            clientId: $ateliers['client_id'],
-            contactId: null,
-            title: 'Refonte identité visuelle',
-            estimatedAmountCents: 350000,
-            currency: 'EUR',
-            requestId: $this->requestId('opp-refonte'),
-        );
-
-        $refonteQualified = $this->qualifyOpportunity->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            opportunityId: $refonte['opportunity_id'],
-            expectedRevision: (int) $refonte['version'],
-            requestId: $this->requestId('qualify-refonte'),
-        );
-
-        $this->createQuote->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            clientId: $ateliers['client_id'],
-            opportunityId: $refonte['opportunity_id'],
-            lines: [
-                ['description' => 'Direction artistique', 'quantity' => 1, 'unit_price_cents' => 200000],
-                ['description' => 'Déclinaisons supports', 'quantity' => 1, 'unit_price_cents' => 150000],
-            ],
-            currency: 'EUR',
-            requestId: $this->requestId('quote-draft'),
-        );
-
-        $horizon = $this->createClient->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            kind: 'Organization',
-            displayName: 'Horizon Digital',
-            profile: ['email' => 'projets@horizon-digital.test'],
-            billingProfile: null,
-            requestId: $this->requestId('client-horizon'),
-        );
-
-        $migration = $this->createOpportunity->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            clientId: $horizon['client_id'],
-            contactId: null,
-            title: 'Migration cloud',
-            estimatedAmountCents: 120000,
-            currency: 'EUR',
-            requestId: $this->requestId('opp-migration'),
-        );
-
-        $migrationQualified = $this->qualifyOpportunity->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            opportunityId: $migration['opportunity_id'],
-            expectedRevision: (int) $migration['version'],
-            requestId: $this->requestId('qualify-migration'),
-        );
-
-        $quote = $this->createQuote->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            clientId: $horizon['client_id'],
-            opportunityId: $migration['opportunity_id'],
-            lines: [
-                ['description' => 'Migration infrastructure', 'quantity' => 1, 'unit_price_cents' => 120000],
-            ],
-            currency: 'EUR',
-            requestId: $this->requestId('quote-migration'),
-        );
-
-        $sent = $this->sendQuote->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            quoteId: $quote['quote_id'],
-            expectedRevision: (int) $quote['version'],
-            requestId: $this->requestId('send-migration'),
-        );
-
-        $this->acceptQuote->handle(
-            workspaceId: $workspaceId,
-            quoteId: $quote['quote_id'],
-            publicToken: $sent['public_accept_token'],
-            expectedRevision: (int) $sent['version'],
-            requestId: $this->requestId('accept-migration'),
-        );
-
-        $this->drainOutbox();
-
-        $invoice = $this->createInvoiceFromQuote->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            quoteId: $quote['quote_id'],
-            requestId: $this->requestId('invoice-migration'),
-        );
-
-        $issued = $this->issueInvoice->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            invoiceId: $invoice['invoice_id'],
-            expectedRevision: (int) $invoice['version'],
-            requestId: $this->requestId('issue-migration'),
-        );
-
-        $this->recordPayment->handle(
-            actorUserId: $actorUserId,
-            workspaceId: $workspaceId,
-            invoiceId: $invoice['invoice_id'],
-            amountCents: 120000,
-            reference: 'VIR-DEMO-HORIZON',
-            requestId: $this->requestId('payment-migration'),
-        );
-
-        unset($refonteQualified, $migrationQualified, $issued);
+        $this->seedSentQuoteJourney($actorUserId, $workspaceId);
+        $this->seedAcceptedQuoteJourney($actorUserId, $workspaceId);
+        $this->seedDraftInvoiceJourney($actorUserId, $workspaceId);
+        $this->seedOverdueInvoiceJourney($actorUserId, $workspaceId);
 
         $this->drainOutbox(times: 4);
 
@@ -249,6 +134,344 @@ final class DemoAccountSeeder
         $this->drainOutbox(times: 4);
     }
 
+    private function seedDraftQuoteJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Les Ateliers du Marais',
+            'contact@ateliers-marais.test',
+            'ateliers',
+        );
+
+        $this->createOpportunity->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            contactId: null,
+            title: 'Audit express à qualifier',
+            estimatedAmountCents: 80000,
+            currency: 'EUR',
+            requestId: $this->requestId('opp-audit'),
+        );
+
+        $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Refonte identité visuelle',
+            amountCents: 350000,
+            lines: [
+                ['description' => 'Direction artistique', 'quantity' => 1, 'unit_price_cents' => 200000],
+                ['description' => 'Déclinaisons supports', 'quantity' => 1, 'unit_price_cents' => 150000],
+            ],
+            suffix: 'refonte',
+        );
+    }
+
+    private function seedPaidInvoiceJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Horizon Digital',
+            'projets@horizon-digital.test',
+            'horizon',
+        );
+        $quote = $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Migration cloud',
+            amountCents: 120000,
+            lines: [['description' => 'Migration infrastructure', 'quantity' => 1, 'unit_price_cents' => 120000]],
+            suffix: 'migration',
+        );
+        $accepted = $this->sendAndAcceptQuote($workspaceId, $actorUserId, $quote, 'migration');
+        $invoice = $this->createInvoiceFromQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            quoteId: $accepted['quote_id'],
+            requestId: $this->requestId('invoice-migration'),
+        );
+        $issued = $this->issueInvoice->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            expectedRevision: (int) $invoice['version'],
+            requestId: $this->requestId('issue-migration'),
+        );
+        $this->sendInvoice->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            expectedRevision: (int) $issued['version'],
+            requestId: $this->requestId('send-invoice-migration'),
+        );
+        $payment = $this->recordPayment->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            amountCents: 120000,
+            reference: 'VIR-DEMO-HORIZON',
+            requestId: $this->requestId('payment-migration'),
+        );
+
+        $this->backdatePaidInvoice($invoice['invoice_id'], $payment['payment_id']);
+    }
+
+    private function seedSentQuoteJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Maison Lumen',
+            'bonjour@maison-lumen.test',
+            'lumen',
+        );
+        $quote = $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Lancement e-commerce',
+            amountCents: 480000,
+            lines: [
+                ['description' => 'Design UX/UI', 'quantity' => 1, 'unit_price_cents' => 300000],
+                ['description' => 'Kit de lancement', 'quantity' => 1, 'unit_price_cents' => 180000],
+            ],
+            suffix: 'lumen',
+        );
+
+        $this->sendQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            quoteId: $quote['quote_id'],
+            expectedRevision: (int) $quote['version'],
+            requestId: $this->requestId('send-lumen'),
+        );
+    }
+
+    private function seedAcceptedQuoteJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Nova Conseil',
+            'direction@nova-conseil.test',
+            'nova',
+        );
+        $quote = $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Positionnement de marque',
+            amountCents: 220000,
+            lines: [['description' => 'Plateforme de marque', 'quantity' => 1, 'unit_price_cents' => 220000]],
+            suffix: 'nova',
+        );
+
+        $this->sendAndAcceptQuote($workspaceId, $actorUserId, $quote, 'nova');
+    }
+
+    private function seedDraftInvoiceJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Cabinet Rivoli',
+            'associes@cabinet-rivoli.test',
+            'rivoli',
+        );
+        $quote = $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Nouveau site vitrine',
+            amountCents: 180000,
+            lines: [['description' => 'Conception du site', 'quantity' => 1, 'unit_price_cents' => 180000]],
+            suffix: 'rivoli',
+        );
+        $accepted = $this->sendAndAcceptQuote($workspaceId, $actorUserId, $quote, 'rivoli');
+
+        $this->createInvoiceFromQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            quoteId: $accepted['quote_id'],
+            requestId: $this->requestId('invoice-rivoli'),
+        );
+    }
+
+    private function seedOverdueInvoiceJourney(string $actorUserId, string $workspaceId): void
+    {
+        $clientId = $this->seedClient(
+            $actorUserId,
+            $workspaceId,
+            'Collectif Cobalt',
+            'finance@collectif-cobalt.test',
+            'cobalt',
+        );
+        $quote = $this->seedQualifiedQuote(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            title: 'Campagne annuelle',
+            amountCents: 300000,
+            lines: [
+                ['description' => 'Concept créatif', 'quantity' => 1, 'unit_price_cents' => 180000],
+                ['description' => 'Production digitale', 'quantity' => 1, 'unit_price_cents' => 120000],
+            ],
+            suffix: 'cobalt',
+        );
+        $accepted = $this->sendAndAcceptQuote($workspaceId, $actorUserId, $quote, 'cobalt');
+        $invoice = $this->createInvoiceFromQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            quoteId: $accepted['quote_id'],
+            requestId: $this->requestId('invoice-cobalt'),
+        );
+        $issued = $this->issueInvoice->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            expectedRevision: (int) $invoice['version'],
+            requestId: $this->requestId('issue-cobalt'),
+        );
+        $this->sendInvoice->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            expectedRevision: (int) $issued['version'],
+            requestId: $this->requestId('send-invoice-cobalt'),
+        );
+        $payment = $this->recordPayment->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            amountCents: 60000,
+            reference: 'ACOMPTE-DEMO-COBALT',
+            requestId: $this->requestId('payment-cobalt'),
+        );
+
+        $this->backdateOverdueInvoice($invoice['invoice_id'], $payment['payment_id']);
+    }
+
+    private function seedClient(
+        string $actorUserId,
+        string $workspaceId,
+        string $displayName,
+        string $email,
+        string $suffix,
+    ): string {
+        $client = $this->createClient->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            kind: 'Organization',
+            displayName: $displayName,
+            profile: [
+                'email' => $email,
+                'demo_scenario_version' => self::SCENARIO_VERSION,
+            ],
+            billingProfile: null,
+            requestId: $this->requestId('client-'.$suffix),
+        );
+
+        return $client['client_id'];
+    }
+
+    /**
+     * @param  list<array{description: string, quantity: int, unit_price_cents: int}>  $lines
+     * @return array<string, mixed>
+     */
+    private function seedQualifiedQuote(
+        string $actorUserId,
+        string $workspaceId,
+        string $clientId,
+        string $title,
+        int $amountCents,
+        array $lines,
+        string $suffix,
+    ): array {
+        $opportunity = $this->createOpportunity->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            contactId: null,
+            title: $title,
+            estimatedAmountCents: $amountCents,
+            currency: 'EUR',
+            requestId: $this->requestId('opp-'.$suffix),
+        );
+        $this->qualifyOpportunity->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            opportunityId: $opportunity['opportunity_id'],
+            expectedRevision: (int) $opportunity['version'],
+            requestId: $this->requestId('qualify-'.$suffix),
+        );
+
+        return $this->createQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            opportunityId: $opportunity['opportunity_id'],
+            lines: $lines,
+            currency: 'EUR',
+            requestId: $this->requestId('quote-'.$suffix),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     * @return array<string, mixed>
+     */
+    private function sendAndAcceptQuote(
+        string $workspaceId,
+        string $actorUserId,
+        array $quote,
+        string $suffix,
+    ): array {
+        $sent = $this->sendQuote->handle(
+            actorUserId: $actorUserId,
+            workspaceId: $workspaceId,
+            quoteId: $quote['quote_id'],
+            expectedRevision: (int) $quote['version'],
+            requestId: $this->requestId('send-'.$suffix),
+        );
+
+        return $this->acceptQuote->handle(
+            workspaceId: $workspaceId,
+            quoteId: $quote['quote_id'],
+            publicToken: $sent['public_accept_token'],
+            expectedRevision: (int) $sent['version'],
+            requestId: $this->requestId('accept-'.$suffix),
+        );
+    }
+
+    private function backdatePaidInvoice(string $invoiceId, string $paymentId): void
+    {
+        DB::table('billing.invoices')->where('id', $invoiceId)->update([
+            'issued_at' => now()->subDays(20),
+            'sent_at' => now()->subDays(19),
+            'due_date' => now()->addDays(10),
+            'paid_at' => now()->subDays(5),
+        ]);
+        DB::table('billing.payments')->where('id', $paymentId)->update([
+            'recorded_at' => now()->subDays(5),
+        ]);
+    }
+
+    private function backdateOverdueInvoice(string $invoiceId, string $paymentId): void
+    {
+        DB::table('billing.invoices')->where('id', $invoiceId)->update([
+            'issued_at' => now()->subDays(45),
+            'sent_at' => now()->subDays(44),
+            'due_date' => now()->subDays(15),
+        ]);
+        DB::table('billing.payments')->where('id', $paymentId)->update([
+            'recorded_at' => now()->subDays(10),
+        ]);
+    }
+
     private function drainOutbox(int $times = 3): void
     {
         for ($i = 0; $i < $times; $i++) {
@@ -256,9 +479,48 @@ final class DemoAccountSeeder
         }
     }
 
-    private function workspaceHasNoClients(string $workspaceId): bool
+    private function workspaceHasCurrentScenario(string $workspaceId): bool
     {
-        return DB::table('crm.clients')->where('workspace_id', $workspaceId)->count() === 0;
+        $expectedClients = DB::table('crm.clients')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('display_name', self::EXPECTED_CLIENT_NAMES)
+            ->count();
+
+        return $expectedClients === count(self::EXPECTED_CLIENT_NAMES)
+            && DB::table('billing.quotes')->where('workspace_id', $workspaceId)->count() >= 6
+            && DB::table('billing.invoices')->where('workspace_id', $workspaceId)->count() >= 3
+            && DB::table('billing.payments')->where('workspace_id', $workspaceId)->count() >= 2
+            && DB::table('analytics.snapshots')->where('workspace_id', $workspaceId)->exists()
+            && DB::table('business_health.current_assessments')->where('workspace_id', $workspaceId)->exists()
+            && DB::table('advisor.overviews')->where('workspace_id', $workspaceId)->exists();
+    }
+
+    private function legacyBaselineExists(string $workspaceId): bool
+    {
+        return DB::table('crm.clients')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('display_name', ['Les Ateliers du Marais', 'Horizon Digital'])
+            ->count() === 2;
+    }
+
+    /** @return array<string, int> */
+    private function resourceCounts(string $workspaceId): array
+    {
+        return [
+            'clients' => DB::table('crm.clients')->where('workspace_id', $workspaceId)->count(),
+            'opportunities' => DB::table('crm.opportunities')->where('workspace_id', $workspaceId)->count(),
+            'quotes' => DB::table('billing.quotes')->where('workspace_id', $workspaceId)->count(),
+            'invoices' => DB::table('billing.invoices')->where('workspace_id', $workspaceId)->count(),
+            'active_recommendations' => DB::table('advisor.recommendations')
+                ->where('workspace_id', $workspaceId)
+                ->where('status', 'Generated')
+                ->count(),
+            'unread_notifications' => DB::table('notifications.notifications')
+                ->where('workspace_id', $workspaceId)
+                ->where('status', 'Active')
+                ->where('read_state', 'Unread')
+                ->count(),
+        ];
     }
 
     private function resolveWorkspaceId(string $userId): ?string
@@ -273,6 +535,6 @@ final class DemoAccountSeeder
 
     private function requestId(string $suffix): string
     {
-        return 'demo-seed:'.$suffix.':'.Str::uuid();
+        return 'demo-seed:v'.self::SCENARIO_VERSION.':'.$suffix;
     }
 }
