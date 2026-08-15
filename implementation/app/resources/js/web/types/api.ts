@@ -120,6 +120,15 @@ export interface BusinessHealthAssessment {
     source_published_at: string;
 }
 
+export interface AnalyticsSnapshotPublication {
+    analytics_snapshot_id: string;
+    profile_key: string;
+    profile_version: string;
+    freshness_status: string;
+    completeness_status: string;
+    as_of: string;
+}
+
 export interface PipelinePayload {
     counts_by_status?: Record<string, number>;
 }

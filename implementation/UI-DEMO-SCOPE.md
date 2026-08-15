@@ -152,6 +152,9 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Destination Santé de l’activité accessible depuis la navigation et le
   dashboard, avec score, fiabilité, couverture, facteurs et preuves issus de
   l’évaluation Business Health courante
+- Actualisation explicite depuis Santé : publication déléguée au contrat
+  Analytics, attente bornée de l’évaluation produite par le worker et état
+  différé si la projection est encore en cours
 - Absence de score, données manquantes et risques observés expliqués sans
   transformer une preuve indisponible en note nulle
 - Destination Advisor accessible depuis la navigation et le dashboard, avec

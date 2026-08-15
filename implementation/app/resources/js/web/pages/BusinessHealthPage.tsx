@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { publishAnalyticsSnapshot } from '@/api/analytics';
 import { getCurrentBusinessHealth } from '@/api/businessHealth';
 import { ApiClientError } from '@/api/client';
 import { ErrorBanner } from '@/components/auth/AuthLayout';
@@ -68,6 +69,13 @@ const unavailableReasons: Record<string, string> = {
     StaleSnapshot: 'Données trop anciennes',
 };
 
+const assessmentPollAttempts = 8;
+const assessmentPollDelayMs = 750;
+
+function wait(delayMs: number): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, delayMs));
+}
+
 function formatAssessmentDate(value: string): string {
     const date = new Date(value);
 
@@ -112,6 +120,24 @@ function severityClasses(severity: BusinessHealthRisk['severity']): string {
 function isAssessmentMissing(error: unknown): boolean {
     return error instanceof ApiClientError
         && (error.status === 404 || error.body.messages?.includes('Assessment not found.'));
+}
+
+function formatSnapshotError(error: unknown): string {
+    if (error instanceof ApiClientError) {
+        if (error.body.messages?.includes('Insufficient data.')) {
+            return 'Il manque encore des données CRM ou Facturation pour publier une nouvelle analyse.';
+        }
+
+        if (error.body.messages?.includes('Stale data.')) {
+            return 'Les données source sont trop anciennes. Attendez leur traitement par le worker avant de réessayer.';
+        }
+
+        if (error.status === 403) {
+            return 'Vous n’avez pas l’autorisation d’actualiser cette analyse.';
+        }
+    }
+
+    return error instanceof Error ? error.message : 'Actualisation de l’analyse impossible';
 }
 
 function FactorCard({ factorKey, factor }: { factorKey: string; factor: BusinessHealthFactor }) {
@@ -193,6 +219,10 @@ function BusinessHealthContent() {
     const [missing, setMissing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [refreshError, setRefreshError] = useState<string | null>(null);
+    const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+    const [pendingSnapshotId, setPendingSnapshotId] = useState<string | null>(null);
 
     async function loadAssessment() {
         setLoading(true);
@@ -217,6 +247,72 @@ function BusinessHealthContent() {
         void loadAssessment();
     }, [token, workspaceId]);
 
+    async function findPublishedAssessment(snapshotId: string): Promise<BusinessHealthAssessment | null> {
+        for (let attempt = 0; attempt < assessmentPollAttempts; attempt += 1) {
+            await wait(assessmentPollDelayMs);
+
+            try {
+                const current = await getCurrentBusinessHealth(token, workspaceId);
+                if (current.analytics_snapshot_id === snapshotId) return current;
+            } catch {
+                // The projection may not exist yet while the worker consumes the snapshot.
+            }
+        }
+
+        return null;
+    }
+
+    function applyPublishedAssessment(current: BusinessHealthAssessment) {
+        setAssessment(current);
+        setMissing(false);
+        setPendingSnapshotId(null);
+        setRefreshMessage('Analyse actualisée. La nouvelle évaluation est affichée.');
+    }
+
+    async function handleRefreshAnalysis() {
+        setRefreshing(true);
+        setRefreshError(null);
+        setRefreshMessage('Publication du snapshot Analytics…');
+
+        try {
+            const publication = await publishAnalyticsSnapshot(token, workspaceId);
+            setRefreshMessage('Snapshot publié. Le worker prépare la nouvelle évaluation…');
+
+            const current = await findPublishedAssessment(publication.analytics_snapshot_id);
+            if (current) {
+                applyPublishedAssessment(current);
+            } else {
+                setPendingSnapshotId(publication.analytics_snapshot_id);
+                setRefreshMessage('Le snapshot est publié. L’évaluation est encore en cours de traitement par le worker.');
+            }
+        } catch (err) {
+            setRefreshMessage(null);
+            setRefreshError(formatSnapshotError(err));
+        } finally {
+            setRefreshing(false);
+        }
+    }
+
+    async function handleCheckPendingAssessment() {
+        if (!pendingSnapshotId) return;
+
+        setRefreshing(true);
+        setRefreshError(null);
+
+        try {
+            const current = await getCurrentBusinessHealth(token, workspaceId);
+            if (current.analytics_snapshot_id === pendingSnapshotId) {
+                applyPublishedAssessment(current);
+            } else {
+                setRefreshMessage('Le worker n’a pas encore terminé cette évaluation.');
+            }
+        } catch (err) {
+            setRefreshError(err instanceof Error ? err.message : 'Vérification de l’évaluation impossible');
+        } finally {
+            setRefreshing(false);
+        }
+    }
+
     const primaryFactor = assessment?.primary_attention
         ? factorPresentation[assessment.primary_attention.factor_key]
         : null;
@@ -231,12 +327,51 @@ function BusinessHealthContent() {
                         Une lecture explicable de vos données commerciales et de facturation récentes.
                     </p>
                 </div>
-                {assessment && (
-                    <p className="text-xs text-atlas-ink-muted">
-                        Évaluation du <time dateTime={assessment.assessed_at}>{formatAssessmentDate(assessment.assessed_at)}</time>
-                    </p>
-                )}
+                <div className="flex flex-col items-start gap-3 sm:items-end">
+                    {assessment && (
+                        <p className="text-xs text-atlas-ink-muted">
+                            Évaluation du <time dateTime={assessment.assessed_at}>{formatAssessmentDate(assessment.assessed_at)}</time>
+                        </p>
+                    )}
+                    <button
+                        type="button"
+                        disabled={refreshing || pendingSnapshotId !== null}
+                        onClick={() => void handleRefreshAnalysis()}
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink shadow-sm hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+                    >
+                        {refreshing
+                            ? 'Actualisation…'
+                            : pendingSnapshotId
+                              ? 'En attente du worker'
+                              : 'Actualiser l’analyse'}
+                    </button>
+                </div>
             </div>
+
+            {refreshError && (
+                <div className="mt-6">
+                    <ErrorBanner message={refreshError} />
+                </div>
+            )}
+
+            {refreshMessage && !refreshError && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-atlas-border bg-atlas-card px-4 py-3 text-sm text-atlas-ink"
+                >
+                    <span>{refreshMessage}</span>
+                    {pendingSnapshotId && !refreshing && (
+                        <button
+                            type="button"
+                            onClick={() => void handleCheckPendingAssessment()}
+                            className="font-semibold text-atlas-accent hover:underline"
+                        >
+                            Vérifier maintenant
+                        </button>
+                    )}
+                </div>
+            )}
 
             {loading && <div className="mt-8"><PageSkeleton rows={4} variant="cards" /></div>}
 
