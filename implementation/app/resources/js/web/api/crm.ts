@@ -67,6 +67,29 @@ export async function changePrimaryContact(
     );
 }
 
+export async function updateContact(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    contactId: string,
+    payload: {
+        profile: {
+            display_name: string;
+            email: string | null;
+            phone: string | null;
+            role: string | null;
+        };
+        expected_revision: number;
+    },
+): Promise<{ contact_id: string; client_id: string; contact_version: number; client_version: number }> {
+    return apiRequest(
+        'PATCH',
+        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}`),
+        payload,
+        { token },
+    );
+}
+
 export async function listOpportunities(
     token: string,
     workspaceId: string,

@@ -7,6 +7,7 @@ import {
     getClient,
     listContacts,
     listOpportunities,
+    updateContact,
 } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -44,6 +45,12 @@ export function ClientDetailPage() {
     const [makePrimary, setMakePrimary] = useState(false);
     const [creatingContact, setCreatingContact] = useState(false);
     const [changingPrimaryContactId, setChangingPrimaryContactId] = useState<string | null>(null);
+    const [editingContactId, setEditingContactId] = useState<string | null>(null);
+    const [editContactName, setEditContactName] = useState('');
+    const [editContactEmail, setEditContactEmail] = useState('');
+    const [editContactPhone, setEditContactPhone] = useState('');
+    const [editContactRole, setEditContactRole] = useState('');
+    const [updatingContactId, setUpdatingContactId] = useState<string | null>(null);
 
     const [showOpportunityForm, setShowOpportunityForm] = useState(false);
     const [opportunityContactId, setOpportunityContactId] = useState('');
@@ -194,6 +201,49 @@ export function ClientDetailPage() {
             setError(err instanceof Error ? err.message : 'Changement du contact principal impossible');
         } finally {
             setChangingPrimaryContactId(null);
+        }
+    }
+
+    function openEditContact(contact: ContactSummary) {
+        setEditingContactId(contact.contact_id);
+        setEditContactName(contactProfileValue(contact, 'display_name') ?? '');
+        setEditContactEmail(contactProfileValue(contact, 'email') ?? '');
+        setEditContactPhone(contactProfileValue(contact, 'phone') ?? '');
+        setEditContactRole(contactProfileValue(contact, 'role') ?? '');
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onUpdateContact(event: FormEvent, contact: ContactSummary) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setUpdatingContactId(contact.contact_id);
+        setError(null);
+        setSuccess(null);
+        try {
+            const displayName = editContactName.trim();
+            await updateContact(token, workspaceId, clientId, contact.contact_id, {
+                profile: {
+                    display_name: displayName,
+                    email: editContactEmail.trim() || null,
+                    phone: editContactPhone.trim() || null,
+                    role: editContactRole.trim() || null,
+                },
+                expected_revision: client.version,
+            });
+            const [clientData, contactData] = await Promise.all([
+                getClient(token, workspaceId, clientId),
+                listContacts(token, workspaceId, clientId),
+            ]);
+            setClient(clientData);
+            setContacts(contactData);
+            setEditingContactId(null);
+            setSuccess(`Les informations de « ${displayName} » sont enregistrées.`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Modification du contact impossible');
+        } finally {
+            setUpdatingContactId(null);
         }
     }
 
@@ -429,26 +479,97 @@ export function ClientDetailPage() {
                                                     </div>
                                                 )}
                                                 {contact.status === 'Active' && (
-                                                    <button
-                                                        type="button"
-                                                        disabled={changingPrimaryContactId !== null}
-                                                        aria-busy={changingPrimaryContactId === contact.contact_id}
-                                                        aria-label={contact.is_primary
-                                                            ? `Retirer ${name} comme contact principal`
-                                                            : `Définir ${name} comme contact principal`}
-                                                        onClick={() => void onChangePrimaryContact(
-                                                            contact.is_primary ? null : contact.contact_id,
-                                                            contact.contact_id,
-                                                            name,
-                                                        )}
-                                                        className="mt-4 text-xs font-semibold text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                                                        <button
+                                                            type="button"
+                                                            disabled={changingPrimaryContactId !== null || updatingContactId !== null}
+                                                            aria-busy={changingPrimaryContactId === contact.contact_id}
+                                                            aria-label={contact.is_primary
+                                                                ? `Retirer ${name} comme contact principal`
+                                                                : `Définir ${name} comme contact principal`}
+                                                            onClick={() => void onChangePrimaryContact(
+                                                                contact.is_primary ? null : contact.contact_id,
+                                                                contact.contact_id,
+                                                                name,
+                                                            )}
+                                                            className="text-xs font-semibold text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {changingPrimaryContactId === contact.contact_id
+                                                                ? 'Mise à jour…'
+                                                                : contact.is_primary
+                                                                    ? 'Retirer comme principal'
+                                                                    : 'Définir comme principal'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={updatingContactId !== null || changingPrimaryContactId !== null}
+                                                            aria-label={`Modifier ${name}`}
+                                                            onClick={() => openEditContact(contact)}
+                                                            className="text-xs font-semibold text-atlas-ink-muted hover:text-atlas-accent hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            Modifier
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {editingContactId === contact.contact_id && (
+                                                    <form
+                                                        aria-label={`Modifier ${name}`}
+                                                        onSubmit={(event) => void onUpdateContact(event, contact)}
+                                                        className="mt-5 space-y-3 border-t border-atlas-border pt-5"
                                                     >
-                                                        {changingPrimaryContactId === contact.contact_id
-                                                            ? 'Mise à jour…'
-                                                            : contact.is_primary
-                                                                ? 'Retirer comme principal'
-                                                                : 'Définir comme principal'}
-                                                    </button>
+                                                        <fieldset disabled={updatingContactId === contact.contact_id} className="space-y-3">
+                                                            <FormField label="Nom complet">
+                                                                <input
+                                                                    required
+                                                                    autoComplete="name"
+                                                                    className={inputClassName}
+                                                                    value={editContactName}
+                                                                    onChange={(event) => setEditContactName(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <FormField label="Rôle (optionnel)">
+                                                                <input
+                                                                    autoComplete="organization-title"
+                                                                    className={inputClassName}
+                                                                    value={editContactRole}
+                                                                    onChange={(event) => setEditContactRole(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <FormField label="Email (optionnel)">
+                                                                <input
+                                                                    type="email"
+                                                                    autoComplete="email"
+                                                                    className={inputClassName}
+                                                                    value={editContactEmail}
+                                                                    onChange={(event) => setEditContactEmail(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <FormField label="Téléphone (optionnel)">
+                                                                <input
+                                                                    type="tel"
+                                                                    autoComplete="tel"
+                                                                    className={inputClassName}
+                                                                    value={editContactPhone}
+                                                                    onChange={(event) => setEditContactPhone(event.target.value)}
+                                                                />
+                                                            </FormField>
+                                                            <div className="flex flex-col gap-2">
+                                                                <SubmitButton
+                                                                    loading={updatingContactId === contact.contact_id}
+                                                                    loadingLabel="Enregistrement…"
+                                                                >
+                                                                    Enregistrer
+                                                                </SubmitButton>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setEditingContactId(null)}
+                                                                    className="rounded-xl border border-atlas-border px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
+                                                                >
+                                                                    Annuler
+                                                                </button>
+                                                            </div>
+                                                        </fieldset>
+                                                    </form>
                                                 )}
                                             </li>
                                         );

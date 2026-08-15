@@ -95,6 +95,53 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             ->assertJsonPath('primary_contact_id', null)
             ->assertJsonPath('version', 4);
 
+        $updateContactKey = (string) Str::uuid();
+        $contactUpdated = $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$contact->json('contact_id')}",
+            [
+                'profile' => [
+                    'display_name' => 'Jane Martin',
+                    'email' => 'jane.martin@acme.test',
+                    'phone' => '+33 6 12 34 56 78',
+                    'role' => 'Directrice de projet',
+                ],
+                'expected_revision' => 4,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $updateContactKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('contact_version', 2)
+            ->assertJsonPath('client_version', 5);
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$contact->json('contact_id')}",
+            [
+                'profile' => [
+                    'display_name' => 'Jane Martin',
+                    'email' => 'jane.martin@acme.test',
+                    'phone' => '+33 6 12 34 56 78',
+                    'role' => 'Directrice de projet',
+                ],
+                'expected_revision' => 4,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $updateContactKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($contactUpdated->json());
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('0.profile.display_name', 'Jane Martin')
+            ->assertJsonPath('0.profile.email', 'jane.martin@acme.test')
+            ->assertJsonPath('0.profile.phone', '+33 6 12 34 56 78')
+            ->assertJsonPath('0.profile.role', 'Directrice de projet')
+            ->assertJsonPath('0.version', 2);
+
         $opportunity = $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
             'client_id' => $clientId,
             'contact_id' => $contact->json('contact_id'),
@@ -145,6 +192,9 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         );
         $this->assertSame(3, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.client_primary_contact_changed')
+            ->count());
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.contact_updated')
             ->count());
     }
 }

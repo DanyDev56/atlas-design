@@ -230,12 +230,15 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   autorisation élevée, contrôle de révision, idempotence et relecture immédiate
 - Événement `ClientPrimaryContactChanged` publié aussi bien lors de l'ajout d'un
   contact principal que lors d'un changement explicite
+- Profil d'un contact éditable depuis sa carte : nom, rôle, email et téléphone,
+  avec suppression explicite des champs optionnels laissés vides
+- Mise à jour atomique des versions Client et Contact, idempotence et événement
+  `ContactUpdated` sans donnée personnelle dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Ajouter l'édition du profil d'un contact
 - Archiver un contact après contrôle des opportunités non terminales qui le
   référencent
 

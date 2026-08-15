@@ -56,6 +56,11 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Principal', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Retirer Camille Martin comme contact principal' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Définir Julien Morel comme contact principal' })).toBeVisible();
+    await page.getByRole('button', { name: 'Modifier Camille Martin' }).click();
+    const editContactForm = page.getByRole('form', { name: 'Modifier Camille Martin' });
+    await expect(editContactForm.getByLabel('Nom complet')).toHaveValue('Camille Martin');
+    await expect(editContactForm.getByLabel('Email (optionnel)')).toHaveValue('camille@ateliers-marais.test');
+    await editContactForm.getByRole('button', { name: 'Annuler' }).click();
 
     await page.getByRole('button', { name: 'Nouvelle opportunité' }).click();
     await expect(page.getByLabel('Contact associé (optionnel)').locator('option:checked'))

@@ -52,6 +52,43 @@ final class Contact
         );
     }
 
+    /** @param array<string, mixed> $changes */
+    public function updateProfile(array $changes): void
+    {
+        if ($changes === []) {
+            throw new \DomainException('Contact changes required.');
+        }
+
+        $result = $this->profile;
+
+        foreach ($changes as $key => $value) {
+            if ($value === null || $value === '') {
+                unset($result[$key]);
+            } else {
+                $result[$key] = $value;
+            }
+        }
+
+        if (! isset($result['display_name']) || ! is_string($result['display_name'])) {
+            throw new \DomainException('Contact display name required.');
+        }
+
+        $displayName = trim($result['display_name']);
+
+        if (mb_strlen($displayName) < 2 || mb_strlen($displayName) > 160) {
+            throw new \DomainException('Contact display name invalid.');
+        }
+
+        $result['display_name'] = $displayName;
+
+        if ($result === $this->profile) {
+            throw new \DomainException('Contact profile unchanged.');
+        }
+
+        $this->profile = $result;
+        $this->version++;
+    }
+
     public function id(): ContactId
     {
         return $this->id;
@@ -71,5 +108,15 @@ final class Contact
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function status(): string
+    {
+        return $this->status;
+    }
+
+    public function version(): int
+    {
+        return $this->version;
     }
 }

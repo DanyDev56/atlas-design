@@ -9,6 +9,7 @@ use Atlas\Modules\Crm\Application\AddContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
+use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -19,6 +20,7 @@ final class ClientController extends Controller
         private readonly CreateClientHandler $createClient,
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
+        private readonly UpdateContactHandler $updateContact,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -90,6 +92,33 @@ final class ClientController extends Controller
             $this->actorId($request),
             $workspaceId,
             $clientId,
+        ));
+    }
+
+    public function updateContact(
+        Request $request,
+        string $workspaceId,
+        string $clientId,
+        string $contactId,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'profile' => ['required', 'array:display_name,email,phone,role', 'min:1'],
+            'profile.display_name' => ['sometimes', 'string', 'min:2', 'max:160'],
+            'profile.email' => ['sometimes', 'nullable', 'email', 'max:254'],
+            'profile.phone' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'profile.role' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->updateContact->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            contactId: $contactId,
+            profileChanges: $validated['profile'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
         ));
     }
 

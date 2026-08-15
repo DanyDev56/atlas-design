@@ -35,6 +35,17 @@ final class PostgresContactRepository
         return $row !== null ? Contact::reconstitute((array) $row) : null;
     }
 
+    public function update(Contact $contact): void
+    {
+        DB::table('crm.contacts')
+            ->where('id', $contact->id()->value)
+            ->update([
+                'profile' => json_encode($contact->profile(), JSON_THROW_ON_ERROR),
+                'status' => $contact->status(),
+                'version' => $contact->version(),
+            ]);
+    }
+
     /** @return list<array<string, mixed>> */
     public function listByClient(string $workspaceId, ClientId $clientId): array
     {
