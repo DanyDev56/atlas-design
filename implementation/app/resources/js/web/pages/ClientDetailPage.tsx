@@ -7,10 +7,12 @@ import {
     changePrimaryContact,
     createOpportunity,
     getClient,
+    listClientActivities,
     listContacts,
     listOpportunities,
     reactivateClient,
     reactivateContact,
+    recordClientActivity,
     updateClientBillingProfile,
     updateClientProfile,
     updateContact,
@@ -21,7 +23,14 @@ import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
-import type { ClientBillingIdentifier, ClientDetail, ContactSummary, OpportunitySummary } from '@/types/api';
+import type {
+    ActivityKind,
+    ClientActivity,
+    ClientBillingIdentifier,
+    ClientDetail,
+    ContactSummary,
+    OpportunitySummary,
+} from '@/types/api';
 import { formatMoney } from '@/utils/format';
 
 function contactProfileValue(contact: ContactSummary, key: string): string | null {
@@ -52,6 +61,21 @@ function formatContactDate(value: string): string {
     return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
 }
 
+function formatActivityDate(value: string): string {
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));
+}
+
+function localDateTimeValue(date = new Date()): string {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+const activityKindLabels: Record<ActivityKind, string> = {
+    Note: 'Note',
+    Call: 'Appel',
+    Meeting: 'Réunion',
+    Email: 'E-mail',
+};
+
 export function ClientDetailPage() {
     const { clientId } = useParams<{ clientId: string }>();
     const { session } = useAuth();
@@ -61,6 +85,7 @@ export function ClientDetailPage() {
     const [client, setClient] = useState<ClientDetail | null>(null);
     const [contacts, setContacts] = useState<ContactSummary[]>([]);
     const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
+    const [activities, setActivities] = useState<ClientActivity[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -89,6 +114,14 @@ export function ClientDetailPage() {
     const [registrationIdentifiers, setRegistrationIdentifiers] = useState<ClientBillingIdentifier[]>([]);
     const [taxIdentifiers, setTaxIdentifiers] = useState<ClientBillingIdentifier[]>([]);
     const [updatingBillingProfile, setUpdatingBillingProfile] = useState(false);
+
+    const [showActivityForm, setShowActivityForm] = useState(false);
+    const [activityKind, setActivityKind] = useState<ActivityKind>('Note');
+    const [activitySummary, setActivitySummary] = useState('');
+    const [activityOccurredAt, setActivityOccurredAt] = useState(localDateTimeValue());
+    const [activityContactId, setActivityContactId] = useState('');
+    const [activityOpportunityId, setActivityOpportunityId] = useState('');
+    const [recordingActivity, setRecordingActivity] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -130,15 +163,17 @@ export function ClientDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                const [clientData, contactData, allOpportunities] = await Promise.all([
+                const [clientData, contactData, allOpportunities, activityData] = await Promise.all([
                     getClient(activeToken, activeWorkspaceId, selectedClientId),
                     listContacts(activeToken, activeWorkspaceId, selectedClientId),
                     listOpportunities(activeToken, activeWorkspaceId),
+                    listClientActivities(activeToken, activeWorkspaceId, selectedClientId),
                 ]);
                 if (!cancelled) {
                     setClient(clientData);
                     setContacts(contactData);
                     setOpportunities(allOpportunities.filter((opportunity) => opportunity.client_id === selectedClientId));
+                    setActivities(activityData);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -187,6 +222,7 @@ export function ClientDetailPage() {
         setArchiveReason('');
         setEditingClientProfile(false);
         setEditingBillingProfile(false);
+        setShowActivityForm(false);
         setShowClientArchiveForm(true);
         setClientArchiveReason('');
         setError(null);
@@ -240,6 +276,7 @@ export function ClientDetailPage() {
         setShowClientArchiveForm(false);
         setClientArchiveReason('');
         setEditingBillingProfile(false);
+        setShowActivityForm(false);
         setClientDisplayName(client.display_name);
         setClientLegalName(clientProfileValue(client, 'legal_name') ?? '');
         setClientDescription(clientProfileValue(client, 'description') ?? '');
@@ -285,6 +322,7 @@ export function ClientDetailPage() {
         setShowClientArchiveForm(false);
         setClientArchiveReason('');
         setEditingClientProfile(false);
+        setShowActivityForm(false);
         setBillingName(billingProfileValue(client, 'billing_name') ?? '');
         setBillingEmail(billingProfileValue(client, 'billing_email') ?? '');
         setBillingAddressLine1(billingAddressValue(client, 'line1'));
@@ -357,12 +395,59 @@ export function ClientDetailPage() {
     }
 
     function openContactForm() {
+        setShowActivityForm(false);
         setMakePrimary(client?.primary_contact_id === null);
         setShowContactForm(true);
         setSuccess(null);
     }
 
+    function openActivityForm() {
+        setShowClientArchiveForm(false);
+        setEditingClientProfile(false);
+        setEditingBillingProfile(false);
+        setShowContactForm(false);
+        setShowOpportunityForm(false);
+        setActivityKind('Note');
+        setActivitySummary('');
+        setActivityOccurredAt(localDateTimeValue());
+        setActivityContactId('');
+        setActivityOpportunityId('');
+        setShowActivityForm(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onRecordActivity(event: FormEvent) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId) return;
+
+        setRecordingActivity(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await recordClientActivity(token, workspaceId, clientId, {
+                kind: activityKind,
+                summary: activitySummary.trim(),
+                occurred_at: new Date(activityOccurredAt).toISOString(),
+                ...(activityContactId ? { contact_id: activityContactId } : {}),
+                ...(activityOpportunityId ? { opportunity_id: activityOpportunityId } : {}),
+            });
+            setActivities(await listClientActivities(token, workspaceId, clientId));
+            setShowActivityForm(false);
+            setActivitySummary('');
+            setSuccess(`${activityKindLabels[activityKind]} ajoutée à la chronologie.`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Enregistrement de l’activité impossible';
+            setError(message === 'Activity occurred at is in the future.'
+                ? 'La date de l’activité ne peut pas être dans le futur.'
+                : message);
+        } finally {
+            setRecordingActivity(false);
+        }
+    }
+
     function openOpportunityForm() {
+        setShowActivityForm(false);
         const primaryContact = contacts.find((contact) => contact.is_primary && contact.status === 'Active');
         setOpportunityContactId(primaryContact?.contact_id ?? '');
         setShowOpportunityForm(true);
@@ -1205,6 +1290,167 @@ export function ClientDetailPage() {
                                         </div>
                                     </fieldset>
                                 </form>
+                            )}
+                        </section>
+
+                        <section className="mt-10" aria-labelledby="activities-heading">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <h3 id="activities-heading" className="text-lg font-semibold text-atlas-ink">
+                                        Chronologie commerciale
+                                    </h3>
+                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                        Les interactions passées utiles au suivi de ce client.
+                                    </p>
+                                </div>
+                                {client.status === 'Active' && !showActivityForm && (
+                                    <button
+                                        type="button"
+                                        onClick={openActivityForm}
+                                        className="rounded-xl bg-atlas-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                                    >
+                                        Ajouter une activité
+                                    </button>
+                                )}
+                            </div>
+
+                            {client.status === 'Active' && showActivityForm && (
+                                <form
+                                    aria-label="Ajouter une activité commerciale"
+                                    onSubmit={onRecordActivity}
+                                    className="mb-6 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"
+                                >
+                                    <fieldset disabled={recordingActivity} className="space-y-4">
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <FormField label="Type d’activité">
+                                                <select
+                                                    className={inputClassName}
+                                                    value={activityKind}
+                                                    onChange={(event) => setActivityKind(event.target.value as ActivityKind)}
+                                                >
+                                                    {(Object.entries(activityKindLabels) as [ActivityKind, string][]).map(([value, label]) => (
+                                                        <option key={value} value={value}>{label}</option>
+                                                    ))}
+                                                </select>
+                                            </FormField>
+                                            <FormField label="Date et heure">
+                                                <input
+                                                    required
+                                                    type="datetime-local"
+                                                    max={localDateTimeValue()}
+                                                    className={inputClassName}
+                                                    value={activityOccurredAt}
+                                                    onChange={(event) => setActivityOccurredAt(event.target.value)}
+                                                />
+                                            </FormField>
+                                            <FormField label="Contact concerné (optionnel)">
+                                                <select
+                                                    className={inputClassName}
+                                                    value={activityContactId}
+                                                    onChange={(event) => setActivityContactId(event.target.value)}
+                                                >
+                                                    <option value="">Aucun contact</option>
+                                                    {sortedContacts.map((contact) => (
+                                                        <option key={contact.contact_id} value={contact.contact_id}>
+                                                            {contactProfileValue(contact, 'display_name') ?? 'Contact sans nom'}
+                                                            {contact.status === 'Archived' ? ' — archivé' : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </FormField>
+                                            <FormField label="Opportunité concernée (optionnel)">
+                                                <select
+                                                    className={inputClassName}
+                                                    value={activityOpportunityId}
+                                                    onChange={(event) => setActivityOpportunityId(event.target.value)}
+                                                >
+                                                    <option value="">Aucune opportunité</option>
+                                                    {sortedOpportunities.map((opportunity) => (
+                                                        <option key={opportunity.opportunity_id} value={opportunity.opportunity_id}>
+                                                            {opportunity.title}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </FormField>
+                                        </div>
+                                        <FormField
+                                            label="Résumé"
+                                            hint="Décrivez le fait passé et le résultat utile, sans planifier une action future."
+                                        >
+                                            <textarea
+                                                required
+                                                minLength={2}
+                                                maxLength={2000}
+                                                rows={4}
+                                                className={inputClassName}
+                                                value={activitySummary}
+                                                onChange={(event) => setActivitySummary(event.target.value)}
+                                                placeholder="Décision prise, besoin exprimé ou prochain contexte à connaître…"
+                                            />
+                                        </FormField>
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                            <SubmitButton loading={recordingActivity} loadingLabel="Ajout à la chronologie…">
+                                                Enregistrer l’activité
+                                            </SubmitButton>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowActivityForm(false)}
+                                                className="rounded-xl border border-atlas-border px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            )}
+
+                            {activities.length === 0 && !showActivityForm && (
+                                <EmptyState
+                                    title="Aucune activité enregistrée"
+                                    description="Ajoutez une note, un appel, une réunion ou un e-mail passé pour garder le contexte commercial."
+                                    action={client.status === 'Active' ? (
+                                        <button
+                                            type="button"
+                                            onClick={openActivityForm}
+                                            className="rounded-xl bg-atlas-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                                        >
+                                            Ajouter la première activité
+                                        </button>
+                                    ) : undefined}
+                                />
+                            )}
+
+                            {activities.length > 0 && (
+                                <ol className="rounded-2xl border border-atlas-border bg-atlas-card px-5 py-2 shadow-sm sm:px-6">
+                                    {activities.map((activity) => {
+                                        const contact = contacts.find((candidate) => candidate.contact_id === activity.contact_id);
+                                        const opportunity = opportunities.find((candidate) => candidate.opportunity_id === activity.opportunity_id);
+
+                                        return (
+                                            <li key={activity.activity_id} className="relative border-l-2 border-atlas-border py-5 pl-6 last:pb-6">
+                                                <span className="absolute -left-[7px] top-7 h-3 w-3 rounded-full bg-atlas-accent" aria-hidden="true" />
+                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                    <span className="rounded-full bg-atlas-surface px-2.5 py-1 text-xs font-semibold text-atlas-accent">
+                                                        {activityKindLabels[activity.kind]}
+                                                    </span>
+                                                    <time dateTime={activity.occurred_at} className="text-xs text-atlas-ink-muted">
+                                                        {formatActivityDate(activity.occurred_at)}
+                                                    </time>
+                                                </div>
+                                                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-atlas-ink">
+                                                    {activity.summary}
+                                                </p>
+                                                {(contact || opportunity) && (
+                                                    <p className="mt-2 text-xs text-atlas-ink-muted">
+                                                        {contact && `Avec ${contactProfileValue(contact, 'display_name') ?? 'un contact'}`}
+                                                        {contact && opportunity && ' · '}
+                                                        {opportunity && `Opportunité : ${opportunity.title}`}
+                                                    </p>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
+                                </ol>
                             )}
                         </section>
 

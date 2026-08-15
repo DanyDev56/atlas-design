@@ -1,6 +1,8 @@
 import { apiRequest } from '@/api/client';
 import type {
+    ActivityKind,
     ClientBillingProfile,
+    ClientActivity,
     ClientDetail,
     ClientSummary,
     ContactSummary,
@@ -114,6 +116,39 @@ export async function listContacts(
         'GET',
         workspacePath(workspaceId, `/clients/${clientId}/contacts`),
         undefined,
+        { token },
+    );
+}
+
+export async function listClientActivities(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+): Promise<ClientActivity[]> {
+    return apiRequest<ClientActivity[]>(
+        'GET',
+        workspacePath(workspaceId, `/clients/${clientId}/activities`),
+        undefined,
+        { token },
+    );
+}
+
+export async function recordClientActivity(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    payload: {
+        contact_id?: string;
+        opportunity_id?: string;
+        kind: ActivityKind;
+        summary: string;
+        occurred_at: string;
+    },
+): Promise<ClientActivity> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/clients/${clientId}/activities`),
+        payload,
         { token },
     );
 }

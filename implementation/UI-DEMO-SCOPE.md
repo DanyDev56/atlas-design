@@ -275,13 +275,20 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Les devis déjà créés conservent leur snapshot tandis que les documents futurs
   utilisent le nouveau profil ; événement `ClientBillingProfileUpdated` sans
   donnée administrative dans l'outbox
+- Chronologie commerciale d'un client consultable depuis sa fiche, triée par
+  date du fait et disponible en lecture sur un client archivé
+- Ajout d'une note, d'un appel, d'une réunion ou d'un e-mail passé, avec
+  rattachement facultatif à un contact et une opportunité du même dossier
+- Agrégat Activity indépendant du Client, idempotent et atomique ; événement
+  `ActivityRecorded` sans résumé libre dans l'outbox
+- Scénario démo enrichi de huit interactions déterministes et contextualisées
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Afficher puis enregistrer les activités commerciales d'un client (note, appel,
-  réunion ou e-mail) pour construire sa chronologie
+- Permettre la correction auditée d'une activité enregistrée, sans écraser sa
+  valeur précédente
 
 ---
 

@@ -274,6 +274,20 @@ export interface OpportunityDetail extends OpportunitySummary {
     lost_at: string | null;
 }
 
+export type ActivityKind = 'Note' | 'Call' | 'Meeting' | 'Email';
+
+export interface ClientActivity {
+    activity_id: string;
+    client_id: string;
+    contact_id: string | null;
+    opportunity_id: string | null;
+    kind: ActivityKind;
+    summary: string;
+    occurred_at: string;
+    status: 'Recorded';
+    version: number;
+}
+
 export interface QuoteLine {
     description: string;
     quantity: number;

@@ -20,6 +20,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
         $this->assertSame(6, $result->resourceCounts['clients']);
         $this->assertSame(7, $result->resourceCounts['contacts']);
         $this->assertSame(7, $result->resourceCounts['opportunities']);
+        $this->assertSame(8, $result->resourceCounts['activities']);
         $this->assertSame(6, $result->resourceCounts['quotes']);
         $this->assertSame(3, $result->resourceCounts['invoices']);
 
@@ -81,6 +82,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->all();
 
         DB::table('crm.contacts')->whereIn('client_id', $enhancedClientIds)->delete();
+        DB::table('crm.activities')->whereIn('client_id', $enhancedClientIds)->delete();
         DB::table('billing.payments')->whereIn('invoice_id', $enhancedInvoiceIds)->delete();
         DB::table('billing.invoices')->whereIn('id', $enhancedInvoiceIds)->delete();
         DB::table('billing.public_document_proofs')->whereIn('document_id', $enhancedQuoteIds)->delete();
@@ -99,6 +101,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
         $this->assertTrue($upgraded->sampleDataSeeded);
         $this->assertSame(6, $upgraded->resourceCounts['clients']);
         $this->assertSame(7, $upgraded->resourceCounts['contacts']);
+        $this->assertSame(8, $upgraded->resourceCounts['activities']);
         $this->assertSame(6, $upgraded->resourceCounts['quotes']);
         $this->assertSame(3, $upgraded->resourceCounts['invoices']);
         $this->assertSame(1, DB::table('crm.clients')
@@ -123,6 +126,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             'clients' => 0,
             'contacts' => 0,
             'opportunities' => 0,
+            'activities' => 0,
             'quotes' => 0,
             'invoices' => 0,
             'active_recommendations' => 0,

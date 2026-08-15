@@ -52,6 +52,7 @@ final class SeedDemoAccountCommand extends Command
             'clients' => 'Clients',
             'contacts' => 'Contacts',
             'opportunities' => 'Opportunities',
+            'activities' => 'Activities',
             'quotes' => 'Quotes',
             'invoices' => 'Invoices',
             'active_recommendations' => 'Active recommendations',
@@ -78,6 +79,7 @@ final class SeedDemoAccountCommand extends Command
             $this->line('- Cabinet Rivoli: draft invoice awaiting issue');
             $this->line('- Collectif Cobalt: overdue, partially-paid invoice');
             $this->line('- Horizon Digital: paid invoice history');
+            $this->line('- Commercial activity timelines linked to contacts and opportunities');
             $this->line('- Business Health, Advisor decisions and Notifications');
         }
 

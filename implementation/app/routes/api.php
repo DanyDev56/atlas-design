@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Billing\PublicQuoteController;
 use App\Http\Controllers\Api\Billing\QuoteController;
 use App\Http\Controllers\Api\BootstrapWorkspaceController;
 use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
+use App\Http\Controllers\Api\Crm\ActivityController;
 use App\Http\Controllers\Api\Crm\ClientController;
 use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
@@ -72,6 +73,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/clients/{clientId}/contacts/{contactId}/reactivate', [ClientController::class, 'reactivateContact']);
             Route::put('/clients/{clientId}/primary-contact', [ClientController::class, 'changePrimaryContact']);
             Route::get('/clients/{clientId}/billing-context', [ClientController::class, 'billingContext']);
+            Route::get('/clients/{clientId}/activities', [ActivityController::class, 'index']);
+            Route::post('/clients/{clientId}/activities', [ActivityController::class, 'store']);
 
             Route::get('/opportunities', [OpportunityController::class, 'index']);
             Route::post('/opportunities', [OpportunityController::class, 'store']);

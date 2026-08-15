@@ -8,6 +8,7 @@ use Atlas\Modules\Crm\Domain\Client;
 use Atlas\Modules\Crm\Domain\ClientId;
 use Atlas\Modules\Crm\Domain\Opportunity;
 use Atlas\Modules\Crm\Domain\OpportunityId;
+use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresActivityRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
@@ -20,6 +21,7 @@ final class CrmQueryHandler
         private readonly PostgresClientRepository $clients,
         private readonly PostgresContactRepository $contacts,
         private readonly PostgresOpportunityRepository $opportunities,
+        private readonly PostgresActivityRepository $activities,
     ) {}
 
     /** @return array<string, mixed> */
@@ -77,6 +79,31 @@ final class CrmQueryHandler
                 'archived_at' => $row['archived_at'] ?? null,
             ],
             $this->clients->listByWorkspace($workspaceId),
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listClientActivities(string $actorUserId, string $workspaceId, string $clientId): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.activities.read');
+
+        if ($this->clients->findById($workspaceId, new ClientId($clientId)) === null) {
+            throw new \DomainException('Client not found.');
+        }
+
+        return array_map(
+            fn (array $row) => [
+                'activity_id' => $row['id'],
+                'client_id' => $row['client_id'],
+                'contact_id' => $row['contact_id'],
+                'opportunity_id' => $row['opportunity_id'],
+                'kind' => $row['kind'],
+                'summary' => $row['summary'],
+                'occurred_at' => $row['occurred_at'],
+                'status' => $row['status'],
+                'version' => (int) $row['version'],
+            ],
+            $this->activities->listRecordedByClient($workspaceId, new ClientId($clientId)),
         );
     }
 

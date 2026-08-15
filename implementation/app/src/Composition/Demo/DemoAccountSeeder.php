@@ -17,6 +17,7 @@ use Atlas\Modules\Crm\Application\AddContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
+use Atlas\Modules\Crm\Application\RecordActivityHandler;
 use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
@@ -76,6 +77,17 @@ final class DemoAccountSeeder
         ],
     ];
 
+    private const ACTIVITIES = [
+        ['client' => 'Les Ateliers du Marais', 'kind' => 'Meeting', 'summary' => 'Atelier de cadrage terminé : identité plus éditoriale et lancement prévu au prochain trimestre.', 'days_ago' => 12, 'contact_email' => 'camille@ateliers-marais.test', 'opportunity' => 'Refonte identité visuelle'],
+        ['client' => 'Les Ateliers du Marais', 'kind' => 'Call', 'summary' => 'Validation téléphonique du périmètre de l’audit express.', 'days_ago' => 4, 'contact_email' => 'julien@ateliers-marais.test', 'opportunity' => 'Audit express à qualifier'],
+        ['client' => 'Horizon Digital', 'kind' => 'Email', 'summary' => 'Confirmation reçue : la migration cloud est terminée et la facture a été réglée.', 'days_ago' => 5, 'contact_email' => 'sarah@horizon-digital.test', 'opportunity' => 'Migration cloud'],
+        ['client' => 'Maison Lumen', 'kind' => 'Call', 'summary' => 'Échange sur le devis envoyé ; retour attendu après validation avec l’équipe fondatrice.', 'days_ago' => 2, 'contact_email' => 'elise@maison-lumen.test', 'opportunity' => 'Lancement e-commerce'],
+        ['client' => 'Nova Conseil', 'kind' => 'Meeting', 'summary' => 'Présentation de la plateforme de marque acceptée lors du comité de direction.', 'days_ago' => 7, 'contact_email' => 'nicolas@nova-conseil.test', 'opportunity' => 'Positionnement de marque'],
+        ['client' => 'Cabinet Rivoli', 'kind' => 'Note', 'summary' => 'Le devis est accepté ; la facture brouillon doit être vérifiée avant émission.', 'days_ago' => 3, 'contact_email' => 'claire@cabinet-rivoli.test', 'opportunity' => 'Nouveau site vitrine'],
+        ['client' => 'Collectif Cobalt', 'kind' => 'Call', 'summary' => 'Relance amiable effectuée après l’acompte ; le solde reste à régulariser.', 'days_ago' => 1, 'contact_email' => 'lina@collectif-cobalt.test', 'opportunity' => 'Campagne annuelle'],
+        ['client' => 'Collectif Cobalt', 'kind' => 'Email', 'summary' => 'Accusé de réception de la facture obtenu auprès de la production.', 'days_ago' => 9, 'contact_email' => 'lina@collectif-cobalt.test', 'opportunity' => null],
+    ];
+
     public function __construct(
         private readonly PostgresUserRepository $users,
         private readonly RegisterUserHandler $registerUser,
@@ -85,6 +97,7 @@ final class DemoAccountSeeder
         private readonly AddContactHandler $addContact,
         private readonly CreateOpportunityHandler $createOpportunity,
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
+        private readonly RecordActivityHandler $recordActivity,
         private readonly CreateQuoteHandler $createQuote,
         private readonly SendQuoteHandler $sendQuote,
         private readonly AcceptQuoteHandler $acceptQuote,
@@ -115,6 +128,11 @@ final class DemoAccountSeeder
         }
 
         if ($this->seedScenarioContacts($userId, $workspaceId)) {
+            $this->drainOutbox();
+            $sampleDataSeeded = true;
+        }
+
+        if ($this->seedScenarioActivities($userId, $workspaceId)) {
             $this->drainOutbox();
             $sampleDataSeeded = true;
         }
@@ -513,6 +531,64 @@ final class DemoAccountSeeder
         return $contactCreated;
     }
 
+    private function seedScenarioActivities(string $actorUserId, string $workspaceId): bool
+    {
+        $activityCreated = false;
+
+        foreach (self::ACTIVITIES as $index => $definition) {
+            $client = DB::table('crm.clients')
+                ->where('workspace_id', $workspaceId)
+                ->where('display_name', $definition['client'])
+                ->orderBy('created_at')
+                ->first();
+
+            if ($client === null || DB::table('crm.activities')
+                ->where('workspace_id', $workspaceId)
+                ->where('client_id', $client->id)
+                ->where('summary', $definition['summary'])
+                ->exists()) {
+                continue;
+            }
+
+            $contactId = null;
+
+            if ($definition['contact_email'] !== null) {
+                $contactId = DB::table('crm.contacts')
+                    ->where('workspace_id', $workspaceId)
+                    ->where('client_id', $client->id)
+                    ->get()
+                    ->first(function ($contact) use ($definition): bool {
+                        $profile = json_decode($contact->profile, true, 512, JSON_THROW_ON_ERROR);
+
+                        return ($profile['email'] ?? null) === $definition['contact_email'];
+                    })?->id;
+            }
+
+            $opportunityId = $definition['opportunity'] !== null
+                ? DB::table('crm.opportunities')
+                    ->where('workspace_id', $workspaceId)
+                    ->where('client_id', $client->id)
+                    ->where('title', $definition['opportunity'])
+                    ->value('id')
+                : null;
+
+            $this->recordActivity->handle(
+                actorUserId: $actorUserId,
+                workspaceId: $workspaceId,
+                clientId: $client->id,
+                contactId: is_string($contactId) ? $contactId : null,
+                opportunityId: is_string($opportunityId) ? $opportunityId : null,
+                kind: $definition['kind'],
+                summary: $definition['summary'],
+                occurredAt: now()->subDays($definition['days_ago'])->toIso8601String(),
+                requestId: $this->requestId('activity-'.($index + 1)),
+            );
+            $activityCreated = true;
+        }
+
+        return $activityCreated;
+    }
+
     /**
      * @param  list<array{description: string, quantity: int, unit_price_cents: int}>  $lines
      * @return array<string, mixed>
@@ -645,6 +721,7 @@ final class DemoAccountSeeder
             'clients' => DB::table('crm.clients')->where('workspace_id', $workspaceId)->count(),
             'contacts' => DB::table('crm.contacts')->where('workspace_id', $workspaceId)->count(),
             'opportunities' => DB::table('crm.opportunities')->where('workspace_id', $workspaceId)->count(),
+            'activities' => DB::table('crm.activities')->where('workspace_id', $workspaceId)->count(),
             'quotes' => DB::table('billing.quotes')->where('workspace_id', $workspaceId)->count(),
             'invoices' => DB::table('billing.invoices')->where('workspace_id', $workspaceId)->count(),
             'active_recommendations' => DB::table('advisor.recommendations')

@@ -63,10 +63,12 @@ use Atlas\Modules\Crm\Application\LoseOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\ReactivateClientHandler;
 use Atlas\Modules\Crm\Application\ReactivateContactHandler;
+use Atlas\Modules\Crm\Application\RecordActivityHandler;
 use Atlas\Modules\Crm\Application\UpdateClientBillingProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateClientProfileHandler;
 use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Atlas\Modules\Crm\Application\UpdateOpportunityHandler;
+use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresActivityRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
@@ -163,6 +165,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresClientRepository::class);
         $this->app->singleton(PostgresContactRepository::class);
         $this->app->singleton(PostgresOpportunityRepository::class);
+        $this->app->singleton(PostgresActivityRepository::class);
         $this->app->singleton(CreateClientHandler::class);
         $this->app->singleton(AddContactHandler::class);
         $this->app->singleton(ArchiveClientHandler::class);
@@ -174,6 +177,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(UpdateOpportunityHandler::class);
         $this->app->singleton(CreateOpportunityHandler::class);
         $this->app->singleton(QualifyOpportunityHandler::class);
+        $this->app->singleton(RecordActivityHandler::class);
         $this->app->singleton(ReactivateClientHandler::class);
         $this->app->singleton(ReactivateContactHandler::class);
         $this->app->singleton(GetOpportunityAnalyticsFactHandler::class);

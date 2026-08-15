@@ -147,6 +147,17 @@ test('un client sans opportunité active peut être archivé puis réactivé', a
     await navigateFromShell(page, 'CRM');
     await page.getByRole('link').filter({ hasText: 'Horizon Digital' }).click();
     await expect(page.getByRole('heading', { name: 'Horizon Digital' })).toBeVisible();
+    const activityTimeline = page.getByRole('region', { name: 'Chronologie commerciale' });
+    await expect(activityTimeline.getByText('Confirmation reçue : la migration cloud est terminée et la facture a été réglée.')).toBeVisible();
+    await expect(activityTimeline.getByText('Avec Sarah Benali · Opportunité : Migration cloud')).toBeVisible();
+    await activityTimeline.getByRole('button', { name: 'Ajouter une activité' }).click();
+    const activityForm = page.getByRole('form', { name: 'Ajouter une activité commerciale' });
+    await expect(activityForm.getByLabel('Type d’activité')).toHaveValue('Note');
+    await expect(activityForm.getByLabel('Contact concerné (optionnel)').getByRole('option')).toContainText([
+        'Aucun contact',
+        'Sarah Benali',
+    ]);
+    await activityForm.getByRole('button', { name: 'Annuler' }).click();
 
     await page.getByRole('button', { name: 'Modifier les informations' }).click();
     let profileForm = page.getByRole('form', { name: 'Modifier les informations du client' });
