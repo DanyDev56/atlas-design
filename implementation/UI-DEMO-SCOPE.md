@@ -244,13 +244,18 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   statut principal, avec contrôle de révision et idempotence
 - Événement `ContactReactivated` sans donnée personnelle et conservation des
   informations du dernier archivage pour l'audit interne
+- Édition d'une opportunité `Open` ou `Qualified` : titre, estimation, devise et
+  contact actif du même client, avec possibilité de retirer l'interlocuteur
+- Réaffectation idempotente avec contrôle de révision et événement
+  `OpportunityUpdated` sans donnée personnelle ; les devis et snapshots passés
+  restent inchangés
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Réaffecter le contact d'une opportunité active afin de pouvoir archiver un
-  interlocuteur devenu obsolète
+- Clôturer explicitement une opportunité perdue avec un motif structuré afin de
+  compléter le cycle de vie commercial hors devis accepté
 
 ---
 

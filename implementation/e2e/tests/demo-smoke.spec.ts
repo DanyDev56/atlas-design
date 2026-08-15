@@ -105,6 +105,15 @@ test('le devis brouillon des Ateliers est accessible sans ambiguïté', async ({
     await expect(page.getByRole('heading', { name: 'Les Ateliers du Marais' })).toBeVisible();
     await expect(page.getByText('Audit express à qualifier', { exact: true })).toBeVisible();
 
+    await page.getByRole('link').filter({ hasText: 'Audit express à qualifier' }).click();
+    await page.getByRole('button', { name: 'Modifier l’opportunité' }).click();
+    const editOpportunityForm = page.getByRole('form', { name: 'Modifier l’opportunité' });
+    await expect(editOpportunityForm.getByLabel('Titre')).toHaveValue('Audit express à qualifier');
+    await expect(editOpportunityForm.getByLabel('Contact associé (optionnel)').locator('option'))
+        .toContainText(['Aucun contact associé', 'Camille Martin — principal', 'Julien Morel']);
+    await editOpportunityForm.getByRole('button', { name: 'Annuler' }).click();
+    await page.goBack();
+
     await page.getByRole('link').filter({ hasText: 'Refonte identité visuelle' }).click();
     await expect(page.getByRole('heading', { name: 'Refonte identité visuelle' })).toBeVisible();
     await page.getByRole('link', { name: 'Vérifier et envoyer' }).click();

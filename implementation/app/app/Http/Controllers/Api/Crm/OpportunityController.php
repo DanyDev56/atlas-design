@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
+use Atlas\Modules\Crm\Application\UpdateOpportunityHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,6 +18,7 @@ final class OpportunityController extends Controller
     public function __construct(
         private readonly CreateOpportunityHandler $createOpportunity,
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
+        private readonly UpdateOpportunityHandler $updateOpportunity,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -71,6 +73,28 @@ final class OpportunityController extends Controller
             actorUserId: $this->actorId($request),
             workspaceId: $workspaceId,
             opportunityId: $opportunityId,
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function update(Request $request, string $workspaceId, string $opportunityId): JsonResponse
+    {
+        $validated = $request->validate([
+            'changes' => ['required', 'array:contact_id,title,estimated_amount_cents,currency', 'min:1'],
+            'changes.contact_id' => ['sometimes', 'nullable', 'uuid'],
+            'changes.title' => ['sometimes', 'string', 'min:2', 'max:200'],
+            'changes.estimated_amount_cents' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'changes.currency' => ['sometimes', 'string', 'size:3'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->updateOpportunity->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            opportunityId: $opportunityId,
+            changes: $validated['changes'],
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

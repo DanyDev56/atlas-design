@@ -27,7 +27,7 @@ final class AnalyticsIngestIntegrationTest extends IntegrationTestCase
             'Idempotency-Key' => (string) Str::uuid(),
         ])->assertCreated();
 
-        $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
+        $opportunity = $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
             'client_id' => $client->json('client_id'),
             'title' => 'Analytics Opp',
             'estimated_amount_cents' => 10000,
@@ -45,11 +45,42 @@ final class AnalyticsIngestIntegrationTest extends IntegrationTestCase
 
         $this->assertGreaterThan(0, $firstCount);
 
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunity->json('opportunity_id')}",
+            [
+                'changes' => ['estimated_amount_cents' => 20000],
+                'expected_revision' => 1,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('version', 2);
+
+        $processor->processPending();
+
+        $updatedFact = DB::table('analytics.source_facts')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->where('source_event_type', 'crm.opportunity_updated')
+            ->first();
+
+        $this->assertNotNull($updatedFact);
+        $this->assertSame(2, (int) $updatedFact->aggregate_version);
+        $this->assertSame(
+            20000,
+            json_decode($updatedFact->payload, true, 512, JSON_THROW_ON_ERROR)['estimated_amount_cents'],
+        );
+
+        $afterUpdateCount = DB::table('analytics.source_facts')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->count();
+
         $processor->processPending();
         $secondCount = DB::table('analytics.source_facts')
             ->where('workspace_id', $owner['workspace_id'])
             ->count();
 
-        $this->assertSame($firstCount, $secondCount);
+        $this->assertSame($afterUpdateCount, $secondCount);
     }
 }

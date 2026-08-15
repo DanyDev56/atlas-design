@@ -86,6 +86,66 @@ final class Opportunity
         $this->updatedAt = $now;
     }
 
+    /** @param array<string, mixed> $changes */
+    public function updateDetails(array $changes, \DateTimeImmutable $now): void
+    {
+        if (! $this->isNonTerminal()) {
+            throw new \DomainException('Opportunity is terminal.');
+        }
+
+        if ($changes === [] || array_diff(array_keys($changes), [
+            'contact_id', 'title', 'estimated_amount_cents', 'currency',
+        ]) !== []) {
+            throw new \DomainException('Opportunity changes invalid.');
+        }
+
+        $contactId = array_key_exists('contact_id', $changes) ? $changes['contact_id'] : $this->contactId;
+        $title = array_key_exists('title', $changes) ? $changes['title'] : $this->title;
+        $estimatedAmountCents = array_key_exists('estimated_amount_cents', $changes)
+            ? $changes['estimated_amount_cents']
+            : $this->estimatedAmountCents;
+        $currency = array_key_exists('currency', $changes) ? $changes['currency'] : $this->currency;
+
+        if ($contactId !== null && ! is_string($contactId)) {
+            throw new \DomainException('Opportunity contact invalid.');
+        }
+
+        if (! is_string($title)) {
+            throw new \DomainException('Opportunity title invalid.');
+        }
+
+        $title = trim($title);
+
+        if (mb_strlen($title) < 2 || mb_strlen($title) > 200) {
+            throw new \DomainException('Opportunity title invalid.');
+        }
+
+        if ($estimatedAmountCents !== null
+            && (! is_int($estimatedAmountCents) || $estimatedAmountCents < 0)) {
+            throw new \DomainException('Opportunity amount invalid.');
+        }
+
+        if (! is_string($currency) || preg_match('/^[A-Z]{3}$/', strtoupper($currency)) !== 1) {
+            throw new \DomainException('Opportunity currency invalid.');
+        }
+
+        $currency = strtoupper($currency);
+
+        if ($contactId === $this->contactId
+            && $title === $this->title
+            && $estimatedAmountCents === $this->estimatedAmountCents
+            && $currency === $this->currency) {
+            throw new \DomainException('Opportunity unchanged.');
+        }
+
+        $this->contactId = $contactId;
+        $this->title = $title;
+        $this->estimatedAmountCents = $estimatedAmountCents;
+        $this->currency = $currency;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function win(\DateTimeImmutable $now): void
     {
         if ($this->status === self::STATUS_WON) {
@@ -144,6 +204,11 @@ final class Opportunity
     public function version(): int
     {
         return $this->version;
+    }
+
+    public function isNonTerminal(): bool
+    {
+        return in_array($this->status, [self::STATUS_OPEN, self::STATUS_QUALIFIED], true);
     }
 
     public function qualifiedAt(): ?\DateTimeImmutable

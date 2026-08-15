@@ -162,6 +162,26 @@ export async function getOpportunity(
     );
 }
 
+export async function updateOpportunity(
+    token: string,
+    workspaceId: string,
+    opportunityId: string,
+    changes: {
+        contact_id: string | null;
+        title: string;
+        estimated_amount_cents: number | null;
+        currency: string;
+    },
+    expectedRevision: number,
+): Promise<OpportunityDetail> {
+    return apiRequest(
+        'PATCH',
+        workspacePath(workspaceId, `/opportunities/${opportunityId}`),
+        { changes, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function createOpportunity(
     token: string,
     workspaceId: string,

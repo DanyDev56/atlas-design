@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createQuote, listQuotes } from '@/api/billing';
-import { getClient, getOpportunity, listContacts, qualifyOpportunity } from '@/api/crm';
+import { getClient, getOpportunity, listContacts, qualifyOpportunity, updateOpportunity } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
@@ -19,6 +19,7 @@ export function OpportunityDetailPage() {
     const [opportunity, setOpportunity] = useState<OpportunityDetail | null>(null);
     const [client, setClient] = useState<ClientDetail | null>(null);
     const [contact, setContact] = useState<ContactSummary | null>(null);
+    const [contacts, setContacts] = useState<ContactSummary[]>([]);
     const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -27,6 +28,11 @@ export function OpportunityDetailPage() {
     const [lineDescription, setLineDescription] = useState('');
     const [lineAmount, setLineAmount] = useState('');
     const [success, setSuccess] = useState<string | null>(null);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [editTitle, setEditTitle] = useState('');
+    const [editContactId, setEditContactId] = useState('');
+    const [editAmount, setEditAmount] = useState('');
+    const [editCurrency, setEditCurrency] = useState('EUR');
 
     async function reload() {
         if (!opportunityId) return;
@@ -42,6 +48,7 @@ export function OpportunityDetailPage() {
             ]);
             setOpportunity(opp);
             setClient(clientData);
+            setContacts(contacts);
             setContact(contacts.find((candidate) => candidate.contact_id === opp.contact_id) ?? null);
             setQuotes(allQuotes.filter((q) => q.opportunity_id === opportunityId));
         } catch (err) {
@@ -66,6 +73,59 @@ export function OpportunityDetailPage() {
             setSuccess('L’opportunité est qualifiée. Vous pouvez maintenant préparer un devis.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Qualification impossible');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    function openEditForm() {
+        if (!opportunity) return;
+
+        setEditTitle(opportunity.title);
+        setEditContactId(opportunity.contact_id ?? '');
+        setEditAmount(opportunity.estimated_amount_cents != null
+            ? (opportunity.estimated_amount_cents / 100).toFixed(2).replace('.', ',')
+            : '');
+        setEditCurrency(opportunity.currency);
+        setShowEditForm(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onUpdateOpportunity(event: FormEvent) {
+        event.preventDefault();
+        if (!opportunity) return;
+
+        const estimatedAmountCents = editAmount.trim() === ''
+            ? null
+            : Math.round(parseFloat(editAmount.replace(',', '.')) * 100);
+
+        if (estimatedAmountCents !== null && (!Number.isFinite(estimatedAmountCents) || estimatedAmountCents < 0)) {
+            setError('Montant invalide');
+            return;
+        }
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await updateOpportunity(
+                token,
+                workspaceId,
+                opportunity.opportunity_id,
+                {
+                    contact_id: editContactId || null,
+                    title: editTitle.trim(),
+                    estimated_amount_cents: estimatedAmountCents,
+                    currency: editCurrency.trim().toUpperCase(),
+                },
+                opportunity.version,
+            );
+            setShowEditForm(false);
+            await reload();
+            setSuccess('Les informations de l’opportunité sont enregistrées.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Modification impossible');
         } finally {
             setActionLoading(false);
         }
@@ -156,8 +216,101 @@ export function OpportunityDetailPage() {
                                     </p>
                                 )}
                             </div>
-                            <StatusBadge status={opportunity.status} />
+                            <div className="flex flex-col items-end gap-3">
+                                <StatusBadge status={opportunity.status} />
+                                {['Open', 'Qualified'].includes(opportunity.status) && !showEditForm && (
+                                    <button
+                                        type="button"
+                                        onClick={openEditForm}
+                                        className="text-sm font-semibold text-atlas-accent hover:underline"
+                                    >
+                                        Modifier l’opportunité
+                                    </button>
+                                )}
+                            </div>
                         </div>
+
+                        {showEditForm && (
+                            <form
+                                aria-label="Modifier l’opportunité"
+                                onSubmit={onUpdateOpportunity}
+                                className="mt-6 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"
+                            >
+                                <fieldset disabled={actionLoading} className="space-y-4">
+                                    <legend className="text-base font-semibold text-atlas-ink">
+                                        Informations commerciales
+                                    </legend>
+                                    <FormField label="Titre">
+                                        <input
+                                            required
+                                            minLength={2}
+                                            maxLength={200}
+                                            className={inputClassName}
+                                            value={editTitle}
+                                            onChange={(event) => setEditTitle(event.target.value)}
+                                        />
+                                    </FormField>
+                                    <FormField
+                                        label="Contact associé (optionnel)"
+                                        hint="Retirez ou remplacez ce contact avant de l’archiver."
+                                    >
+                                        <select
+                                            className={inputClassName}
+                                            value={editContactId}
+                                            onChange={(event) => setEditContactId(event.target.value)}
+                                        >
+                                            <option value="">Aucun contact associé</option>
+                                            {contacts
+                                                .filter((candidate) => candidate.status === 'Active')
+                                                .map((candidate) => (
+                                                    <option key={candidate.contact_id} value={candidate.contact_id}>
+                                                        {typeof candidate.profile.display_name === 'string'
+                                                            ? candidate.profile.display_name
+                                                            : 'Contact sans nom'}
+                                                        {candidate.is_primary ? ' — principal' : ''}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                    </FormField>
+                                    <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
+                                        <FormField label="Montant estimé (optionnel)">
+                                            <input
+                                                inputMode="decimal"
+                                                className={inputClassName}
+                                                value={editAmount}
+                                                onChange={(event) => setEditAmount(event.target.value)}
+                                                placeholder="1200"
+                                            />
+                                        </FormField>
+                                        <FormField label="Devise">
+                                            <input
+                                                required
+                                                minLength={3}
+                                                maxLength={3}
+                                                className={inputClassName}
+                                                value={editCurrency}
+                                                onChange={(event) => setEditCurrency(event.target.value.toUpperCase())}
+                                            />
+                                        </FormField>
+                                    </div>
+                                    <p className="text-xs text-atlas-ink-muted">
+                                        Les devis et snapshots déjà créés conservent leurs valeurs historiques.
+                                    </p>
+                                    <div className="flex flex-col gap-3 sm:flex-row">
+                                        <SubmitButton loading={actionLoading} loadingLabel="Enregistrement…">
+                                            Enregistrer les modifications
+                                        </SubmitButton>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEditForm(false)}
+                                            className="rounded-xl border border-atlas-border px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        )}
 
                         {opportunity.status === 'Open' && (
                             <div className="mt-6 rounded-xl border border-atlas-border bg-atlas-card px-4 py-4">

@@ -33,6 +33,10 @@ final class PostgresOpportunityRepository
         DB::table('crm.opportunities')
             ->where('id', $opportunity->id()->value)
             ->update([
+                'contact_id' => $opportunity->contactId(),
+                'title' => $opportunity->title(),
+                'estimated_amount_cents' => $opportunity->estimatedAmountCents(),
+                'currency' => $opportunity->currency(),
                 'status' => $opportunity->status(),
                 'version' => $opportunity->version(),
                 'updated_at' => now()->toIso8601String(),

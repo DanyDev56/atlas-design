@@ -179,23 +179,108 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         )->assertStatus(422)
             ->assertJsonPath('messages.0', 'Contact in use.');
 
+        $updateOpportunityKey = (string) Str::uuid();
+        $opportunityUpdated = $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}",
+            [
+                'changes' => [
+                    'contact_id' => null,
+                    'title' => 'Refonte du site et de l’identité',
+                    'estimated_amount_cents' => 135000,
+                    'currency' => 'eur',
+                ],
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $updateOpportunityKey,
+            ],
+        )->assertOk()
+            ->assertJsonPath('contact_id', null)
+            ->assertJsonPath('title', 'Refonte du site et de l’identité')
+            ->assertJsonPath('estimated_amount_cents', 135000)
+            ->assertJsonPath('currency', 'EUR')
+            ->assertJsonPath('status', 'Qualified')
+            ->assertJsonPath('version', 3);
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}",
+            [
+                'changes' => [
+                    'currency' => 'eur',
+                    'estimated_amount_cents' => 135000,
+                    'title' => 'Refonte du site et de l’identité',
+                    'contact_id' => null,
+                ],
+                'expected_revision' => 2,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => $updateOpportunityKey,
+            ],
+        )->assertOk()
+            ->assertExactJson($opportunityUpdated->json());
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('contact_id', null)
+            ->assertJsonPath('title', 'Refonte du site et de l’identité')
+            ->assertJsonPath('estimated_amount_cents', 135000)
+            ->assertJsonPath('version', 3);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$contact->json('contact_id')}/archive",
+            ['reason' => 'Interlocutrice remplacée', 'expected_revision' => 5],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Archived')
+            ->assertJsonPath('client_version', 6);
+
+        $this->patchJson(
+            "/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}",
+            [
+                'changes' => ['contact_id' => $contact->json('contact_id')],
+                'expected_revision' => 3,
+            ],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertStatus(422)
+            ->assertJsonPath('messages.0', 'Contact reference conflict.');
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$contact->json('contact_id')}/reactivate",
+            ['expected_revision' => 6],
+            [
+                'Authorization' => 'Bearer '.$owner['token'],
+                'Idempotency-Key' => (string) Str::uuid(),
+            ],
+        )->assertOk()
+            ->assertJsonPath('status', 'Active')
+            ->assertJsonPath('client_version', 7);
+
         $this->putJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/primary-contact",
             [
                 'contact_id' => $alternateContact->json('contact_id'),
-                'expected_revision' => 5,
+                'expected_revision' => 7,
             ],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => (string) Str::uuid(),
             ],
         )->assertOk()
-            ->assertJsonPath('version', 6);
+            ->assertJsonPath('version', 8);
 
         $archiveContactKey = (string) Str::uuid();
         $contactArchived = $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/archive",
-            ['reason' => 'Doublon de contact', 'expected_revision' => 6],
+            ['reason' => 'Doublon de contact', 'expected_revision' => 8],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => $archiveContactKey,
@@ -203,12 +288,12 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         )->assertOk()
             ->assertJsonPath('status', 'Archived')
             ->assertJsonPath('contact_version', 2)
-            ->assertJsonPath('client_version', 7)
+            ->assertJsonPath('client_version', 9)
             ->assertJsonPath('primary_contact_id', null);
 
         $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/archive",
-            ['reason' => 'Doublon de contact', 'expected_revision' => 6],
+            ['reason' => 'Doublon de contact', 'expected_revision' => 8],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => $archiveContactKey,
@@ -233,7 +318,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         $reactivateContactKey = (string) Str::uuid();
         $contactReactivated = $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
-            ['expected_revision' => 7],
+            ['expected_revision' => 9],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => $reactivateContactKey,
@@ -241,12 +326,12 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         )->assertOk()
             ->assertJsonPath('status', 'Active')
             ->assertJsonPath('contact_version', 3)
-            ->assertJsonPath('client_version', 8)
+            ->assertJsonPath('client_version', 10)
             ->assertJsonPath('primary_contact_id', null);
 
         $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
-            ['expected_revision' => 7],
+            ['expected_revision' => 9],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => $reactivateContactKey,
@@ -256,7 +341,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
 
         $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts/{$alternateContact->json('contact_id')}/reactivate",
-            ['expected_revision' => 8],
+            ['expected_revision' => 10],
             [
                 'Authorization' => 'Bearer '.$owner['token'],
                 'Idempotency-Key' => (string) Str::uuid(),
@@ -292,7 +377,7 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
             ->assertJsonPath('opportunity_status', 'Qualified')
-            ->assertJsonPath('contact_id', $contact->json('contact_id'));
+            ->assertJsonPath('contact_id', null);
 
         $this->assertTrue(
             DB::table('platform.outbox_messages')
@@ -305,17 +390,31 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
         $this->assertSame(1, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.contact_updated')
             ->count());
-        $this->assertSame(1, DB::table('platform.outbox_messages')
+        $this->assertSame(2, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.contact_archived')
             ->count());
-        $this->assertSame(1, DB::table('platform.outbox_messages')
+        $this->assertSame(2, DB::table('platform.outbox_messages')
             ->where('event_type', 'crm.contact_reactivated')
+            ->count());
+        $this->assertSame(1, DB::table('platform.outbox_messages')
+            ->where('event_type', 'crm.opportunity_updated')
             ->count());
         $this->assertSame(
             ['version', 'client_id', 'contact_id', 'workspace_id'],
             array_keys(json_decode(
                 (string) DB::table('platform.outbox_messages')
                     ->where('event_type', 'crm.contact_archived')
+                    ->value('payload'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            )),
+        );
+        $this->assertSame(
+            ['version', 'client_id', 'workspace_id', 'opportunity_id'],
+            array_keys(json_decode(
+                (string) DB::table('platform.outbox_messages')
+                    ->where('event_type', 'crm.opportunity_updated')
                     ->value('payload'),
                 true,
                 512,
