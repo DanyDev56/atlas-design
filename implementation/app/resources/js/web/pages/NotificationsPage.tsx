@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { NotificationSummary } from '@/types/api';
+import { getRecommendationAction } from '@/utils/advisor';
 import { formatPriority } from '@/utils/format';
 
 type InboxFilter = 'all' | 'unread';
@@ -38,14 +39,6 @@ const recommendationCopy: Record<string, NotificationCopy> = {
         title: 'Un point fragile mérite votre attention',
         description: 'Consultez le module concerné avant de choisir la prochaine action utile.',
     },
-};
-
-const actionTargets: Record<string, { to: string; label: string }> = {
-    OverdueInvoices: { to: '/app/billing', label: 'Voir la facturation' },
-    OutstandingInvoices: { to: '/app/billing', label: 'Voir la facturation' },
-    RecentInvoices: { to: '/app/billing', label: 'Voir la facturation' },
-    NewOpportunity: { to: '/app/crm', label: 'Ouvrir le CRM' },
-    OpportunityPipeline: { to: '/app/crm', label: 'Ouvrir le CRM' },
 };
 
 function getNotificationCopy(notification: NotificationSummary): NotificationCopy {
@@ -246,9 +239,7 @@ function NotificationsInbox() {
                     <ul className="mt-7 space-y-3" aria-label="Liste des notifications">
                         {visibleNotifications.map((notification) => {
                             const copy = getNotificationCopy(notification);
-                            const action = notification.content.route_key
-                                ? actionTargets[notification.content.route_key]
-                                : undefined;
+                            const action = getRecommendationAction(notification.content.route_key);
                             const unread = notification.read_state === 'Unread';
 
                             return (

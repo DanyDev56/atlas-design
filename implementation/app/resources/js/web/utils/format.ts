@@ -54,6 +54,26 @@ export function formatImpact(impact: string): string {
     return labels[impact] ?? impact;
 }
 
+export function formatConfidence(confidence: string): string {
+    const labels: Record<string, string> = {
+        High: 'Élevée',
+        Moderate: 'Modérée',
+        Low: 'Faible',
+    };
+
+    return labels[confidence] ?? confidence;
+}
+
+export function formatEffort(effort: string): string {
+    const labels: Record<string, string> = {
+        Small: 'Faible',
+        Medium: 'Modéré',
+        Large: 'Important',
+    };
+
+    return labels[effort] ?? effort;
+}
+
 export function formatHealthBand(band: string): string {
     const labels: Record<string, string> = {
         Strong: 'Solide',

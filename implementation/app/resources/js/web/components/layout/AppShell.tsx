@@ -12,6 +12,7 @@ const navItems = [
     { to: '/app/crm', label: 'CRM', end: false, disabled: false },
     { to: '/app/billing', label: 'Facturation', end: false, disabled: false },
     { to: '/app/health', label: 'Santé', end: false, disabled: false },
+    { to: '/app/advisor', label: 'Advisor', end: false, disabled: false },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {

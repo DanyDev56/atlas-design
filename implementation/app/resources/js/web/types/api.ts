@@ -44,21 +44,29 @@ export interface DashboardResponse {
     notifications: DashboardWidget<NotificationUnread>;
 }
 
+export interface AdvisorRecommendation {
+    recommendation_id: string;
+    recommendation_key: string;
+    rule_key: string;
+    status: string;
+    priority: string;
+    rank_score: number;
+    action_module: string;
+    route_key: string;
+    impact: string;
+    urgency: string;
+    confidence: string;
+    effort: string;
+    valid_until: string;
+    generated_at: string;
+}
+
 export interface AdvisorOverview {
-    advisor_overview_version?: number;
-    primary_recommendation?: {
-        recommendation_key: string;
-        priority: string;
-        rule_key?: string;
-        action_module?: string;
-        route_key?: string;
-        impact?: string;
-        urgency?: string;
-        confidence?: string;
-        effort?: string;
-        valid_until?: string;
-    } | null;
-    updated_at?: string;
+    advisor_overview_version: number;
+    source_eligibility: 'Eligible' | 'InsufficientAssessment' | 'StaleAssessment';
+    primary_recommendation: AdvisorRecommendation | null;
+    alternative_recommendations: AdvisorRecommendation[];
+    updated_at: string;
 }
 
 export interface BusinessHealthCurrent {

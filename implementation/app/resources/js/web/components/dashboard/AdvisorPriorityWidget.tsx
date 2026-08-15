@@ -1,47 +1,13 @@
 import { Link } from 'react-router-dom';
 import { WidgetCard, EmptyWidgetMessage } from '@/components/dashboard/WidgetCard';
 import type { DashboardWidget, AdvisorOverview } from '@/types/api';
+import { getRecommendationAction, getRecommendationPresentation } from '@/utils/advisor';
 import { formatImpact, formatPriority, formatUrgency } from '@/utils/format';
-
-interface RecommendationCopy {
-    title: string;
-    description: string;
-}
-
-const recommendationCopy: Record<string, RecommendationCopy> = {
-    'advisor.collect-overdue-invoices': {
-        title: 'Relancer les factures en retard',
-        description: 'Commencez par les encours les plus anciens pour accélérer les rentrées de trésorerie.',
-    },
-    'advisor.reduce-client-concentration': {
-        title: 'Réduire la dépendance à un seul client',
-        description: 'Développez une nouvelle opportunité pour mieux répartir votre chiffre d’affaires.',
-    },
-    'advisor.rebuild-commercial-pipeline': {
-        title: 'Relancer votre prospection',
-        description: 'Ajoutez une opportunité qualifiée pour redonner de la profondeur au pipeline.',
-    },
-    'advisor.restore-billing-momentum': {
-        title: 'Remettre la facturation en mouvement',
-        description: 'Transformez les affaires engagées en devis puis en factures sans attendre.',
-    },
-    'advisor.address-primary-attention': {
-        title: 'Agir sur le point le plus fragile',
-        description: 'Concentrez votre prochaine action sur la zone qui pèse le plus sur la santé de l’activité.',
-    },
-};
-
-function recommendationAction(rec: NonNullable<AdvisorOverview['primary_recommendation']>) {
-    if (rec.action_module === 'Billing') {
-        return { href: '/app/billing', label: 'Voir la facturation' };
-    }
-
-    return { href: '/app/crm', label: 'Ouvrir le CRM' };
-}
 
 export function AdvisorPriorityWidget({ widget }: { widget: DashboardWidget<AdvisorOverview> }) {
     const rec = widget.payload?.primary_recommendation;
-    const action = rec ? recommendationAction(rec) : null;
+    const action = getRecommendationAction(rec?.route_key);
+    const presentation = rec ? getRecommendationPresentation(rec.recommendation_key) : null;
 
     return (
         <WidgetCard
@@ -70,30 +36,29 @@ export function AdvisorPriorityWidget({ widget }: { widget: DashboardWidget<Advi
                             )}
                         </div>
                         <p className="mt-4 text-xl font-semibold tracking-tight text-atlas-ink sm:text-2xl">
-                            {recommendationCopy[rec.recommendation_key]?.title ?? 'Une action mérite votre attention'}
+                            {presentation?.title}
                         </p>
                         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-atlas-ink-muted">
-                            {recommendationCopy[rec.recommendation_key]?.description ??
-                                'Consultez le module concerné pour choisir la prochaine action utile.'}
+                            {presentation?.description}
                         </p>
                     </div>
-                    {action?.href.startsWith('/app') ? (
+                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                        {action && (
+                            <Link
+                                to={action.to}
+                                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-ink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-atlas-sidebar"
+                            >
+                                {action.label}
+                                <span aria-hidden="true" className="ml-2">→</span>
+                            </Link>
+                        )}
                         <Link
-                            to={action.href}
-                            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-ink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-atlas-sidebar"
+                            to="/app/advisor"
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink transition-colors hover:bg-slate-50"
                         >
-                            {action.label}
-                            <span aria-hidden="true" className="ml-2">→</span>
+                            Voir Advisor
                         </Link>
-                    ) : (
-                        <a
-                            href={action?.href}
-                            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-ink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-atlas-sidebar"
-                        >
-                            {action?.label}
-                            <span aria-hidden="true" className="ml-2">→</span>
-                        </a>
-                    )}
+                    </div>
                 </div>
             ) : (
                 <EmptyWidgetMessage>
@@ -103,8 +68,8 @@ export function AdvisorPriorityWidget({ widget }: { widget: DashboardWidget<Advi
                             : 'Aucune priorité proposée pour l’instant. Ajoutez un client et une opportunité pour démarrer.'}
                     </span>
                     {widget.data_state !== 'Unavailable' && (
-                        <Link to="/app/crm" className="font-semibold text-atlas-accent hover:underline">
-                            Commencer dans le CRM →
+                        <Link to="/app/advisor" className="font-semibold text-atlas-accent hover:underline">
+                            Comprendre l’absence de priorité →
                         </Link>
                     )}
                 </EmptyWidgetMessage>
