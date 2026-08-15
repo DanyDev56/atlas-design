@@ -34,6 +34,16 @@ final class DemoAccountSeeder
 
     public const WORKSPACE_NAME = 'Studio Atlas Démo';
 
+    public const EMPTY_SCENARIO_VERSION = '1';
+
+    public const EMPTY_EMAIL = 'demo-empty@atlas.test';
+
+    public const EMPTY_PASSWORD = 'DemoEmpty2026!';
+
+    public const EMPTY_DISPLAY_NAME = 'Découverte Atlas';
+
+    public const EMPTY_WORKSPACE_NAME = 'Nouvelle activité démo';
+
     private const EXPECTED_CLIENT_NAMES = [
         'Les Ateliers du Marais',
         'Horizon Digital',
@@ -64,33 +74,13 @@ final class DemoAccountSeeder
 
     public function seed(): DemoSeedResult
     {
-        $userCreated = false;
-        $user = $this->users->findByEmail(self::EMAIL);
-
-        if ($user === null) {
-            $registered = $this->registerUser->handle(
-                email: self::EMAIL,
-                displayName: self::DISPLAY_NAME,
-                password: self::PASSWORD,
-                requestId: $this->requestId('register'),
-            );
-            $this->verifyEmail->handle($registered['user_id'], $registered['verification_token']);
-            $userCreated = true;
-            $userId = $registered['user_id'];
-        } else {
-            $userId = $user->id()->value;
-        }
-
-        $workspaceId = $this->resolveWorkspaceId($userId);
-
-        if ($workspaceId === null) {
-            $bootstrapped = $this->bootstrapWorkspace->handle(
-                userId: $userId,
-                workspaceName: self::WORKSPACE_NAME,
-                idempotencyKey: $this->requestId('bootstrap'),
-            );
-            $workspaceId = $bootstrapped['workspace_id'];
-        }
+        [$userId, $workspaceId, $userCreated] = $this->ensureAccount(
+            email: self::EMAIL,
+            displayName: self::DISPLAY_NAME,
+            password: self::PASSWORD,
+            workspaceName: self::WORKSPACE_NAME,
+            requestPrefix: 'demo-seed:v'.self::SCENARIO_VERSION,
+        );
 
         $sampleDataSeeded = false;
 
@@ -109,6 +99,66 @@ final class DemoAccountSeeder
             sampleDataSeeded: $sampleDataSeeded,
             resourceCounts: $this->resourceCounts($workspaceId),
         );
+    }
+
+    public function seedEmpty(): DemoSeedResult
+    {
+        [$userId, $workspaceId, $userCreated] = $this->ensureAccount(
+            email: self::EMPTY_EMAIL,
+            displayName: self::EMPTY_DISPLAY_NAME,
+            password: self::EMPTY_PASSWORD,
+            workspaceName: self::EMPTY_WORKSPACE_NAME,
+            requestPrefix: 'demo-empty:v'.self::EMPTY_SCENARIO_VERSION,
+        );
+
+        return new DemoSeedResult(
+            email: self::EMPTY_EMAIL,
+            password: self::EMPTY_PASSWORD,
+            userId: $userId,
+            workspaceId: $workspaceId,
+            userCreated: $userCreated,
+            sampleDataSeeded: false,
+            resourceCounts: $this->resourceCounts($workspaceId),
+        );
+    }
+
+    /** @return array{string, string, bool} */
+    private function ensureAccount(
+        string $email,
+        string $displayName,
+        string $password,
+        string $workspaceName,
+        string $requestPrefix,
+    ): array {
+        $userCreated = false;
+        $user = $this->users->findByEmail($email);
+
+        if ($user === null) {
+            $registered = $this->registerUser->handle(
+                email: $email,
+                displayName: $displayName,
+                password: $password,
+                requestId: $requestPrefix.':register',
+            );
+            $this->verifyEmail->handle($registered['user_id'], $registered['verification_token']);
+            $userCreated = true;
+            $userId = $registered['user_id'];
+        } else {
+            $userId = $user->id()->value;
+        }
+
+        $workspaceId = $this->resolveWorkspaceId($userId);
+
+        if ($workspaceId === null) {
+            $bootstrapped = $this->bootstrapWorkspace->handle(
+                userId: $userId,
+                workspaceName: $workspaceName,
+                idempotencyKey: $requestPrefix.':bootstrap',
+            );
+            $workspaceId = $bootstrapped['workspace_id'];
+        }
+
+        return [$userId, $workspaceId, $userCreated];
     }
 
     private function seedSampleData(string $actorUserId, string $workspaceId): void

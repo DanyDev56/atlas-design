@@ -107,6 +107,9 @@ UI démo Palier 4 : [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React
 Compte présentation : `make demo-seed` puis connexion `demo@atlas.test`. La
 commande crée ou met à niveau un scénario rejouable couvrant les principaux
 états CRM, devis, factures, Santé, Advisor et Notifications.
+Compte sans données : `make demo-seed-empty` puis connexion
+`demo-empty@atlas.test` pour vérifier le premier démarrage et tous les états
+vides sans effacer le scénario de présentation.
 
 Runbooks Palier 3 : [`runbooks/`](runbooks/) · Clôture Track A :
 [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Matrice SEC-TEST :

@@ -103,4 +103,31 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->where('display_name', 'Horizon Digital')
             ->count());
     }
+
+    public function test_seeds_a_distinct_and_idempotent_empty_ui_scenario(): void
+    {
+        $result = app(DemoAccountSeeder::class)->seedEmpty();
+
+        $this->assertSame(DemoAccountSeeder::EMPTY_EMAIL, $result->email);
+        $this->assertSame(DemoAccountSeeder::EMPTY_PASSWORD, $result->password);
+        $this->assertTrue($result->userCreated);
+        $this->assertFalse($result->sampleDataSeeded);
+        $this->assertSame([
+            'clients' => 0,
+            'opportunities' => 0,
+            'quotes' => 0,
+            'invoices' => 0,
+            'active_recommendations' => 0,
+            'unread_notifications' => 0,
+        ], $result->resourceCounts);
+        $this->assertFalse(DB::table('analytics.snapshots')->where('workspace_id', $result->workspaceId)->exists());
+        $this->assertFalse(DB::table('business_health.current_assessments')->where('workspace_id', $result->workspaceId)->exists());
+        $this->assertFalse(DB::table('advisor.overviews')->where('workspace_id', $result->workspaceId)->exists());
+
+        $second = app(DemoAccountSeeder::class)->seedEmpty();
+
+        $this->assertFalse($second->userCreated);
+        $this->assertSame($result->workspaceId, $second->workspaceId);
+        $this->assertSame($result->resourceCounts, $second->resourceCounts);
+    }
 }

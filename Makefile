@@ -1,4 +1,4 @@
-.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed
+.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -86,3 +86,6 @@ web-check:
 
 demo-seed:
 	$(COMPOSE) exec app php artisan atlas:demo:seed
+
+demo-seed-empty:
+	$(COMPOSE) exec app php artisan atlas:demo:seed --profile=empty

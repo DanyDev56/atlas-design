@@ -113,6 +113,9 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 ### Livré
 
 - Commande `make demo-seed` → compte `demo@atlas.test` / `DemoAtlas2026!`
+- Commande `make demo-seed-empty` → compte `demo-empty@atlas.test` /
+  `DemoEmpty2026!`, workspace dédié sans données métier et sans remise à zéro
+  destructive
 - Scénario démo versionné et rejouable : 6 clients, 7 opportunités, devis
   brouillon/envoyé/accepté, facture à créer, brouillon à émettre, impayé
   partiellement réglé et historique soldé
@@ -183,11 +186,17 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Libellés techniques de chantier retirés des écrans CRM et de connexion
 - Retour d’un devis adapté à son point d’entrée : Facturation conserve le
   contexte, tandis que le parcours CRM revient à l’opportunité
+- Parcours premier démarrage vérifié dans un navigateur, de l’inscription au
+  dashboard en passant par la création de l’activité, sans pollution de la base
+- États vides vérifiés sur dashboard, CRM, Facturation, Santé, Advisor et
+  Notifications en desktop et mobile ; titres exposés comme vrais niveaux de
+  section aux technologies d’assistance
 
 ### Compte démo
 
 ```bash
 make demo-seed
+make demo-seed-empty
 # → http://localhost:8000/app/login
 ```
 
@@ -210,6 +219,7 @@ make web-install              # première fois — deps npm React
 make web-dev                  # Vite HMR :5173
 make web-check                # TypeScript strict + build de production
 make demo-seed                # compte démo + données présentation
+make demo-seed-empty          # compte démo sans données métier
 
 # Ouvrir http://localhost:8000/app
 ```
@@ -225,7 +235,7 @@ make demo-seed                # compte démo + données présentation
 
 ## Critères « prêt à présenter »
 
-- [ ] Dashboard compris en 30 s sans verbalisation
-- [ ] Parcours register → workspace → dashboard < 2 min
-- [ ] États vides/insuffisants soignés (pas d'écran blanc)
+- [x] Dashboard compris en 30 s sans verbalisation
+- [x] Parcours register → workspace → dashboard < 2 min
+- [x] États vides/insuffisants soignés (pas d'écran blanc)
 - [ ] Env démo stable (hors laptop personnel)

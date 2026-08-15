@@ -2,11 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 const email = process.env.ATLAS_DEMO_EMAIL ?? 'demo@atlas.test';
 const password = process.env.ATLAS_DEMO_PASSWORD ?? 'DemoAtlas2026!';
+const emptyEmail = process.env.ATLAS_EMPTY_DEMO_EMAIL ?? 'demo-empty@atlas.test';
+const emptyPassword = process.env.ATLAS_EMPTY_DEMO_PASSWORD ?? 'DemoEmpty2026!';
 
-async function login(page: Page) {
+async function login(page: Page, accountEmail = email, accountPassword = password) {
     await page.goto('/app/login');
-    await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Mot de passe').fill(password);
+    await page.getByLabel('Email').fill(accountEmail);
+    await page.getByLabel('Mot de passe').fill(accountPassword);
     await page.getByRole('button', { name: 'Se connecter' }).click();
     await expect(page).toHaveURL(/\/app\/?$/);
     await expect(page.getByRole('heading', { name: /^Bonjour/ })).toBeVisible();
@@ -22,9 +24,10 @@ async function navigateFromShell(page: Page, destination: string) {
     await page.getByRole('link', { name: destination, exact: true }).click();
 }
 
-test.beforeEach(async ({ page }) => {
-    await login(page);
-});
+test.describe('scénario démo complet', () => {
+    test.beforeEach(async ({ page }) => {
+        await login(page);
+    });
 
 test('le dashboard présente la priorité et les indicateurs essentiels', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Priorité du jour' })).toBeVisible();
@@ -102,4 +105,35 @@ test('les trois états de facturation actionnables ouvrent le bon écran', async
         .click();
     await expect(page.getByRole('heading', { name: 'Enregistrer un paiement' })).toBeVisible();
     await expect(page.getByText('Reste à encaisser', { exact: true })).toBeVisible();
+});
+});
+
+test.describe('scénario démo vide', () => {
+    test.beforeEach(async ({ page }) => {
+        await login(page, emptyEmail, emptyPassword);
+    });
+
+    test('chaque destination explique clairement comment démarrer', async ({ page }) => {
+        await expect(page.getByRole('heading', { name: 'Priorité du jour' })).toBeVisible();
+        await expect(page.getByText('Aucune priorité proposée pour l’instant.', { exact: false })).toBeVisible();
+        await expect(page.getByText('Créez un client et une opportunité pour visualiser votre cycle commercial.')).toBeVisible();
+
+        await navigateFromShell(page, 'CRM');
+        await expect(page.getByRole('heading', { name: 'Aucun client' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Nouveau client' }).last()).toBeVisible();
+
+        await navigateFromShell(page, 'Facturation');
+        await expect(page.getByRole('heading', { name: 'Aucun devis pour l’instant' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Ouvrir le CRM' })).toBeVisible();
+
+        await navigateFromShell(page, 'Santé');
+        await expect(page.getByRole('heading', { name: 'Votre première évaluation se prépare' })).toBeVisible();
+
+        await navigateFromShell(page, 'Advisor');
+        await expect(page.getByRole('heading', { name: 'Aucune évaluation Advisor pour le moment' })).toBeVisible();
+
+        await page.getByRole('link', { name: 'Notifications' }).click();
+        await expect(page.getByRole('heading', { name: 'Aucune notification' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Retour au dashboard' })).toBeVisible();
+    });
 });
