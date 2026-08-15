@@ -12,8 +12,8 @@ use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipReposito
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class BootstrapIdentityForWorkspaceHandler

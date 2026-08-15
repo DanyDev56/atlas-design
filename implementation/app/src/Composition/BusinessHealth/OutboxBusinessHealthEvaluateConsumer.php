@@ -7,8 +7,8 @@ namespace Atlas\Composition\BusinessHealth;
 use Atlas\Modules\Analytics\Domain\MetricKeys;
 use Atlas\Modules\BusinessHealth\Application\EvaluateBusinessHealthHandler;
 use Atlas\Modules\BusinessHealth\Domain\HealthPolicy;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 
 final class OutboxBusinessHealthEvaluateConsumer implements OutboxConsumer
 {

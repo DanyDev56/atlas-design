@@ -19,7 +19,7 @@ final class HealthPolicyEvaluatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->evaluator = new HealthPolicyEvaluator();
+        $this->evaluator = new HealthPolicyEvaluator;
 
         if (! isset(self::$fixtures)) {
             $path = dirname(__DIR__, 5).'/evolution/reference-fixtures/mvp-v1.json';
@@ -66,6 +66,7 @@ final class HealthPolicyEvaluatorTest extends TestCase
 
             if (is_array($expectedValue) && is_array($actual[$key])) {
                 $this->assertArrayContainsSubset($expectedValue, $actual[$key], "{$fixtureId}.{$key}");
+
                 continue;
             }
 

@@ -10,8 +10,7 @@ use Atlas\Modules\Notifications\Domain\NotificationPolicy;
 final class NotificationPlanEvaluator
 {
     /**
-     * @param array{priority: string}|null $primaryRecommendation
-     *
+     * @param  array{priority: string}|null  $primaryRecommendation
      * @return array<string, mixed>
      */
     public function evaluate(

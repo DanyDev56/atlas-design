@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Atlas\Composition\Analytics;
 
 use Atlas\Modules\Analytics\Application\IngestSourceFactHandler;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 
 final class OutboxAnalyticsIngestConsumer implements OutboxConsumer
 {

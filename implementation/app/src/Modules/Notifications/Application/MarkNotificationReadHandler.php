@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Notifications\Application;
 
-use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationPreferenceRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 

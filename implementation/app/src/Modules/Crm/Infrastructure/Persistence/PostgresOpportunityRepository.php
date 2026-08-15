@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Crm\Infrastructure\Persistence;
 
-use Atlas\Modules\Crm\Domain\ClientId;
 use Atlas\Modules\Crm\Domain\Opportunity;
 use Atlas\Modules\Crm\Domain\OpportunityId;
 use Illuminate\Support\Facades\DB;

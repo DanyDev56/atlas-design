@@ -10,8 +10,8 @@ use Atlas\Modules\Crm\Domain\OpportunityQualified;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 

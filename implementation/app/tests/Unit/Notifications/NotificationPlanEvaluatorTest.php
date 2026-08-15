@@ -20,7 +20,7 @@ final class NotificationPlanEvaluatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->evaluator = new NotificationPlanEvaluator();
+        $this->evaluator = new NotificationPlanEvaluator;
 
         if (! isset(self::$fixtures)) {
             $path = dirname(__DIR__, 5).'/evolution/reference-fixtures/mvp-v1.json';

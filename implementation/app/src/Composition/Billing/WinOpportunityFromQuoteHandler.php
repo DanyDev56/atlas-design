@@ -13,8 +13,8 @@ use Atlas\Modules\Crm\Domain\OpportunityWon;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class WinOpportunityFromQuoteHandler

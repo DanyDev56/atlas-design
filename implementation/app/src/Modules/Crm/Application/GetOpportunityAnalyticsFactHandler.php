@@ -7,6 +7,7 @@ namespace Atlas\Modules\Crm\Application;
 use Atlas\Modules\Crm\Domain\Opportunity;
 use Atlas\Modules\Crm\Domain\OpportunityId;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
+use Illuminate\Support\Facades\DB;
 
 final class GetOpportunityAnalyticsFactHandler
 {
@@ -23,7 +24,7 @@ final class GetOpportunityAnalyticsFactHandler
             throw new \DomainException('Opportunity not found.');
         }
 
-        $row = \Illuminate\Support\Facades\DB::table('crm.opportunities')
+        $row = DB::table('crm.opportunities')
             ->where('id', $opportunityId)
             ->first();
 

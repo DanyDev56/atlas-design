@@ -6,6 +6,7 @@ namespace Tests\Integration\Crm;
 
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Integration\IntegrationTestCase;
 use Tests\Support\AuthenticatesWorkspaceOwner;
 
@@ -25,7 +26,7 @@ final class CrmOutboxIntegrationTest extends IntegrationTestCase
             displayName: 'Outbox Client',
             profile: [],
             billingProfile: null,
-            requestId: (string) \Illuminate\Support\Str::uuid(),
+            requestId: (string) Str::uuid(),
         );
 
         $this->assertTrue(

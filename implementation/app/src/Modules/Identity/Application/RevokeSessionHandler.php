@@ -10,8 +10,8 @@ use Atlas\Modules\Identity\Domain\UserId;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresSessionRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class RevokeSessionHandler

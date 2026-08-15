@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Billing\Infrastructure\Persistence;
 
-use Atlas\Modules\Billing\Domain\Invoice;
-use Atlas\Modules\Billing\Domain\InvoiceId;
 use Atlas\Modules\Billing\Domain\Quote;
 use Atlas\Modules\Billing\Domain\QuoteId;
 use Illuminate\Support\Facades\DB;

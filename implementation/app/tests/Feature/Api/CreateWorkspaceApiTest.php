@@ -25,7 +25,7 @@ final class CreateWorkspaceApiTest extends IntegrationTestCase
         $workspaceId = $response->json('workspace_id');
 
         $this->assertTrue(
-            \Illuminate\Support\Facades\DB::table('platform.outbox_messages')
+            DB::table('platform.outbox_messages')
                 ->where('event_id', $response->json('event_id'))
                 ->where('correlation_id', '11111111-1111-4111-8111-111111111111')
                 ->exists()

@@ -11,8 +11,8 @@ use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProof
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class AcceptQuoteHandler

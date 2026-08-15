@@ -6,6 +6,7 @@ namespace Tests\Integration\Analytics;
 
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Integration\IntegrationTestCase;
 use Tests\Support\AuthenticatesWorkspaceOwner;
 
@@ -23,7 +24,7 @@ final class AnalyticsIngestIntegrationTest extends IntegrationTestCase
             'profile' => [],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
-            'Idempotency-Key' => (string) \Illuminate\Support\Str::uuid(),
+            'Idempotency-Key' => (string) Str::uuid(),
         ])->assertCreated();
 
         $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
@@ -33,7 +34,7 @@ final class AnalyticsIngestIntegrationTest extends IntegrationTestCase
             'currency' => 'EUR',
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
-            'Idempotency-Key' => (string) \Illuminate\Support\Str::uuid(),
+            'Idempotency-Key' => (string) Str::uuid(),
         ])->assertCreated();
 
         $processor = app(OutboxProcessor::class);

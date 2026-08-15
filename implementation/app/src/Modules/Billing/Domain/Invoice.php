@@ -7,10 +7,13 @@ namespace Atlas\Modules\Billing\Domain;
 final class Invoice
 {
     public const STATUS_DRAFT = 'Draft';
+
     public const STATUS_ISSUED = 'Issued';
 
     public const SETTLEMENT_UNPAID = 'Unpaid';
+
     public const SETTLEMENT_PARTIALLY_PAID = 'PartiallyPaid';
+
     public const SETTLEMENT_PAID = 'Paid';
 
     /** @param list<array<string, mixed>> $lines */

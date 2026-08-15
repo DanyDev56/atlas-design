@@ -6,8 +6,8 @@ namespace Atlas\Composition\Notifications;
 
 use Atlas\Modules\Notifications\Application\ProcessAdvisorNotificationSignalHandler;
 use Atlas\Modules\Notifications\Domain\NotificationPolicy;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 
 final class OutboxNotificationsProcessConsumer implements OutboxConsumer
 {

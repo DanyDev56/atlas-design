@@ -11,7 +11,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 final class TraceScope
 {
     /**
-     * @param array<string, bool|float|int|string|null> $attributes
+     * @param  array<string, bool|float|int|string|null>  $attributes
      */
     public static function run(string $spanName, callable $callback, array $attributes = []): mixed
     {

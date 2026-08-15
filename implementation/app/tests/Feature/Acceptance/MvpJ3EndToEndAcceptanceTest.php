@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Acceptance;
 
+use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Integration\IntegrationTestCase;
@@ -86,10 +87,10 @@ final class MvpJ3EndToEndAcceptanceTest extends IntegrationTestCase
 
         $retry->assertJsonPath('analytics_snapshot_id', $snapshotId);
 
-        app(\Atlas\Platform\Messaging\Infrastructure\OutboxProcessor::class)->processPending();
-        app(\Atlas\Platform\Messaging\Infrastructure\OutboxProcessor::class)->processPending();
-        app(\Atlas\Platform\Messaging\Infrastructure\OutboxProcessor::class)->processPending();
-        app(\Atlas\Platform\Messaging\Infrastructure\OutboxProcessor::class)->processPending();
+        app(OutboxProcessor::class)->processPending();
+        app(OutboxProcessor::class)->processPending();
+        app(OutboxProcessor::class)->processPending();
+        app(OutboxProcessor::class)->processPending();
 
         $assessmentCount = DB::table('business_health.assessments')
             ->where('workspace_id', $owner['workspace_id'])

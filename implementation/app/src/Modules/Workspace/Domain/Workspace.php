@@ -7,8 +7,11 @@ namespace Atlas\Modules\Workspace\Domain;
 final class Workspace
 {
     public const STATUS_PROVISIONING = 'Provisioning';
+
     public const STATUS_ACTIVE = 'Active';
+
     public const ACCESS_RESTRICTED = 'Restricted';
+
     public const ACCESS_ACTIVE = 'Active';
 
     private function __construct(

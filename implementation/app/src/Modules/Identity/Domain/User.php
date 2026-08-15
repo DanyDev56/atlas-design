@@ -7,9 +7,11 @@ namespace Atlas\Modules\Identity\Domain;
 final class User
 {
     public const STATUS_PENDING = 'PendingVerification';
+
     public const STATUS_ACTIVE = 'Active';
 
     public const EMAIL_PENDING = 'Pending';
+
     public const EMAIL_VERIFIED = 'Verified';
 
     private function __construct(

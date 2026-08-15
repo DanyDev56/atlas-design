@@ -52,7 +52,7 @@ final class Telemetry
 
         $endpoint = rtrim(self::$otlpEndpoint, '/').'/v1/traces';
 
-        $transport = (new OtlpHttpTransportFactory())->create($endpoint, 'application/json');
+        $transport = (new OtlpHttpTransportFactory)->create($endpoint, 'application/json');
         $exporter = new SpanExporter($transport);
 
         $resource = ResourceInfoFactory::emptyResource()->merge(

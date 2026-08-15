@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Analytics\Application;
 
+use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Modules\Analytics\Domain\AnalyticsSnapshotPublished;
 use Atlas\Modules\Analytics\Domain\MetricKeys;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
-use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 

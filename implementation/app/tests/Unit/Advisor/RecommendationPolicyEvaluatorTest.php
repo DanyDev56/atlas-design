@@ -18,7 +18,7 @@ final class RecommendationPolicyEvaluatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->evaluator = new RecommendationPolicyEvaluator();
+        $this->evaluator = new RecommendationPolicyEvaluator;
 
         if (! isset(self::$fixtures)) {
             $path = dirname(__DIR__, 5).'/evolution/reference-fixtures/mvp-v1.json';

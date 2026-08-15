@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Atlas\Modules\Identity\Application;
 
 use Atlas\Modules\Identity\Domain\User;
-use Atlas\Modules\Identity\Domain\UserActivated;
 use Atlas\Modules\Identity\Domain\UserCreated;
 use Atlas\Modules\Identity\Domain\UserId;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresEmailVerificationRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class RegisterUserHandler

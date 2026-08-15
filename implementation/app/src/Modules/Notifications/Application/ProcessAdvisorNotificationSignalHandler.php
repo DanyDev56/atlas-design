@@ -8,6 +8,7 @@ use Atlas\Modules\Advisor\Domain\RecommendationPolicy as AdvisorPolicy;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresAdvisorOverviewRepository;
 use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepository;
 use Atlas\Modules\Identity\Domain\User;
+use Atlas\Modules\Identity\Domain\UserId;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Notifications\Domain\NotificationPolicy;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationPreferenceRepository;
@@ -51,7 +52,7 @@ final class ProcessAdvisorNotificationSignalHandler
         }
 
         return DB::transaction(function () use (
-            $workspaceId, $advisorOverviewVersion, $sourceEventId, $scope, $fingerprint, $requestId,
+            $workspaceId, $advisorOverviewVersion, $scope, $fingerprint, $requestId,
         ): array {
             $lastVersion = $this->cursors->lastOverviewVersion(
                 $workspaceId,
@@ -86,7 +87,7 @@ final class ProcessAdvisorNotificationSignalHandler
             foreach ($recipients as $recipient) {
                 $prefs = $this->preferences->findOrDefault($workspaceId, $recipient['user_id']);
                 $endpointVerified = $prefs['email_mode'] === NotificationPolicy::EMAIL_IMPORTANT_ONLY
-                    && $this->users->findById(new \Atlas\Modules\Identity\Domain\UserId($recipient['user_id']))?->emailVerificationStatus() === User::EMAIL_VERIFIED;
+                    && $this->users->findById(new UserId($recipient['user_id']))?->emailVerificationStatus() === User::EMAIL_VERIFIED;
 
                 $plan = $this->evaluator->evaluate(
                     sourceEligibility: $overview['source_eligibility'],
@@ -104,6 +105,7 @@ final class ProcessAdvisorNotificationSignalHandler
 
                 if ($plan['notification_state'] === NotificationPolicy::STATUS_RESOLVED) {
                     $this->notifications->resolveActiveForRecipient($workspaceId, $recipient['user_id']);
+
                     continue;
                 }
 

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Atlas\Composition\Billing;
 
-use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 
 final class QuoteAcceptedWinOpportunityConsumer implements OutboxConsumer
 {

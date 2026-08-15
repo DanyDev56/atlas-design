@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Messaging\Spike;
 
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class SpikeEventCounterConsumer implements OutboxConsumer

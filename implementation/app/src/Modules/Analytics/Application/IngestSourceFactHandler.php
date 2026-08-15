@@ -11,8 +11,8 @@ use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class IngestSourceFactHandler

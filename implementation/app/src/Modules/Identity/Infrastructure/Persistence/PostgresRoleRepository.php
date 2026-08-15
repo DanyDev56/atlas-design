@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Atlas\Modules\Identity\Infrastructure\Persistence;
 
 use Atlas\Modules\Identity\Domain\RoleId;
-use Atlas\Platform\Support\UuidGenerator;
 use Illuminate\Support\Facades\DB;
 
 final class PostgresRoleRepository

@@ -120,7 +120,7 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
         ];
 
         $this->getJson(
-            "/api/public/workspaces/".Str::uuid()."/quotes/{$quoteId}?".http_build_query([
+            '/api/public/workspaces/'.Str::uuid()."/quotes/{$quoteId}?".http_build_query([
                 'public_token' => $acceptToken,
             ])
         )->assertUnauthorized()->assertExactJson($maskedResponse);
@@ -131,7 +131,7 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
             ])
         )->assertUnauthorized()->assertExactJson($maskedResponse);
 
-        $this->postJson("/api/public/workspaces/".Str::uuid()."/quotes/{$quoteId}/accept", [
+        $this->postJson('/api/public/workspaces/'.Str::uuid()."/quotes/{$quoteId}/accept", [
             'public_token' => $acceptToken,
             'expected_revision' => 3,
         ], [

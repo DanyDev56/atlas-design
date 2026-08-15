@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Atlas\Modules\Billing\Application;
 
 use Atlas\Modules\Billing\Domain\LineCalculator;
-use Atlas\Modules\Billing\Domain\Quote;
 use Atlas\Modules\Billing\Domain\QuoteId;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;

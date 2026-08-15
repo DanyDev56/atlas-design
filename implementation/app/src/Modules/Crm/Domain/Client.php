@@ -7,9 +7,11 @@ namespace Atlas\Modules\Crm\Domain;
 final class Client
 {
     public const STATUS_ACTIVE = 'Active';
+
     public const STATUS_ARCHIVED = 'Archived';
 
     public const KIND_INDIVIDUAL = 'Individual';
+
     public const KIND_ORGANIZATION = 'Organization';
 
     /** @param array<string, mixed> $profile */

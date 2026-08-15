@@ -10,6 +10,7 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Tests\Integration\IntegrationTestCase;
 
 final class OutboxBacklogMonitorTest extends IntegrationTestCase
@@ -98,11 +99,11 @@ final class OutboxBacklogMonitorTest extends IntegrationTestCase
             'created_at' => now()->toIso8601String(),
         ]);
 
-        \Illuminate\Support\Facades\Http::fake();
+        Http::fake();
 
         app(OutboxBacklogMonitor::class)->reportAfterProcessing(0);
 
-        \Illuminate\Support\Facades\Http::assertSent(function ($request): bool {
+        Http::assertSent(function ($request): bool {
             return $request->url() === 'https://alerts.test/outbox'
                 && ($request['alert'] ?? null) === 'outbox_backlog_above_threshold';
         });

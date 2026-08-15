@@ -255,9 +255,8 @@ final class HealthPolicyEvaluator
     }
 
     /**
-     * @param array<string, array<string, mixed>> $components
-     * @param list<array{key: string, weight: int}> $parts
-     *
+     * @param  array<string, array<string, mixed>>  $components
+     * @param  list<array{key: string, weight: int}>  $parts
      * @return array<string, mixed>
      */
     private function calculateFactor(array $components, array $parts, int $minimum): array

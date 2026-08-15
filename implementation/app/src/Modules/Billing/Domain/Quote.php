@@ -7,7 +7,9 @@ namespace Atlas\Modules\Billing\Domain;
 final class Quote
 {
     public const STATUS_DRAFT = 'Draft';
+
     public const STATUS_SENT = 'Sent';
+
     public const STATUS_ACCEPTED = 'Accepted';
 
     /** @param list<array<string, mixed>> $lines */

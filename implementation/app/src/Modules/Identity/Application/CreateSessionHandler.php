@@ -6,12 +6,11 @@ namespace Atlas\Modules\Identity\Application;
 
 use Atlas\Modules\Identity\Domain\SessionCreated;
 use Atlas\Modules\Identity\Domain\SessionId;
-use Atlas\Modules\Identity\Domain\User;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresSessionRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class CreateSessionHandler

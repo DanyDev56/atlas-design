@@ -7,8 +7,11 @@ namespace Atlas\Modules\Crm\Domain;
 final class Opportunity
 {
     public const STATUS_OPEN = 'Open';
+
     public const STATUS_QUALIFIED = 'Qualified';
+
     public const STATUS_WON = 'Won';
+
     public const STATUS_LOST = 'Lost';
 
     private function __construct(

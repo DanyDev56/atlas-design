@@ -11,8 +11,8 @@ use Atlas\Modules\Workspace\Domain\WorkspaceCreated;
 use Atlas\Modules\Workspace\Domain\WorkspaceId;
 use Atlas\Modules\Workspace\Domain\WorkspaceRepository;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class CreateWorkspaceHandler

@@ -6,7 +6,6 @@ namespace Atlas\Modules\Identity\Infrastructure\Persistence;
 
 use Atlas\Modules\Identity\Domain\SessionId;
 use Atlas\Modules\Identity\Domain\UserId;
-use Atlas\Platform\Support\UuidGenerator;
 use Illuminate\Support\Facades\DB;
 
 final class PostgresSessionRepository

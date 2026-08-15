@@ -6,8 +6,8 @@ namespace Atlas\Composition\Advisor;
 
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
 use Atlas\Modules\Advisor\Domain\RecommendationPolicy;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxConsumer;
+use Atlas\Platform\Messaging\OutgoingMessage;
 
 final class OutboxAdvisorEvaluateConsumer implements OutboxConsumer
 {

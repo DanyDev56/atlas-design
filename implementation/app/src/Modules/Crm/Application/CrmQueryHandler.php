@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Crm\Application;
 
+use Atlas\Modules\Crm\Domain\Client;
 use Atlas\Modules\Crm\Domain\ClientId;
+use Atlas\Modules\Crm\Domain\Opportunity;
 use Atlas\Modules\Crm\Domain\OpportunityId;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
@@ -145,7 +147,7 @@ final class CrmQueryHandler
     }
 
     /** @return array<string, mixed> */
-    private function serializeClient(\Atlas\Modules\Crm\Domain\Client $client): array
+    private function serializeClient(Client $client): array
     {
         return [
             'client_id' => $client->id()->value,
@@ -163,7 +165,7 @@ final class CrmQueryHandler
     }
 
     /** @return array<string, mixed> */
-    private function serializeOpportunity(\Atlas\Modules\Crm\Domain\Opportunity $opportunity): array
+    private function serializeOpportunity(Opportunity $opportunity): array
     {
         return [
             'opportunity_id' => $opportunity->id()->value,

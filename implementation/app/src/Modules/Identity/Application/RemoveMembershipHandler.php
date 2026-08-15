@@ -11,8 +11,8 @@ use Atlas\Modules\Identity\Domain\UserId;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
