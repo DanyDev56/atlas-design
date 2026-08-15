@@ -61,6 +61,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/clients', [ClientController::class, 'index']);
             Route::post('/clients', [ClientController::class, 'store']);
             Route::get('/clients/{clientId}', [ClientController::class, 'show']);
+            Route::get('/clients/{clientId}/contacts', [ClientController::class, 'contacts']);
             Route::post('/clients/{clientId}/contacts', [ClientController::class, 'addContact']);
             Route::get('/clients/{clientId}/billing-context', [ClientController::class, 'billingContext']);
 

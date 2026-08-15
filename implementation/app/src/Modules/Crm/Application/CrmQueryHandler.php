@@ -9,6 +9,7 @@ use Atlas\Modules\Crm\Domain\ClientId;
 use Atlas\Modules\Crm\Domain\Opportunity;
 use Atlas\Modules\Crm\Domain\OpportunityId;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
+use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 
@@ -17,6 +18,7 @@ final class CrmQueryHandler
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PostgresClientRepository $clients,
+        private readonly PostgresContactRepository $contacts,
         private readonly PostgresOpportunityRepository $opportunities,
     ) {}
 
@@ -32,6 +34,31 @@ final class CrmQueryHandler
         }
 
         return $this->serializeClient($client);
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listContacts(string $actorUserId, string $workspaceId, string $clientId): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.read');
+
+        $client = $this->clients->findById($workspaceId, new ClientId($clientId));
+
+        if ($client === null) {
+            throw new \DomainException('Client not found.');
+        }
+
+        return array_map(
+            fn (array $row) => [
+                'contact_id' => $row['id'],
+                'client_id' => $row['client_id'],
+                'profile' => json_decode($row['profile'], true, 512, JSON_THROW_ON_ERROR),
+                'status' => $row['status'],
+                'is_primary' => $row['id'] === $client->primaryContactId(),
+                'version' => (int) $row['version'],
+                'created_at' => $row['created_at'],
+            ],
+            $this->contacts->listByClient($workspaceId, new ClientId($clientId)),
+        );
     }
 
     /** @return list<array<string, mixed>> */

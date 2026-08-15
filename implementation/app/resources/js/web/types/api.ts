@@ -222,6 +222,16 @@ export interface ClientDetail extends ClientSummary {
     billing_profile_version: number;
 }
 
+export interface ContactSummary {
+    contact_id: string;
+    client_id: string;
+    profile: Record<string, unknown>;
+    status: string;
+    is_primary: boolean;
+    version: number;
+    created_at: string;
+}
+
 export interface OpportunitySummary {
     opportunity_id: string;
     client_id: string;

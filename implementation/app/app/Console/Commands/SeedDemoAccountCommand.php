@@ -50,6 +50,7 @@ final class SeedDemoAccountCommand extends Command
 
         $labels = [
             'clients' => 'Clients',
+            'contacts' => 'Contacts',
             'opportunities' => 'Opportunities',
             'quotes' => 'Quotes',
             'invoices' => 'Invoices',

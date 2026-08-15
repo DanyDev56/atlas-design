@@ -49,6 +49,12 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Nova Conseil', { exact: true })).toBeVisible();
     await expect(page.getByText('Collectif Cobalt', { exact: true })).toBeVisible();
 
+    await page.getByRole('link').filter({ hasText: 'Les Ateliers du Marais' }).click();
+    await expect(page.getByRole('heading', { name: 'Contacts' })).toBeVisible();
+    await expect(page.getByText('Camille Martin', { exact: true })).toBeVisible();
+    await expect(page.getByText('Julien Morel', { exact: true })).toBeVisible();
+    await expect(page.getByText('Principal', { exact: true })).toBeVisible();
+
     await navigateFromShell(page, 'Facturation');
     await expect(page.getByRole('heading', { name: 'Facturation' })).toBeVisible();
     await expect(page.getByText('Maison Lumen', { exact: true }).first()).toBeVisible();

@@ -34,4 +34,16 @@ final class PostgresContactRepository
 
         return $row !== null ? Contact::reconstitute((array) $row) : null;
     }
+
+    /** @return list<array<string, mixed>> */
+    public function listByClient(string $workspaceId, ClientId $clientId): array
+    {
+        return DB::table('crm.contacts')
+            ->where('workspace_id', $workspaceId)
+            ->where('client_id', $clientId->value)
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn ($row) => (array) $row)
+            ->all();
+    }
 }

@@ -13,6 +13,7 @@ use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
+use Atlas\Modules\Crm\Application\AddContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 
 final class DemoAccountSeeder
 {
-    public const SCENARIO_VERSION = '2';
+    public const SCENARIO_VERSION = '3';
 
     public const EMAIL = 'demo@atlas.test';
 
@@ -53,12 +54,35 @@ final class DemoAccountSeeder
         'Collectif Cobalt',
     ];
 
+    private const CONTACTS_BY_CLIENT = [
+        'Les Ateliers du Marais' => [
+            ['display_name' => 'Camille Martin', 'email' => 'camille@ateliers-marais.test', 'phone' => '06 18 24 42 10', 'role' => 'Direction'],
+            ['display_name' => 'Julien Morel', 'email' => 'julien@ateliers-marais.test', 'role' => 'Chef de projet'],
+        ],
+        'Horizon Digital' => [
+            ['display_name' => 'Sarah Benali', 'email' => 'sarah@horizon-digital.test', 'role' => 'Responsable technique'],
+        ],
+        'Maison Lumen' => [
+            ['display_name' => 'Élise Garnier', 'email' => 'elise@maison-lumen.test', 'role' => 'Fondatrice'],
+        ],
+        'Nova Conseil' => [
+            ['display_name' => 'Nicolas Aubert', 'email' => 'nicolas@nova-conseil.test', 'role' => 'Associé'],
+        ],
+        'Cabinet Rivoli' => [
+            ['display_name' => 'Claire Durand', 'email' => 'claire@cabinet-rivoli.test', 'role' => 'Office manager'],
+        ],
+        'Collectif Cobalt' => [
+            ['display_name' => 'Lina Perez', 'email' => 'lina@collectif-cobalt.test', 'role' => 'Production'],
+        ],
+    ];
+
     public function __construct(
         private readonly PostgresUserRepository $users,
         private readonly RegisterUserHandler $registerUser,
         private readonly VerifyUserEmailHandler $verifyEmail,
         private readonly BootstrapFirstWorkspaceHandler $bootstrapWorkspace,
         private readonly CreateClientHandler $createClient,
+        private readonly AddContactHandler $addContact,
         private readonly CreateOpportunityHandler $createOpportunity,
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
         private readonly CreateQuoteHandler $createQuote,
@@ -86,6 +110,11 @@ final class DemoAccountSeeder
 
         if (! $this->workspaceHasCurrentScenario($workspaceId)) {
             $this->seedSampleData($userId, $workspaceId);
+            $this->drainOutbox();
+            $sampleDataSeeded = true;
+        }
+
+        if ($this->seedScenarioContacts($userId, $workspaceId)) {
             $this->drainOutbox();
             $sampleDataSeeded = true;
         }
@@ -428,6 +457,62 @@ final class DemoAccountSeeder
         return $client['client_id'];
     }
 
+    private function seedScenarioContacts(string $actorUserId, string $workspaceId): bool
+    {
+        $contactCreated = false;
+
+        foreach (self::CONTACTS_BY_CLIENT as $clientName => $profiles) {
+            $client = DB::table('crm.clients')
+                ->where('workspace_id', $workspaceId)
+                ->where('display_name', $clientName)
+                ->orderBy('created_at')
+                ->first();
+
+            if ($client === null) {
+                continue;
+            }
+
+            $existingEmails = DB::table('crm.contacts')
+                ->where('workspace_id', $workspaceId)
+                ->where('client_id', $client->id)
+                ->get()
+                ->map(function ($row): ?string {
+                    $profile = json_decode($row->profile, true, 512, JSON_THROW_ON_ERROR);
+
+                    return is_string($profile['email'] ?? null) ? $profile['email'] : null;
+                })
+                ->filter()
+                ->all();
+
+            foreach ($profiles as $profile) {
+                if (in_array($profile['email'], $existingEmails, true)) {
+                    continue;
+                }
+
+                $makePrimary = $client->primary_contact_id === null;
+                $contact = $this->addContact->handle(
+                    actorUserId: $actorUserId,
+                    workspaceId: $workspaceId,
+                    clientId: $client->id,
+                    profile: $profile,
+                    makePrimary: $makePrimary,
+                    expectedRevision: (int) $client->version,
+                    requestId: $this->requestId('contact-'.str_replace(['@', '.'], '-', $profile['email'])),
+                );
+
+                $existingEmails[] = $profile['email'];
+                $contactCreated = true;
+
+                if ($makePrimary) {
+                    $client->primary_contact_id = $contact['contact_id'];
+                    $client->version = $contact['client_version'];
+                }
+            }
+        }
+
+        return $contactCreated;
+    }
+
     /**
      * @param  list<array{description: string, quantity: int, unit_price_cents: int}>  $lines
      * @return array<string, mixed>
@@ -558,6 +643,7 @@ final class DemoAccountSeeder
     {
         return [
             'clients' => DB::table('crm.clients')->where('workspace_id', $workspaceId)->count(),
+            'contacts' => DB::table('crm.contacts')->where('workspace_id', $workspaceId)->count(),
             'opportunities' => DB::table('crm.opportunities')->where('workspace_id', $workspaceId)->count(),
             'quotes' => DB::table('billing.quotes')->where('workspace_id', $workspaceId)->count(),
             'invoices' => DB::table('billing.invoices')->where('workspace_id', $workspaceId)->count(),

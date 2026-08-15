@@ -41,6 +41,10 @@ final class AddContactHandler
     ): array {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.create');
 
+        if ($makePrimary) {
+            $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.contacts.change-primary');
+        }
+
         $scope = 'crm.add_contact';
         $fingerprint = hash('sha256', json_encode([
             $workspaceId, $clientId, $profile, $makePrimary, $expectedRevision,

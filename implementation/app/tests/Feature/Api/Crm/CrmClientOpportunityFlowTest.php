@@ -37,6 +37,16 @@ final class CrmClientOpportunityFlowTest extends IntegrationTestCase
             'Idempotency-Key' => (string) Str::uuid(),
         ])->assertCreated();
 
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/clients/{$clientId}/contacts", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.contact_id', $contact->json('contact_id'))
+            ->assertJsonPath('0.profile.display_name', 'Jane Doe')
+            ->assertJsonPath('0.profile.email', 'jane@acme.test')
+            ->assertJsonPath('0.is_primary', true)
+            ->assertJsonPath('0.status', 'Active');
+
         $opportunity = $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
             'client_id' => $clientId,
             'contact_id' => $contact->json('contact_id'),

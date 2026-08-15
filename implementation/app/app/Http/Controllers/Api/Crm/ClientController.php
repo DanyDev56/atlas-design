@@ -63,6 +63,9 @@ final class ClientController extends Controller
         $validated = $request->validate([
             'profile' => ['required', 'array'],
             'profile.display_name' => ['required', 'string', 'min:2', 'max:160'],
+            'profile.email' => ['sometimes', 'email', 'max:254'],
+            'profile.phone' => ['sometimes', 'string', 'max:50'],
+            'profile.role' => ['sometimes', 'string', 'max:100'],
             'make_primary' => ['sometimes', 'boolean'],
             'expected_revision' => ['required', 'integer', 'min:1'],
         ]);
@@ -77,6 +80,15 @@ final class ClientController extends Controller
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),
         ), 201);
+    }
+
+    public function contacts(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        return $this->respond(fn () => $this->queries->listContacts(
+            $this->actorId($request),
+            $workspaceId,
+            $clientId,
+        ));
     }
 
     public function billingContext(Request $request, string $workspaceId, string $clientId): JsonResponse

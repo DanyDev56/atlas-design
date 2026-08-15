@@ -1,5 +1,5 @@
 import { apiRequest } from '@/api/client';
-import type { ClientDetail, ClientSummary, OpportunityDetail, OpportunitySummary } from '@/types/api';
+import type { ClientDetail, ClientSummary, ContactSummary, OpportunityDetail, OpportunitySummary } from '@/types/api';
 
 function workspacePath(workspaceId: string, suffix: string): string {
     return `/workspaces/${workspaceId}${suffix}`;
@@ -19,6 +19,37 @@ export async function createClient(
     payload: { kind: 'Individual' | 'Organization'; display_name: string; profile?: Record<string, unknown> },
 ): Promise<{ client_id: string }> {
     return apiRequest('POST', workspacePath(workspaceId, '/clients'), payload, { token });
+}
+
+export async function listContacts(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+): Promise<ContactSummary[]> {
+    return apiRequest<ContactSummary[]>(
+        'GET',
+        workspacePath(workspaceId, `/clients/${clientId}/contacts`),
+        undefined,
+        { token },
+    );
+}
+
+export async function addContact(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    payload: {
+        profile: {
+            display_name: string;
+            email?: string;
+            phone?: string;
+            role?: string;
+        };
+        make_primary: boolean;
+        expected_revision: number;
+    },
+): Promise<{ contact_id: string; client_id: string; is_primary: boolean; client_version: number }> {
+    return apiRequest('POST', workspacePath(workspaceId, `/clients/${clientId}/contacts`), payload, { token });
 }
 
 export async function listOpportunities(

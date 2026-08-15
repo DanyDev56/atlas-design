@@ -27,25 +27,27 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 | **0** | Shell, auth J1, client API, routing | ✓ | Connexion + navigation |
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
-| **3** | Polish démo (empty states, seed, responsive) | ◐ | Beta élargie |
+| **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
+| **4** | Enrichissement CRM (contacts client) | ◐ | Contact exploitable depuis la fiche |
 
 ---
 
-## Priorité de la prochaine tranche
+## Priorité actuelle
 
-La prochaine tranche Engineering reprend l'implémentation **UI/UX**. Les travaux
+La recette locale du polish UI/UX est validée, y compris la compréhension du
+dashboard en moins de 30 secondes. La tranche courante enrichit la fiche client
+avec ses contacts avant de poursuivre les autres opérations CRM. Les travaux
 de publication et de déploiement de l'image OCI sont volontairement différés et
 restent tracés dans le
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
 
 L'ordre de travail retenu est :
 
-1. auditer les écrans React existants sur desktop et mobile ;
-2. traiter les frictions qui empêchent de comprendre le dashboard en 30 secondes ;
-3. consolider les parcours d'onboarding et CRM/devis, leurs états vides, erreurs
-   et retours d'action ;
-4. vérifier l'accessibilité, la cohérence visuelle et le responsive avant
-   d'élargir le périmètre fonctionnel.
+1. afficher les contacts rattachés à un client et identifier le principal ;
+2. permettre leur ajout depuis la fiche avec contrôle de révision ;
+3. relier ensuite le contact choisi aux opportunités commerciales ;
+4. poursuivre avec l'édition et le cycle de vie CRM sans déplacer les règles
+   métier dans le frontend.
 
 ---
 
@@ -108,7 +110,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 
 ---
 
-## Lot 3 — Polish présentation (en cours)
+## Lot 3 — Polish présentation (livré localement)
 
 ### Livré
 
@@ -116,7 +118,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Commande `make demo-seed-empty` → compte `demo-empty@atlas.test` /
   `DemoEmpty2026!`, workspace dédié sans données métier et sans remise à zéro
   destructive
-- Scénario démo versionné et rejouable : 6 clients, 7 opportunités, devis
+- Scénario démo versionné et rejouable : 6 clients, 7 contacts, 7 opportunités, devis
   brouillon/envoyé/accepté, facture à créer, brouillon à émettre, impayé
   partiellement réglé et historique soldé
 - États Analytics, Santé, Advisor et Notifications reconstruits automatiquement ;
@@ -179,7 +181,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - États de chargement annoncés sans exposer les squelettes décoratifs aux
   technologies d'assistance
 - Recette navigateur Playwright isolée des dépendances Vite : dashboard,
-  données du scénario v2, accès aux devis et factures actionnables, navigation
+  données du scénario v3, accès aux devis et factures actionnables, navigation
   mobile et absence de débordement horizontal
 - Facturation enrichie en parallèle avec les noms CRM pour réduire l’attente ;
   factures récentes du dashboard désormais directement ouvrables
@@ -208,6 +210,27 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 ### Reste hors scope Lot 3
 
 - Env staging `demo.atlas…` (infra)
+
+---
+
+## Lot 4 — Enrichissement CRM (en cours)
+
+### Livré
+
+- Lecture des contacts d'un client via un contrat API dédié et isolé par
+  workspace avec la permission `crm.contacts.read`
+- Fiche client enrichie : contacts, rôle, email, téléphone et identification du
+  contact principal
+- Ajout accessible depuis la fiche, champs optionnels validés par l'API,
+  idempotence et contrôle de révision du client conservés
+- Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
+  client, sans doublon lors d'une nouvelle exécution du seed
+
+### Suite logique
+
+- Sélectionner un contact lors de la création d'une opportunité
+- Ajouter les opérations d'édition, changement de contact principal et archivage
+  lorsque leurs contrats applicatifs seront disponibles
 
 ---
 
