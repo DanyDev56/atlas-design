@@ -106,4 +106,13 @@ final class PostgresOpportunityRepository
             ->whereIn('status', [Opportunity::STATUS_OPEN, Opportunity::STATUS_QUALIFIED])
             ->exists();
     }
+
+    public function hasNonTerminalForClient(string $workspaceId, string $clientId): bool
+    {
+        return DB::table('crm.opportunities')
+            ->where('workspace_id', $workspaceId)
+            ->where('client_id', $clientId)
+            ->whereIn('status', [Opportunity::STATUS_OPEN, Opportunity::STATUS_QUALIFIED])
+            ->exists();
+    }
 }

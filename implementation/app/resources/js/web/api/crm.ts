@@ -13,6 +13,21 @@ export async function getClient(token: string, workspaceId: string, clientId: st
     return apiRequest<ClientDetail>('GET', workspacePath(workspaceId, `/clients/${clientId}`), undefined, { token });
 }
 
+export async function archiveClient(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+    reason: string,
+    expectedRevision: number,
+): Promise<{ client_id: string; status: string; version: number; archived_at: string }> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/clients/${clientId}/archive`),
+        { reason, expected_revision: expectedRevision },
+        { token },
+    );
+}
+
 export async function createClient(
     token: string,
     workspaceId: string,

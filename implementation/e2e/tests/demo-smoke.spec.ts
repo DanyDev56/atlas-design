@@ -56,6 +56,11 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Principal', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Retirer Camille Martin comme contact principal' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Définir Julien Morel comme contact principal' })).toBeVisible();
+    await page.getByRole('button', { name: 'Archiver le client' }).click();
+    const archiveClientForm = page.getByRole('form', { name: 'Archiver le client' });
+    await expect(archiveClientForm.getByText(/opportunité.*encore en cours/)).toBeVisible();
+    await expect(archiveClientForm.getByRole('button', { name: 'Confirmer l’archivage du client' })).toBeDisabled();
+    await archiveClientForm.getByRole('button', { name: 'Annuler' }).click();
     await page.getByRole('button', { name: 'Archiver Julien Morel' }).click();
     const archiveContactForm = page.getByRole('form', { name: 'Archiver Julien Morel' });
     await expect(archiveContactForm.getByLabel('Motif d’archivage')).toBeVisible();

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Crm;
 
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\AddContactHandler;
+use Atlas\Modules\Crm\Application\ArchiveClientHandler;
 use Atlas\Modules\Crm\Application\ArchiveContactHandler;
 use Atlas\Modules\Crm\Application\ChangeClientPrimaryContactHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
@@ -20,6 +21,7 @@ final class ClientController extends Controller
 {
     public function __construct(
         private readonly CreateClientHandler $createClient,
+        private readonly ArchiveClientHandler $archiveClient,
         private readonly AddContactHandler $addContact,
         private readonly ChangeClientPrimaryContactHandler $changePrimaryContact,
         private readonly UpdateContactHandler $updateContact,
@@ -88,6 +90,24 @@ final class ClientController extends Controller
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),
         ), 201);
+    }
+
+    public function archive(Request $request, string $workspaceId, string $clientId): JsonResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:2', 'max:160'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->archiveClient->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            clientId: $clientId,
+            reason: $validated['reason'],
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
     }
 
     public function contacts(Request $request, string $workspaceId, string $clientId): JsonResponse

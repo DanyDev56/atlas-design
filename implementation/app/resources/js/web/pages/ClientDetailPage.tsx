@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
     addContact,
+    archiveClient,
     archiveContact,
     changePrimaryContact,
     createOpportunity,
@@ -42,6 +43,10 @@ export function ClientDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+
+    const [showClientArchiveForm, setShowClientArchiveForm] = useState(false);
+    const [clientArchiveReason, setClientArchiveReason] = useState('');
+    const [archivingClient, setArchivingClient] = useState(false);
 
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactName, setContactName] = useState('');
@@ -126,6 +131,46 @@ export function ClientDetailPage() {
         () => [...opportunities].sort((a, b) => a.title.localeCompare(b.title, 'fr')),
         [opportunities],
     );
+
+    const activeOpportunityCount = useMemo(
+        () => opportunities.filter((opportunity) => ['Open', 'Qualified'].includes(opportunity.status)).length,
+        [opportunities],
+    );
+
+    function openClientArchiveForm() {
+        setShowContactForm(false);
+        setShowOpportunityForm(false);
+        setEditingContactId(null);
+        setArchivingContactId(null);
+        setArchiveReason('');
+        setShowClientArchiveForm(true);
+        setClientArchiveReason('');
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onArchiveClient(event: FormEvent) {
+        event.preventDefault();
+        if (!token || !workspaceId || !clientId || !client) return;
+
+        setArchivingClient(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await archiveClient(token, workspaceId, clientId, clientArchiveReason.trim(), client.version);
+            setClient(await getClient(token, workspaceId, clientId));
+            setShowClientArchiveForm(false);
+            setClientArchiveReason('');
+            setSuccess(`Le client « ${client.display_name} » a bien été archivé. Son historique reste consultable.`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Archivage du client impossible';
+            setError(message === 'Active opportunity exists.'
+                ? 'Ce client possède encore une opportunité en cours. Marquez-la comme gagnée ou perdue avant de l’archiver.'
+                : message);
+        } finally {
+            setArchivingClient(false);
+        }
+    }
 
     function openContactForm() {
         setMakePrimary(client?.primary_contact_id === null);
@@ -398,8 +443,81 @@ export function ClientDetailPage() {
                                     {client.kind === 'Organization' ? 'Organisation' : 'Particulier'}
                                 </p>
                             </div>
-                            <StatusBadge status={client.status} />
+                            <div className="flex flex-col items-end gap-3">
+                                <StatusBadge status={client.status} />
+                                {client.status === 'Active' && !showClientArchiveForm && (
+                                    <button
+                                        type="button"
+                                        onClick={openClientArchiveForm}
+                                        className="text-sm font-semibold text-red-700 hover:underline"
+                                    >
+                                        Archiver le client
+                                    </button>
+                                )}
+                            </div>
                         </div>
+
+                        {client.status === 'Archived' && (
+                            <div className="mt-6 rounded-2xl border border-atlas-border bg-atlas-surface p-5">
+                                <p className="font-semibold text-atlas-ink">Client conservé dans l’historique</p>
+                                <p className="mt-1 text-sm text-atlas-ink-muted">
+                                    Les contacts, opportunités et documents restent consultables, mais aucune nouvelle action courante n’est disponible.
+                                    {client.archived_at ? ` Archivé le ${formatContactDate(client.archived_at)}.` : ''}
+                                </p>
+                            </div>
+                        )}
+
+                        {showClientArchiveForm && client.status === 'Active' && (
+                            <form
+                                aria-label="Archiver le client"
+                                onSubmit={onArchiveClient}
+                                className="mt-6 space-y-4 rounded-2xl border border-red-200 bg-red-50 p-5"
+                            >
+                                <fieldset disabled={archivingClient} className="space-y-4">
+                                    <div>
+                                        <p className="font-semibold text-red-900">Archiver ce client ?</p>
+                                        <p className="mt-1 text-sm text-red-800">
+                                            Son historique et ses contacts seront conservés. L’archivage exige que toutes ses opportunités soient gagnées ou perdues.
+                                        </p>
+                                        {activeOpportunityCount > 0 && (
+                                            <p className="mt-2 text-sm font-semibold text-red-900">
+                                                {activeOpportunityCount} opportunité{activeOpportunityCount > 1 ? 's' : ''} encore en cours.
+                                            </p>
+                                        )}
+                                    </div>
+                                    <FormField label="Motif d’archivage">
+                                        <textarea
+                                            required
+                                            minLength={2}
+                                            maxLength={160}
+                                            rows={3}
+                                            className={inputClassName}
+                                            value={clientArchiveReason}
+                                            onChange={(event) => setClientArchiveReason(event.target.value)}
+                                        />
+                                    </FormField>
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <button
+                                            type="submit"
+                                            disabled={archivingClient || activeOpportunityCount > 0}
+                                            className="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {archivingClient ? 'Archivage…' : 'Confirmer l’archivage du client'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowClientArchiveForm(false);
+                                                setClientArchiveReason('');
+                                            }}
+                                            className="rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-medium text-atlas-ink-muted"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        )}
 
                         <section className="mt-10" aria-labelledby="contacts-heading">
                             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
@@ -411,7 +529,7 @@ export function ClientDetailPage() {
                                         Les personnes à joindre pour ce client.
                                     </p>
                                 </div>
-                                {!showContactForm && (
+                                {client.status === 'Active' && !showContactForm && (
                                     <button
                                         type="button"
                                         onClick={openContactForm}
@@ -422,7 +540,7 @@ export function ClientDetailPage() {
                                 )}
                             </div>
 
-                            {showContactForm && (
+                            {client.status === 'Active' && showContactForm && (
                                 <form
                                     onSubmit={onAddContact}
                                     className="mb-6 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"
@@ -549,25 +667,25 @@ export function ClientDetailPage() {
                                                 </div>
                                                 {(email || phone) && (
                                                     <div className="mt-4 space-y-1.5 text-sm">
-                                                        {email && contact.status === 'Active' && (
+                                                        {email && client.status === 'Active' && contact.status === 'Active' && (
                                                             <a className="block text-atlas-accent hover:underline" href={`mailto:${email}`}>
                                                                 {email}
                                                             </a>
                                                         )}
-                                                        {email && contact.status !== 'Active' && (
+                                                        {email && (client.status !== 'Active' || contact.status !== 'Active') && (
                                                             <p className="text-atlas-ink-muted">{email}</p>
                                                         )}
-                                                        {phone && contact.status === 'Active' && (
+                                                        {phone && client.status === 'Active' && contact.status === 'Active' && (
                                                             <a className="block text-atlas-accent hover:underline" href={`tel:${phone}`}>
                                                                 {phone}
                                                             </a>
                                                         )}
-                                                        {phone && contact.status !== 'Active' && (
+                                                        {phone && (client.status !== 'Active' || contact.status !== 'Active') && (
                                                             <p className="text-atlas-ink-muted">{phone}</p>
                                                         )}
                                                     </div>
                                                 )}
-                                                {contact.status === 'Active' && (
+                                                {client.status === 'Active' && contact.status === 'Active' && (
                                                     <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
                                                         <button
                                                             type="button"
@@ -609,7 +727,7 @@ export function ClientDetailPage() {
                                                         </button>
                                                     </div>
                                                 )}
-                                                {contact.status === 'Archived' && (
+                                                {client.status === 'Active' && contact.status === 'Archived' && (
                                                     <div className="mt-4 border-t border-atlas-border pt-4">
                                                         {contact.archived_at && (
                                                             <p className="mb-2 text-xs text-atlas-ink-muted">
@@ -754,7 +872,7 @@ export function ClientDetailPage() {
                                 <h3 id="opportunities-heading" className="text-lg font-semibold text-atlas-ink">
                                     Opportunités
                                 </h3>
-                                {!showOpportunityForm && (
+                                {client.status === 'Active' && !showOpportunityForm && (
                                     <button
                                         type="button"
                                         onClick={openOpportunityForm}
@@ -765,7 +883,7 @@ export function ClientDetailPage() {
                                 )}
                             </div>
 
-                            {showOpportunityForm && (
+                            {client.status === 'Active' && showOpportunityForm && (
                                 <form
                                     onSubmit={onCreateOpportunity}
                                     className="mb-6 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm"

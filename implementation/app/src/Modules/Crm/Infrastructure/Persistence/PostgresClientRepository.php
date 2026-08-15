@@ -26,6 +26,8 @@ final class PostgresClientRepository
             'version' => $client->version(),
             'created_at' => $client->createdAt()->format('Y-m-d H:i:sP'),
             'updated_at' => $client->updatedAt()->format('Y-m-d H:i:sP'),
+            'archive_reason' => null,
+            'archived_at' => null,
         ]);
     }
 
@@ -43,6 +45,8 @@ final class PostgresClientRepository
                 'billing_profile_version' => $client->billingProfileVersion(),
                 'version' => $client->version(),
                 'updated_at' => $client->updatedAt()->format('Y-m-d H:i:sP'),
+                'archive_reason' => $client->archiveReason(),
+                'archived_at' => $client->archivedAt()?->format('Y-m-d H:i:sP'),
             ]);
     }
 

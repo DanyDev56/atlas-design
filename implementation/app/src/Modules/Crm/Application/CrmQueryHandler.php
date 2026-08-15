@@ -74,6 +74,7 @@ final class CrmQueryHandler
                 'kind' => $row['kind'],
                 'status' => $row['status'],
                 'version' => (int) $row['version'],
+                'archived_at' => $row['archived_at'] ?? null,
             ],
             $this->clients->listByWorkspace($workspaceId),
         );
@@ -189,6 +190,7 @@ final class CrmQueryHandler
             'profile_version' => $client->profileVersion(),
             'billing_profile_version' => $client->billingProfileVersion(),
             'version' => $client->version(),
+            'archived_at' => $client->archivedAt()?->format(DATE_ATOM),
         ];
     }
 

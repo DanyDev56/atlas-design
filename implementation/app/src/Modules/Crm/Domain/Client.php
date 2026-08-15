@@ -30,6 +30,8 @@ final class Client
         private int $version,
         private \DateTimeImmutable $createdAt,
         private \DateTimeImmutable $updatedAt,
+        private ?string $archiveReason,
+        private ?\DateTimeImmutable $archivedAt,
     ) {}
 
     /** @param array<string, mixed> $profile */
@@ -56,6 +58,8 @@ final class Client
             version: 1,
             createdAt: $now,
             updatedAt: $now,
+            archiveReason: null,
+            archivedAt: null,
         );
     }
 
@@ -76,7 +80,28 @@ final class Client
             version: (int) $row['version'],
             createdAt: new \DateTimeImmutable($row['created_at']),
             updatedAt: new \DateTimeImmutable($row['updated_at']),
+            archiveReason: $row['archive_reason'] ?? null,
+            archivedAt: isset($row['archived_at']) ? new \DateTimeImmutable($row['archived_at']) : null,
         );
+    }
+
+    public function archive(string $reason, \DateTimeImmutable $now): void
+    {
+        if (! $this->isActive()) {
+            throw new \DomainException('Client is not active.');
+        }
+
+        $reason = trim($reason);
+
+        if (mb_strlen($reason) < 2 || mb_strlen($reason) > 160) {
+            throw new \DomainException('Archive reason invalid.');
+        }
+
+        $this->status = self::STATUS_ARCHIVED;
+        $this->archiveReason = $reason;
+        $this->archivedAt = $now;
+        $this->version++;
+        $this->updatedAt = $now;
     }
 
     public function assignPrimaryContact(ContactId $contactId, \DateTimeImmutable $now): void
@@ -169,6 +194,16 @@ final class Client
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function archiveReason(): ?string
+    {
+        return $this->archiveReason;
+    }
+
+    public function archivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
     }
 
     public function createdAt(): \DateTimeImmutable

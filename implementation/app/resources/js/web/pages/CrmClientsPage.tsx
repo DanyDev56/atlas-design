@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createClient, listClients } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -22,6 +22,15 @@ export function CrmClientsPage() {
     const [kind, setKind] = useState<'Organization' | 'Individual'>('Organization');
     const [creating, setCreating] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
+
+    const sortedClients = useMemo(
+        () => [...clients].sort((a, b) => {
+            if (a.status !== b.status) return a.status === 'Active' ? -1 : 1;
+
+            return a.display_name.localeCompare(b.display_name, 'fr');
+        }),
+        [clients],
+    );
 
     async function reload() {
         setLoading(true);
@@ -145,7 +154,7 @@ export function CrmClientsPage() {
 
                 {!loading && clients.length > 0 && (
                     <ul className="divide-y divide-atlas-border overflow-hidden rounded-2xl border border-atlas-border bg-atlas-card shadow-sm">
-                        {clients.map((client) => (
+                        {sortedClients.map((client) => (
                             <li key={client.client_id}>
                                 <Link
                                     to={`/app/crm/clients/${client.client_id}`}
@@ -155,6 +164,7 @@ export function CrmClientsPage() {
                                         <p className="font-medium text-atlas-ink">{client.display_name}</p>
                                         <p className="mt-0.5 text-xs text-atlas-ink-muted">
                                             {client.kind === 'Organization' ? 'Organisation' : 'Particulier'}
+                                            {client.archived_at ? ` · Archivé le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(client.archived_at))}` : ''}
                                         </p>
                                     </div>
                                     <StatusBadge status={client.status} />

@@ -211,6 +211,7 @@ export interface ClientSummary {
     kind: 'Individual' | 'Organization';
     status: string;
     version: number;
+    archived_at: string | null;
 }
 
 export interface ClientDetail extends ClientSummary {

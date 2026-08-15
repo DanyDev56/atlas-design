@@ -253,13 +253,18 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   structurées et une note interne optionnelle bornée
 - Résultat `Lost` terminal, idempotent et historisé ; événement
   `OpportunityLost` sans note libre et nouveau fait Analytics pour le pipeline
+- Archivage d'un client après vérification autoritative de l'absence
+  d'opportunités `Open` ou `Qualified`, avec motif d'audit et contrôle de révision
+- Client archivé conservé dans les listes et sur une fiche historique en lecture
+  seule ; contacts, opportunités et documents restent intacts et consultables
+- Événement `ClientArchived` idempotent et sans donnée personnelle dans l'outbox
 - Scénario démo v3 enrichi de sept contacts déterministes, dont un principal par
   client, sans doublon lors d'une nouvelle exécution du seed
 
 ### Suite logique
 
-- Archiver un client après contrôle de l'absence d'opportunités `Open` ou
-  `Qualified`, sans supprimer son historique commercial et de facturation
+- Réactiver explicitement un client archivé sans modifier automatiquement le
+  cycle de vie de ses contacts
 
 ---
 
