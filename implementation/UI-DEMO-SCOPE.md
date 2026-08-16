@@ -297,11 +297,16 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   corrigées ou retirées et distincte de la chronologie commerciale ordinaire
 - Valeur courante, anciennes révisions, motifs, acteurs et horodatages présentés
   à la demande ; scénario v4 livré avec une correction et un retrait auditables
+- Gain manuel d'une opportunité `Qualified` avec confirmation terminale,
+  contrôle de révision, rejeu idempotent et permission élevée
+- Résultat gagné conservant source `Manual | AcceptedQuote`, instant, acteur ou
+  devis causal ; les deux sources produisent le même événement `OpportunityWon`
+  et le même fait Analytics sans exposer l'acteur dans l'outbox
 
 ### Suite logique
 
-- Permettre de marquer manuellement comme gagnée une opportunité qualifiée sans
-  devis accepté, avec résultat structuré, révision et audit
+- Concevoir la prévisualisation puis l'import historique borné des clients, avec
+  manifest hashé, validation explicite et suivi de progression
 
 ---
 

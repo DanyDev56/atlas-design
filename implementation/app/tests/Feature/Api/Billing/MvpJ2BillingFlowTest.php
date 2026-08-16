@@ -205,7 +205,11 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/opportunities/{$opportunityId}", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
-            ->assertJsonPath('status', 'Won');
+            ->assertJsonPath('status', 'Won')
+            ->assertJsonPath('win_source', 'AcceptedQuote')
+            ->assertJsonPath('won_quote_id', $quoteId)
+            ->assertJsonPath('won_by', null)
+            ->assertJsonPath('won_at', fn ($value) => is_string($value) && $value !== '');
 
         $invoice = $this->postJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/invoices", [], [
             'Authorization' => 'Bearer '.$owner['token'],
@@ -281,6 +285,7 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
             DB::table('platform.outbox_messages')
                 ->where('event_type', 'crm.opportunity_won')
                 ->where('payload->quote_id', $quoteId)
+                ->where('payload->source', 'AcceptedQuote')
                 ->exists()
         );
     }

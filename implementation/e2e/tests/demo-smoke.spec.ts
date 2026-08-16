@@ -142,9 +142,16 @@ test('le devis brouillon des Ateliers est accessible sans ambiguïté', async ({
     await expect(contactSelect.getByRole('option', { name: 'Julien Morel' })).toBeAttached();
     await editOpportunityForm.getByRole('button', { name: 'Annuler' }).click();
     await page.goBack();
+    await expect(page.getByRole('heading', { name: 'Les Ateliers du Marais' })).toBeVisible();
 
     await page.getByRole('link').filter({ hasText: 'Refonte identité visuelle' }).click();
     await expect(page.getByRole('heading', { name: 'Refonte identité visuelle' })).toBeVisible();
+    await page.getByRole('button', { name: 'Marquer comme gagnée' }).click();
+    const winConfirmation = page.getByRole('region', { name: 'Marquer l’opportunité comme gagnée' });
+    await expect(winConfirmation.getByText('La clôture est définitive', { exact: false })).toBeVisible();
+    await expect(winConfirmation.getByText('ne crée ni devis ni facture', { exact: false })).toBeVisible();
+    await expect(winConfirmation.getByRole('button', { name: 'Confirmer le gain' })).toBeVisible();
+    await winConfirmation.getByRole('button', { name: 'Annuler' }).click();
     await page.getByRole('link', { name: 'Vérifier et envoyer' }).click();
     await expect(page.getByRole('button', { name: 'Envoyer au client' })).toBeVisible();
 });

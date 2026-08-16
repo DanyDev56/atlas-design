@@ -10,6 +10,7 @@ use Atlas\Modules\Crm\Application\CrmQueryHandler;
 use Atlas\Modules\Crm\Application\LoseOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\UpdateOpportunityHandler;
+use Atlas\Modules\Crm\Application\WinOpportunityHandler;
 use Atlas\Modules\Crm\Domain\Opportunity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ final class OpportunityController extends Controller
         private readonly QualifyOpportunityHandler $qualifyOpportunity,
         private readonly UpdateOpportunityHandler $updateOpportunity,
         private readonly LoseOpportunityHandler $loseOpportunity,
+        private readonly WinOpportunityHandler $winOpportunity,
         private readonly CrmQueryHandler $queries,
     ) {}
 
@@ -119,6 +121,24 @@ final class OpportunityController extends Controller
             opportunityId: $opportunityId,
             lossReasonCode: $validated['loss_reason_code'],
             lossNote: $validated['loss_note'] ?? null,
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
+    public function win(Request $request, string $workspaceId, string $opportunityId): JsonResponse
+    {
+        $validated = $request->validate([
+            'result' => ['required', 'array:source'],
+            'result.source' => ['required', 'string', Rule::in([Opportunity::WIN_SOURCE_MANUAL])],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->winOpportunity->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            opportunityId: $opportunityId,
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
             correlationId: $request->attributes->get('correlation_id'),

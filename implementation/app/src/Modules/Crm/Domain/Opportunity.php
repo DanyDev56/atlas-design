@@ -14,6 +14,10 @@ final class Opportunity
 
     public const STATUS_LOST = 'Lost';
 
+    public const WIN_SOURCE_MANUAL = 'Manual';
+
+    public const WIN_SOURCE_ACCEPTED_QUOTE = 'AcceptedQuote';
+
     public const LOSS_REASON_BUDGET = 'Budget';
 
     public const LOSS_REASON_TIMING = 'Timing';
@@ -40,6 +44,10 @@ final class Opportunity
         private ?string $lossReasonCode,
         private ?string $lossNote,
         private ?\DateTimeImmutable $lostAt,
+        private ?string $winSource,
+        private ?string $wonQuoteId,
+        private ?string $wonBy,
+        private ?\DateTimeImmutable $wonAt,
     ) {}
 
     public static function create(
@@ -68,6 +76,10 @@ final class Opportunity
             lossReasonCode: null,
             lossNote: null,
             lostAt: null,
+            winSource: null,
+            wonQuoteId: null,
+            wonBy: null,
+            wonAt: null,
         );
     }
 
@@ -90,6 +102,10 @@ final class Opportunity
             lossReasonCode: $row['loss_reason_code'] ?? null,
             lossNote: $row['loss_note'] ?? null,
             lostAt: isset($row['lost_at']) ? new \DateTimeImmutable($row['lost_at']) : null,
+            winSource: $row['win_source'] ?? null,
+            wonQuoteId: $row['won_quote_id'] ?? null,
+            wonBy: $row['won_by'] ?? null,
+            wonAt: isset($row['won_at']) ? new \DateTimeImmutable($row['won_at']) : null,
         );
     }
 
@@ -165,17 +181,30 @@ final class Opportunity
         $this->updatedAt = $now;
     }
 
-    public function win(\DateTimeImmutable $now): void
-    {
-        if ($this->status === self::STATUS_WON) {
-            return;
-        }
-
+    public function win(
+        string $source,
+        ?string $quoteId,
+        ?string $actorUserId,
+        \DateTimeImmutable $now,
+    ): void {
         if ($this->status !== self::STATUS_QUALIFIED) {
             throw new \DomainException('Opportunity is not qualified.');
         }
 
+        if (! in_array($source, [self::WIN_SOURCE_MANUAL, self::WIN_SOURCE_ACCEPTED_QUOTE], true)) {
+            throw new \DomainException('Opportunity win source invalid.');
+        }
+
+        if (($source === self::WIN_SOURCE_MANUAL && ($quoteId !== null || $actorUserId === null))
+            || ($source === self::WIN_SOURCE_ACCEPTED_QUOTE && ($quoteId === null || $actorUserId !== null))) {
+            throw new \DomainException('Opportunity win result invalid.');
+        }
+
         $this->status = self::STATUS_WON;
+        $this->winSource = $source;
+        $this->wonQuoteId = $quoteId;
+        $this->wonBy = $actorUserId;
+        $this->wonAt = $now;
         $this->version++;
         $this->updatedAt = $now;
     }
@@ -285,5 +314,25 @@ final class Opportunity
     public function lostAt(): ?\DateTimeImmutable
     {
         return $this->lostAt;
+    }
+
+    public function winSource(): ?string
+    {
+        return $this->winSource;
+    }
+
+    public function wonQuoteId(): ?string
+    {
+        return $this->wonQuoteId;
+    }
+
+    public function wonBy(): ?string
+    {
+        return $this->wonBy;
+    }
+
+    public function wonAt(): ?\DateTimeImmutable
+    {
+        return $this->wonAt;
     }
 }

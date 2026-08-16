@@ -73,7 +73,7 @@ final class SeedDemoAccountCommand extends Command
             $this->line('- Empty CRM, Billing and Notifications');
             $this->line('- Business Health and Advisor before their first evaluation');
         } else {
-            $this->line('- Ateliers du Marais: open opportunity + editable draft quote (send it to test the public link)');
+            $this->line('- Ateliers du Marais: open opportunity + qualified opportunity ready for manual win, with editable draft quote');
             $this->line('- Maison Lumen: sent quote awaiting a response');
             $this->line('- Nova Conseil: accepted quote awaiting invoice creation');
             $this->line('- Cabinet Rivoli: draft invoice awaiting issue');

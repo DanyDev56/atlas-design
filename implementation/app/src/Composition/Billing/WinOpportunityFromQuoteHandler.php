@@ -62,18 +62,25 @@ final class WinOpportunityFromQuoteHandler
                 throw new \DomainException('Reference conflict.');
             }
 
-            $opportunity = $this->opportunities->findById($workspaceId, new OpportunityId($opportunityId));
+            $opportunity = $this->opportunities->findByIdForUpdate($workspaceId, new OpportunityId($opportunityId));
 
             if ($opportunity === null) {
                 throw new \DomainException('Opportunity not found.');
             }
 
             if ($opportunity->status() === Opportunity::STATUS_WON) {
+                if ($opportunity->winSource() !== Opportunity::WIN_SOURCE_ACCEPTED_QUOTE
+                    || $opportunity->wonQuoteId() !== $quoteId) {
+                    throw new \DomainException('Opportunity result conflict.');
+                }
+
                 return [
                     'opportunity_id' => $opportunityId,
                     'status' => $opportunity->status(),
                     'version' => $opportunity->version(),
                     'quote_id' => $quoteId,
+                    'win_source' => $opportunity->winSource(),
+                    'won_at' => $opportunity->wonAt()?->format(DATE_ATOM),
                 ];
             }
 
@@ -82,12 +89,20 @@ final class WinOpportunityFromQuoteHandler
             }
 
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-            $opportunity->win($now);
+            $opportunity->win(
+                source: Opportunity::WIN_SOURCE_ACCEPTED_QUOTE,
+                quoteId: $quoteId,
+                actorUserId: null,
+                now: $now,
+            );
 
             $event = new OpportunityWon(
                 opportunityId: new OpportunityId($opportunityId),
                 workspaceId: $workspaceId,
+                clientId: $opportunity->clientId(),
+                source: Opportunity::WIN_SOURCE_ACCEPTED_QUOTE,
                 quoteId: $quoteId,
+                version: $opportunity->version(),
                 eventId: EventId::generate(),
                 occurredAt: $now,
             );
@@ -100,6 +115,8 @@ final class WinOpportunityFromQuoteHandler
                 'status' => $opportunity->status(),
                 'version' => $opportunity->version(),
                 'quote_id' => $quoteId,
+                'win_source' => $opportunity->winSource(),
+                'won_at' => $opportunity->wonAt()?->format(DATE_ATOM),
             ];
 
             $this->idempotency->store($scope, $requestId, $fingerprint, $response);

@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createQuote, listQuotes } from '@/api/billing';
-import { getClient, getOpportunity, listContacts, loseOpportunity, qualifyOpportunity, updateOpportunity } from '@/api/crm';
+import { getClient, getOpportunity, listContacts, loseOpportunity, qualifyOpportunity, updateOpportunity, winOpportunity } from '@/api/crm';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
@@ -52,6 +52,7 @@ export function OpportunityDetailPage() {
     const [editAmount, setEditAmount] = useState('');
     const [editCurrency, setEditCurrency] = useState('EUR');
     const [showLossForm, setShowLossForm] = useState(false);
+    const [showWinConfirm, setShowWinConfirm] = useState(false);
     const [lossReasonCode, setLossReasonCode] = useState<LossReasonCode | ''>('');
     const [lossNote, setLossNote] = useState('');
 
@@ -109,6 +110,8 @@ export function OpportunityDetailPage() {
             : '');
         setEditCurrency(opportunity.currency);
         setShowLossForm(false);
+        setShowWinConfirm(false);
+        setShowQuoteForm(false);
         setShowEditForm(true);
         setError(null);
         setSuccess(null);
@@ -117,11 +120,39 @@ export function OpportunityDetailPage() {
     function openLossForm() {
         setShowEditForm(false);
         setShowQuoteForm(false);
+        setShowWinConfirm(false);
         setLossReasonCode('');
         setLossNote('');
         setShowLossForm(true);
         setError(null);
         setSuccess(null);
+    }
+
+    function openWinConfirm() {
+        setShowEditForm(false);
+        setShowLossForm(false);
+        setShowQuoteForm(false);
+        setShowWinConfirm(true);
+        setError(null);
+        setSuccess(null);
+    }
+
+    async function onWinOpportunity() {
+        if (!opportunity) return;
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await winOpportunity(token, workspaceId, opportunity.opportunity_id, opportunity.version);
+            setShowWinConfirm(false);
+            await reload();
+            setSuccess('L’opportunité est clôturée comme gagnée.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Gain de l’opportunité impossible');
+        } finally {
+            setActionLoading(false);
+        }
     }
 
     async function onLoseOpportunity(event: FormEvent) {
@@ -276,7 +307,10 @@ export function OpportunityDetailPage() {
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <StatusBadge status={opportunity.status} />
-                                {['Open', 'Qualified'].includes(opportunity.status) && !showEditForm && !showLossForm && (
+                                {['Open', 'Qualified'].includes(opportunity.status)
+                                    && !showEditForm
+                                    && !showLossForm
+                                    && !showWinConfirm && (
                                     <div className="flex flex-col items-end gap-2">
                                         <button
                                             type="button"
@@ -292,6 +326,15 @@ export function OpportunityDetailPage() {
                                         >
                                             Marquer comme perdue
                                         </button>
+                                        {opportunity.status === 'Qualified' && (
+                                            <button
+                                                type="button"
+                                                onClick={openWinConfirm}
+                                                className="text-sm font-semibold text-emerald-700 hover:underline"
+                                            >
+                                                Marquer comme gagnée
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -311,6 +354,27 @@ export function OpportunityDetailPage() {
                                     <p className="mt-3 whitespace-pre-wrap text-sm text-atlas-ink-muted">
                                         {opportunity.loss_note}
                                     </p>
+                                )}
+                            </div>
+                        )}
+
+                        {opportunity.status === 'Won' && opportunity.won_at && (
+                            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+                                <p className="text-sm font-semibold text-emerald-900">
+                                    {opportunity.win_source === 'AcceptedQuote'
+                                        ? 'Gagnée après acceptation d’un devis'
+                                        : 'Gagnée manuellement'}
+                                </p>
+                                <p className="mt-1 text-xs text-emerald-800">
+                                    Clôturée le {formatDate(opportunity.won_at)}
+                                </p>
+                                {opportunity.won_quote_id && (
+                                    <Link
+                                        to={`/app/billing/quotes/${opportunity.won_quote_id}`}
+                                        className="mt-3 inline-flex text-sm font-semibold text-emerald-800 underline"
+                                    >
+                                        Voir le devis accepté
+                                    </Link>
                                 )}
                             </div>
                         )}
@@ -454,6 +518,38 @@ export function OpportunityDetailPage() {
                             </form>
                         )}
 
+                        {showWinConfirm && opportunity.status === 'Qualified' && (
+                            <section
+                                aria-label="Marquer l’opportunité comme gagnée"
+                                className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6"
+                            >
+                                <h3 className="text-base font-semibold text-emerald-900">
+                                    Confirmer le gain de l’opportunité
+                                </h3>
+                                <p className="mt-2 text-sm text-emerald-800">
+                                    Utilisez cette action lorsque la vente a été conclue sans acceptation d’un devis Atlas. La clôture est définitive et ne crée ni devis ni facture.
+                                </p>
+                                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading}
+                                        onClick={() => void onWinOpportunity()}
+                                        className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {actionLoading ? 'Clôture…' : 'Confirmer le gain'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading}
+                                        onClick={() => setShowWinConfirm(false)}
+                                        className="rounded-xl border border-atlas-border bg-white px-4 py-3 text-sm font-medium text-atlas-ink-muted"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </section>
+                        )}
+
                         {opportunity.status === 'Open' && !showEditForm && !showLossForm && (
                             <div className="mt-6 rounded-xl border border-atlas-border bg-atlas-card px-4 py-4">
                                 <p className="text-sm text-atlas-ink-muted">
@@ -473,7 +569,7 @@ export function OpportunityDetailPage() {
                         <section className="mt-10">
                             <div className="mb-4 flex items-center justify-between gap-4">
                                 <h3 className="text-lg font-semibold text-atlas-ink">Devis</h3>
-                                {!showQuoteForm && !showEditForm && !showLossForm && opportunity.status === 'Qualified' && (
+                                {!showQuoteForm && !showEditForm && !showLossForm && !showWinConfirm && opportunity.status === 'Qualified' && (
                                     <button
                                         type="button"
                                         onClick={() => setShowQuoteForm(true)}

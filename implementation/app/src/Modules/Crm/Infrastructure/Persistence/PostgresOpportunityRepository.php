@@ -28,6 +28,10 @@ final class PostgresOpportunityRepository
             'loss_reason_code' => null,
             'loss_note' => null,
             'lost_at' => null,
+            'win_source' => null,
+            'won_quote_id' => null,
+            'won_by' => null,
+            'won_at' => null,
         ]);
     }
 
@@ -47,6 +51,10 @@ final class PostgresOpportunityRepository
                 'loss_reason_code' => $opportunity->lossReasonCode(),
                 'loss_note' => $opportunity->lossNote(),
                 'lost_at' => $opportunity->lostAt()?->format('Y-m-d H:i:sP'),
+                'win_source' => $opportunity->winSource(),
+                'won_quote_id' => $opportunity->wonQuoteId(),
+                'won_by' => $opportunity->wonBy(),
+                'won_at' => $opportunity->wonAt()?->format('Y-m-d H:i:sP'),
             ]);
     }
 
@@ -55,6 +63,17 @@ final class PostgresOpportunityRepository
         $row = DB::table('crm.opportunities')
             ->where('id', $id->value)
             ->where('workspace_id', $workspaceId)
+            ->first();
+
+        return $row !== null ? Opportunity::reconstitute((array) $row) : null;
+    }
+
+    public function findByIdForUpdate(string $workspaceId, OpportunityId $id): ?Opportunity
+    {
+        $row = DB::table('crm.opportunities')
+            ->where('id', $id->value)
+            ->where('workspace_id', $workspaceId)
+            ->lockForUpdate()
             ->first();
 
         return $row !== null ? Opportunity::reconstitute((array) $row) : null;

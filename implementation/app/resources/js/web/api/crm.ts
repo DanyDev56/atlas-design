@@ -405,3 +405,23 @@ export async function loseOpportunity(
         { token },
     );
 }
+
+export async function winOpportunity(
+    token: string,
+    workspaceId: string,
+    opportunityId: string,
+    expectedRevision: number,
+): Promise<{
+    opportunity_id: string;
+    status: 'Won';
+    version: number;
+    win_source: 'Manual';
+    won_at: string;
+}> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/opportunities/${opportunityId}/win`),
+        { result: { source: 'Manual' }, expected_revision: expectedRevision },
+        { token },
+    );
+}

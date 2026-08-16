@@ -269,6 +269,10 @@ export interface OpportunityDetail extends OpportunitySummary {
     workspace_id: string;
     contact_id: string | null;
     qualified_at: string | null;
+    win_source: 'Manual' | 'AcceptedQuote' | null;
+    won_quote_id: string | null;
+    won_by: string | null;
+    won_at: string | null;
     loss_reason_code: 'Budget' | 'Timing' | 'Competitor' | 'NoDecision' | 'Other' | null;
     loss_note: string | null;
     lost_at: string | null;

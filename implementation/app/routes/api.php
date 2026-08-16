@@ -85,6 +85,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::patch('/opportunities/{opportunityId}', [OpportunityController::class, 'update']);
             Route::post('/opportunities/{opportunityId}/qualify', [OpportunityController::class, 'qualify']);
             Route::post('/opportunities/{opportunityId}/lose', [OpportunityController::class, 'lose']);
+            Route::post('/opportunities/{opportunityId}/win', [OpportunityController::class, 'win']);
             Route::get('/opportunities/{opportunityId}/commercial-context', [OpportunityController::class, 'commercialContext']);
 
             Route::get('/pipeline', PipelineController::class);
