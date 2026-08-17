@@ -78,13 +78,21 @@ export function CrmClientsPage() {
                         </p>
                     </div>
                     {!showForm && (
-                        <button
-                            type="button"
-                            onClick={() => setShowForm(true)}
-                            className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                        >
-                            Nouveau client
-                        </button>
+                        <div className="flex flex-wrap gap-3">
+                            <Link
+                                to="/app/crm/import"
+                                className="rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-atlas-surface"
+                            >
+                                Importer un historique
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => setShowForm(true)}
+                                className="rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                            >
+                                Nouveau client
+                            </button>
+                        </div>
                     )}
                 </div>
 

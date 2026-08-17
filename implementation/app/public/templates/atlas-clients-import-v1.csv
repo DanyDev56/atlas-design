@@ -1,0 +1,6 @@
+external_id,kind,status,display_name,legal_name,email,phone,website,source_created_at
+client-001,Organization,Active,Atelier Noroît,Atelier Noroît SAS,bonjour@noroit.test,+33102030405,https://noroit.test,2024-01-10T09:30:00Z
+client-002,Individual,Archived,Lina Moreau,,lina@example.test,,,2023-06-01T14:00:00+02:00
+client-003,Organization,Active,BluePeak Labs,BluePeak Labs,ops@bluepeaklabs.fr,+33567890123,https://bluepeaklabs.fr,2025-01-05T11:20:00Z
+client-004,Individual,Active,Claire Moreau,,claire.moreau@example.fr,+33890123456,,2024-12-15T17:45:00Z
+client-005,Organization,Active,Atlas Finance,Atlas Finance,finance@atlasfinance.fr,+33789012345,https://atlasfinance.fr,2025-02-20T08:00:00Z

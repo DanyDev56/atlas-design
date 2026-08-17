@@ -30,12 +30,13 @@ export async function apiRequest<T>(
     options: RequestOptions = {},
 ): Promise<T> {
     const { auth = true, token = null, idempotency = body !== undefined && method !== 'GET' } = options;
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
 
     const headers: Record<string, string> = {
         Accept: 'application/json',
     };
 
-    if (body !== undefined) {
+    if (body !== undefined && !isFormData) {
         headers['Content-Type'] = 'application/json';
     }
 
@@ -50,7 +51,11 @@ export async function apiRequest<T>(
     const response = await fetch(`${API_BASE}${path}`, {
         method,
         headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: body !== undefined
+            ? isFormData
+                ? body
+                : JSON.stringify(body)
+            : undefined,
     });
 
     let data: unknown;

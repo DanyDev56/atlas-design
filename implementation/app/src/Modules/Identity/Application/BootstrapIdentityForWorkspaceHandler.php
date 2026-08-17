@@ -32,6 +32,7 @@ final class BootstrapIdentityForWorkspaceHandler
         'crm.clients.update-billing-profile',
         'crm.clients.archive',
         'crm.clients.reactivate',
+        'crm.clients.import-history',
         'crm.contacts.read',
         'crm.contacts.create',
         'crm.contacts.update',

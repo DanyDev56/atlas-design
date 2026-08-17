@@ -1,0 +1,11 @@
+external_id,kind,status,display_name,legal_name,email,phone,website,source_created_at
+client-001,Organization,Active,Abigail Martin,Northwind SAS,abigail@northwind.fr,+33123456789,https://northwind.fr,2024-01-10T09:30:00Z
+client-002,Individual,Active,Jean-Pierre Dubois,,jeanpierre@dubois.fr,+33234567890,,2024-02-12T14:00:00+01:00
+client-003,Organization,Active,Helios Energy,Helios Energy,contact@helios-energy.fr,+33345678901,https://helios-energy.fr,2024-03-18T11:15:00Z
+client-004,Individual,Archived,Sofia Laurent,,sofia.laurent@email.fr,+33456789012,,2024-04-05T16:40:00+02:00
+client-005,Organization,Active,BluePeak Labs,BluePeak Labs,ops@bluepeaklabs.fr,+33567890123,https://bluepeaklabs.fr,2025-01-05T11:20:00Z
+client-006,Individual,Active,Michel Bernard,,m.bernard@client.fr,+33678901234,,2025-02-07T08:45:00Z
+client-007,Organization,Active,Atlas Finance,Atlas Finance,finance@atlasfinance.fr,+33789012345,https://atlasfinance.fr,2025-02-20T08:00:00Z
+client-008,Individual,Archived,Claire Moreau,,claire.moreau@example.fr,+33890123456,,2025-03-11T12:10:00Z
+client-009,Organization,Active,Solstice Consulting,Solstice Consulting,hello@solstice-consulting.fr,+33901234567,https://solstice-consulting.fr,2025-04-04T09:00:00Z
+client-010,Individual,Active,Paul Renard,,paul.renard@contact.fr,+33100112233,,2025-05-10T18:30:00Z

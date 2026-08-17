@@ -1,5 +1,6 @@
-import { apiRequest } from '@/api/client';
+import { apiRequest } from "@/api/client";
 import type {
+    ClientHistoryImportPreview,
     ActivityAuditEntry,
     ActivityKind,
     ClientBillingProfile,
@@ -9,18 +10,80 @@ import type {
     ContactSummary,
     OpportunityDetail,
     OpportunitySummary,
-} from '@/types/api';
+} from "@/types/api";
 
 function workspacePath(workspaceId: string, suffix: string): string {
     return `/workspaces/${workspaceId}${suffix}`;
 }
 
-export async function listClients(token: string, workspaceId: string): Promise<ClientSummary[]> {
-    return apiRequest<ClientSummary[]>('GET', workspacePath(workspaceId, '/clients'), undefined, { token });
+export async function listClients(
+    token: string,
+    workspaceId: string,
+): Promise<ClientSummary[]> {
+    return apiRequest<ClientSummary[]>(
+        "GET",
+        workspacePath(workspaceId, "/clients"),
+        undefined,
+        { token },
+    );
 }
 
-export async function getClient(token: string, workspaceId: string, clientId: string): Promise<ClientDetail> {
-    return apiRequest<ClientDetail>('GET', workspacePath(workspaceId, `/clients/${clientId}`), undefined, { token });
+export async function previewHistoricalClients(
+    token: string,
+    workspaceId: string,
+    input: {
+        sourceSystem: string;
+        sourceExportedAt: string;
+        file: File;
+    },
+): Promise<ClientHistoryImportPreview> {
+    const form = new FormData();
+    form.append("source_system", input.sourceSystem);
+    form.append("source_exported_at", input.sourceExportedAt);
+    form.append("file", input.file);
+
+    return apiRequest<ClientHistoryImportPreview>(
+        "POST",
+        workspacePath(workspaceId, "/client-history-imports/preview"),
+        form,
+        { token, idempotency: false },
+    );
+}
+
+export async function confirmHistoricalClientsImport(
+    token: string,
+    workspaceId: string,
+    input: {
+        previewId: string;
+        packageHash: string;
+        sourceSystem: string;
+        sourceExportedAt: string;
+    },
+): Promise<{ import_run_id: string }> {
+    return apiRequest<{ import_run_id: string }>(
+        "POST",
+        workspacePath(workspaceId, "/client-history-imports/confirm"),
+        {
+            preview_id: input.previewId,
+            package_hash: input.packageHash,
+            source_system: input.sourceSystem,
+            source_exported_at: input.sourceExportedAt,
+        },
+        { token },
+    );
+}
+
+export async function getClient(
+    token: string,
+    workspaceId: string,
+    clientId: string,
+): Promise<ClientDetail> {
+    return apiRequest<ClientDetail>(
+        "GET",
+        workspacePath(workspaceId, `/clients/${clientId}`),
+        undefined,
+        { token },
+    );
 }
 
 export async function archiveClient(
@@ -29,9 +92,14 @@ export async function archiveClient(
     clientId: string,
     reason: string,
     expectedRevision: number,
-): Promise<{ client_id: string; status: string; version: number; archived_at: string }> {
+): Promise<{
+    client_id: string;
+    status: string;
+    version: number;
+    archived_at: string;
+}> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/clients/${clientId}/archive`),
         { reason, expected_revision: expectedRevision },
         { token },
@@ -45,7 +113,7 @@ export async function reactivateClient(
     expectedRevision: number,
 ): Promise<{ client_id: string; status: string; version: number }> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/clients/${clientId}/reactivate`),
         { expected_revision: expectedRevision },
         { token },
@@ -73,7 +141,7 @@ export async function updateClientProfile(
     version: number;
 }> {
     return apiRequest(
-        'PATCH',
+        "PATCH",
         workspacePath(workspaceId, `/clients/${clientId}/profile`),
         { changes, expected_revision: expectedRevision },
         { token },
@@ -93,9 +161,12 @@ export async function updateClientBillingProfile(
     version: number;
 }> {
     return apiRequest(
-        'PUT',
+        "PUT",
         workspacePath(workspaceId, `/clients/${clientId}/billing-profile`),
-        { billing_profile: billingProfile, expected_revision: expectedRevision },
+        {
+            billing_profile: billingProfile,
+            expected_revision: expectedRevision,
+        },
         { token },
     );
 }
@@ -103,9 +174,15 @@ export async function updateClientBillingProfile(
 export async function createClient(
     token: string,
     workspaceId: string,
-    payload: { kind: 'Individual' | 'Organization'; display_name: string; profile?: Record<string, unknown> },
+    payload: {
+        kind: "Individual" | "Organization";
+        display_name: string;
+        profile?: Record<string, unknown>;
+    },
 ): Promise<{ client_id: string }> {
-    return apiRequest('POST', workspacePath(workspaceId, '/clients'), payload, { token });
+    return apiRequest("POST", workspacePath(workspaceId, "/clients"), payload, {
+        token,
+    });
 }
 
 export async function listContacts(
@@ -114,7 +191,7 @@ export async function listContacts(
     clientId: string,
 ): Promise<ContactSummary[]> {
     return apiRequest<ContactSummary[]>(
-        'GET',
+        "GET",
         workspacePath(workspaceId, `/clients/${clientId}/contacts`),
         undefined,
         { token },
@@ -127,7 +204,7 @@ export async function listClientActivities(
     clientId: string,
 ): Promise<ClientActivity[]> {
     return apiRequest<ClientActivity[]>(
-        'GET',
+        "GET",
         workspacePath(workspaceId, `/clients/${clientId}/activities`),
         undefined,
         { token },
@@ -140,7 +217,7 @@ export async function listClientActivityAudit(
     clientId: string,
 ): Promise<ActivityAuditEntry[]> {
     return apiRequest<ActivityAuditEntry[]>(
-        'GET',
+        "GET",
         workspacePath(workspaceId, `/clients/${clientId}/activities/audit`),
         undefined,
         { token },
@@ -160,7 +237,7 @@ export async function recordClientActivity(
     },
 ): Promise<ClientActivity> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/clients/${clientId}/activities`),
         payload,
         { token },
@@ -182,7 +259,7 @@ export async function correctClientActivity(
     },
 ): Promise<ClientActivity> {
     return apiRequest(
-        'PATCH',
+        "PATCH",
         workspacePath(workspaceId, `/activities/${activityId}`),
         payload,
         { token },
@@ -195,9 +272,14 @@ export async function removeClientActivity(
     activityId: string,
     removalReason: string,
     expectedRevision: number,
-): Promise<{ activity_id: string; status: 'Removed'; version: number; removed_at: string }> {
+): Promise<{
+    activity_id: string;
+    status: "Removed";
+    version: number;
+    removed_at: string;
+}> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/activities/${activityId}/remove`),
         { removal_reason: removalReason, expected_revision: expectedRevision },
         { token },
@@ -218,8 +300,18 @@ export async function addContact(
         make_primary: boolean;
         expected_revision: number;
     },
-): Promise<{ contact_id: string; client_id: string; is_primary: boolean; client_version: number }> {
-    return apiRequest('POST', workspacePath(workspaceId, `/clients/${clientId}/contacts`), payload, { token });
+): Promise<{
+    contact_id: string;
+    client_id: string;
+    is_primary: boolean;
+    client_version: number;
+}> {
+    return apiRequest(
+        "POST",
+        workspacePath(workspaceId, `/clients/${clientId}/contacts`),
+        payload,
+        { token },
+    );
 }
 
 export async function changePrimaryContact(
@@ -228,9 +320,13 @@ export async function changePrimaryContact(
     clientId: string,
     contactId: string | null,
     expectedRevision: number,
-): Promise<{ client_id: string; primary_contact_id: string | null; version: number }> {
+): Promise<{
+    client_id: string;
+    primary_contact_id: string | null;
+    version: number;
+}> {
     return apiRequest(
-        'PUT',
+        "PUT",
         workspacePath(workspaceId, `/clients/${clientId}/primary-contact`),
         { contact_id: contactId, expected_revision: expectedRevision },
         { token },
@@ -251,10 +347,18 @@ export async function updateContact(
         };
         expected_revision: number;
     },
-): Promise<{ contact_id: string; client_id: string; contact_version: number; client_version: number }> {
+): Promise<{
+    contact_id: string;
+    client_id: string;
+    contact_version: number;
+    client_version: number;
+}> {
     return apiRequest(
-        'PATCH',
-        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}`),
+        "PATCH",
+        workspacePath(
+            workspaceId,
+            `/clients/${clientId}/contacts/${contactId}`,
+        ),
         payload,
         { token },
     );
@@ -276,8 +380,11 @@ export async function archiveContact(
     primary_contact_id: string | null;
 }> {
     return apiRequest(
-        'POST',
-        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}/archive`),
+        "POST",
+        workspacePath(
+            workspaceId,
+            `/clients/${clientId}/contacts/${contactId}/archive`,
+        ),
         { reason, expected_revision: expectedRevision },
         { token },
     );
@@ -298,8 +405,11 @@ export async function reactivateContact(
     primary_contact_id: string | null;
 }> {
     return apiRequest(
-        'POST',
-        workspacePath(workspaceId, `/clients/${clientId}/contacts/${contactId}/reactivate`),
+        "POST",
+        workspacePath(
+            workspaceId,
+            `/clients/${clientId}/contacts/${contactId}/reactivate`,
+        ),
         { expected_revision: expectedRevision },
         { token },
     );
@@ -310,9 +420,9 @@ export async function listOpportunities(
     workspaceId: string,
     status?: string,
 ): Promise<OpportunitySummary[]> {
-    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
     return apiRequest<OpportunitySummary[]>(
-        'GET',
+        "GET",
         workspacePath(workspaceId, `/opportunities${query}`),
         undefined,
         { token },
@@ -325,7 +435,7 @@ export async function getOpportunity(
     opportunityId: string,
 ): Promise<OpportunityDetail> {
     return apiRequest<OpportunityDetail>(
-        'GET',
+        "GET",
         workspacePath(workspaceId, `/opportunities/${opportunityId}`),
         undefined,
         { token },
@@ -345,7 +455,7 @@ export async function updateOpportunity(
     expectedRevision: number,
 ): Promise<OpportunityDetail> {
     return apiRequest(
-        'PATCH',
+        "PATCH",
         workspacePath(workspaceId, `/opportunities/${opportunityId}`),
         { changes, expected_revision: expectedRevision },
         { token },
@@ -363,7 +473,12 @@ export async function createOpportunity(
         currency?: string;
     },
 ): Promise<{ opportunity_id: string; status: string }> {
-    return apiRequest('POST', workspacePath(workspaceId, '/opportunities'), payload, { token });
+    return apiRequest(
+        "POST",
+        workspacePath(workspaceId, "/opportunities"),
+        payload,
+        { token },
+    );
 }
 
 export async function qualifyOpportunity(
@@ -373,7 +488,7 @@ export async function qualifyOpportunity(
     expectedRevision: number,
 ): Promise<{ status: string; version: number }> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/opportunities/${opportunityId}/qualify`),
         { expected_revision: expectedRevision },
         { token },
@@ -384,7 +499,7 @@ export async function loseOpportunity(
     token: string,
     workspaceId: string,
     opportunityId: string,
-    lossReasonCode: 'Budget' | 'Timing' | 'Competitor' | 'NoDecision' | 'Other',
+    lossReasonCode: "Budget" | "Timing" | "Competitor" | "NoDecision" | "Other",
     lossNote: string | null,
     expectedRevision: number,
 ): Promise<{
@@ -395,7 +510,7 @@ export async function loseOpportunity(
     lost_at: string;
 }> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/opportunities/${opportunityId}/lose`),
         {
             loss_reason_code: lossReasonCode,
@@ -413,15 +528,15 @@ export async function winOpportunity(
     expectedRevision: number,
 ): Promise<{
     opportunity_id: string;
-    status: 'Won';
+    status: "Won";
     version: number;
-    win_source: 'Manual';
+    win_source: "Manual";
     won_at: string;
 }> {
     return apiRequest(
-        'POST',
+        "POST",
         workspacePath(workspaceId, `/opportunities/${opportunityId}/win`),
-        { result: { source: 'Manual' }, expected_revision: expectedRevision },
+        { result: { source: "Manual" }, expected_revision: expectedRevision },
         { token },
     );
 }

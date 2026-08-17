@@ -4,6 +4,7 @@ import { AdvisorPage } from '@/pages/AdvisorPage';
 import { BillingPage } from '@/pages/BillingPage';
 import { BusinessHealthPage } from '@/pages/BusinessHealthPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
+import { ClientHistoryImportPage } from '@/pages/ClientHistoryImportPage';
 import { CrmClientsPage } from '@/pages/CrmClientsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage';
@@ -25,6 +26,7 @@ export function AppRouter() {
             <Route path="/app" element={<AppShell />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="crm" element={<CrmClientsPage />} />
+                <Route path="crm/import" element={<ClientHistoryImportPage />} />
                 <Route path="crm/clients/:clientId" element={<ClientDetailPage />} />
                 <Route path="crm/opportunities/:opportunityId" element={<OpportunityDetailPage />} />
                 <Route path="billing" element={<BillingPage />} />

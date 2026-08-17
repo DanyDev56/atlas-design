@@ -278,6 +278,56 @@ export interface OpportunityDetail extends OpportunitySummary {
     lost_at: string | null;
 }
 
+export interface ClientHistoryImportRecord {
+    line: number;
+    external_id: string;
+    kind: 'Individual' | 'Organization' | string;
+    status: 'Active' | 'Archived' | string;
+    profile: {
+        display_name: string;
+        legal_name?: string;
+        email?: string;
+        phone?: string;
+        website?: string;
+    };
+    source_created_at: string;
+    canonical_record_hash: string;
+    validation_status: 'Valid' | 'Invalid';
+}
+
+export interface ClientHistoryImportValidationError {
+    line: number;
+    field: string;
+    code: string;
+    message: string;
+}
+
+export interface ClientHistoryImportDuplicateCandidate {
+    line: number;
+    display_name: string;
+    kind: 'Package' | 'ExistingClient';
+    matched_line?: number;
+    matched_client_id?: string;
+    matched_display_name?: string;
+}
+
+export interface ClientHistoryImportPreview {
+    preview_id: string;
+    schema_version: '1.0';
+    source_system: string;
+    source_exported_at: string;
+    package_hash: string;
+    row_count: number;
+    valid_row_count: number;
+    validation_error_count: number;
+    duplicate_candidate_count: number;
+    valid_for_confirmation: boolean;
+    records: ClientHistoryImportRecord[];
+    validation_errors: ClientHistoryImportValidationError[];
+    duplicate_candidates: ClientHistoryImportDuplicateCandidate[];
+    expires_at: string;
+}
+
 export type ActivityKind = 'Note' | 'Call' | 'Meeting' | 'Email';
 
 export interface ClientActivity {

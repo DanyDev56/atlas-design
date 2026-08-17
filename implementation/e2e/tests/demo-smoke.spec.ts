@@ -95,6 +95,31 @@ test('les données démo rendent les principaux dossiers identifiables', async (
     await expect(page.getByText('Cabinet Rivoli', { exact: true }).first()).toBeVisible();
 });
 
+test('un export client peut être prévisualisé sans modifier le CRM', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'La prévisualisation complète suffit sur un viewport.');
+
+    await navigateFromShell(page, 'CRM');
+    await page.getByRole('link', { name: 'Importer un historique' }).click();
+    await expect(page.getByRole('heading', { name: 'Prévisualiser des clients historiques' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Télécharger le modèle CSV' })).toBeVisible();
+
+    const form = page.getByRole('form', { name: 'Prévisualiser un import historique de clients' });
+    await form.getByLabel('Fichier clients CSV').setInputFiles({
+        name: 'clients.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from([
+            'external_id,kind,status,display_name,email,source_created_at',
+            'demo-import-001,Organization,Active,Import Démo Noroît,contact@import-demo.test,2024-01-10T09:30:00Z',
+        ].join('\n')),
+    });
+    await form.getByRole('button', { name: 'Prévisualiser le fichier' }).click();
+
+    const result = page.getByRole('region', { name: 'Résultat de la prévisualisation' });
+    await expect(result.getByRole('heading', { name: 'Aperçu prêt pour la confirmation' })).toBeVisible();
+    await expect(result.getByText('Import Démo Noroît', { exact: true })).toBeVisible();
+    await expect(result.getByText('Aucun client n’a encore été importé.', { exact: false })).toBeVisible();
+});
+
 test('la navigation mobile reste utilisable sans débordement horizontal', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Contrôle réservé au viewport mobile.');
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\BootstrapWorkspaceController;
 use App\Http\Controllers\Api\BusinessHealth\BusinessHealthController;
 use App\Http\Controllers\Api\Crm\ActivityController;
 use App\Http\Controllers\Api\Crm\ClientController;
+use App\Http\Controllers\Api\Crm\ClientHistoryImportController;
 use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
@@ -61,6 +62,9 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
             Route::get('/clients', [ClientController::class, 'index']);
             Route::post('/clients', [ClientController::class, 'store']);
+            Route::post('/client-history-imports/preview', [ClientHistoryImportController::class, 'preview']);
+            Route::post('/client-history-imports/confirm', [ClientHistoryImportController::class, 'confirm']);
+            Route::get('/client-history-imports/{importRunId}', [ClientHistoryImportController::class, 'show']);
             Route::get('/clients/{clientId}', [ClientController::class, 'show']);
             Route::patch('/clients/{clientId}/profile', [ClientController::class, 'updateProfile']);
             Route::put('/clients/{clientId}/billing-profile', [ClientController::class, 'updateBillingProfile']);

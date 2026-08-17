@@ -1,13 +1,15 @@
 ---
 title: Palier 4 — UI démo / early access
-status: In Progress
+status: Completed
 owner: Product + Engineering
 date: 2026-08-07
+last_updated: 2026-08-16
 references:
   - ../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../evolution/blueprint/navigation.md
   - ../evolution/blueprint/dashboard.md
   - ../evolution/blueprint/user-journeys.md
+  - ../evolution/blueprint/historical-import.md
   - runbooks/beta-release-checklist.md
 ---
 
@@ -28,7 +30,7 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
-| **4** | Enrichissement CRM (contacts client) | ◐ | Contact exploitable depuis la fiche |
+| **4** | Enrichissement CRM (contacts client) + Import historique | ✓ | Parcours J2 + prévisualisation et import borné |
 
 ---
 
@@ -303,10 +305,27 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   devis causal ; les deux sources produisent le même événement `OpportunityWon`
   et le même fait Analytics sans exposer l'acteur dans l'outbox
 
-### Suite logique
+### Import historique (livré)
 
-- Concevoir la prévisualisation puis l'import historique borné des clients, avec
-  manifest hashé, validation explicite et suivi de progression
+- Accessibilité depuis la navigation CRM via `/app/crm/import`
+- Téléchargement d'un modèle CSV canonique avec colonnes obligatoires et optionnelles
+- Prévisualisation non destructive : validation structurelle, détection de doublons
+  et doublons probables entre lignes et clients existants
+- Empreinte SHA256 immuable du package pour détection de modifications
+- Affichage des erreurs de validation par ligne avec codes métier
+- Tableau des lignes canoniques avec statut de validation
+- Confirmation explicite avec contrôle de l'empreinte
+- Suivi de progression de l'import avec barre d'avancement en temps réel
+- Conversion des identifiants externes en références internes
+- Isolation par workspace et permission `crm.clients.import-history` (Critical)
+- Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
+- Gestion des conflits et des retrys : idempotence par previewId et packageHash
+- Package brut supprimé après traitement ; manifeste conservé pour audit
+
+### Suite logique future
+
+- Connecteurs additionnels (Freebe, Indy, Tiime)
+- Import historique des factures et paiements (Billing)
 
 ---
 
