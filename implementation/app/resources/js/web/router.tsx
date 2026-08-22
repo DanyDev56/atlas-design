@@ -9,7 +9,9 @@ import { ClientHistoryImportPage } from '@/pages/ClientHistoryImportPage';
 import { CrmClientsPage } from '@/pages/CrmClientsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage';
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage';
@@ -23,6 +25,8 @@ export function AppRouter() {
         <Routes>
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/register" element={<RegisterPage />} />
+            <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/app/reset-password" element={<ResetPasswordPage />} />
             <Route path="/app/onboarding" element={<OnboardingPage />} />
             <Route path="/app/quotes/accept/:workspaceId/:quoteId" element={<PublicQuoteAcceptPage />} />
             <Route path="/app" element={<AppShell />}>

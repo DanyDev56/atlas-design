@@ -12,6 +12,27 @@ const debugVerificationTokensEnabled =
     import.meta.env.VITE_DEBUG_VERIFICATION_TOKENS === 'true'
     || (import.meta.env.VITE_DEBUG_VERIFICATION_TOKENS === undefined && import.meta.env.DEV);
 
+export async function requestAccountRecovery(email: string): Promise<{ status: string; recovery_token?: string }> {
+    return apiRequest(
+        'POST',
+        '/auth/recovery',
+        {
+            email,
+            ...(debugVerificationTokensEnabled ? { debug_recovery_token: true } : {}),
+        },
+        { auth: false, idempotency: true },
+    );
+}
+
+export async function completeAccountRecovery(token: string, password: string): Promise<{ status: string }> {
+    return apiRequest(
+        'POST',
+        '/auth/recovery/complete',
+        { token, password },
+        { auth: false, idempotency: true },
+    );
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
     return apiRequest<LoginResponse>('POST', '/auth/login', { email, password }, { auth: false });
 }

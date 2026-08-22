@@ -48,6 +48,21 @@ final class PostgresSessionRepository
         return $row !== null ? (array) $row : null;
     }
 
+    public function revokeAllActiveForUser(UserId $userId, \DateTimeImmutable $revokedAt): int
+    {
+        return DB::table('identity.sessions')
+            ->where('user_id', $userId->value)
+            ->where('status', 'Active')
+            ->update([
+                'status' => 'Revoked',
+                'revoked_at' => $revokedAt->format('Y-m-d H:i:sP'),
+                'elevation_status' => null,
+                'elevation_scope' => null,
+                'elevation_permissions' => null,
+                'elevation_expires_at' => null,
+            ]);
+    }
+
     public function revoke(SessionId $sessionId, \DateTimeImmutable $revokedAt): void
     {
         DB::table('identity.sessions')

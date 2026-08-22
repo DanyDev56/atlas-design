@@ -33,6 +33,8 @@ final class PostgresUserRepository
             ->update([
                 'status' => $user->status(),
                 'email_verification_status' => $user->emailVerificationStatus(),
+                'password_hash' => $user->passwordHash(),
+                'security_version' => $user->securityVersion(),
                 'version' => $user->version(),
                 'updated_at' => $user->updatedAt()->format('Y-m-d H:i:sP'),
             ]);

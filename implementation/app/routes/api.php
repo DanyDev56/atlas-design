@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\AccountRecoveryController;
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
@@ -41,6 +42,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/auth/register', RegisterUserController::class);
         Route::post('/auth/verify-email', VerifyEmailController::class);
         Route::post('/auth/login', LoginController::class);
+        Route::post('/auth/recovery', [AccountRecoveryController::class, 'request']);
+        Route::post('/auth/recovery/complete', [AccountRecoveryController::class, 'complete']);
     });
 
     Route::middleware('throttle:public')->group(function (): void {

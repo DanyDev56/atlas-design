@@ -104,8 +104,11 @@ use Atlas\Modules\Identity\Application\CreateSessionHandler;
 use Atlas\Modules\Identity\Application\ElevateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
 use Atlas\Modules\Identity\Application\RegisterUserHandler;
+use Atlas\Modules\Identity\Application\RequestAccountRecoveryHandler;
+use Atlas\Modules\Identity\Application\CompleteAccountRecoveryHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresEmailVerificationRepository;
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresAccountRecoveryRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresSessionRepository;
@@ -183,10 +186,13 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresRoleRepository::class);
         $this->app->singleton(PostgresMembershipRepository::class);
         $this->app->singleton(PostgresEmailVerificationRepository::class);
+        $this->app->singleton(PostgresAccountRecoveryRepository::class);
         $this->app->singleton(PostgresIdempotencyStore::class);
         $this->app->singleton(PostgresBootstrapWorkflowRepository::class);
 
         $this->app->singleton(RegisterUserHandler::class);
+        $this->app->singleton(RequestAccountRecoveryHandler::class);
+        $this->app->singleton(CompleteAccountRecoveryHandler::class);
         $this->app->singleton(VerifyUserEmailHandler::class);
         $this->app->singleton(CreateSessionHandler::class);
         $this->app->singleton(ElevateSessionHandler::class);

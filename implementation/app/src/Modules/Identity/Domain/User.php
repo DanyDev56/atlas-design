@@ -77,6 +77,18 @@ final class User
         $this->updatedAt = $now;
     }
 
+    public function replacePassword(string $passwordHash, \DateTimeImmutable $now): void
+    {
+        if ($this->status !== self::STATUS_ACTIVE) {
+            throw new \DomainException('User cannot recover.');
+        }
+
+        $this->passwordHash = $passwordHash;
+        $this->securityVersion++;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function verifyPassword(string $plainPassword): bool
     {
         return password_verify($plainPassword, $this->passwordHash);
@@ -115,6 +127,11 @@ final class User
     public function securityVersion(): int
     {
         return $this->securityVersion;
+    }
+
+    public function passwordHash(): string
+    {
+        return $this->passwordHash;
     }
 
     public function version(): int

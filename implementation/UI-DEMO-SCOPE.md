@@ -59,6 +59,12 @@ sans envoi email réel. Un acompte unique (`Deposit`) peut être créé depuis u
 devis accepté, puis la facture finale facture le reliquat une fois l’acompte
 émis. L'import historique des avoirs reste hors périmètre.
 
+La récupération de mot de passe est livrée : demande opaque
+(`POST /api/auth/recovery`), preuve à usage unique (1 h), nouveau mot de passe
+(`POST /api/auth/recovery/complete`) qui incrémente `UserSecurityVersion` et
+révoque toutes les sessions. Pas d’auto-connexion. Le jeton n’est exposé qu’en
+debug, comme la vérification d’email. Pas d’envoi email réel.
+
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
 
@@ -70,9 +76,11 @@ Les travaux de publication OCI restent différés :
 
 - Entrée SPA : `/app` → `resources/js/web/`
 - Client HTTP (`api/client.ts`) : Bearer, `Idempotency-Key`, erreurs JSON
-- Auth : register (verify debug si token), login, workspace bootstrap
+- Auth : register (verify debug si token), login, récupération de mot de passe
+  (demande opaque + reset), workspace bootstrap
 - Layout : sidebar, header, badge notifications
-- Routes : login, register, onboarding, dashboard (placeholder Lot 1)
+- Routes : login, register, mot de passe oublié, réinitialisation, onboarding,
+  dashboard (placeholder Lot 1)
 
 ### Stack
 
@@ -141,7 +149,8 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Login : encart compte démo + pré-remplissage
 - Déconnexion : révocation de la session serveur avant oubli local
 - Session locale : rejet automatique des credentials expirés ou historiques incomplets
-- Surfaces dev : `/api/dev/*`, `/api/spike/*` et jeton de vérification sous opt-in explicite
+- Surfaces dev : `/api/dev/*`, `/api/spike/*` et jetons de vérification /
+  récupération sous opt-in explicite
 - Layout responsive : menu mobile, paddings tablette
 - Workspace courant identifié par son nom autoritatif dans l’en-tête, via une
   lecture Workspace isolée par membership actif

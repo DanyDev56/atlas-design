@@ -1,10 +1,11 @@
 import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
     AuthLayout,
     ErrorBanner,
     FormField,
     SubmitButton,
+    SuccessBanner,
     inputClassName,
 } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +17,8 @@ const demoCredentialsAvailable = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
 export function LoginPage() {
     const { loginWithPassword, session, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const recovered = Boolean((location.state as { recovered?: boolean } | null)?.recovered);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -63,6 +66,9 @@ export function LoginPage() {
                 </div>
             )}
             <form onSubmit={onSubmit} className="space-y-4">
+                {recovered && (
+                    <SuccessBanner message="Votre mot de passe a été mis à jour. Connectez-vous avec le nouveau mot de passe." />
+                )}
                 <ErrorBanner message={error} />
                 <FormField label="Email">
                     <input
@@ -84,6 +90,11 @@ export function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </FormField>
+                <p className="text-right text-sm">
+                    <Link to="/app/forgot-password" className="font-medium text-atlas-accent hover:underline">
+                        Mot de passe oublié ?
+                    </Link>
+                </p>
                 <SubmitButton loading={loading} loadingLabel="Connexion…">Se connecter</SubmitButton>
             </form>
             <p className="mt-4 text-center text-sm text-atlas-ink-muted">
