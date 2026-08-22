@@ -125,6 +125,13 @@ final class BootstrapIdentityForWorkspaceHandler
                 $this->roles->replacePermissions($roleId, self::OWNER_PERMISSIONS);
             }
 
+            $this->roles->ensureRole(
+                $workspaceId,
+                'member',
+                WorkspaceRoleDefaults::MEMBER_PERMISSIONS,
+                $now,
+            );
+
             $existing = $this->memberships->findByUserAndWorkspace(new UserId($userId), $workspaceId);
 
             if ($existing !== null) {

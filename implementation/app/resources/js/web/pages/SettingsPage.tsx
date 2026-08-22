@@ -1,9 +1,12 @@
 import { FormEvent, useEffect, useState } from 'react';
 import {
+    createWorkspaceInvitation,
     getWorkspaceBillingIdentity,
     getWorkspacePreferences,
     getWorkspaceProfile,
     listWorkspaceMembers,
+    listWorkspaceInvitations,
+    revokeWorkspaceInvitation,
     updateWorkspaceBillingIdentity,
     updateWorkspacePreferences,
     updateWorkspaceProfile,
@@ -15,6 +18,7 @@ import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type {
     WorkspaceBillingIdentityResponse,
+    WorkspaceInvitation,
     WorkspaceMember,
     WorkspacePreferencesResponse,
     WorkspaceProfileResponse,
@@ -32,6 +36,12 @@ export function SettingsPage() {
     const [billing, setBilling] = useState<WorkspaceBillingIdentityResponse | null>(null);
     const [preferences, setPreferences] = useState<WorkspacePreferencesResponse | null>(null);
     const [members, setMembers] = useState<WorkspaceMember[]>([]);
+    const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]);
+    const [invitationEmail, setInvitationEmail] = useState('');
+    const [invitationSaving, setInvitationSaving] = useState(false);
+    const [invitationSuccess, setInvitationSuccess] = useState<string | null>(null);
+    const [debugInvitationLink, setDebugInvitationLink] = useState<string | null>(null);
+    const [revokingInvitationId, setRevokingInvitationId] = useState<string | null>(null);
     const [displayName, setDisplayName] = useState('');
     const [tradingName, setTradingName] = useState('');
     const [activityDescription, setActivityDescription] = useState('');
@@ -55,17 +65,19 @@ export function SettingsPage() {
             setLoading(true);
             setError(null);
             try {
-                const [nextProfile, nextBilling, nextPreferences, nextMembers] = await Promise.all([
+                const [nextProfile, nextBilling, nextPreferences, nextMembers, nextInvitations] = await Promise.all([
                     getWorkspaceProfile(token, workspaceId),
                     getWorkspaceBillingIdentity(token, workspaceId),
                     getWorkspacePreferences(token, workspaceId),
                     listWorkspaceMembers(token, workspaceId),
+                    listWorkspaceInvitations(token, workspaceId),
                 ]);
                 if (cancelled) return;
                 setProfile(nextProfile);
                 setBilling(nextBilling);
                 setPreferences(nextPreferences);
                 setMembers(nextMembers.members);
+                setInvitations(nextInvitations.invitations);
                 setDisplayName(nextProfile.display_name);
                 setTradingName(nextProfile.trading_name ?? '');
                 setActivityDescription(nextProfile.activity_description ?? '');
@@ -159,13 +171,58 @@ export function SettingsPage() {
         }
     }
 
+    async function onInviteMember(event: FormEvent) {
+        event.preventDefault();
+        setInvitationSaving(true);
+        setInvitationSuccess(null);
+        setDebugInvitationLink(null);
+        setError(null);
+
+        try {
+            const invitation = await createWorkspaceInvitation(
+                token,
+                workspaceId,
+                invitationEmail,
+            );
+            setInvitations((current) => [invitation, ...current]);
+            setInvitationEmail('');
+            setInvitationSuccess('Invitation préparée pour 7 jours.');
+            if (invitation.invitation_token) {
+                setDebugInvitationLink(
+                    `/app/invitations/${invitation.invitation_id}/accept?token=${encodeURIComponent(invitation.invitation_token)}`,
+                );
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Invitation impossible');
+        } finally {
+            setInvitationSaving(false);
+        }
+    }
+
+    async function onRevokeInvitation(invitationId: string) {
+        setRevokingInvitationId(invitationId);
+        setError(null);
+        try {
+            await revokeWorkspaceInvitation(token, workspaceId, invitationId);
+            setInvitations((current) => current.map((invitation) => (
+                invitation.invitation_id === invitationId
+                    ? { ...invitation, status: 'Revoked' }
+                    : invitation
+            )));
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Révocation impossible');
+        } finally {
+            setRevokingInvitationId(null);
+        }
+    }
+
     return (
         <RequireAuth>
             <div className="mx-auto max-w-3xl">
                 <h2 className="text-3xl font-semibold tracking-tight text-atlas-ink">Paramètres</h2>
                 <p className="mt-2 text-sm leading-relaxed text-atlas-ink-muted">
                     Profil commercial, identité de facturation, préférences et membres du workspace.
-                    Les invitations et les rôles avancés restent hors de cette surface.
+                    Les invitations attribuent le rôle membre standard ; les rôles avancés restent hors de cette surface.
                 </p>
 
                 {loading && <div className="mt-8"><PageSkeleton rows={4} /></div>}
@@ -247,6 +304,72 @@ export function SettingsPage() {
 
                         <section className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Membres</h3>
+                            <form onSubmit={onInviteMember} className="mt-5 rounded-xl border border-atlas-border bg-atlas-surface p-4">
+                                <h4 className="text-sm font-semibold text-atlas-ink">Inviter un membre</h4>
+                                <p className="mt-1 text-xs text-atlas-ink-muted">
+                                    L’invitation expire après 7 jours. Le destinataire doit utiliser un compte vérifié avec cette adresse.
+                                </p>
+                                <SuccessBanner message={invitationSuccess} />
+                                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                                    <input
+                                        type="email"
+                                        required
+                                        maxLength={254}
+                                        placeholder="membre@entreprise.fr"
+                                        className={inputClassName}
+                                        value={invitationEmail}
+                                        onChange={(event) => setInvitationEmail(event.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={invitationSaving}
+                                        className="shrink-0 rounded-xl bg-atlas-accent px-5 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                    >
+                                        {invitationSaving ? 'Invitation…' : 'Inviter'}
+                                    </button>
+                                </div>
+                                {debugInvitationLink && (
+                                    <a
+                                        href={debugInvitationLink}
+                                        className="mt-3 inline-flex text-sm font-semibold text-atlas-accent hover:underline"
+                                    >
+                                        Ouvrir le lien d’acceptation (développement)
+                                    </a>
+                                )}
+                            </form>
+
+                            {invitations.length > 0 && (
+                                <div className="mt-6">
+                                    <h4 className="text-sm font-semibold text-atlas-ink">Invitations</h4>
+                                    <ul className="mt-2 divide-y divide-atlas-border">
+                                        {invitations.map((invitation) => (
+                                            <li key={invitation.invitation_id} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+                                                <div>
+                                                    <p className="text-sm font-medium text-atlas-ink">{invitation.recipient_email}</p>
+                                                    <p className="text-xs text-atlas-ink-muted">
+                                                        Expire le {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(invitation.expires_at))}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">
+                                                        {invitation.role} · {invitation.status}
+                                                    </p>
+                                                    {invitation.status === 'Pending' && (
+                                                        <button
+                                                            type="button"
+                                                            disabled={revokingInvitationId === invitation.invitation_id}
+                                                            onClick={() => void onRevokeInvitation(invitation.invitation_id)}
+                                                            className="text-xs font-semibold text-red-700 hover:underline disabled:opacity-50"
+                                                        >
+                                                            {revokingInvitationId === invitation.invitation_id ? 'Révocation…' : 'Révoquer'}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                             <ul className="mt-4 divide-y divide-atlas-border">
                                 {members.map((member) => (
                                     <li key={member.membership_id} className="flex flex-wrap items-baseline justify-between gap-2 py-3">

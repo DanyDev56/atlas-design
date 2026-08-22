@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { AdvisorPage } from '@/pages/AdvisorPage';
+import { AcceptInvitationPage } from '@/pages/AcceptInvitationPage';
 import { BillingHistoryImportPage } from '@/pages/BillingHistoryImportPage';
 import { BillingPage } from '@/pages/BillingPage';
 import { BusinessHealthPage } from '@/pages/BusinessHealthPage';
@@ -27,6 +28,7 @@ export function AppRouter() {
             <Route path="/app/register" element={<RegisterPage />} />
             <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/app/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/app/invitations/:invitationId/accept" element={<AcceptInvitationPage />} />
             <Route path="/app/onboarding" element={<OnboardingPage />} />
             <Route path="/app/quotes/accept/:workspaceId/:quoteId" element={<PublicQuoteAcceptPage />} />
             <Route path="/app" element={<AppShell />}>

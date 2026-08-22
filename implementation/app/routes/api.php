@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\AccountRecoveryController;
+use App\Http\Controllers\Api\AcceptWorkspaceInvitationController;
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
@@ -60,6 +61,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
         Route::post('/auth/session/revoke', RevokeSessionController::class);
         Route::middleware('throttle:auth')->post('/auth/session/elevate', ElevateSessionController::class);
         Route::get('/auth/session/context', SessionContextController::class);
+        Route::post('/invitations/{invitationId}/accept', AcceptWorkspaceInvitationController::class);
 
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);
 
@@ -72,6 +74,9 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/preferences', [WorkspaceController::class, 'preferences']);
             Route::patch('/preferences', [WorkspaceController::class, 'updatePreferences']);
             Route::get('/members', [WorkspaceController::class, 'members']);
+            Route::get('/invitations', [WorkspaceController::class, 'invitations']);
+            Route::post('/invitations', [WorkspaceController::class, 'createInvitation']);
+            Route::post('/invitations/{invitationId}/revoke', [WorkspaceController::class, 'revokeInvitation']);
 
             Route::post('/memberships/{membershipId}/remove', RemoveMembershipController::class);
 

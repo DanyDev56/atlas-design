@@ -1,6 +1,9 @@
 import { apiRequest } from '@/api/client';
 import type {
+    InvitationAcceptanceResponse,
     WorkspaceBillingIdentityResponse,
+    WorkspaceInvitation,
+    WorkspaceInvitationsResponse,
     WorkspaceMembersResponse,
     WorkspacePreferencesResponse,
     WorkspaceProfileResponse,
@@ -84,4 +87,53 @@ export async function listWorkspaceMembers(
     workspaceId: string,
 ): Promise<WorkspaceMembersResponse> {
     return apiRequest('GET', `/workspaces/${workspaceId}/members`, undefined, { token });
+}
+
+export async function listWorkspaceInvitations(
+    token: string,
+    workspaceId: string,
+): Promise<WorkspaceInvitationsResponse> {
+    return apiRequest('GET', `/workspaces/${workspaceId}/invitations`, undefined, { token });
+}
+
+export async function createWorkspaceInvitation(
+    token: string,
+    workspaceId: string,
+    email: string,
+): Promise<WorkspaceInvitation> {
+    return apiRequest(
+        'POST',
+        `/workspaces/${workspaceId}/invitations`,
+        {
+            email,
+            ...(import.meta.env.DEV ? { debug_invitation_token: true } : {}),
+        },
+        { token, idempotency: true },
+    );
+}
+
+export async function acceptWorkspaceInvitation(
+    token: string,
+    invitationId: string,
+    invitationToken: string,
+): Promise<InvitationAcceptanceResponse> {
+    return apiRequest(
+        'POST',
+        `/invitations/${invitationId}/accept`,
+        { token: invitationToken },
+        { token, idempotency: true },
+    );
+}
+
+export async function revokeWorkspaceInvitation(
+    token: string,
+    workspaceId: string,
+    invitationId: string,
+): Promise<{ invitation_id: string; status: 'Revoked' }> {
+    return apiRequest(
+        'POST',
+        `/workspaces/${workspaceId}/invitations/${invitationId}/revoke`,
+        {},
+        { token, idempotency: true },
+    );
 }

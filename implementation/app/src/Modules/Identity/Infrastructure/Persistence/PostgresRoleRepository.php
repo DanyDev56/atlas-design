@@ -52,4 +52,45 @@ final class PostgresRoleRepository
             ->where('name', 'owner')
             ->value('id');
     }
+
+    public function findActiveRoleIdByName(string $workspaceId, string $name): ?string
+    {
+        $roleId = DB::table('identity.roles')
+            ->where('workspace_id', $workspaceId)
+            ->where('name', $name)
+            ->where('status', 'Active')
+            ->value('id');
+
+        return is_string($roleId) ? $roleId : null;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findActiveById(string $workspaceId, RoleId $roleId): ?array
+    {
+        $row = DB::table('identity.roles')
+            ->where('id', $roleId->value)
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'Active')
+            ->first();
+
+        return $row !== null ? (array) $row : null;
+    }
+
+    /** @param list<string> $permissions */
+    public function ensureRole(
+        string $workspaceId,
+        string $name,
+        array $permissions,
+        \DateTimeImmutable $now,
+    ): RoleId {
+        $existing = $this->findActiveRoleIdByName($workspaceId, $name);
+        if ($existing !== null) {
+            return new RoleId($existing);
+        }
+
+        $roleId = RoleId::generate();
+        $this->createRole($roleId, $workspaceId, $name, $permissions, $now);
+
+        return $roleId;
+    }
 }

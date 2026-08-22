@@ -46,8 +46,12 @@ factures et paiements via l’outbox (`billing.history_import_requested`) sans
 `getAnalyticsOverview` (snapshot publié, jamais de totaux inventés).
 
 Settings borné est livré : profil commercial, préférences, identité de
-facturation (step-up) et lecture des membres. Invitations, rôles avancés et
-rôles avancés restent hors périmètre.
+facturation (step-up), lecture des membres et invitations vers le rôle membre
+standard. La preuve d’invitation est liée à l’adresse vérifiée, expire après
+7 jours, peut être révoquée tant qu’elle est en attente et ne crée le
+membership qu’à l’acceptation atomique. Le jeton n’est
+exposé qu’en développement ; l’envoi email réel et les rôles avancés restent
+hors périmètre.
 
 Les avoirs de facturation sont livrés sur la fiche facture : brouillon,
 émission, application totale ou partielle au solde, reliquat en crédit client
@@ -389,7 +393,9 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Profil commercial (`display_name`, nom commercial, description)
 - Préférences (locale, fuseau, devise, pays) parmi les valeurs supportées
 - Identité de facturation (raison sociale, email) avec step-up
-- Lecture des membres ; invitations et changement de rôle hors surface
+- Lecture des membres et invitation vers le rôle membre standard
+- Acceptation par preuve à usage unique, compte actif et adresse vérifiée
+- Changement de rôle et rôles personnalisés hors surface
 
 ### Hors scope Lot 4 (BPT-013 restant)
 

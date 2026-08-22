@@ -67,6 +67,28 @@ export interface WorkspaceMembersResponse {
     members: WorkspaceMember[];
 }
 
+export interface WorkspaceInvitation {
+    invitation_id: string;
+    recipient_email: string;
+    role: string;
+    status: string;
+    delivery_status: string;
+    expires_at: string;
+    created_at?: string;
+    invitation_token?: string;
+}
+
+export interface WorkspaceInvitationsResponse {
+    invitations: WorkspaceInvitation[];
+}
+
+export interface InvitationAcceptanceResponse {
+    invitation_id: string;
+    workspace_id: string;
+    membership_id: string;
+    status: 'Accepted';
+}
+
 export interface SessionContextResponse {
     user_id: string;
     workspace_id: string | null;

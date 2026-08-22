@@ -18,7 +18,8 @@ export function LoginPage() {
     const { loginWithPassword, session, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const recovered = Boolean((location.state as { recovered?: boolean } | null)?.recovered);
+    const locationState = location.state as { recovered?: boolean; from?: string } | null;
+    const recovered = Boolean(locationState?.recovered);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function LoginPage() {
         setLoading(true);
         try {
             const next = await loginWithPassword(email, password);
-            navigate(next.workspaceId ? '/app' : '/app/onboarding');
+            navigate(locationState?.from ?? (next.workspaceId ? '/app' : '/app/onboarding'));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Connexion impossible');
         } finally {

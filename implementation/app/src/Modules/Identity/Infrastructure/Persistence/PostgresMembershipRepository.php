@@ -130,4 +130,18 @@ final class PostgresMembershipRepository
                 'version' => DB::raw('version + 1'),
             ]);
     }
+
+    public function restore(
+        MembershipId $membershipId,
+        RoleId $roleId,
+    ): void {
+        DB::table('identity.memberships')
+            ->where('id', $membershipId->value)
+            ->where('status', 'Removed')
+            ->update([
+                'role_id' => $roleId->value,
+                'status' => 'Active',
+                'version' => DB::raw('version + 1'),
+            ]);
+    }
 }

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Workspace;
 
 use App\Http\Controllers\Controller;
+use Atlas\Modules\Identity\Application\CreateWorkspaceInvitationHandler;
+use Atlas\Modules\Identity\Application\ListWorkspaceInvitationsHandler;
 use Atlas\Modules\Identity\Application\ListWorkspaceMembersHandler;
+use Atlas\Modules\Identity\Application\RevokeWorkspaceInvitationHandler;
 use Atlas\Modules\Workspace\Application\ChangeWorkspacePreferencesHandler;
 use Atlas\Modules\Workspace\Application\UpdateWorkspaceBillingIdentityHandler;
 use Atlas\Modules\Workspace\Application\UpdateWorkspaceProfileHandler;
@@ -25,6 +28,9 @@ final class WorkspaceController extends Controller
         private readonly UpdateWorkspaceBillingIdentityHandler $updateBillingIdentity,
         private readonly ChangeWorkspacePreferencesHandler $changePreferences,
         private readonly ListWorkspaceMembersHandler $listMembers,
+        private readonly ListWorkspaceInvitationsHandler $listInvitations,
+        private readonly CreateWorkspaceInvitationHandler $createInvitation,
+        private readonly RevokeWorkspaceInvitationHandler $revokeInvitation,
     ) {}
 
     public function summary(Request $request, string $workspaceId): JsonResponse
@@ -131,16 +137,65 @@ final class WorkspaceController extends Controller
         ));
     }
 
+    public function invitations(Request $request, string $workspaceId): JsonResponse
+    {
+        return $this->respond(fn () => $this->listInvitations->handle(
+            $this->actorId($request),
+            $workspaceId,
+        ));
+    }
+
+    public function createInvitation(Request $request, string $workspaceId): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:254'],
+            'debug_invitation_token' => ['sometimes', 'boolean'],
+        ]);
+
+        return $this->respond(function () use ($request, $workspaceId, $validated): array {
+            $result = $this->createInvitation->handle(
+                actorUserId: $this->actorId($request),
+                workspaceId: $workspaceId,
+                recipientEmail: $validated['email'],
+                requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+                correlationId: $request->attributes->get('correlation_id'),
+            );
+
+            if (
+                ! config('platform.development.debug_verification_tokens')
+                || ! $request->boolean('debug_invitation_token')
+            ) {
+                unset($result['invitation_token']);
+            }
+
+            return $result;
+        }, 201);
+    }
+
+    public function revokeInvitation(
+        Request $request,
+        string $workspaceId,
+        string $invitationId,
+    ): JsonResponse {
+        return $this->respond(fn () => $this->revokeInvitation->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            invitationId: $invitationId,
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ));
+    }
+
     private function actorId(Request $request): string
     {
         return (string) $request->attributes->get('authenticated_user_id');
     }
 
     /** @param callable(): array<string, mixed> $action */
-    private function respond(callable $action): JsonResponse
+    private function respond(callable $action, int $status = 200): JsonResponse
     {
         try {
-            return response()->json($action());
+            return response()->json($action(), $status);
         } catch (\DomainException $exception) {
             if ($exception instanceof StepUpRequiredException) {
                 return response()->json([
