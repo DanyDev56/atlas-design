@@ -135,8 +135,8 @@ composer update --no-interaction
 | 0 | Socle, outbox, observabilité | Spike ADR-002 |
 | 1 | Identity + Workspace | MVP-J1 |
 | 2 | CRM | — |
-| 3 | Billing | MVP-J2 (import historique Billing livré Palier 4 ; rebuild Analytics ouvert) |
-| 4 | Analytics | Fixtures FIX-001…010 |
+| 3 | Billing | MVP-J2 (import historique Billing livré Palier 4) |
+| 4 | Analytics | Fixtures FIX-001…010 + rebuild après import historique |
 | 5 | Business Health | Fixtures |
 | 6 | Advisor | Fixtures |
 | 7 | Notifications + Dashboard | MVP-J3 |

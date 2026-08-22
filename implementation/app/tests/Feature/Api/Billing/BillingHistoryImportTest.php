@@ -99,6 +99,7 @@ final class BillingHistoryImportTest extends IntegrationTestCase
         }
         $this->assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'billing.history_import_requested')->count());
         $this->assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'billing.history_import_completed')->count());
+        $this->assertSame(0, DB::table('analytics.historical_import_rebuilds')->count());
 
         $this->getJson(
             "/api/workspaces/{$owner['workspace_id']}/quotes/{$quote->id}",

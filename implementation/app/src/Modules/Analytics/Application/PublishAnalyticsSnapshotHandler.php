@@ -9,6 +9,7 @@ use Atlas\Modules\Analytics\Domain\AnalyticsSnapshotPublished;
 use Atlas\Modules\Analytics\Domain\MetricKeys;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
+use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresHistoricalImportRebuildRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
 use Atlas\Platform\Messaging\OutboxWriter;
@@ -18,8 +19,6 @@ use Illuminate\Support\Facades\DB;
 
 final class PublishAnalyticsSnapshotHandler
 {
-    private const GENERATION_ID = 1;
-
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PostgresAnalyticsFactRepository $facts,
@@ -28,6 +27,7 @@ final class PublishAnalyticsSnapshotHandler
         private readonly PostgresAnalyticsIdempotencyStore $idempotency,
         private readonly SourceFactSummaryBuilder $sourceFactSummary,
         private readonly OutboxWriter $outbox,
+        private readonly PostgresHistoricalImportRebuildRepository $generations,
     ) {}
 
     /** @return array<string, mixed> */
@@ -84,12 +84,13 @@ final class PublishAnalyticsSnapshotHandler
                 'billing' => $billingWatermark['complete_through'],
             ];
             $sourceFactSummary = $this->sourceFactSummary->build($workspaceId, $now);
+            $generationId = $this->generations->activeGenerationId($workspaceId);
 
             $snapshotId = $this->snapshots->insert(
                 workspaceId: $workspaceId,
                 profileKey: MetricKeys::PROFILE_KEY,
                 profileVersion: MetricKeys::PROFILE_VERSION,
-                generationId: self::GENERATION_ID,
+                generationId: $generationId,
                 asOf: $now,
                 freshnessStatus: $freshness,
                 completenessStatus: MetricKeys::COMPLETENESS_COMPLETE,

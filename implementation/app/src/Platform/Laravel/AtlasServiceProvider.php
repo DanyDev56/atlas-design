@@ -6,6 +6,7 @@ namespace Atlas\Platform\Laravel;
 
 use Atlas\Composition\Advisor\OutboxAdvisorEvaluateConsumer;
 use Atlas\Composition\Analytics\OutboxAnalyticsIngestConsumer;
+use Atlas\Composition\Analytics\OutboxHistoricalImportAnalyticsRebuildConsumer;
 use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Composition\Billing\OutboxHistoricalBillingImportConsumer;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
@@ -27,8 +28,10 @@ use Atlas\Modules\Analytics\Application\AnalyticsQueryHandler;
 use Atlas\Modules\Analytics\Application\IngestSourceFactHandler;
 use Atlas\Modules\Analytics\Application\MetricCalculator;
 use Atlas\Modules\Analytics\Application\PublishAnalyticsSnapshotHandler;
+use Atlas\Modules\Analytics\Application\RebuildAnalyticsAfterHistoricalImportHandler;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshotRepository;
+use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresHistoricalImportRebuildRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
@@ -143,6 +146,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
                     $app->make(OutboxHistoricalClientsImportConsumer::class),
                     $app->make(OutboxHistoricalBillingImportConsumer::class),
+                    $app->make(OutboxHistoricalImportAnalyticsRebuildConsumer::class),
                     $app->make(OutboxAnalyticsIngestConsumer::class),
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
@@ -239,11 +243,14 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresAnalyticsIdempotencyStore::class);
         $this->app->singleton(PostgresAnalyticsFactRepository::class);
         $this->app->singleton(PostgresAnalyticsSnapshotRepository::class);
+        $this->app->singleton(PostgresHistoricalImportRebuildRepository::class);
         $this->app->singleton(MetricCalculator::class);
         $this->app->singleton(IngestSourceFactHandler::class);
+        $this->app->singleton(RebuildAnalyticsAfterHistoricalImportHandler::class);
         $this->app->singleton(PublishAnalyticsSnapshotHandler::class);
         $this->app->singleton(AnalyticsQueryHandler::class);
         $this->app->singleton(OutboxAnalyticsIngestConsumer::class);
+        $this->app->singleton(OutboxHistoricalImportAnalyticsRebuildConsumer::class);
 
         $this->app->singleton(SourceFactSummaryBuilder::class);
         $this->app->singleton(PostgresBusinessHealthIdempotencyStore::class);

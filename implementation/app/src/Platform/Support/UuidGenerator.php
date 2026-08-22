@@ -13,6 +13,20 @@ final class UuidGenerator
         $bytes[8] = chr(ord($bytes[8]) & 0x3F | 0x80);
         $hex = bin2hex($bytes);
 
+        return self::format($hex);
+    }
+
+    public static function fromName(string $name): string
+    {
+        $bytes = substr(hash('sha256', $name, true), 0, 16);
+        $bytes[6] = chr(ord($bytes[6]) & 0x0F | 0x50);
+        $bytes[8] = chr(ord($bytes[8]) & 0x3F | 0x80);
+
+        return self::format(bin2hex($bytes));
+    }
+
+    private static function format(string $hex): string
+    {
         return sprintf(
             '%s-%s-%s-%s-%s',
             substr($hex, 0, 8),

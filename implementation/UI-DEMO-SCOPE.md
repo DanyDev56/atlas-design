@@ -30,20 +30,20 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
-| **4** | Enrichissement CRM (contacts client) + Import clients + Import Billing | ✓ CRM/Billing | Prévisualisation + import borné *clients* et *devis/factures/paiements* ; rebuild Analytics reporté |
+| **4** | Enrichissement CRM + Import clients/Billing + rebuild Analytics | ✓ BPT-013 | Package historique clients/Billing puis génération Analytics isolée |
 
 ---
 
 ## Priorité actuelle
 
-Les lots 0 à 4 CRM et l’import historique Billing sont livrés. L’import
-**clients** converge sur `(Workspace, SourceSystem, ExternalId)` ; l’import
-Billing matérialise devis, factures et paiements via l’outbox
-(`billing.history_import_requested`) sans événements opérationnels.
-
-Le rebuild Analytics borné du package canonique BPT-013 reste **hors
-périmètre**. Settings, notes de crédit et zone dashboard « Activité mesurée »
-aussi.
+Les lots 0 à 4 CRM, l’import historique Billing et le rebuild Analytics borné
+sont livrés. L’import **clients** converge sur `(Workspace, SourceSystem,
+ExternalId)` ; l’import Billing matérialise devis, factures et paiements via
+l’outbox (`billing.history_import_requested`) sans événements opérationnels.
+Le rebuild Analytics s’exécute après corrélation de
+`ClientHistoryImportCompleted` et `BillingHistoryImportCompleted` pour le même
+`SourceSystem`. Settings, notes de crédit et zone dashboard « Activité mesurée »
+restent hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
@@ -338,9 +338,20 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Permission `billing.history.import` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
 
+### Rebuild Analytics après import (livré, borné)
+
+- Déclenché seulement après corrélation des deux completions pour le même
+  `SourceSystem`
+- Génération isolée `Building` puis bascule `Active` (`RebuildReason =
+  HistoricalImport`) ; l’ancienne génération devient `Superseded`
+- Faits Billing relus depuis le manifest d’import, sans `QuoteSent` /
+  `InvoiceIssued` / `PaymentRecorded`
+- Watermarks CRM/Billing avancés à la completion du rebuild ; snapshot publié
+  sur la génération active
+- Rejeu du même couple de runs sans doublon de faits ni de génération
+
 ### Hors scope Lot 4 (BPT-013 restant)
 
-- Rebuild Analytics borné après les deux completions
 - Step-up d'authentification pour la permission Critical
 - Connecteurs Freebe, Indy, Tiime
 

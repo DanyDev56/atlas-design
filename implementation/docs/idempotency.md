@@ -52,6 +52,7 @@ différent lève `Idempotency conflict.`
 | Handler | Store | Scope |
 |---|---|---|
 | `PublishAnalyticsSnapshotHandler` | analytics | `analytics.publish_snapshot` |
+| `RebuildAnalyticsAfterHistoricalImportHandler` | analytics | `analytics.rebuild_historical_import` |
 | `EvaluateBusinessHealthHandler` | business_health | `business_health.evaluate` |
 | `EvaluateRecommendationsHandler` | advisor | `advisor.evaluate_recommendations` |
 | `ProcessAdvisorNotificationSignalHandler` | notifications | `notifications.process_advisor_signal` |
