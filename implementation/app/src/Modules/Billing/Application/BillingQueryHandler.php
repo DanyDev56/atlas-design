@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Atlas\Modules\Billing\Application;
 
 use Atlas\Modules\Billing\Domain\InvoiceId;
+use Atlas\Modules\Billing\Domain\CreditNoteId;
 use Atlas\Modules\Billing\Domain\QuoteId;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresCreditNoteRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
@@ -17,6 +19,7 @@ final class BillingQueryHandler
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PostgresQuoteRepository $quotes,
         private readonly PostgresInvoiceRepository $invoices,
+        private readonly PostgresCreditNoteRepository $creditNotes,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -123,6 +126,41 @@ final class BillingQueryHandler
             'source_system' => $provenance->source_system ?? null,
             'external_id' => $provenance->external_id ?? null,
             'payments' => $payments,
+            'credit_notes' => $this->creditNotes->listForInvoice($workspaceId, $invoiceId),
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listCreditNotes(string $actorUserId, string $workspaceId, string $invoiceId): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.credit-notes.read');
+        return $this->creditNotes->listForInvoice($workspaceId, $invoiceId);
+    }
+
+    /** @return array<string, mixed> */
+    public function getCreditNote(string $actorUserId, string $workspaceId, string $creditNoteId): array
+    {
+        $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.credit-notes.read');
+        $creditNote = $this->creditNotes->findById($workspaceId, new CreditNoteId($creditNoteId));
+        if ($creditNote === null) {
+            throw new \DomainException('Credit note not found.');
+        }
+
+        return [
+            'credit_note_id' => $creditNote->id()->value,
+            'invoice_id' => $creditNote->invoiceId(),
+            'status' => $creditNote->status(),
+            'credit_note_number' => $creditNote->number(),
+            'lines' => $creditNote->lines(),
+            'total_cents' => $creditNote->totalCents(),
+            'amount_applied_cents' => $creditNote->amountAppliedCents(),
+            'unapplied_amount_cents' => $creditNote->unappliedAmountCents(),
+            'remainder_disposition' => $creditNote->remainderDisposition(),
+            'currency' => $creditNote->currency(),
+            'reason' => $creditNote->reason(),
+            'version' => $creditNote->version(),
+            'issued_at' => $creditNote->issuedAt()?->format(DATE_ATOM),
+            'applied_at' => $creditNote->appliedAt()?->format(DATE_ATOM),
         ];
     }
 

@@ -145,6 +145,28 @@ final class Invoice
         $this->updatedAt = $now;
     }
 
+    public function applyCreditNote(int $amountCents, int $expectedRevision, \DateTimeImmutable $now): void
+    {
+        if ($this->status !== self::STATUS_ISSUED) {
+            throw new \DomainException('Invoice is not issued.');
+        }
+
+        if ($this->version !== $expectedRevision) {
+            throw new \DomainException('Invoice version conflict.');
+        }
+
+        if ($amountCents <= 0 || $amountCents > $this->balanceCents) {
+            throw new \DomainException('Credit note exceeds invoice balance.');
+        }
+
+        $this->balanceCents -= $amountCents;
+        $this->settlementStatus = $this->balanceCents === 0
+            ? self::SETTLEMENT_PAID
+            : self::SETTLEMENT_PARTIALLY_PAID;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
     public function id(): InvoiceId
     {
         return $this->id;

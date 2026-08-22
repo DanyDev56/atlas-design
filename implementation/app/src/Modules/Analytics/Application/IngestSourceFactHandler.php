@@ -7,6 +7,7 @@ namespace Atlas\Modules\Analytics\Application;
 use Atlas\Modules\Analytics\Domain\AnalyticsFactRecorded;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
+use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
@@ -27,6 +28,8 @@ final class IngestSourceFactHandler
         'billing.quote_accepted',
         'billing.invoice_issued',
         'billing.payment_recorded',
+        'billing.credit_note_issued',
+        'billing.invoice_balance_changed',
     ];
 
     public function __construct(
@@ -35,6 +38,7 @@ final class IngestSourceFactHandler
         private readonly GetQuoteAnalyticsFactHandler $quoteFacts,
         private readonly GetInvoiceAnalyticsFactHandler $invoiceFacts,
         private readonly GetPaymentAnalyticsFactHandler $paymentFacts,
+        private readonly GetCreditNoteAnalyticsFactHandler $creditNoteFacts,
         private readonly OutboxWriter $outbox,
     ) {}
 
@@ -114,7 +118,7 @@ final class IngestSourceFactHandler
 
                 return ['quote', $quoteId, $version, $fact, 'billing'];
             })(),
-            'billing.invoice_issued' => (function () use ($workspaceId, $payload): array {
+            'billing.invoice_issued', 'billing.invoice_balance_changed' => (function () use ($workspaceId, $payload): array {
                 $invoiceId = $payload['invoice_id'];
                 $version = (int) DB::table('billing.invoices')->where('id', $invoiceId)->value('version');
                 $fact = $this->invoiceFacts->handle($workspaceId, $invoiceId, $version);
@@ -128,6 +132,13 @@ final class IngestSourceFactHandler
                 $fact = $this->paymentFacts->handle($workspaceId, $invoiceId, $paymentId, $version);
 
                 return ['payment', $paymentId, $version, $fact, 'billing'];
+            })(),
+            'billing.credit_note_issued' => (function () use ($workspaceId, $payload): array {
+                $creditNoteId = $payload['credit_note_id'];
+                $version = (int) $payload['aggregate_version'];
+                $fact = $this->creditNoteFacts->handle($workspaceId, $creditNoteId, $version);
+
+                return ['credit_note', $creditNoteId, $version, $fact, 'billing'];
             })(),
             default => throw new \DomainException('Unsupported source event.'),
         };

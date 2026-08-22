@@ -49,12 +49,17 @@ final class PostgresInvoiceRepository
             ]);
     }
 
-    public function findById(string $workspaceId, InvoiceId $id): ?Invoice
+    public function findById(string $workspaceId, InvoiceId $id, bool $forUpdate = false): ?Invoice
     {
-        $row = DB::table('billing.invoices')
+        $query = DB::table('billing.invoices')
             ->where('id', $id->value)
-            ->where('workspace_id', $workspaceId)
-            ->first();
+            ->where('workspace_id', $workspaceId);
+
+        if ($forUpdate) {
+            $query->lockForUpdate();
+        }
+
+        $row = $query->first();
 
         return $row !== null ? Invoice::reconstitute((array) $row) : null;
     }

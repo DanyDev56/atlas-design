@@ -497,6 +497,30 @@ export interface InvoiceSummary {
 
 export interface InvoiceDetail extends InvoiceSummary {
     lines: QuoteLine[];
+    credit_notes: CreditNote[];
+}
+
+export interface CreditNote {
+    credit_note_id: string;
+    invoice_id: string;
+    status: 'Draft' | 'Issued' | 'Applied' | 'Discarded';
+    credit_note_number: string | null;
+    lines: QuoteLine[];
+    total_cents: number;
+    amount_applied_cents: number;
+    unapplied_amount_cents: number;
+    remainder_disposition: 'RefundDue' | 'ClientCredit' | null;
+    currency: string;
+    reason: string | null;
+    version: number;
+    issued_at?: string | null;
+    applied_at?: string | null;
+}
+
+export interface ApplyCreditNoteResponse extends CreditNote {
+    invoice_balance_cents: number;
+    invoice_settlement_status: string;
+    invoice_version: number;
 }
 
 export interface PaymentResponse {

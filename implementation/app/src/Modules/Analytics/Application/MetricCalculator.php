@@ -103,16 +103,31 @@ final class MetricCalculator
             ->groupBy('currency')
             ->get();
 
-        if ($rows->isEmpty()) {
+        $creditRows = DB::table('billing.credit_notes')
+            ->selectRaw('currency, SUM(total_cents) as total')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('status', ['Issued', 'Applied'])
+            ->where('issued_at', '>=', $from->format('Y-m-d H:i:sP'))
+            ->where('issued_at', '<', $asOf->format('Y-m-d H:i:sP'))
+            ->groupBy('currency')
+            ->get();
+
+        if ($rows->isEmpty() && $creditRows->isEmpty()) {
             return $this->noDataMetric('Rolling30Days');
+        }
+
+        $values = [];
+        foreach ($rows as $row) {
+            $values[$row->currency] = (int) $row->total;
+        }
+        foreach ($creditRows as $row) {
+            $values[$row->currency] = ($values[$row->currency] ?? 0) - (int) $row->total;
         }
 
         return [
             'window_kind' => 'Rolling30Days',
             'value_status' => MetricKeys::VALUE_AVAILABLE,
-            'values_by_currency' => $rows->mapWithKeys(fn ($row) => [
-                $row->currency => (int) $row->total,
-            ])->all(),
+            'values_by_currency' => $values,
         ];
     }
 

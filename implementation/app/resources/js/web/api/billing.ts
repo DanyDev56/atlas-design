@@ -2,6 +2,8 @@ import { apiRequest } from '@/api/client';
 import type {
     BillingHistoryImportPreview,
     BillingHistoryImportRun,
+    ApplyCreditNoteResponse,
+    CreditNote,
     InvoiceDetail,
     InvoiceSummary,
     PaymentResponse,
@@ -150,6 +152,57 @@ export async function recordPayment(
         workspacePath(workspaceId, `/invoices/${invoiceId}/payments`),
         { amount_cents: amountCents, reference: reference || undefined },
         { token },
+    );
+}
+
+export async function createCreditNote(
+    token: string,
+    workspaceId: string,
+    invoiceId: string,
+    lines: QuoteLine[],
+    reason?: string,
+): Promise<CreditNote> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/invoices/${invoiceId}/credit-notes`),
+        { lines, reason: reason || undefined },
+        { token, idempotency: true },
+    );
+}
+
+export async function issueCreditNote(
+    token: string,
+    workspaceId: string,
+    creditNoteId: string,
+    expectedRevision: number,
+): Promise<CreditNote> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/credit-notes/${creditNoteId}/issue`),
+        { expected_revision: expectedRevision },
+        { token, idempotency: true },
+    );
+}
+
+export async function applyCreditNote(
+    token: string,
+    workspaceId: string,
+    creditNoteId: string,
+    amountCents: number,
+    expectedCreditNoteRevision: number,
+    expectedInvoiceRevision: number,
+    remainderDisposition?: 'RefundDue' | 'ClientCredit',
+): Promise<ApplyCreditNoteResponse> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/credit-notes/${creditNoteId}/apply`),
+        {
+            amount_cents: amountCents,
+            remainder_disposition: remainderDisposition,
+            expected_credit_note_revision: expectedCreditNoteRevision,
+            expected_invoice_revision: expectedInvoiceRevision,
+        },
+        { token, idempotency: true },
     );
 }
 

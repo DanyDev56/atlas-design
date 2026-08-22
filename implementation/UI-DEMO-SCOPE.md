@@ -47,7 +47,12 @@ factures et paiements via l’outbox (`billing.history_import_requested`) sans
 
 Settings borné est livré : profil commercial, préférences, identité de
 facturation (step-up) et lecture des membres. Invitations, rôles avancés et
-notes de crédit restent hors périmètre.
+rôles avancés restent hors périmètre.
+
+Les avoirs de facturation sont livrés sur la fiche facture : brouillon,
+émission, application totale ou partielle au solde, reliquat en crédit client
+et prise en compte dans le net facturé Analytics. L'import historique et le
+PDF d'avoir restent hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).

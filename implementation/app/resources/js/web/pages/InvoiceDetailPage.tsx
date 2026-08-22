@@ -1,6 +1,14 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getInvoice, issueInvoice, recordPayment, sendInvoice } from '@/api/billing';
+import {
+    applyCreditNote,
+    createCreditNote,
+    getInvoice,
+    issueCreditNote,
+    issueInvoice,
+    recordPayment,
+    sendInvoice,
+} from '@/api/billing';
 import { getClient } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -37,6 +45,8 @@ export function InvoiceDetailPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentReference, setPaymentReference] = useState('');
+    const [creditAmount, setCreditAmount] = useState('');
+    const [creditReason, setCreditReason] = useState('');
 
     async function loadInvoice(showSkeleton = true) {
         if (!invoiceId) return;
@@ -141,6 +151,82 @@ export function InvoiceDetailPage() {
             );
         } catch {
             setError('Le paiement n’a pas pu être enregistré. Vérifiez le solde puis réessayez.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function onCreateCreditNote(event: FormEvent) {
+        event.preventDefault();
+        if (!invoice || invoice.status !== 'Issued' || invoice.is_historical_import) return;
+
+        const amountCents = parseAmount(creditAmount);
+        if (amountCents === null || amountCents > invoice.total_cents) {
+            setError(`Le montant de l’avoir doit être compris entre 0 et ${formatMoney(invoice.total_cents, invoice.currency)}.`);
+            return;
+        }
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await createCreditNote(token, workspaceId, invoice.invoice_id, [{
+                description: creditReason.trim() || 'Correction de facture',
+                quantity: 1,
+                unit_price_cents: amountCents,
+            }], creditReason.trim());
+            await loadInvoice(false);
+            setCreditAmount('');
+            setCreditReason('');
+            setSuccess('Le brouillon d’avoir est créé. Vérifiez-le avant de l’émettre.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Création de l’avoir impossible.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function onIssueCreditNote(creditNoteId: string, revision: number) {
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await issueCreditNote(token, workspaceId, creditNoteId, revision);
+            await loadInvoice(false);
+            setSuccess('L’avoir est émis et son numéro est définitif.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Émission de l’avoir impossible.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function onApplyCreditNote(creditNoteId: string, revision: number, totalCents: number) {
+        if (!invoice) return;
+        const amount = Math.min(totalCents, invoice.balance_cents);
+        const disposition = amount < totalCents ? 'ClientCredit' : undefined;
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await applyCreditNote(
+                token,
+                workspaceId,
+                creditNoteId,
+                amount,
+                revision,
+                invoice.version,
+                disposition,
+            );
+            await loadInvoice(false);
+            setSuccess(
+                amount < totalCents
+                    ? 'L’avoir est appliqué au solde ; le reliquat est conservé en crédit client.'
+                    : 'L’avoir est appliqué au solde de la facture.',
+            );
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Application de l’avoir impossible.');
         } finally {
             setActionLoading(false);
         }
@@ -318,6 +404,88 @@ export function InvoiceDetailPage() {
                                     </SubmitButton>
                                 </div>
                             </form>
+                        )}
+
+                        {invoice.status === 'Issued' && !invoice.is_historical_import && (
+                            <section aria-labelledby="credit-notes-title" className="mt-8 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
+                                <h3 id="credit-notes-title" className="text-lg font-semibold text-atlas-ink">Avoirs</h3>
+                                <p className="mt-2 text-sm text-atlas-ink-muted">
+                                    Créez un brouillon, émettez-le après vérification, puis appliquez-le au solde de la facture.
+                                </p>
+
+                                {(invoice.credit_notes ?? []).length > 0 && (
+                                    <ul className="mt-5 divide-y divide-atlas-border rounded-xl border border-atlas-border">
+                                        {(invoice.credit_notes ?? []).map((creditNote) => (
+                                            <li key={creditNote.credit_note_id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                                                <div>
+                                                    <p className="font-medium text-atlas-ink">
+                                                        {creditNote.credit_note_number ?? 'Brouillon d’avoir'}
+                                                    </p>
+                                                    <p className="mt-1 text-sm text-atlas-ink-muted">
+                                                        {formatMoney(creditNote.total_cents, creditNote.currency)}
+                                                        {' · '}{creditNote.status}
+                                                        {creditNote.amount_applied_cents > 0
+                                                            ? ` · ${formatMoney(creditNote.amount_applied_cents, creditNote.currency)} appliqués`
+                                                            : ''}
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    {creditNote.status === 'Draft' && (
+                                                        <button
+                                                            type="button"
+                                                            disabled={actionLoading}
+                                                            onClick={() => void onIssueCreditNote(creditNote.credit_note_id, creditNote.version)}
+                                                            className="min-h-10 rounded-lg border border-atlas-border px-3 text-sm font-semibold text-atlas-ink hover:bg-slate-50 disabled:opacity-50"
+                                                        >
+                                                            Émettre
+                                                        </button>
+                                                    )}
+                                                    {creditNote.status === 'Issued' && invoice.balance_cents > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            disabled={actionLoading}
+                                                            onClick={() => void onApplyCreditNote(
+                                                                creditNote.credit_note_id,
+                                                                creditNote.version,
+                                                                creditNote.total_cents,
+                                                            )}
+                                                            className="min-h-10 rounded-lg bg-atlas-ink px-3 text-sm font-semibold text-white hover:bg-atlas-sidebar disabled:opacity-50"
+                                                        >
+                                                            Appliquer au solde
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                <form onSubmit={onCreateCreditNote} className="mt-5 grid gap-4 sm:grid-cols-2">
+                                    <FormField label={`Montant de l’avoir (${invoice.currency})`}>
+                                        <input
+                                            required
+                                            inputMode="decimal"
+                                            className={inputClassName}
+                                            value={creditAmount}
+                                            onChange={(event) => setCreditAmount(event.target.value)}
+                                        />
+                                    </FormField>
+                                    <FormField label="Motif" hint="Ce motif décrit la correction apportée.">
+                                        <input
+                                            maxLength={1000}
+                                            className={inputClassName}
+                                            value={creditReason}
+                                            onChange={(event) => setCreditReason(event.target.value)}
+                                            placeholder="Prestation annulée"
+                                        />
+                                    </FormField>
+                                    <div className="sm:col-span-2 sm:max-w-xs">
+                                        <SubmitButton loading={actionLoading} loadingLabel="Création…">
+                                            Créer le brouillon d’avoir
+                                        </SubmitButton>
+                                    </div>
+                                </form>
+                            </section>
                         )}
 
                         {invoice.settlement_status === 'Paid' && (

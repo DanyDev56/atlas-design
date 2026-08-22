@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
+use App\Http\Controllers\Api\Billing\CreditNoteController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\PublicQuoteController;
@@ -119,6 +120,13 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/invoices/{invoiceId}/issue', [InvoiceController::class, 'issue']);
             Route::post('/invoices/{invoiceId}/send', [InvoiceController::class, 'send']);
             Route::post('/invoices/{invoiceId}/payments', [InvoiceController::class, 'recordPayment']);
+            Route::get('/invoices/{invoiceId}/credit-notes', [CreditNoteController::class, 'index']);
+            Route::post('/invoices/{invoiceId}/credit-notes', [CreditNoteController::class, 'store']);
+            Route::get('/credit-notes/{creditNoteId}', [CreditNoteController::class, 'show']);
+            Route::patch('/credit-notes/{creditNoteId}', [CreditNoteController::class, 'update']);
+            Route::post('/credit-notes/{creditNoteId}/discard', [CreditNoteController::class, 'discard']);
+            Route::post('/credit-notes/{creditNoteId}/issue', [CreditNoteController::class, 'issue']);
+            Route::post('/credit-notes/{creditNoteId}/apply', [CreditNoteController::class, 'apply']);
 
             Route::get('/analytics/snapshot/latest', [AnalyticsController::class, 'latestSnapshot']);
             Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
