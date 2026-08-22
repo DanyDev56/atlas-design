@@ -8,6 +8,7 @@ import {
     issueCreditNote,
     issueInvoice,
     recordPayment,
+    requestInvoiceReminder,
     sendInvoice,
 } from '@/api/billing';
 import { getClient } from '@/api/crm';
@@ -48,6 +49,7 @@ export function InvoiceDetailPage() {
     const [paymentReference, setPaymentReference] = useState('');
     const [creditAmount, setCreditAmount] = useState('');
     const [creditReason, setCreditReason] = useState('');
+    const [reminderMessage, setReminderMessage] = useState('');
 
     async function loadInvoice(showSkeleton = true) {
         if (!invoiceId) return;
@@ -115,6 +117,33 @@ export function InvoiceDetailPage() {
             await downloadBillingDocument(token, workspaceId, documentType, documentId);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Téléchargement du document impossible.');
+        }
+    }
+
+    async function onRemind(event: FormEvent) {
+        event.preventDefault();
+        if (!invoice || invoice.status !== 'Issued' || invoice.balance_cents <= 0 || invoice.is_historical_import) {
+            return;
+        }
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            await requestInvoiceReminder(
+                token,
+                workspaceId,
+                invoice.invoice_id,
+                invoice.version,
+                reminderMessage.trim() || undefined,
+            );
+            await loadInvoice(false);
+            setReminderMessage('');
+            setSuccess('La relance est enregistrée. Envoyez-la par votre canal habituel ; Atlas ne l’envoie pas à votre place.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'La relance n’a pas pu être enregistrée.');
+        } finally {
+            setActionLoading(false);
         }
     }
 
@@ -422,6 +451,35 @@ export function InvoiceDetailPage() {
                                 <div className="mt-5 max-w-xs">
                                     <SubmitButton loading={actionLoading} loadingLabel="Enregistrement…">
                                         Enregistrer le paiement
+                                    </SubmitButton>
+                                </div>
+                            </form>
+                        )}
+
+                        {invoice.status === 'Issued' && invoice.balance_cents > 0 && !invoice.is_historical_import && (
+                            <form onSubmit={onRemind} className="mt-6 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
+                                <h3 className="font-semibold text-atlas-ink">Relancer le client</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-atlas-ink-muted">
+                                    Enregistrez une relance manuelle. Le PDF de la facture reste inchangé.
+                                    {invoice.last_reminded_at
+                                        ? ` Dernière relance le ${formatDate(invoice.last_reminded_at)}.`
+                                        : ''}
+                                </p>
+                                <div className="mt-5">
+                                    <FormField label="Message" hint="Facultatif — note interne jointe à la relance.">
+                                        <textarea
+                                            maxLength={1000}
+                                            rows={3}
+                                            className={inputClassName}
+                                            value={reminderMessage}
+                                            onChange={(event) => setReminderMessage(event.target.value)}
+                                            placeholder="Bonjour, le solde de cette facture reste dû."
+                                        />
+                                    </FormField>
+                                </div>
+                                <div className="mt-5 max-w-xs">
+                                    <SubmitButton loading={actionLoading} loadingLabel="Enregistrement…">
+                                        Enregistrer la relance
                                     </SubmitButton>
                                 </div>
                             </form>

@@ -491,6 +491,8 @@ export interface InvoiceSummary {
     sent_at: string | null;
     due_date: string | null;
     paid_at: string | null;
+    last_reminded_at?: string | null;
+    reminder_count?: number;
     original_number?: string | null;
     is_historical_import?: boolean;
 }

@@ -53,7 +53,9 @@ Les avoirs de facturation sont livrés sur la fiche facture : brouillon,
 émission, application totale ou partielle au solde, reliquat en crédit client
 et prise en compte dans le net facturé Analytics. Les PDF déterministes des
 devis, factures et avoirs sont générés à l'émission et téléchargeables par les
-membres autorisés. L'import historique des avoirs reste hors périmètre.
+membres autorisés. Les relances manuelles sont enregistrées sur une facture
+émise avec solde positif (`billing.invoices.remind`) et placées dans l’outbox
+sans envoi email réel. L'import historique des avoirs reste hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).

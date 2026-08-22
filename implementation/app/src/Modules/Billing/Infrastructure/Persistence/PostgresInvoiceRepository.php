@@ -46,6 +46,8 @@ final class PostgresInvoiceRepository
                 'due_date' => $invoice->dueDate()?->format('Y-m-d H:i:sP'),
                 'paid_at' => $invoice->paidAt()?->format('Y-m-d H:i:sP'),
                 'sent_at' => $invoice->sentAt()?->format('Y-m-d H:i:sP'),
+                'last_reminded_at' => $invoice->lastRemindedAt()?->format('Y-m-d H:i:sP'),
+                'reminder_count' => $invoice->reminderCount(),
             ]);
     }
 

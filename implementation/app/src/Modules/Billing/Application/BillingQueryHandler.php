@@ -121,6 +121,8 @@ final class BillingQueryHandler
             'sent_at' => $invoice->sentAt()?->format(DATE_ATOM),
             'due_date' => $invoice->dueDate()?->format(DATE_ATOM),
             'paid_at' => $invoice->paidAt()?->format(DATE_ATOM),
+            'last_reminded_at' => $invoice->lastRemindedAt()?->format(DATE_ATOM),
+            'reminder_count' => $invoice->reminderCount(),
             'is_historical_import' => $invoice->isHistoricalImport(),
             'original_number' => $invoice->originalNumber(),
             'source_system' => $provenance->source_system ?? null,

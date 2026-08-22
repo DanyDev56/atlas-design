@@ -120,6 +120,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/invoices/{invoiceId}', [InvoiceController::class, 'show']);
             Route::post('/invoices/{invoiceId}/issue', [InvoiceController::class, 'issue']);
             Route::post('/invoices/{invoiceId}/send', [InvoiceController::class, 'send']);
+            Route::post('/invoices/{invoiceId}/remind', [InvoiceController::class, 'remind']);
             Route::post('/invoices/{invoiceId}/payments', [InvoiceController::class, 'recordPayment']);
             Route::get('/invoices/{invoiceId}/credit-notes', [CreditNoteController::class, 'index']);
             Route::post('/invoices/{invoiceId}/credit-notes', [CreditNoteController::class, 'store']);

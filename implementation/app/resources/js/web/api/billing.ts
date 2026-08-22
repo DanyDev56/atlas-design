@@ -126,6 +126,33 @@ export async function issueInvoice(
     );
 }
 
+export async function requestInvoiceReminder(
+    token: string,
+    workspaceId: string,
+    invoiceId: string,
+    expectedRevision: number,
+    message?: string,
+): Promise<{
+    invoice_id: string;
+    status: string;
+    version: number;
+    reminder_count: number;
+    last_reminded_at: string | null;
+    delivery: string;
+    message: string | null;
+}> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/invoices/${invoiceId}/remind`),
+        {
+            expected_revision: expectedRevision,
+            delivery: 'ManualChannel',
+            message: message || undefined,
+        },
+        { token, idempotency: true },
+    );
+}
+
 export async function sendInvoice(
     token: string,
     workspaceId: string,

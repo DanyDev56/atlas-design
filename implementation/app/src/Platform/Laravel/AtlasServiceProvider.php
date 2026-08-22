@@ -45,6 +45,7 @@ use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
 use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
+use Atlas\Modules\Billing\Application\RequestInvoiceReminderHandler;
 use Atlas\Modules\Billing\Application\CreditNoteCommandHandler;
 use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\BillingDocumentArtifactService;
@@ -251,6 +252,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(CreateFinalInvoiceFromQuoteHandler::class);
         $this->app->singleton(IssueInvoiceHandler::class);
         $this->app->singleton(SendInvoiceHandler::class);
+        $this->app->singleton(RequestInvoiceReminderHandler::class);
         $this->app->singleton(RecordPaymentHandler::class);
         $this->app->singleton(CreditNoteCommandHandler::class);
         $this->app->singleton(GetCreditNoteAnalyticsFactHandler::class);

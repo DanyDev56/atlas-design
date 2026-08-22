@@ -39,6 +39,8 @@ final class Invoice
         private ?\DateTimeImmutable $paidAt,
         private bool $historicalImport,
         private readonly ?string $originalNumber = null,
+        private ?\DateTimeImmutable $lastRemindedAt = null,
+        private int $reminderCount = 0,
     ) {}
 
     /** @param list<array<string, mixed>> $lines */
@@ -96,6 +98,8 @@ final class Invoice
             paidAt: isset($row['paid_at']) ? new \DateTimeImmutable($row['paid_at']) : null,
             historicalImport: (bool) ($row['is_historical_import'] ?? false),
             originalNumber: $row['original_number'] ?? null,
+            lastRemindedAt: isset($row['last_reminded_at']) ? new \DateTimeImmutable((string) $row['last_reminded_at']) : null,
+            reminderCount: (int) ($row['reminder_count'] ?? 0),
         );
     }
 
@@ -120,6 +124,30 @@ final class Invoice
         }
 
         $this->sentAt = $now;
+        $this->version++;
+        $this->updatedAt = $now;
+    }
+
+    public function requestReminder(int $expectedRevision, \DateTimeImmutable $now): void
+    {
+        if ($this->historicalImport) {
+            throw new \DomainException('Historical imports are read-only.');
+        }
+
+        if ($this->status !== self::STATUS_ISSUED) {
+            throw new \DomainException('Invoice is not issued.');
+        }
+
+        if ($this->balanceCents <= 0) {
+            throw new \DomainException('Invoice has no outstanding balance.');
+        }
+
+        if ($this->version !== $expectedRevision) {
+            throw new \DomainException('Invoice version conflict.');
+        }
+
+        $this->lastRemindedAt = $now;
+        $this->reminderCount++;
         $this->version++;
         $this->updatedAt = $now;
     }
@@ -262,5 +290,15 @@ final class Invoice
     public function originalNumber(): ?string
     {
         return $this->originalNumber;
+    }
+
+    public function lastRemindedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastRemindedAt;
+    }
+
+    public function reminderCount(): int
+    {
+        return $this->reminderCount;
     }
 }

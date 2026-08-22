@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
+use Atlas\Modules\Billing\Application\RequestInvoiceReminderHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ final class InvoiceController extends Controller
     public function __construct(
         private readonly IssueInvoiceHandler $issueInvoice,
         private readonly SendInvoiceHandler $sendInvoice,
+        private readonly RequestInvoiceReminderHandler $requestReminder,
         private readonly RecordPaymentHandler $recordPayment,
         private readonly BillingQueryHandler $queries,
     ) {}
@@ -67,6 +69,26 @@ final class InvoiceController extends Controller
             invoiceId: $invoiceId,
             expectedRevision: (int) $validated['expected_revision'],
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+        ));
+    }
+
+    public function remind(Request $request, string $workspaceId, string $invoiceId): JsonResponse
+    {
+        $validated = $request->validate([
+            'expected_revision' => ['required', 'integer', 'min:1'],
+            'delivery' => ['sometimes', 'in:ManualChannel'],
+            'message' => ['sometimes', 'nullable', 'string', 'max:1000'],
+        ]);
+
+        return $this->respond(fn () => $this->requestReminder->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            invoiceId: $invoiceId,
+            delivery: $validated['delivery'] ?? RequestInvoiceReminderHandler::DELIVERY_MANUAL,
+            message: isset($validated['message']) ? trim((string) $validated['message']) ?: null : null,
+            expectedRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
         ));
     }
 
