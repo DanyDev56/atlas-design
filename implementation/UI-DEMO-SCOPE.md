@@ -45,7 +45,9 @@ factures et paiements via l’outbox (`billing.history_import_requested`) sans
 `SourceSystem`. Le dashboard compose aussi **Activité mesurée** depuis
 `getAnalyticsOverview` (snapshot publié, jamais de totaux inventés).
 
-Settings et notes de crédit restent hors périmètre.
+Settings borné est livré : profil commercial, préférences, identité de
+facturation (step-up) et lecture des membres. Invitations, rôles avancés et
+notes de crédit restent hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
@@ -355,6 +357,14 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Watermarks CRM/Billing avancés à la completion du rebuild ; snapshot publié
   sur la génération active
 - Rejeu du même couple de runs sans doublon de faits ni de génération
+
+### Settings workspace (livré, borné)
+
+- Accessible depuis la navigation et le nom d’espace dans l’en-tête
+- Profil commercial (`display_name`, nom commercial, description)
+- Préférences (locale, fuseau, devise, pays) parmi les valeurs supportées
+- Identité de facturation (raison sociale, email) avec step-up
+- Lecture des membres ; invitations et changement de rôle hors surface
 
 ### Hors scope Lot 4 (BPT-013 restant)
 

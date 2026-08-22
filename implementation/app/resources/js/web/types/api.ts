@@ -30,6 +30,43 @@ export interface WorkspaceSummaryResponse {
     version: number;
 }
 
+export interface WorkspaceProfileResponse {
+    workspace_id: string;
+    display_name: string;
+    trading_name: string | null;
+    activity_description: string | null;
+    profile_version: number;
+}
+
+export interface WorkspaceBillingIdentityResponse {
+    workspace_id: string;
+    legal_name: string | null;
+    administrative_email: string | null;
+    billing_identity_version: number;
+}
+
+export interface WorkspacePreferencesResponse {
+    workspace_id: string;
+    locale: string;
+    timezone: string;
+    default_currency: string;
+    establishment_country: string;
+    preferences_version: number;
+}
+
+export interface WorkspaceMember {
+    membership_id: string;
+    user_id: string;
+    email: string;
+    display_name: string;
+    role: string;
+    status: string;
+}
+
+export interface WorkspaceMembersResponse {
+    members: WorkspaceMember[];
+}
+
 export interface SessionContextResponse {
     user_id: string;
     workspace_id: string | null;

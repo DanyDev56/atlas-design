@@ -41,6 +41,11 @@ final class BootstrapFirstWorkspaceHandler
                 throw new \DomainException('Idempotency conflict.');
             }
 
+            $workspaceId = (string) ($cached['response_payload']['workspace_id'] ?? '');
+            if ($workspaceId !== '') {
+                $this->bootstrapIdentity->handle($userId, $workspaceId);
+            }
+
             return $cached['response_payload'];
         }
 

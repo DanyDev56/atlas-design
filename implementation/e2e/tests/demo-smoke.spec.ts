@@ -43,6 +43,16 @@ test('le dashboard présente la priorité et les indicateurs essentiels', async 
     await expect(page.getByRole('region', { name: 'Prestations facturées' })).toBeVisible();
 });
 
+test('les paramètres exposent le profil et les membres du workspace', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'La lecture des paramètres suffit sur un viewport.');
+
+    await navigateFromShell(page, 'Paramètres');
+    await expect(page.getByRole('heading', { name: 'Paramètres' })).toBeVisible();
+    await expect(page.getByLabel('Nom d’affichage')).toHaveValue('Studio Atlas Démo');
+    await expect(page.getByText('Présentation Atlas', { exact: true })).toBeVisible();
+    await expect(page.getByText('owner', { exact: false })).toBeVisible();
+});
+
 test('les données démo rendent les principaux dossiers identifiables', async ({ page }) => {
     await navigateFromShell(page, 'CRM');
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible();

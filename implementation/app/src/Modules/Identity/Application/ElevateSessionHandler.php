@@ -23,6 +23,7 @@ final class ElevateSessionHandler
     public const PERMISSIONS = [
         'crm.clients.import-history',
         'billing.history.import',
+        'workspace.billing-identity.update',
     ];
 
     public const LIFETIME = '+15 minutes';

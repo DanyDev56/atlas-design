@@ -60,6 +60,13 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
         Route::prefix('/workspaces/{workspaceId}')->group(function (): void {
             Route::get('/summary', [WorkspaceController::class, 'summary']);
+            Route::get('/profile', [WorkspaceController::class, 'profile']);
+            Route::patch('/profile', [WorkspaceController::class, 'updateProfile']);
+            Route::get('/billing-identity', [WorkspaceController::class, 'billingIdentity']);
+            Route::patch('/billing-identity', [WorkspaceController::class, 'updateBillingIdentity']);
+            Route::get('/preferences', [WorkspaceController::class, 'preferences']);
+            Route::patch('/preferences', [WorkspaceController::class, 'updatePreferences']);
+            Route::get('/members', [WorkspaceController::class, 'members']);
 
             Route::post('/memberships/{membershipId}/remove', RemoveMembershipController::class);
 

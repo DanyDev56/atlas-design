@@ -105,6 +105,8 @@ export function StepUpPasswordDialog({
     onPasswordChange,
     onSubmit,
     onCancel,
+    description = 'L’import historique est une action critique. Saisissez à nouveau votre mot de passe pour continuer. Aucune nouvelle session n’est créée.',
+    submitLabel = 'Continuer l’import',
 }: {
     open: boolean;
     password: string;
@@ -113,6 +115,8 @@ export function StepUpPasswordDialog({
     onPasswordChange: (value: string) => void;
     onSubmit: (event: FormEvent) => void;
     onCancel: () => void;
+    description?: string;
+    submitLabel?: string;
 }) {
     if (!open) {
         return null;
@@ -131,8 +135,7 @@ export function StepUpPasswordDialog({
                     Confirmer votre identité
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-atlas-ink-muted">
-                    L’import historique est une action critique. Saisissez à nouveau votre mot de passe
-                    pour continuer. Aucune nouvelle session n’est créée.
+                    {description}
                 </p>
                 <ErrorBanner message={error} />
                 <div className="mt-5">
@@ -154,7 +157,7 @@ export function StepUpPasswordDialog({
                         disabled={submitting}
                         className="rounded-xl bg-atlas-accent px-6 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                     >
-                        {submitting ? 'Vérification…' : 'Continuer l’import'}
+                        {submitting ? 'Vérification…' : submitLabel}
                     </button>
                     <button
                         type="button"

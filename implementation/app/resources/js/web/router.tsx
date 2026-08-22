@@ -16,6 +16,7 @@ import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage';
 import { PublicQuoteAcceptPage } from '@/pages/PublicQuoteAcceptPage';
 import { QuoteDetailPage } from '@/pages/QuoteDetailPage';
 import { RegisterPage } from '@/pages/RegisterPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 
 export function AppRouter() {
     return (
@@ -36,6 +37,7 @@ export function AppRouter() {
                 <Route path="billing/invoices/:invoiceId" element={<InvoiceDetailPage />} />
                 <Route path="health" element={<BusinessHealthPage />} />
                 <Route path="advisor" element={<AdvisorPage />} />
+                <Route path="settings" element={<SettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />

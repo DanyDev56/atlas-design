@@ -23,6 +23,14 @@ différent lève `Idempotency conflict.`
 | `RemoveMembershipHandler` | `identity.remove_membership` | actorUserId, workspaceId, membershipId |
 | `BootstrapFirstWorkspaceHandler` | `onboarding.bootstrap_first_workspace` | userId, workspace name |
 
+## Workspace (`workspace.idempotency_keys`)
+
+| Handler | Scope | Fingerprint |
+|---|---|---|
+| `UpdateWorkspaceProfileHandler` | `workspace.update_profile` | workspaceId, expectedRevision, displayName, tradingName, activityDescription |
+| `UpdateWorkspaceBillingIdentityHandler` | `workspace.update_billing_identity` | workspaceId, expectedRevision, legalName, administrativeEmail |
+| `ChangeWorkspacePreferencesHandler` | `workspace.change_preferences` | workspaceId, expectedRevision, locale, timezone, currency, country |
+
 ## CRM (`crm.idempotency_keys`)
 
 | Handler | Scope | Fingerprint |

@@ -112,11 +112,17 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Modules\Identity\Application\ListWorkspaceMembersHandler;
 use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
+use Atlas\Modules\Workspace\Application\ChangeWorkspacePreferencesHandler;
 use Atlas\Modules\Workspace\Application\CreateWorkspaceHandler;
+use Atlas\Modules\Workspace\Application\UpdateWorkspaceBillingIdentityHandler;
+use Atlas\Modules\Workspace\Application\UpdateWorkspaceProfileHandler;
+use Atlas\Modules\Workspace\Application\WorkspaceSettingsQueryHandler;
 use Atlas\Modules\Workspace\Application\WorkspaceSummaryQueryHandler;
 use Atlas\Modules\Workspace\Domain\WorkspaceRepository;
 use Atlas\Modules\Workspace\Infrastructure\Persistence\PostgresWorkspaceRepository;
+use Atlas\Modules\Workspace\Infrastructure\PostgresWorkspaceIdempotencyStore;
 use Atlas\Platform\Messaging\InboxStore;
 use Atlas\Platform\Messaging\Infrastructure\OutboxBacklogMonitor;
 use Atlas\Platform\Messaging\Infrastructure\OutboxDeadLetterManager;
@@ -181,6 +187,12 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(CreateWorkspaceHandler::class);
         $this->app->singleton(ActivateWorkspaceHandler::class);
         $this->app->singleton(WorkspaceSummaryQueryHandler::class);
+        $this->app->singleton(WorkspaceSettingsQueryHandler::class);
+        $this->app->singleton(UpdateWorkspaceProfileHandler::class);
+        $this->app->singleton(UpdateWorkspaceBillingIdentityHandler::class);
+        $this->app->singleton(ChangeWorkspacePreferencesHandler::class);
+        $this->app->singleton(PostgresWorkspaceIdempotencyStore::class);
+        $this->app->singleton(ListWorkspaceMembersHandler::class);
         $this->app->singleton(BootstrapFirstWorkspaceHandler::class);
 
         $this->app->singleton(WorkspaceAuthorizer::class);

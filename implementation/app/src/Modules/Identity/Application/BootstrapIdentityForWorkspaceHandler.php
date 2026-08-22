@@ -26,6 +26,12 @@ final class BootstrapIdentityForWorkspaceHandler
         'workspace.members.remove',
         'workspace.settings.read',
         'workspace.settings.update',
+        'workspace.profile.read',
+        'workspace.profile.update',
+        'workspace.preferences.read',
+        'workspace.preferences.change',
+        'workspace.billing-identity.read',
+        'workspace.billing-identity.update',
         'crm.clients.read',
         'crm.clients.create',
         'crm.clients.update-profile',
@@ -110,6 +116,7 @@ final class BootstrapIdentityForWorkspaceHandler
                 $roleIdValue = $roleId->value;
             } else {
                 $roleId = new RoleId($roleIdValue);
+                $this->roles->replacePermissions($roleId, self::OWNER_PERMISSIONS);
             }
 
             $existing = $this->memberships->findByUserAndWorkspace(new UserId($userId), $workspaceId);

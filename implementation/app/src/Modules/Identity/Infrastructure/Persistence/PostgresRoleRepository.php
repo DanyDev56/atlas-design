@@ -34,6 +34,17 @@ final class PostgresRoleRepository
         $this->createRole($roleId, $workspaceId, 'owner', $permissions, $now);
     }
 
+    /** @param list<string> $permissions */
+    public function replacePermissions(RoleId $roleId, array $permissions): void
+    {
+        DB::table('identity.roles')
+            ->where('id', $roleId->value)
+            ->update([
+                'permissions' => json_encode($permissions, JSON_THROW_ON_ERROR),
+                'version' => DB::raw('version + 1'),
+            ]);
+    }
+
     public function findOwnerRoleId(string $workspaceId): ?string
     {
         return DB::table('identity.roles')

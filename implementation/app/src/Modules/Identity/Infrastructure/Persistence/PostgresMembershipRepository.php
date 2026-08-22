@@ -93,6 +93,33 @@ final class PostgresMembershipRepository
             ->exists();
     }
 
+    /** @return list<array{membership_id: string, user_id: string, email: string, display_name: string, role: string, status: string}> */
+    public function listForWorkspace(string $workspaceId): array
+    {
+        $rows = DB::table('identity.memberships as m')
+            ->join('identity.users as u', 'u.id', '=', 'm.user_id')
+            ->join('identity.roles as r', 'r.id', '=', 'm.role_id')
+            ->where('m.workspace_id', $workspaceId)
+            ->orderBy('m.created_at')
+            ->get([
+                'm.id as membership_id',
+                'm.user_id',
+                'u.email',
+                'u.display_name',
+                'r.name as role',
+                'm.status',
+            ]);
+
+        return $rows->map(fn ($row): array => [
+            'membership_id' => (string) $row->membership_id,
+            'user_id' => (string) $row->user_id,
+            'email' => (string) $row->email,
+            'display_name' => (string) $row->display_name,
+            'role' => (string) $row->role,
+            'status' => (string) $row->status,
+        ])->all();
+    }
+
     public function remove(MembershipId $membershipId, \DateTimeImmutable $removedAt): void
     {
         DB::table('identity.memberships')

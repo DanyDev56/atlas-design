@@ -14,6 +14,7 @@ const navItems = [
     { to: '/app/billing', label: 'Facturation', end: false, disabled: false },
     { to: '/app/health', label: 'Santé', end: false, disabled: false },
     { to: '/app/advisor', label: 'Advisor', end: false, disabled: false },
+    { to: '/app/settings', label: 'Paramètres', end: false, disabled: false },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -141,7 +142,7 @@ export function AppShell() {
         return () => {
             cancelled = true;
         };
-    }, [token, workspaceId]);
+    }, [token, workspaceId, location.pathname]);
 
     useEffect(() => {
         if (!mobileNavOpen) return;
@@ -244,8 +245,9 @@ export function AppShell() {
                             <p className="text-xs font-medium uppercase tracking-wide text-atlas-ink-muted">
                                 Espace de travail
                             </p>
-                            <p
-                                className="max-w-32 truncate text-sm font-semibold text-atlas-ink sm:max-w-64"
+                            <Link
+                                to="/app/settings"
+                                className="block max-w-32 truncate text-sm font-semibold text-atlas-ink hover:text-atlas-accent sm:max-w-64"
                                 title={workspaceName ?? undefined}
                             >
                                 {workspaceName
@@ -254,7 +256,7 @@ export function AppShell() {
                                         : workspaceId
                                           ? 'Chargement…'
                                           : 'Aucun espace')}
-                            </p>
+                            </Link>
                         </div>
                     </div>
                     <Link
