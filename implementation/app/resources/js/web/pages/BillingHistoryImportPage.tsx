@@ -287,15 +287,15 @@ export function BillingHistoryImportPage() {
                             </div>
 
                             <div className="mt-6 grid gap-5">
-                                <CsvFileField label="Fichier des devis" file={quotesFile} onChange={(file) => {
+                                <CsvFileField label="Fichier des devis" onChange={(file) => {
                                     setQuotesFile(file);
                                     resetResult();
                                 }} />
-                                <CsvFileField label="Fichier des factures" file={invoicesFile} onChange={(file) => {
+                                <CsvFileField label="Fichier des factures" onChange={(file) => {
                                     setInvoicesFile(file);
                                     resetResult();
                                 }} />
-                                <CsvFileField label="Fichier des paiements" file={paymentsFile} onChange={(file) => {
+                                <CsvFileField label="Fichier des paiements" onChange={(file) => {
                                     setPaymentsFile(file);
                                     resetResult();
                                 }} />
@@ -363,17 +363,14 @@ export function BillingHistoryImportPage() {
 
 function CsvFileField({
     label,
-    file,
     onChange,
 }: {
     label: string;
-    file: File | null;
     onChange: (file: File | null) => void;
 }) {
     return (
         <FormField label={label}>
             <input
-                key={file?.name ?? 'empty'}
                 required
                 type="file"
                 accept=".csv,text/csv,text/plain"
