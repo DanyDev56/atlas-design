@@ -24,6 +24,11 @@ final class PreviewHistoricalBillingHistoryHandler
             'external_id', 'invoice_external_id', 'amount_received_cents',
             'amount_applied_cents', 'currency', 'received_at', 'status',
         ],
+        'credit_notes' => [
+            'external_id', 'invoice_external_id', 'original_number', 'issued_at', 'applied_at',
+            'net_amount_cents', 'tax_amount_cents', 'gross_amount_cents', 'amount_applied_cents',
+            'remainder_disposition', 'currency', 'reason',
+        ],
     ];
 
     public function __construct(
@@ -40,6 +45,7 @@ final class PreviewHistoricalBillingHistoryHandler
         string $quotesContents,
         string $invoicesContents,
         string $paymentsContents,
+        string $creditNotesContents,
     ): array {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.history.import');
         $sourceSystem = trim($sourceSystem);
@@ -62,6 +68,7 @@ final class PreviewHistoricalBillingHistoryHandler
             'quotes' => $quotesContents,
             'invoices' => $invoicesContents,
             'payments' => $paymentsContents,
+            'credit_notes' => $creditNotesContents,
         ] as $kind => $contents) {
             $records[$kind] = $this->parseCsv($kind, $contents, $errors);
         }
@@ -89,6 +96,7 @@ final class PreviewHistoricalBillingHistoryHandler
             'quotes' => $this->canonicalRecords($records['quotes']),
             'invoices' => $this->canonicalRecords($records['invoices']),
             'payments' => $this->canonicalRecords($records['payments']),
+            'credit_notes' => $this->canonicalRecords($records['credit_notes']),
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $previewId = (string) Str::uuid();
@@ -101,6 +109,7 @@ final class PreviewHistoricalBillingHistoryHandler
             'quote_count' => count($records['quotes']),
             'invoice_count' => count($records['invoices']),
             'payment_count' => count($records['payments']),
+            'credit_note_count' => count($records['credit_notes']),
             'validation_error_count' => count($errors),
             'valid_for_confirmation' => $errors === [],
             ...$records,
@@ -118,6 +127,7 @@ final class PreviewHistoricalBillingHistoryHandler
             'quote_count' => count($records['quotes']),
             'invoice_count' => count($records['invoices']),
             'payment_count' => count($records['payments']),
+            'credit_note_count' => count($records['credit_notes']),
             'validation_error_count' => count($errors),
             ...$records,
             'validation_errors' => $errors,
@@ -245,6 +255,7 @@ final class PreviewHistoricalBillingHistoryHandler
                 if ($payment['currency'] !== $invoice['currency']) {
                     $errors[] = $this->error('payments', $payment['line'], 'currency', 'currency_mismatch', 'La devise du paiement diffère de la facture.');
                 }
+                $this->validateDateOrder('payments', $payment, 'received_at', $invoice['issued_at'], 'Le paiement ne peut pas précéder l’émission de la facture.', $errors);
             }
             if (! ctype_digit($payment['amount_received_cents']) || ! ctype_digit($payment['amount_applied_cents'])
                 || (int) $payment['amount_applied_cents'] <= 0
@@ -261,9 +272,53 @@ final class PreviewHistoricalBillingHistoryHandler
         }
         unset($payment);
 
+        $existingCreditNotes = $this->previews->existingIdentities($workspaceId, $sourceSystem, 'credit_notes');
+        $credited = [];
+        foreach ($records['credit_notes'] as &$creditNote) {
+            $invoice = $invoiceRecords[$creditNote['invoice_external_id']] ?? null;
+            if ($invoice === null) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'invoice_external_id', 'unresolved_invoice', 'La facture référencée doit être présente dans le package.');
+            } else {
+                $creditNote['invoice_currency'] = $invoice['currency'];
+                $credited[$creditNote['invoice_external_id']] = ($credited[$creditNote['invoice_external_id']] ?? 0) + (int) $creditNote['amount_applied_cents'];
+                if ($creditNote['currency'] !== $invoice['currency']) {
+                    $errors[] = $this->error('credit_notes', $creditNote['line'], 'currency', 'currency_mismatch', 'La devise de l’avoir diffère de la facture.');
+                }
+                $this->validateDateOrder('credit_notes', $creditNote, 'issued_at', $invoice['issued_at'], 'L’avoir ne peut pas précéder l’émission de la facture.', $errors);
+            }
+            $this->validateAmounts('credit_notes', $creditNote, $errors);
+            if ((int) $creditNote['gross_amount_cents'] <= 0) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'gross_amount_cents', 'invalid_amount', 'Le montant de l’avoir doit être positif.');
+            }
+            if (! ctype_digit((string) $creditNote['amount_applied_cents'])
+                || (int) $creditNote['amount_applied_cents'] <= 0
+                || (int) $creditNote['amount_applied_cents'] > (int) $creditNote['gross_amount_cents']) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'amount_applied_cents', 'invalid_amount', 'Le montant appliqué de l’avoir est incohérent.');
+            }
+            $unapplied = (int) $creditNote['gross_amount_cents'] - (int) $creditNote['amount_applied_cents'];
+            $disposition = $creditNote['remainder_disposition'];
+            if ($unapplied > 0 && ! in_array($disposition, ['RefundDue', 'ClientCredit'], true)) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'remainder_disposition', 'invalid_remainder', 'Un reliquat d’avoir exige RefundDue ou ClientCredit.');
+            }
+            if ($unapplied === 0 && $disposition !== '') {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'remainder_disposition', 'invalid_remainder', 'Un avoir entièrement appliqué ne doit pas porter de disposition de reliquat.');
+            }
+            if ($creditNote['original_number'] === '' || mb_strlen($creditNote['original_number']) > 160) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'original_number', 'invalid_original_number', 'Le numéro d’origine de l’avoir est invalide.');
+            }
+            $this->validateDate('credit_notes', $creditNote, 'issued_at', $exportedAt, $errors);
+            $this->validateDate('credit_notes', $creditNote, 'applied_at', $exportedAt, $errors);
+            $this->validateDateOrder('credit_notes', $creditNote, 'applied_at', $creditNote['issued_at'], 'L’application de l’avoir ne peut pas précéder son émission.', $errors);
+            if (isset($existingCreditNotes[$creditNote['external_id']]) && $existingCreditNotes[$creditNote['external_id']] !== $creditNote['canonical_record_hash']) {
+                $errors[] = $this->error('credit_notes', $creditNote['line'], 'external_id', 'identity_conflict', 'Cette identité historique existe avec un autre contenu.');
+            }
+        }
+        unset($creditNote);
+
         foreach ($records['invoices'] as $invoice) {
-            if (($applied[$invoice['external_id']] ?? 0) > (int) $invoice['gross_amount_cents']) {
-                $errors[] = $this->error('invoices', $invoice['line'], 'gross_amount_cents', 'overpayment', 'Les paiements appliqués dépassent le montant de la facture.');
+            $appliedTotal = ($applied[$invoice['external_id']] ?? 0) + ($credited[$invoice['external_id']] ?? 0);
+            if ($appliedTotal > (int) $invoice['gross_amount_cents']) {
+                $errors[] = $this->error('invoices', $invoice['line'], 'gross_amount_cents', 'overpayment', 'Les paiements et avoirs appliqués dépassent le montant de la facture.');
             }
         }
 
@@ -310,6 +365,18 @@ final class PreviewHistoricalBillingHistoryHandler
             }
         } catch (\Throwable) {
             $errors[] = $this->error($kind, $record['line'], $field, 'invalid_date', 'La date est invalide ou postérieure à l’export.');
+        }
+    }
+
+    /** @param list<array<string, mixed>> $errors */
+    private function validateDateOrder(string $kind, array $record, string $field, string $notBefore, string $message, array &$errors): void
+    {
+        try {
+            if (new \DateTimeImmutable((string) $record[$field]) < new \DateTimeImmutable($notBefore)) {
+                $errors[] = $this->error($kind, $record['line'], $field, 'invalid_date_order', $message);
+            }
+        } catch (\Throwable) {
+            // Individual date validation reports malformed values with a more precise error.
         }
     }
 

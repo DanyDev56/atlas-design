@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api\Billing;
 
 use Atlas\Modules\Billing\Application\ExecuteHistoricalBillingHistoryImportHandler;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresCreditNoteRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -38,12 +39,14 @@ final class BillingHistoryImportTest extends IntegrationTestCase
             ->assertJsonPath('quote_count', 1)
             ->assertJsonPath('invoice_count', 1)
             ->assertJsonPath('payment_count', 1)
+            ->assertJsonPath('credit_note_count', 1)
             ->assertJsonPath('quotes.0.client_display_name', 'Legacy client')
             ->assertJsonPath('package_hash', fn ($value): bool => is_string($value) && preg_match('/^[a-f0-9]{64}$/', $value) === 1);
 
         $this->assertSame(0, DB::table('billing.quotes')->count());
         $this->assertSame(0, DB::table('billing.invoices')->count());
         $this->assertSame(0, DB::table('billing.payments')->count());
+        $this->assertSame(0, DB::table('billing.credit_notes')->count());
         $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.quote_sent')->count());
     }
 
@@ -94,22 +97,32 @@ final class BillingHistoryImportTest extends IntegrationTestCase
             ->assertJsonPath('processed_quotes', 1)
             ->assertJsonPath('processed_invoices', 1)
             ->assertJsonPath('processed_payments', 1)
+            ->assertJsonPath('processed_credit_notes', 1)
             ->json();
 
         $quote = DB::table('billing.quotes')->sole();
         $invoice = DB::table('billing.invoices')->sole();
         $payment = DB::table('billing.payments')->sole();
+        $creditNote = DB::table('billing.credit_notes')->sole();
         $this->assertTrue((bool) $quote->is_historical_import);
         $this->assertSame('Q-OLD-42', $quote->original_number);
         $this->assertTrue((bool) $invoice->is_historical_import);
         $this->assertNull($invoice->invoice_number);
         $this->assertSame('INV-OLD-42', $invoice->original_number);
-        $this->assertSame(7000, (int) $invoice->balance_cents);
-        $this->assertSame('PartiallyPaid', $invoice->settlement_status);
+        $this->assertSame(0, (int) $invoice->balance_cents);
+        $this->assertSame('Paid', $invoice->settlement_status);
+        $this->assertSame('2025-01-10 00:00:00+00:00', (new \DateTimeImmutable((string) $invoice->paid_at))->format('Y-m-d H:i:sP'));
         $this->assertSame(3000, (int) $payment->amount_applied_cents);
+        $this->assertTrue((bool) $creditNote->is_historical_import);
+        $this->assertNull($creditNote->credit_note_number);
+        $this->assertSame('CN-OLD-42', $creditNote->original_number);
+        $this->assertSame(5600, (int) $creditNote->net_amount_cents);
+        $this->assertSame(1400, (int) $creditNote->tax_amount_cents);
+        $this->assertSame(7000, (int) $creditNote->gross_amount_cents);
+        $this->assertSame(7000, (int) $creditNote->amount_applied_cents);
         $this->assertSame(0, DB::table('billing.public_document_proofs')->count());
 
-        foreach (['billing.quote_sent', 'billing.quote_accepted', 'billing.invoice_issued', 'billing.payment_recorded'] as $eventType) {
+        foreach (['billing.quote_sent', 'billing.quote_accepted', 'billing.invoice_issued', 'billing.payment_recorded', 'billing.credit_note_issued', 'billing.credit_note_applied_to_invoice'] as $eventType) {
             $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', $eventType)->count());
         }
         $this->assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'billing.history_import_requested')->count());
@@ -122,6 +135,14 @@ final class BillingHistoryImportTest extends IntegrationTestCase
         )->assertOk()
             ->assertJsonPath('original_number', 'Q-OLD-42')
             ->assertJsonPath('is_historical_import', true);
+
+        $this->getJson(
+            "/api/workspaces/{$owner['workspace_id']}/invoices/{$invoice->id}",
+            $this->headers($owner['token']),
+        )->assertOk()
+            ->assertJsonPath('credit_notes.0.original_number', 'CN-OLD-42')
+            ->assertJsonPath('credit_notes.0.credit_note_number', null)
+            ->assertJsonPath('credit_notes.0.is_historical_import', true);
 
         $this->postJson(
             "/api/workspaces/{$owner['workspace_id']}/quotes/{$quote->id}/send",
@@ -155,14 +176,48 @@ final class BillingHistoryImportTest extends IntegrationTestCase
         $this->assertSame(1, DB::table('billing.quotes')->count());
         $this->assertSame(1, DB::table('billing.invoices')->count());
         $this->assertSame(1, DB::table('billing.payments')->count());
+        $this->assertSame(1, DB::table('billing.credit_notes')->count());
         $this->assertSame('INV-000001', app(PostgresInvoiceRepository::class)->nextInvoiceNumber($owner['workspace_id']));
+        $this->assertSame('CN-000001', app(PostgresCreditNoteRepository::class)->nextNumber($owner['workspace_id']));
 
         app(ExecuteHistoricalBillingHistoryImportHandler::class)->handle(
             $owner['workspace_id'],
             $response['import_run_id'],
         );
         $this->assertSame(1, DB::table('billing.quotes')->count());
+        $this->assertSame(1, DB::table('billing.credit_notes')->count());
         $this->assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'billing.history_import_completed')->count());
+    }
+
+    public function test_invalid_credit_note_remainders_dates_and_overapplication_block_confirmation(): void
+    {
+        $owner = $this->onboardOwner($this, 'billing-history-credit-note-invalid@test.local');
+        $this->insertHistoricalClient($owner['workspace_id']);
+
+        $this->post(
+            "/api/workspaces/{$owner['workspace_id']}/billing-history-imports/preview",
+            [
+                'source_system' => 'LegacySuite',
+                'source_exported_at' => '2025-03-01T00:00:00Z',
+                'quotes_file' => UploadedFile::fake()->createWithContent('quotes.csv', $this->quoteHeader()),
+                'invoices_file' => UploadedFile::fake()->createWithContent('invoices.csv', implode("\n", [
+                    $this->invoiceHeader(),
+                    'invoice-42,client-42,INV-OLD-42,2025-01-04T00:00:00Z,2025-02-04T00:00:00Z,8000,2000,10000,EUR',
+                ])),
+                'payments_file' => UploadedFile::fake()->createWithContent('payments.csv', $this->paymentHeader()),
+                'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', implode("\n", [
+                    $this->creditNoteHeader(),
+                    'credit-42,invoice-42,CN-OLD-42,2025-01-06T00:00:00Z,2025-01-05T00:00:00Z,9600,2400,12000,11000,,EUR,Avoir incohérent',
+                ])),
+            ],
+            $this->headers($owner['token']),
+        )->assertCreated()
+            ->assertJsonPath('valid_for_confirmation', false)
+            ->assertJsonFragment(['code' => 'invalid_remainder'])
+            ->assertJsonFragment(['code' => 'invalid_date_order'])
+            ->assertJsonFragment(['code' => 'overpayment']);
+
+        $this->assertSame(0, DB::table('billing.credit_notes')->count());
     }
 
     public function test_headers_only_files_are_allowed_but_an_empty_package_is_not(): void
@@ -177,6 +232,7 @@ final class BillingHistoryImportTest extends IntegrationTestCase
                 'quotes_file' => UploadedFile::fake()->createWithContent('quotes.csv', $this->quoteHeader()),
                 'invoices_file' => UploadedFile::fake()->createWithContent('invoices.csv', $this->invoiceHeader()),
                 'payments_file' => UploadedFile::fake()->createWithContent('payments.csv', $this->paymentHeader()),
+                'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', $this->creditNoteHeader()),
             ],
             $this->headers($owner['token']),
         )->assertCreated()
@@ -205,6 +261,7 @@ final class BillingHistoryImportTest extends IntegrationTestCase
                     $this->paymentHeader(),
                     'payment-42,invoice-missing,3000,3000,EUR,2025-01-10T00:00:00Z,Active',
                 ])),
+                'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', $this->creditNoteHeader()),
             ],
             $this->headers($owner['token']),
         )->assertCreated()
@@ -252,6 +309,7 @@ final class BillingHistoryImportTest extends IntegrationTestCase
                 ])),
                 'invoices_file' => UploadedFile::fake()->createWithContent('invoices.csv', $this->invoiceHeader()),
                 'payments_file' => UploadedFile::fake()->createWithContent('payments.csv', $this->paymentHeader()),
+                'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', $this->creditNoteHeader()),
             ],
             $this->headers($owner['token']),
         )->assertCreated()
@@ -294,6 +352,10 @@ final class BillingHistoryImportTest extends IntegrationTestCase
                 $this->paymentHeader(),
                 'payment-42,invoice-42,3000,3000,EUR,2025-01-10T00:00:00Z,Active',
             ])),
+            'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', implode("\n", [
+                $this->creditNoteHeader(),
+                'credit-42,invoice-42,CN-OLD-42,2025-01-06T00:00:00Z,2025-01-08T00:00:00Z,5600,1400,7000,7000,,EUR,Avoir historique',
+            ])),
         ];
     }
 
@@ -331,6 +393,11 @@ final class BillingHistoryImportTest extends IntegrationTestCase
     private function paymentHeader(): string
     {
         return 'external_id,invoice_external_id,amount_received_cents,amount_applied_cents,currency,received_at,status';
+    }
+
+    private function creditNoteHeader(): string
+    {
+        return 'external_id,invoice_external_id,original_number,issued_at,applied_at,net_amount_cents,tax_amount_cents,gross_amount_cents,amount_applied_cents,remainder_disposition,currency,reason';
     }
 
     /** @return array<string, string> */

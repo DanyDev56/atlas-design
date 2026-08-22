@@ -483,6 +483,31 @@ export function InvoiceDetailPage() {
                             </form>
                         )}
 
+                        {invoice.is_historical_import && (invoice.credit_notes ?? []).length > 0 && (
+                            <section aria-labelledby="historical-credit-notes-title" className="mt-8 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
+                                <h3 id="historical-credit-notes-title" className="text-lg font-semibold text-atlas-ink">Avoirs historiques</h3>
+                                <p className="mt-2 text-sm text-atlas-ink-muted">
+                                    Ces avoirs proviennent de l’import historique. Ils sont en lecture seule.
+                                </p>
+                                <ul className="mt-5 divide-y divide-atlas-border rounded-xl border border-atlas-border">
+                                    {(invoice.credit_notes ?? []).map((creditNote) => (
+                                        <li key={creditNote.credit_note_id} className="p-4">
+                                            <p className="font-medium text-atlas-ink">
+                                                {creditNote.original_number ?? creditNote.credit_note_number ?? 'Avoir'}
+                                            </p>
+                                            <p className="mt-1 text-sm text-atlas-ink-muted">
+                                                {formatMoney(creditNote.total_cents, creditNote.currency)}
+                                                {' · '}{creditNote.status}
+                                                {creditNote.amount_applied_cents > 0
+                                                    ? ` · ${formatMoney(creditNote.amount_applied_cents, creditNote.currency)} appliqués`
+                                                    : ''}
+                                            </p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
+
                         {invoice.status === 'Issued' && !invoice.is_historical_import && (
                             <section aria-labelledby="credit-notes-title" className="mt-8 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
                                 <h3 id="credit-notes-title" className="text-lg font-semibold text-atlas-ink">Avoirs</h3>

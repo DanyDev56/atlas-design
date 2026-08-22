@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Billing\Application;
 
+use Atlas\Modules\Billing\Domain\CreditNoteId;
 use Atlas\Modules\Billing\Domain\Invoice;
 use Atlas\Modules\Billing\Domain\InvoiceId;
-use Atlas\Modules\Billing\Domain\CreditNoteId;
 use Atlas\Modules\Billing\Domain\QuoteId;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresCreditNoteRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
@@ -144,6 +144,7 @@ final class BillingQueryHandler
     public function listCreditNotes(string $actorUserId, string $workspaceId, string $invoiceId): array
     {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.credit-notes.read');
+
         return $this->creditNotes->listForInvoice($workspaceId, $invoiceId);
     }
 
@@ -156,11 +157,20 @@ final class BillingQueryHandler
             throw new \DomainException('Credit note not found.');
         }
 
+        $provenance = DB::table('billing.credit_notes')
+            ->where('workspace_id', $workspaceId)
+            ->where('id', $creditNoteId)
+            ->first();
+
         return [
             'credit_note_id' => $creditNote->id()->value,
             'invoice_id' => $creditNote->invoiceId(),
             'status' => $creditNote->status(),
             'credit_note_number' => $creditNote->number(),
+            'original_number' => $provenance->original_number ?? null,
+            'net_amount_cents' => $provenance->net_amount_cents !== null ? (int) $provenance->net_amount_cents : null,
+            'tax_amount_cents' => $provenance->tax_amount_cents !== null ? (int) $provenance->tax_amount_cents : null,
+            'gross_amount_cents' => $provenance->gross_amount_cents !== null ? (int) $provenance->gross_amount_cents : null,
             'lines' => $creditNote->lines(),
             'total_cents' => $creditNote->totalCents(),
             'amount_applied_cents' => $creditNote->amountAppliedCents(),
@@ -171,6 +181,7 @@ final class BillingQueryHandler
             'version' => $creditNote->version(),
             'issued_at' => $creditNote->issuedAt()?->format(DATE_ATOM),
             'applied_at' => $creditNote->appliedAt()?->format(DATE_ATOM),
+            'is_historical_import' => (bool) ($provenance->is_historical_import ?? false),
         ];
     }
 

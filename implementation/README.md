@@ -94,7 +94,7 @@ make logs-runtime # Suivre leurs logs
 make stop-runtime # Arrêter les rôles sans arrêter PostgreSQL
 make down        # Arrêter
 make shell       # Shell dans le conteneur app
-make test        # Tests Pest (après bootstrap)
+make test        # Tests Pest dans la base isolée atlas_test (après bootstrap)
 make web-check   # TypeScript strict + build Vite
 make check-docs  # Quality gates documentaires du dépôt parent
 make backup      # Sauvegarde PostgreSQL (Palier 3)

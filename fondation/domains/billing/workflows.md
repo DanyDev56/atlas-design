@@ -35,15 +35,16 @@ intention ; l'émetteur peut la retirer explicitement.
 1. l'adaptateur prépare un package canonique et un aperçu sans mutation ;
 2. le manifest Client CRM terminé résout chaque contrepartie ;
 3. `ImportHistoricalBillingHistory` confirme hash, compteurs et mapping ;
-4. le run matérialise Quotes, Invoices puis Payments par checkpoints ;
+4. le run matérialise Quotes, Invoices, Payments puis CreditNotes par
+   checkpoints ;
 5. Billing recalcule les totaux et soldes, et bloque tout écart ;
 6. la completion rend les agrégats visibles et publie
    `BillingHistoryImportCompleted` ;
 7. Analytics reconstruit ensuite une génération contrôlée.
 
-Ce workflow ne passe jamais par les commandes de création, d'envoi, d'émission
-ou d'encaissement. Une relance ultérieure reste une nouvelle intention humaine
-après revalidation de l'adresse et de l'autorisation.
+Ce workflow ne passe jamais par les commandes de création, d'envoi, d'émission,
+d'encaissement ou d'application d'avoir. Une relance ultérieure reste une
+nouvelle intention humaine après revalidation de l'adresse et de l'autorisation.
 
 ## Quote acceptée vers Opportunity et Invoices
 

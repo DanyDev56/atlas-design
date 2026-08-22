@@ -11,7 +11,7 @@ final class PostgresBillingHistoryImportPreviewRepository
     /** @param array<string, mixed> $preview */
     public function insert(array $preview): void
     {
-        foreach (['quotes', 'invoices', 'payments', 'validation_errors'] as $field) {
+        foreach (['quotes', 'invoices', 'payments', 'credit_notes', 'validation_errors'] as $field) {
             $preview[$field] = json_encode($preview[$field], JSON_THROW_ON_ERROR);
         }
 
@@ -31,11 +31,11 @@ final class PostgresBillingHistoryImportPreviewRepository
         }
 
         $result = (array) $row;
-        foreach (['quotes', 'invoices', 'payments', 'validation_errors'] as $field) {
-            $result[$field] = json_decode((string) $result[$field], true, 512, JSON_THROW_ON_ERROR);
+        foreach (['quotes', 'invoices', 'payments', 'credit_notes', 'validation_errors'] as $field) {
+            $result[$field] = json_decode((string) ($result[$field] ?? '[]'), true, 512, JSON_THROW_ON_ERROR);
         }
         $result['valid_for_confirmation'] = (int) $result['validation_error_count'] === 0
-            && ((int) $result['quote_count'] + (int) $result['invoice_count'] + (int) $result['payment_count']) > 0
+            && ((int) $result['quote_count'] + (int) $result['invoice_count'] + (int) $result['payment_count'] + (int) ($result['credit_note_count'] ?? 0)) > 0
             && new \DateTimeImmutable((string) $result['expires_at']) > new \DateTimeImmutable('now');
 
         return $result;

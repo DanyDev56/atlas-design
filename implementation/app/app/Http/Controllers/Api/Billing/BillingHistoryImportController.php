@@ -32,6 +32,7 @@ final class BillingHistoryImportController extends Controller
             'quotes_file' => ['required', 'file', 'max:512', 'mimes:csv,txt'],
             'invoices_file' => ['required', 'file', 'max:512', 'mimes:csv,txt'],
             'payments_file' => ['required', 'file', 'max:512', 'mimes:csv,txt'],
+            'credit_notes_file' => ['required', 'file', 'max:512', 'mimes:csv,txt'],
         ]);
 
         return $this->respond(fn (): array => $this->previewImport->handle(
@@ -42,6 +43,7 @@ final class BillingHistoryImportController extends Controller
             quotesContents: $validated['quotes_file']->get(),
             invoicesContents: $validated['invoices_file']->get(),
             paymentsContents: $validated['payments_file']->get(),
+            creditNotesContents: $validated['credit_notes_file']->get(),
         ), 201);
     }
 
@@ -100,9 +102,11 @@ final class BillingHistoryImportController extends Controller
             'quote_count' => (int) $run['quote_count'],
             'invoice_count' => (int) $run['invoice_count'],
             'payment_count' => (int) $run['payment_count'],
+            'credit_note_count' => (int) ($run['credit_note_count'] ?? 0),
             'processed_quotes' => (int) $run['processed_quotes'],
             'processed_invoices' => (int) $run['processed_invoices'],
             'processed_payments' => (int) $run['processed_payments'],
+            'processed_credit_notes' => (int) ($run['processed_credit_notes'] ?? 0),
         ];
     }
 

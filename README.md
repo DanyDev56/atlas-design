@@ -108,7 +108,7 @@ est l'interface React de démonstration et d'early access décrite dans
 ```bash
 make up           # Docker + PostgreSQL
 make bootstrap    # Dépendances, configuration et migrations
-make test         # Tests backend Pest
+make test         # Tests backend Pest dans une base atlas_test isolée
 make web-check    # TypeScript strict + build Vite
 ```
 

@@ -65,7 +65,7 @@ references:
 
 ### Démarrage à froid
 
-- import initial guidé de Quotes, Invoices et Payments historiques ;
+- import initial guidé de Quotes, Invoices, Payments et CreditNotes historiques ;
 - conservation des numéros, dates, états, montants et devises source ;
 - rapprochement exact des Clients déjà importés ;
 - reprise par checkpoint et validation des soldes avant publication Analytics ;

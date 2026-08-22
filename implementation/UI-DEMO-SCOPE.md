@@ -61,7 +61,10 @@ membres autorisés. Les relances manuelles sont enregistrées sur une facture
 émise avec solde positif (`billing.invoices.remind`) et placées dans l’outbox
 sans envoi email réel. Un acompte unique (`Deposit`) peut être créé depuis un
 devis accepté, puis la facture finale facture le reliquat une fois l’acompte
-émis. L'import historique des avoirs reste hors périmètre.
+émis. L’import historique Billing inclut les avoirs déjà appliqués : CSV
+canonique, soldes recalculés avec les paiements, identité
+`(SourceSystem, ExternalId)`, aucun événement `CreditNoteIssued` /
+`CreditNoteAppliedToInvoice`.
 
 Le passage en retard est matérialisé par le scheduler (`atlas:billing:mark-overdue`,
 horaire) : facture émise, solde positif, échéance strictement dépassée, une
@@ -354,20 +357,24 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Isolation par workspace et permission `crm.clients.import-history` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
 
-### Import historique Billing (livré, borné devis/factures/paiements)
+### Import historique Billing (livré, borné devis/factures/paiements/avoirs)
 
 - Accessibilité depuis Facturation via `/app/billing/import`
-- Trois CSV canoniques (`quotes`, `invoices`, `payments`) ; un fichier peut
-  n’avoir que ses en-têtes, le package doit contenir au moins un enregistrement
+- Quatre CSV canoniques (`quotes`, `invoices`, `payments`, `credit_notes`) ; un
+  fichier peut n’avoir que ses en-têtes, le package doit contenir au moins un
+  enregistrement
 - Prévisualisation non destructive : clients résolus depuis l’import CRM du
-  même `SourceSystem`, arithmétique exacte, références paiement → facture
+  même `SourceSystem`, arithmétique exacte, références paiement/avoir → facture
+  du package, reliquat d’avoir `RefundDue` / `ClientCredit`
 - Empreinte SHA256 immuable du package ; confirmation idempotente
 - Exécution via l’outbox (`BillingHistoryImportRequested` → worker
   `atlas:outbox:work` ; le contrôleur draine aussi l’outbox pour le dev local)
-- Checkpoints `Quotes` → `Invoices` → `Payments` → `Validate` ; soldes dérivés
-  des paiements ; numéros source conservés, aucune séquence Atlas
-- Aucun événement `QuoteSent` / `InvoiceIssued` / `PaymentRecorded` ; completion
-  par `BillingHistoryImportCompleted`
+- Checkpoints `Quotes` → `Invoices` → `Payments` → `CreditNotes` → `Validate` ;
+  soldes dérivés des paiements et avoirs appliqués ; numéros source conservés,
+  aucune séquence Atlas
+- Aucun événement `QuoteSent` / `InvoiceIssued` / `PaymentRecorded` /
+  `CreditNoteIssued` / `CreditNoteAppliedToInvoice` ; completion par
+  `BillingHistoryImportCompleted`
 - Documents importés lisibles et verrouillés contre les mutations opérationnelles
 - Permission `billing.history.import` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
@@ -382,7 +389,7 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Génération isolée `Building` puis bascule `Active` (`RebuildReason =
   HistoricalImport`) ; l’ancienne génération devient `Superseded`
 - Faits Billing relus depuis le manifest d’import, sans `QuoteSent` /
-  `InvoiceIssued` / `PaymentRecorded`
+  `InvoiceIssued` / `PaymentRecorded` / `CreditNoteIssued`
 - Watermarks CRM/Billing avancés à la completion du rebuild ; snapshot publié
   sur la génération active
 - Rejeu du même couple de runs sans doublon de faits ni de génération

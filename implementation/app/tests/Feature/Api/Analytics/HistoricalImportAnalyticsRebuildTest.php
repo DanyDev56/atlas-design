@@ -74,16 +74,20 @@ final class HistoricalImportAnalyticsRebuildTest extends IntegrationTestCase
         $this->assertSame(1, (int) $rebuild->quote_fact_count);
         $this->assertSame(1, (int) $rebuild->invoice_fact_count);
         $this->assertSame(1, (int) $rebuild->payment_fact_count);
+        $this->assertSame(1, (int) $rebuild->credit_note_fact_count);
 
         $this->assertSame(1, DB::table('analytics.projection_generations')->where('status', 'Active')->where('rebuild_reason', 'HistoricalImport')->count());
         $this->assertSame(1, DB::table('analytics.source_facts')->where('source_event_type', 'analytics.historical_import.quote')->count());
         $this->assertSame(1, DB::table('analytics.source_facts')->where('source_event_type', 'analytics.historical_import.invoice')->count());
         $this->assertSame(1, DB::table('analytics.source_facts')->where('source_event_type', 'analytics.historical_import.payment')->count());
+        $this->assertSame(1, DB::table('analytics.source_facts')->where('source_event_type', 'analytics.historical_import.credit_note')->count());
         $this->assertSame(1, DB::table('analytics.snapshots')->count());
         $this->assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'analytics.projection_rebuilt')->count());
         $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.quote_sent')->count());
         $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.invoice_issued')->count());
         $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.payment_recorded')->count());
+        $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.credit_note_issued')->count());
+        $this->assertSame(0, DB::table('platform.outbox_messages')->where('event_type', 'billing.credit_note_applied_to_invoice')->count());
 
         $this->post(
             "/api/workspaces/{$owner['workspace_id']}/billing-history-imports/confirm",
@@ -97,7 +101,7 @@ final class HistoricalImportAnalyticsRebuildTest extends IntegrationTestCase
         )->assertAccepted();
 
         $this->assertSame(1, DB::table('analytics.historical_import_rebuilds')->count());
-        $this->assertSame(3, DB::table('analytics.source_facts')->where('source_event_type', 'like', 'analytics.historical_import.%')->count());
+        $this->assertSame(4, DB::table('analytics.source_facts')->where('source_event_type', 'like', 'analytics.historical_import.%')->count());
         $this->assertSame(1, DB::table('analytics.snapshots')->count());
     }
 
@@ -116,6 +120,10 @@ final class HistoricalImportAnalyticsRebuildTest extends IntegrationTestCase
             'payments_file' => UploadedFile::fake()->createWithContent('payments.csv', implode("\n", [
                 'external_id,invoice_external_id,amount_received_cents,amount_applied_cents,currency,received_at,status',
                 'payment-42,invoice-42,3000,3000,EUR,2025-01-10T00:00:00Z,Active',
+            ])),
+            'credit_notes_file' => UploadedFile::fake()->createWithContent('credit-notes.csv', implode("\n", [
+                'external_id,invoice_external_id,original_number,issued_at,applied_at,net_amount_cents,tax_amount_cents,gross_amount_cents,amount_applied_cents,remainder_disposition,currency,reason',
+                'credit-42,invoice-42,CN-OLD-42,2025-01-06T00:00:00Z,2025-01-08T00:00:00Z,5600,1400,7000,7000,,EUR,Avoir historique',
             ])),
         ];
     }

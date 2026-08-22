@@ -3,8 +3,8 @@ id: BPT-013
 title: MVP Historical Import
 status: In Review
 owner: Product and Engineering
-version: 1.0.0
-last_updated: 2026-08-06
+version: 1.1.0
+last_updated: 2026-08-22
 
 references:
   - README.md
@@ -23,7 +23,7 @@ references:
 
 Un indépendant établi ne doit pas attendre la constitution d'un nouvel
 historique pour évaluer Atlas. Le MVP accepte donc un package canonique contenant
-des Clients, Quotes, Invoices et Payments historiques.
+des Clients, Quotes, Invoices, Payments et CreditNotes historiques.
 
 L'import est un transfert initial contrôlé, pas une synchronisation continue ni
 un connecteur spécifique à Freebe, Indy ou Tiime. Des modèles CSV documentés et
@@ -59,8 +59,9 @@ Canonical package confirmed
 ```
 
 Les deux intentions sont distinctes des commandes opérationnelles. L'import ne
-simule jamais `CreateClient`, `SendQuote`, `IssueInvoice`, `SendInvoice` ou
-`RecordPayment` et ne republie pas leurs événements.
+simule jamais `CreateClient`, `SendQuote`, `IssueInvoice`, `SendInvoice`,
+`RecordPayment`, `IssueCreditNote` ou `ApplyCreditNote` et ne republie pas leurs
+événements.
 
 Chaque run possède un checkpoint et une clé stable par
 `(WorkspaceId, SourceSystem, ExternalId, RecordKind)`. Un retry reprend le même
@@ -73,8 +74,9 @@ manifest, ses compteurs et son hash concordent.
 Atlas conserve pour chaque enregistrement importé :
 
 - le système source et son identifiant externe opaque ;
-- le numéro de devis ou de facture tel qu'exporté ;
-- les dates de création, émission, échéance, réponse et paiement disponibles ;
+- le numéro de devis, facture ou avoir tel qu'exporté, séparé des séquences Atlas ;
+- les dates de création, émission, échéance, réponse, paiement et application
+  d'avoir disponibles ;
 - l'état historique supporté et les montants dans leur devise d'origine ;
 - le hash de la ligne canonique et l'`ImportRunId`.
 

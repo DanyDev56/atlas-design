@@ -1,0 +1,4 @@
+external_id,invoice_external_id,original_number,issued_at,applied_at,net_amount_cents,tax_amount_cents,gross_amount_cents,amount_applied_cents,remainder_disposition,currency,reason
+credit-note-001,invoice-002,AV-2024-012,2024-12-10T09:00:00Z,2024-12-10T09:05:00Z,10000,2000,12000,12000,,EUR,Geste commercial
+credit-note-002,invoice-003,AV-2025-004,2025-02-15T10:00:00Z,2025-02-15T10:10:00Z,20000,4000,24000,20000,ClientCredit,EUR,Remise partielle avec crédit client
+credit-note-003,invoice-004,AV-2025-009,2025-03-18T14:00:00Z,2025-03-18T14:05:00Z,22000,4400,26400,26400,,EUR,Annulation complète de la facture

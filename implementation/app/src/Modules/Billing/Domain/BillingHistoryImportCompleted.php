@@ -17,6 +17,7 @@ final readonly class BillingHistoryImportCompleted implements DomainEvent
         public int $quoteCount,
         public int $invoiceCount,
         public int $paymentCount,
+        public int $creditNoteCount,
         private EventId $eventId,
         private \DateTimeImmutable $occurredAt,
     ) {}
@@ -46,6 +47,7 @@ final readonly class BillingHistoryImportCompleted implements DomainEvent
             'quote_count' => $this->quoteCount,
             'invoice_count' => $this->invoiceCount,
             'payment_count' => $this->paymentCount,
+            'credit_note_count' => $this->creditNoteCount,
         ];
     }
 }

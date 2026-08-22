@@ -1,0 +1,2 @@
+external_id,invoice_external_id,original_number,issued_at,applied_at,net_amount_cents,tax_amount_cents,gross_amount_cents,amount_applied_cents,remainder_disposition,currency,reason
+cn-001,invoice-001,CN-OLD-001,2024-03-21T10:00:00Z,2024-03-21T10:05:00Z,4000,1000,5000,5000,,EUR,Avoir historique

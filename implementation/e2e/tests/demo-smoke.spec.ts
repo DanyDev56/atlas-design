@@ -138,7 +138,7 @@ test('un export client peut être prévisualisé sans modifier le CRM', async ({
     await expect(page.getByText('Import terminé avec succès.', { exact: false })).toBeVisible({ timeout: 20_000 });
 });
 
-test('les trois fichiers Billing sont pris en compte dès leur première sélection', async ({ page }, testInfo) => {
+test('les quatre fichiers Billing sont pris en compte dès leur première sélection', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'La sélection des fichiers suffit sur un viewport.');
 
     await navigateFromShell(page, 'Facturation');
@@ -149,6 +149,7 @@ test('les trois fichiers Billing sont pris en compte dès leur première sélect
         expect(body).toContain('filename="quotes.csv"');
         expect(body).toContain('filename="invoices.csv"');
         expect(body).toContain('filename="payments.csv"');
+        expect(body).toContain('filename="credit-notes.csv"');
 
         await route.fulfill({
             status: 201,
@@ -161,11 +162,13 @@ test('les trois fichiers Billing sont pris en compte dès leur première sélect
                 quote_count: 1,
                 invoice_count: 0,
                 payment_count: 0,
+                credit_note_count: 0,
                 validation_error_count: 0,
                 valid_for_confirmation: true,
                 quotes: [],
                 invoices: [],
                 payments: [],
+                credit_notes: [],
                 validation_errors: [],
                 expires_at: '2099-01-01T00:00:00+00:00',
             },
@@ -177,6 +180,7 @@ test('les trois fichiers Billing sont pris en compte dès leur première sélect
         ['Fichier des devis', 'quotes.csv', 'external_id\nquote-e2e'],
         ['Fichier des factures', 'invoices.csv', 'external_id'],
         ['Fichier des paiements', 'payments.csv', 'external_id'],
+        ['Fichier des avoirs', 'credit-notes.csv', 'external_id'],
     ] as const;
 
     for (const [label, name, content] of files) {

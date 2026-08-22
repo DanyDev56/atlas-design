@@ -284,6 +284,7 @@ export async function previewHistoricalBilling(
         quotesFile: File;
         invoicesFile: File;
         paymentsFile: File;
+        creditNotesFile: File;
     },
 ): Promise<BillingHistoryImportPreview> {
     const form = new FormData();
@@ -292,6 +293,7 @@ export async function previewHistoricalBilling(
     form.append('quotes_file', input.quotesFile);
     form.append('invoices_file', input.invoicesFile);
     form.append('payments_file', input.paymentsFile);
+    form.append('credit_notes_file', input.creditNotesFile);
 
     return apiRequest(
         'POST',

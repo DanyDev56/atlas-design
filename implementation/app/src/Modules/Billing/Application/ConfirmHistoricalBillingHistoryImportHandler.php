@@ -98,9 +98,11 @@ final class ConfirmHistoricalBillingHistoryImportHandler
                 'quote_count' => $preview['quote_count'],
                 'invoice_count' => $preview['invoice_count'],
                 'payment_count' => $preview['payment_count'],
+                'credit_note_count' => $preview['credit_note_count'] ?? 0,
                 'processed_quotes' => 0,
                 'processed_invoices' => 0,
                 'processed_payments' => 0,
+                'processed_credit_notes' => 0,
                 'created_by' => $actorUserId,
                 'created_at' => $now->format('Y-m-d H:i:sP'),
                 'updated_at' => $now->format('Y-m-d H:i:sP'),
@@ -109,6 +111,7 @@ final class ConfirmHistoricalBillingHistoryImportHandler
             $this->outbox->append(OutgoingMessage::fromDomainEvent(new BillingHistoryImportRequested(
                 $runId, $workspaceId, (string) $preview['source_system'], $packageHash,
                 (int) $preview['quote_count'], (int) $preview['invoice_count'], (int) $preview['payment_count'],
+                (int) ($preview['credit_note_count'] ?? 0),
                 EventId::generate(), $now,
             ), correlationId: $correlationId));
 
@@ -130,9 +133,11 @@ final class ConfirmHistoricalBillingHistoryImportHandler
             'quote_count' => (int) $run['quote_count'],
             'invoice_count' => (int) $run['invoice_count'],
             'payment_count' => (int) $run['payment_count'],
+            'credit_note_count' => (int) ($run['credit_note_count'] ?? 0),
             'processed_quotes' => (int) $run['processed_quotes'],
             'processed_invoices' => (int) $run['processed_invoices'],
             'processed_payments' => (int) $run['processed_payments'],
+            'processed_credit_notes' => (int) ($run['processed_credit_notes'] ?? 0),
             'request_id' => $requestId,
         ];
     }

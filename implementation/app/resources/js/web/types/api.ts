@@ -536,6 +536,10 @@ export interface CreditNote {
     invoice_id: string;
     status: 'Draft' | 'Issued' | 'Applied' | 'Discarded';
     credit_note_number: string | null;
+    original_number?: string | null;
+    net_amount_cents?: number | null;
+    tax_amount_cents?: number | null;
+    gross_amount_cents?: number | null;
     lines: QuoteLine[];
     total_cents: number;
     amount_applied_cents: number;
@@ -544,6 +548,7 @@ export interface CreditNote {
     currency: string;
     reason: string | null;
     version: number;
+    is_historical_import?: boolean;
     issued_at?: string | null;
     applied_at?: string | null;
 }
@@ -563,12 +568,13 @@ export interface PaymentResponse {
     version: number;
 }
 
-export type BillingHistoryImportRecordKind = 'quotes' | 'invoices' | 'payments' | 'package';
+export type BillingHistoryImportRecordKind = 'quotes' | 'invoices' | 'payments' | 'credit_notes' | 'package';
 
 export interface BillingHistoryImportCounts {
     quotes: number;
     invoices: number;
     payments: number;
+    credit_notes: number;
 }
 
 export interface BillingHistoryImportValidationError {
@@ -605,11 +611,13 @@ export interface BillingHistoryImportPreview {
     quote_count: number;
     invoice_count: number;
     payment_count: number;
+    credit_note_count: number;
     validation_error_count: number;
     valid_for_confirmation: boolean;
     quotes: BillingHistoryImportRecord[];
     invoices: BillingHistoryImportRecord[];
     payments: BillingHistoryImportRecord[];
+    credit_notes: BillingHistoryImportRecord[];
     validation_errors: BillingHistoryImportValidationError[];
     expires_at: string;
 }
@@ -619,6 +627,7 @@ export type BillingHistoryImportPhase =
     | 'Quotes'
     | 'Invoices'
     | 'Payments'
+    | 'CreditNotes'
     | 'Validate'
     | 'Completed'
     | 'Failed';
@@ -630,8 +639,10 @@ export interface BillingHistoryImportRun {
     quote_count?: number;
     invoice_count?: number;
     payment_count?: number;
+    credit_note_count?: number;
     processed_quotes?: number;
     processed_invoices?: number;
     processed_payments?: number;
+    processed_credit_notes?: number;
     error?: string | null;
 }

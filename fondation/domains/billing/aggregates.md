@@ -71,11 +71,11 @@ jamais réutilisé, même après une panne.
 
 ## BillingHistoryImportRun
 
-Le run orchestre les Quotes, Invoices et Payments historiques sans les faire
-passer par leurs commandes opérationnelles. Il protège le hash du package, le
-mapping Client, les identités externes, les checkpoints et les totaux de
-validation. Les agrégats importés sont exposés ensemble seulement après
-completion ; une reprise continue le même run.
+Le run orchestre les Quotes, Invoices, Payments et CreditNotes historiques sans
+les faire passer par leurs commandes opérationnelles. Il protège le hash du
+package, le mapping Client, les identités externes, les checkpoints et les
+totaux de validation. Les agrégats importés sont exposés ensemble seulement
+après completion ; une reprise continue le même run.
 
 ---
 

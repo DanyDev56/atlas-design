@@ -10,6 +10,7 @@ use Atlas\Modules\Analytics\Domain\AnalyticsProjectionRebuildStarted;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresHistoricalImportRebuildRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
+use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
@@ -27,6 +28,7 @@ final class RebuildAnalyticsAfterHistoricalImportHandler
         private readonly GetQuoteAnalyticsFactHandler $quoteFacts,
         private readonly GetInvoiceAnalyticsFactHandler $invoiceFacts,
         private readonly GetPaymentAnalyticsFactHandler $paymentFacts,
+        private readonly GetCreditNoteAnalyticsFactHandler $creditNoteFacts,
         private readonly PublishAnalyticsSnapshotHandler $publishSnapshot,
         private readonly PostgresAnalyticsIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
@@ -109,6 +111,7 @@ final class RebuildAnalyticsAfterHistoricalImportHandler
                 'quote_fact_count' => 0,
                 'invoice_fact_count' => 0,
                 'payment_fact_count' => 0,
+                'credit_note_fact_count' => 0,
                 'created_at' => $now->format('Y-m-d H:i:sP'),
                 'updated_at' => $now->format('Y-m-d H:i:sP'),
             ]);
@@ -120,11 +123,13 @@ final class RebuildAnalyticsAfterHistoricalImportHandler
         $quotes = $this->ingestQuotes($workspaceId, $billingRunId, $correlationId);
         $invoices = $this->ingestInvoices($workspaceId, $billingRunId, $correlationId);
         $payments = $this->ingestPayments($workspaceId, $billingRunId, $correlationId);
+        $creditNotes = $this->ingestCreditNotes($workspaceId, $billingRunId, $correlationId);
 
         $expectedQuotes = (int) DB::table('billing.quotes')->where('workspace_id', $workspaceId)->where('import_run_id', $billingRunId)->count();
         $expectedInvoices = (int) DB::table('billing.invoices')->where('workspace_id', $workspaceId)->where('import_run_id', $billingRunId)->count();
         $expectedPayments = (int) DB::table('billing.payments')->where('workspace_id', $workspaceId)->where('import_run_id', $billingRunId)->count();
-        if ($quotes !== $expectedQuotes || $invoices !== $expectedInvoices || $payments !== $expectedPayments) {
+        $expectedCreditNotes = (int) DB::table('billing.credit_notes')->where('workspace_id', $workspaceId)->where('import_run_id', $billingRunId)->count();
+        if ($quotes !== $expectedQuotes || $invoices !== $expectedInvoices || $payments !== $expectedPayments || $creditNotes !== $expectedCreditNotes) {
             throw new \DomainException('Import manifest incomplete.');
         }
 
@@ -145,6 +150,7 @@ final class RebuildAnalyticsAfterHistoricalImportHandler
             'quote_fact_count' => $quotes,
             'invoice_fact_count' => $invoices,
             'payment_fact_count' => $payments,
+            'credit_note_fact_count' => $creditNotes,
         ]);
         $this->outbox->append(OutgoingMessage::fromDomainEvent(new AnalyticsProjectionRebuilt(
             $workspaceId, $generationUuid, $generationId, 'HistoricalImport', EventId::generate(), $now,
@@ -212,6 +218,27 @@ final class RebuildAnalyticsAfterHistoricalImportHandler
                 fact: $this->paymentFacts->handle($workspaceId, (string) $row->invoice_id, (string) $row->id, (int) DB::table('billing.invoices')->where('id', $row->invoice_id)->value('version')),
                 sourceKind: 'billing',
                 occurredAt: new \DateTimeImmutable((string) $row->recorded_at),
+                correlationId: $correlationId,
+            );
+            $count++;
+        }
+
+        return $count;
+    }
+
+    private function ingestCreditNotes(string $workspaceId, string $billingRunId, ?string $correlationId): int
+    {
+        $count = 0;
+        foreach (DB::table('billing.credit_notes')->where('workspace_id', $workspaceId)->where('import_run_id', $billingRunId)->get() as $row) {
+            $this->ingest(
+                workspaceId: $workspaceId,
+                sourceName: $billingRunId.':credit_note:'.$row->id,
+                sourceEventType: 'analytics.historical_import.credit_note',
+                aggregateType: 'credit_note',
+                aggregateId: (string) $row->id,
+                fact: $this->creditNoteFacts->handle($workspaceId, (string) $row->id, (int) $row->version),
+                sourceKind: 'billing',
+                occurredAt: new \DateTimeImmutable((string) ($row->issued_at ?? $row->created_at)),
                 correlationId: $correlationId,
             );
             $count++;

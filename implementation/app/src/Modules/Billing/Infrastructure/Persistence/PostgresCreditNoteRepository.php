@@ -33,6 +33,7 @@ final class PostgresCreditNoteRepository
         }
 
         $row = $query->first();
+
         return $row !== null ? CreditNote::reconstitute((array) $row) : null;
     }
 
@@ -103,6 +104,10 @@ final class PostgresCreditNoteRepository
             'invoice_id' => $row->invoice_id,
             'status' => $row->status,
             'credit_note_number' => $row->credit_note_number,
+            'original_number' => $row->original_number ?? null,
+            'net_amount_cents' => $row->net_amount_cents !== null ? (int) $row->net_amount_cents : null,
+            'tax_amount_cents' => $row->tax_amount_cents !== null ? (int) $row->tax_amount_cents : null,
+            'gross_amount_cents' => $row->gross_amount_cents !== null ? (int) $row->gross_amount_cents : null,
             'lines' => json_decode($row->lines, true, 512, JSON_THROW_ON_ERROR),
             'total_cents' => (int) $row->total_cents,
             'amount_applied_cents' => (int) $row->amount_applied_cents,
@@ -113,6 +118,7 @@ final class PostgresCreditNoteRepository
             'version' => (int) $row->version,
             'issued_at' => $row->issued_at,
             'applied_at' => $row->applied_at,
+            'is_historical_import' => (bool) ($row->is_historical_import ?? false),
         ];
     }
 }

@@ -23,12 +23,13 @@ import type {
     BillingHistoryImportValidationError,
 } from '@/types/api';
 
-const emptyCounts: BillingHistoryImportCounts = { quotes: 0, invoices: 0, payments: 0 };
+const emptyCounts: BillingHistoryImportCounts = { quotes: 0, invoices: 0, payments: 0, credit_notes: 0 };
 
 const recordLabels: Record<BillingHistoryImportRecordKind, string> = {
     quotes: 'Devis',
     invoices: 'Factures',
     payments: 'Paiements',
+    credit_notes: 'Avoirs',
     package: 'Package',
 };
 
@@ -37,6 +38,7 @@ const phaseLabels: Record<string, string> = {
     Quotes: 'Import des devis',
     Invoices: 'Import des factures',
     Payments: 'Import des paiements',
+    CreditNotes: 'Import des avoirs',
     Validate: 'Vérification des soldes',
     Completed: 'Terminé',
     Failed: 'Échec',
@@ -59,7 +61,7 @@ function packageHash(value: string): string {
 }
 
 function countTotal(counts: BillingHistoryImportCounts): number {
-    return counts.quotes + counts.invoices + counts.payments;
+    return counts.quotes + counts.invoices + counts.payments + counts.credit_notes;
 }
 
 function resolvedClients(preview: BillingHistoryImportPreview) {
@@ -89,6 +91,7 @@ export function BillingHistoryImportPage() {
     const [quotesFile, setQuotesFile] = useState<File | null>(null);
     const [invoicesFile, setInvoicesFile] = useState<File | null>(null);
     const [paymentsFile, setPaymentsFile] = useState<File | null>(null);
+    const [creditNotesFile, setCreditNotesFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<BillingHistoryImportPreview | null>(null);
     const [run, setRun] = useState<BillingHistoryImportRun | null>(null);
     const [previewing, setPreviewing] = useState(false);
@@ -149,12 +152,13 @@ export function BillingHistoryImportPage() {
         setQuotesFile(null);
         setInvoicesFile(null);
         setPaymentsFile(null);
+        setCreditNotesFile(null);
     }
 
     async function onPreview(event: FormEvent) {
         event.preventDefault();
-        if (!quotesFile || !invoicesFile || !paymentsFile) {
-            setError('Sélectionnez les trois fichiers CSV, même si l’un d’eux ne contient que ses en-têtes.');
+        if (!quotesFile || !invoicesFile || !paymentsFile || !creditNotesFile) {
+            setError('Sélectionnez les quatre fichiers CSV, même si l’un d’eux ne contient que ses en-têtes.');
             return;
         }
 
@@ -167,6 +171,7 @@ export function BillingHistoryImportPage() {
                 quotesFile,
                 invoicesFile,
                 paymentsFile,
+                creditNotesFile,
             }));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Prévisualisation impossible.');
@@ -204,6 +209,7 @@ export function BillingHistoryImportPage() {
             quotes: preview.quote_count,
             invoices: preview.invoice_count,
             payments: preview.payment_count,
+            credit_notes: preview.credit_note_count,
         }
         : emptyCounts;
     const processed = countTotal(run
@@ -211,6 +217,7 @@ export function BillingHistoryImportPage() {
             quotes: run.processed_quotes ?? 0,
             invoices: run.processed_invoices ?? 0,
             payments: run.processed_payments ?? 0,
+            credit_notes: run.processed_credit_notes ?? 0,
         }
         : emptyCounts);
     const total = countTotal(run
@@ -218,6 +225,7 @@ export function BillingHistoryImportPage() {
             quotes: run.quote_count ?? previewCounts.quotes,
             invoices: run.invoice_count ?? previewCounts.invoices,
             payments: run.payment_count ?? previewCounts.payments,
+            credit_notes: run.credit_note_count ?? previewCounts.credit_notes,
         }
         : previewCounts);
     const progress = run?.status === 'Completed'
@@ -239,7 +247,7 @@ export function BillingHistoryImportPage() {
                         Importer un historique de facturation
                     </h2>
                     <p className="mt-3 text-sm leading-6 text-atlas-ink-muted">
-                        Prévisualisez ensemble vos devis, factures et paiements. Aucun document n’est créé
+                        Prévisualisez ensemble vos devis, factures, paiements et avoirs. Aucun document n’est créé
                         avant votre confirmation et aucune notification n’est envoyée.
                     </p>
                 </header>
@@ -303,10 +311,14 @@ export function BillingHistoryImportPage() {
                                     setPaymentsFile(file);
                                     resetResult();
                                 }} />
+                                <CsvFileField label="Fichier des avoirs" onChange={(file) => {
+                                    setCreditNotesFile(file);
+                                    resetResult();
+                                }} />
                             </div>
 
                             <p className="mt-4 text-xs leading-5 text-atlas-ink-muted">
-                                Les trois fichiers sont obligatoires. Un fichier peut ne contenir que ses
+                                Les quatre fichiers sont obligatoires. Un fichier peut ne contenir que ses
                                 en-têtes, mais le package complet doit contenir au moins un enregistrement.
                             </p>
 
@@ -331,6 +343,9 @@ export function BillingHistoryImportPage() {
                                 </TemplateLink>
                                 <TemplateLink href="/templates/atlas-billing-payments-import-v1.csv">
                                     Modèle des paiements
+                                </TemplateLink>
+                                <TemplateLink href="/templates/atlas-billing-credit-notes-import-v1.csv">
+                                    Modèle des avoirs
                                 </TemplateLink>
                             </div>
                             <p className="mt-5 text-xs leading-5 text-atlas-ink-muted">
@@ -440,10 +455,11 @@ function PreviewSection({
                 </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-5">
                 <SummaryCard label="Devis" value={preview.quote_count} />
                 <SummaryCard label="Factures" value={preview.invoice_count} />
                 <SummaryCard label="Paiements" value={preview.payment_count} />
+                <SummaryCard label="Avoirs" value={preview.credit_note_count} />
                 <SummaryCard label="Erreurs" value={preview.validation_error_count} />
             </div>
 

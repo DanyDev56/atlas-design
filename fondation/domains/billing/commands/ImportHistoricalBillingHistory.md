@@ -3,8 +3,8 @@ id: BIL-CMD-IMPORT-HISTORICAL-BILLING-HISTORY
 title: ImportHistoricalBillingHistory
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-06
+version: 1.1.0
+last_updated: 2026-08-22
 
 references:
   - README.md
@@ -19,13 +19,14 @@ references:
 
 ## Objectif
 
-Matérialiser des Quotes, Invoices et Payments historiques confirmés sans
-rejouer leur émission, leur livraison ou leur encaissement opérationnel.
+Matérialiser des Quotes, Invoices, Payments et CreditNotes historiques confirmés
+sans rejouer leur émission, leur livraison, leur encaissement ou leur application
+opérationnelle.
 
 ## Agrégat concerné
 
-Nouvel agrégat `BillingHistoryImportRun`, puis Quotes et Invoices importées ;
-les Payments restent contenus dans leur Invoice.
+Nouvel agrégat `BillingHistoryImportRun`, puis Quotes, Invoices et CreditNotes
+importées ; les Payments restent contenus dans leur Invoice.
 
 ## Acteur et autorité
 
@@ -45,6 +46,7 @@ ClientImportManifestVersion
 QuoteCount
 InvoiceCount
 PaymentCount
+CreditNoteCount
 ExpectedRevision = 0
 ImportHistoricalBillingHistoryRequestId
 ActorContext
@@ -69,27 +71,38 @@ HistoricalPaymentRecord
   ExternalId, InvoiceExternalId
   AmountReceived, AmountApplied, CurrencyCode
   ReceivedAt, Status: Active
+
+HistoricalCreditNoteRecord
+  ExternalId, InvoiceExternalId, OriginalNumber
+  IssuedAt, AppliedAt
+  NetAmount, TaxAmount, GrossAmount, AmountApplied
+  RemainderDisposition?: RefundDue | ClientCredit
+  CurrencyCode, Reason?
 ```
 
 Le `SettlementStatus` et l'éventuel `PaidAt` sont dérivés après application des
-Payments ; ils ne sont jamais acceptés comme une vérité libre du fichier.
+Payments et CreditNotes ; ils ne sont jamais acceptés comme une vérité libre du
+fichier. Le numéro source d'une CreditNote reste un `OriginalNumber` et n'entre
+jamais dans la séquence Atlas.
 
 ## Préconditions et traitement
 
 - run Client terminé et toutes les références Client résolues ;
 - package confirmé, scanné, mono-Workspace et dans sa durée de rétention ;
-- numéros, dates, états, montants, devises et applications de Payment cohérents ;
+- numéros, dates, états, montants, devises et applications de Payment ou de
+  CreditNote cohérents ;
 - cohérence arithmétique des totaux exacts vérifiée et écarts explicitement
   refusés ;
 - identité stable par système source, kind et identifiant externe ;
-- traitement reprenable par checkpoint et validation finale des soldes ;
+- traitement reprenable par checkpoints `Quotes`, `Invoices`, `Payments`,
+  `CreditNotes`, `Validate` et validation finale des soldes ;
 - chaque agrégat porte `HistoricalImportProvenance` et reste invisible aux
   consommateurs Analytics avant completion.
 
 L'import ne réserve aucun numéro Atlas, n'avance aucune séquence, ne crée aucun
 artefact ou preuve publique et ne demande aucune communication. Il ne produit
-aucun événement opérationnel `QuoteSent`, `InvoiceIssued`, `PaymentRecorded` ou
-équivalent.
+aucun événement opérationnel `QuoteSent`, `InvoiceIssued`, `PaymentRecorded`,
+`CreditNoteIssued`, `CreditNoteAppliedToInvoice` ou équivalent.
 
 ## Invariants concernés
 
