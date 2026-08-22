@@ -34,6 +34,7 @@ test('le dashboard présente la priorité et les indicateurs essentiels', async 
     await expect(page.getByRole('heading', { name: "Santé de l'activité" })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Pipeline commercial' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Facturation récente' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Activité mesurée' })).toBeVisible();
 
     const recentInvoice = page.locator('a[href^="/app/billing/invoices/"]').first();
     await expect(recentInvoice).toBeVisible();
@@ -366,6 +367,8 @@ test.describe('scénario démo vide', () => {
         await expect(page.getByRole('heading', { name: 'Priorité du jour' })).toBeVisible();
         await expect(page.getByText('Aucune priorité proposée pour l’instant.', { exact: false })).toBeVisible();
         await expect(page.getByText('Créez un client et une opportunité pour visualiser votre cycle commercial.')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Activité mesurée' })).toBeVisible();
+        await expect(page.getByText('Aucune génération Analytics n’est encore publiée', { exact: false })).toBeVisible();
 
         await navigateFromShell(page, 'CRM');
         await expect(page.getByRole('heading', { name: 'Aucun client' })).toBeVisible();

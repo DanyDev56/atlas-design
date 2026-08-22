@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atlas\Composition\Dashboard;
 
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
+use Atlas\Modules\Analytics\Application\AnalyticsQueryHandler;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
 use Atlas\Modules\BusinessHealth\Application\BusinessHealthQueryHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
@@ -14,6 +15,7 @@ final class DashboardQueryHandler
 {
     public function __construct(
         private readonly AdvisorQueryHandler $advisor,
+        private readonly AnalyticsQueryHandler $analytics,
         private readonly BusinessHealthQueryHandler $businessHealth,
         private readonly CrmQueryHandler $crm,
         private readonly BillingQueryHandler $billing,
@@ -29,6 +31,7 @@ final class DashboardQueryHandler
             'business_health' => $this->widget(fn () => $this->businessHealthWidget($actorUserId, $workspaceId)),
             'pipeline' => $this->widget(fn () => $this->pipelineWidget($actorUserId, $workspaceId)),
             'billing' => $this->widget(fn () => $this->billingWidget($actorUserId, $workspaceId)),
+            'measured_activity' => $this->widget(fn () => $this->measuredActivityWidget($actorUserId, $workspaceId)),
             'notifications' => $this->widget(fn () => $this->notificationsWidget($actorUserId, $workspaceId)),
         ];
     }
@@ -85,6 +88,32 @@ final class DashboardQueryHandler
             'payload' => [
                 'recent_invoices' => $this->billing->listRecentInvoices($actorUserId, $workspaceId),
             ],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function measuredActivityWidget(string $actorUserId, string $workspaceId): array
+    {
+        try {
+            $overview = $this->analytics->getOverview($actorUserId, $workspaceId);
+        } catch (\DomainException $exception) {
+            if ($exception->getMessage() === 'Snapshot not found.') {
+                return [
+                    'source_domain' => 'Analytics',
+                    'data_state' => 'NoData',
+                    'observed_at' => null,
+                    'payload' => null,
+                ];
+            }
+
+            throw $exception;
+        }
+
+        return [
+            'source_domain' => 'Analytics',
+            'data_state' => 'Data',
+            'observed_at' => is_string($overview['as_of'] ?? null) ? $overview['as_of'] : null,
+            'payload' => $overview,
         ];
     }
 

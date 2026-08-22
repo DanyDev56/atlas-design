@@ -26,6 +26,14 @@ final class AnalyticsController extends Controller
         ));
     }
 
+    public function overview(Request $request, string $workspaceId): JsonResponse
+    {
+        return $this->respond(fn () => $this->queries->getOverview(
+            $this->actorId($request),
+            $workspaceId,
+        ));
+    }
+
     public function metric(Request $request, string $workspaceId, string $metricKey): JsonResponse
     {
         return $this->respond(fn () => $this->queries->getMetric(

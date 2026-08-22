@@ -63,6 +63,7 @@ test('inscription, création de l’activité et arrivée sur le dashboard en mo
                 business_health: emptyWidget('BusinessHealth'),
                 pipeline: emptyWidget('CRM'),
                 billing: emptyWidget('Billing'),
+                measured_activity: emptyWidget('Analytics'),
                 notifications: emptyWidget('Notifications'),
             },
         });

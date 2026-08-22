@@ -64,6 +64,9 @@ final class MvpJ3EndToEndAcceptanceTest extends IntegrationTestCase
 
         $dashboard->assertJsonPath('billing.payload.recent_invoices.0.invoice_number', $invoiceNumber);
         $dashboard->assertJsonPath('billing.payload.recent_invoices.0.settlement_status', 'Paid');
+        $dashboard->assertJsonPath('measured_activity.data_state', 'Data');
+        $dashboard->assertJsonPath('measured_activity.payload.analytics_snapshot_id', $snapshotId);
+        $dashboard->assertJsonPath('measured_activity.payload.overview_profile_key', 'BusinessHealthBaselineV1');
     }
 
     public function test_snapshot_publish_is_idempotent_and_outbox_replay_is_safe(): void

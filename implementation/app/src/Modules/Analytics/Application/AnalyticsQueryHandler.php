@@ -35,6 +35,34 @@ final class AnalyticsQueryHandler
     }
 
     /** @return array<string, mixed> */
+    public function getOverview(string $actorUserId, string $workspaceId): array
+    {
+        $snapshot = $this->getLatestSnapshot($actorUserId, $workspaceId);
+        $metrics = [];
+
+        foreach (MetricKeys::overviewKeys() as $metricKey) {
+            $observation = $snapshot['metrics'][$metricKey] ?? [
+                'window_kind' => 'PointInTime',
+                'value_status' => MetricKeys::VALUE_NO_DATA,
+            ];
+            $metrics[$metricKey] = is_array($observation) ? $observation : [
+                'window_kind' => 'PointInTime',
+                'value_status' => MetricKeys::VALUE_NO_DATA,
+            ];
+        }
+
+        return [
+            'overview_profile_key' => $snapshot['profile_key'],
+            'overview_profile_version' => $snapshot['profile_version'],
+            'analytics_snapshot_id' => $snapshot['analytics_snapshot_id'],
+            'as_of' => $snapshot['as_of'],
+            'freshness_status' => $snapshot['freshness_status'],
+            'completeness_status' => $snapshot['completeness_status'],
+            'metrics' => $metrics,
+        ];
+    }
+
+    /** @return array<string, mixed> */
     public function getMetric(string $actorUserId, string $workspaceId, string $metricKey): array
     {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'analytics.metrics.read');

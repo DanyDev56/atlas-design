@@ -65,4 +65,17 @@ final class MetricKeys
             self::CLIENTS_TOP_COLLECTION_SHARE,
         ];
     }
+
+    /** @return list<string> */
+    public static function overviewKeys(): array
+    {
+        return [
+            self::PIPELINE_OPEN_AMOUNT,
+            self::QUOTES_PENDING_AMOUNT,
+            self::BILLING_COLLECTED_AMOUNT,
+            self::RECEIVABLES_OUTSTANDING_AMOUNT,
+            self::RECEIVABLES_OVERDUE_AMOUNT,
+            self::RECEIVABLES_OVERDUE_COUNT,
+        ];
+    }
 }

@@ -4,6 +4,7 @@ import { fetchDashboard } from '@/api/auth';
 import { AdvisorPriorityWidget } from '@/components/dashboard/AdvisorPriorityWidget';
 import { BillingWidget } from '@/components/dashboard/BillingWidget';
 import { BusinessHealthWidget } from '@/components/dashboard/BusinessHealthWidget';
+import { MeasuredActivityWidget } from '@/components/dashboard/MeasuredActivityWidget';
 import { PipelineWidget } from '@/components/dashboard/PipelineWidget';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -116,6 +117,9 @@ export function DashboardPage() {
                     </div>
                     <BusinessHealthWidget widget={dashboard.business_health} />
                     <PipelineWidget widget={dashboard.pipeline} />
+                    <div className="md:col-span-2">
+                        <MeasuredActivityWidget widget={dashboard.measured_activity} />
+                    </div>
                     <div id="billing" className="scroll-mt-6 md:col-span-2">
                         <BillingWidget widget={dashboard.billing} />
                     </div>

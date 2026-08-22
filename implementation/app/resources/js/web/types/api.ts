@@ -55,6 +55,7 @@ export interface DashboardResponse {
     business_health: DashboardWidget<BusinessHealthCurrent>;
     pipeline: DashboardWidget<PipelinePayload>;
     billing: DashboardWidget<BillingPayload>;
+    measured_activity: DashboardWidget<MeasuredActivityPayload>;
     notifications: DashboardWidget<NotificationUnread>;
 }
 
@@ -154,6 +155,23 @@ export interface AnalyticsSnapshotPublication {
     freshness_status: string;
     completeness_status: string;
     as_of: string;
+}
+
+export interface AnalyticsMetricObservation {
+    window_kind: string;
+    value_status: 'Available' | 'NoData' | string;
+    values_by_currency?: Record<string, number>;
+    count?: number;
+}
+
+export interface MeasuredActivityPayload {
+    overview_profile_key: string;
+    overview_profile_version: string;
+    analytics_snapshot_id: string;
+    as_of: string;
+    freshness_status: string;
+    completeness_status: string;
+    metrics: Record<string, AnalyticsMetricObservation>;
 }
 
 export interface PipelinePayload {

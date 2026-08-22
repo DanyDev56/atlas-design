@@ -134,6 +134,18 @@ final class AnalyticsSnapshotTest extends IntegrationTestCase
             $latest->json('metrics')[MetricKeys::PIPELINE_OPEN_AMOUNT]['value_status'],
         );
 
+        $overview = $this->getJson("/api/workspaces/{$owner['workspace_id']}/analytics/overview", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('analytics_snapshot_id', $published->json('analytics_snapshot_id'))
+            ->assertJsonPath('overview_profile_key', MetricKeys::PROFILE_KEY)
+            ->json();
+
+        $this->assertSame(
+            MetricKeys::VALUE_NO_DATA,
+            $overview['metrics'][MetricKeys::PIPELINE_OPEN_AMOUNT]['value_status'],
+        );
+
         $this->assertTrue(
             DB::table('platform.outbox_messages')
                 ->where('event_type', 'analytics.snapshot_published')

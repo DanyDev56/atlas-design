@@ -114,6 +114,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/invoices/{invoiceId}/payments', [InvoiceController::class, 'recordPayment']);
 
             Route::get('/analytics/snapshot/latest', [AnalyticsController::class, 'latestSnapshot']);
+            Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
             Route::post('/analytics/snapshots/publish', [AnalyticsController::class, 'publishSnapshot']);
             Route::get('/analytics/metrics/{metricKey}', [AnalyticsController::class, 'metric']);
 

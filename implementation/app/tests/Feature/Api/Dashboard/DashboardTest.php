@@ -18,12 +18,15 @@ final class DashboardTest extends IntegrationTestCase
         $this->getJson("/api/workspaces/{$owner['workspace_id']}/dashboard", [
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
+            ->assertJsonPath('measured_activity.source_domain', 'Analytics')
+            ->assertJsonPath('measured_activity.data_state', 'NoData')
             ->assertJsonStructure([
                 'workspace_id',
                 'advisor_priority' => ['source_domain', 'data_state', 'payload'],
                 'business_health' => ['source_domain', 'data_state', 'payload'],
                 'pipeline' => ['source_domain', 'data_state', 'payload'],
                 'billing' => ['source_domain', 'data_state', 'payload'],
+                'measured_activity' => ['source_domain', 'data_state', 'payload'],
                 'notifications' => ['source_domain', 'data_state', 'payload'],
             ]);
     }

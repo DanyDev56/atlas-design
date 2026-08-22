@@ -36,14 +36,16 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 ## Priorité actuelle
 
-Les lots 0 à 4 CRM, l’import historique Billing et le rebuild Analytics borné
-sont livrés. L’import **clients** converge sur `(Workspace, SourceSystem,
-ExternalId)` ; l’import Billing matérialise devis, factures et paiements via
-l’outbox (`billing.history_import_requested`) sans événements opérationnels.
-Le rebuild Analytics s’exécute après corrélation de
+Les lots 0 à 4 CRM, l’import historique Billing, le rebuild Analytics borné
+et le step-up de confirmation sont livrés. L’import **clients** converge sur
+`(Workspace, SourceSystem, ExternalId)` ; l’import Billing matérialise devis,
+factures et paiements via l’outbox (`billing.history_import_requested`) sans
+événements opérationnels. Le rebuild Analytics s’exécute après corrélation de
 `ClientHistoryImportCompleted` et `BillingHistoryImportCompleted` pour le même
-`SourceSystem`. Settings, notes de crédit et zone dashboard « Activité mesurée »
-restent hors périmètre.
+`SourceSystem`. Le dashboard compose aussi **Activité mesurée** depuis
+`getAnalyticsOverview` (snapshot publié, jamais de totaux inventés).
+
+Settings et notes de crédit restent hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
@@ -84,6 +86,7 @@ Les travaux de publication OCI restent différés :
 | Business Health | Data / InsufficientData / NoData |
 | Pipeline CRM | Data + volumes par état |
 | Facturation | Liste factures récentes |
+| Activité mesurée | Snapshot Analytics : période, fraîcheur, métriques strictes |
 | Notifications | Badge non-lus (header) |
 
 Règle : **jamais inventer** score, priorité ou compteur — afficher l'état API tel quel
