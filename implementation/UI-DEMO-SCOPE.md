@@ -59,6 +59,12 @@ sans envoi email réel. Un acompte unique (`Deposit`) peut être créé depuis u
 devis accepté, puis la facture finale facture le reliquat une fois l’acompte
 émis. L'import historique des avoirs reste hors périmètre.
 
+Le passage en retard est matérialisé par le scheduler (`atlas:billing:mark-overdue`,
+horaire) : facture émise, solde positif, échéance strictement dépassée, une
+seule fois par échéance. `SettlementStatus` reste dérivé du solde ; l’UI
+affiche **En retard** sans bouton métier (`billing.invoices.mark-overdue` est
+SystemActorOnly).
+
 La récupération de mot de passe est livrée : demande opaque
 (`POST /api/auth/recovery`), preuve à usage unique (1 h), nouveau mot de passe
 (`POST /api/auth/recovery/complete`) qui incrémente `UserSecurityVersion` et

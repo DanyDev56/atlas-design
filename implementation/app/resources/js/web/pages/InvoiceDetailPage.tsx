@@ -18,7 +18,7 @@ import { RequireAuth } from '@/components/layout/RequireAuth';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientDetail, InvoiceDetail } from '@/types/api';
-import { formatMoney } from '@/utils/format';
+import { formatMoney, invoiceDisplayStatus } from '@/utils/format';
 
 function parseAmount(value: string): number | null {
     const normalized = value.trim().replace(/\s/g, '').replace(',', '.');
@@ -279,10 +279,7 @@ export function InvoiceDetailPage() {
         );
     }
 
-    const displayedStatus =
-        invoice?.settlement_status && invoice.settlement_status !== 'Unpaid'
-            ? invoice.settlement_status
-            : invoice?.status ?? 'Draft';
+    const displayedStatus = invoiceDisplayStatus(invoice ?? { status: 'Draft' });
 
     return (
         <RequireAuth>

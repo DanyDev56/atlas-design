@@ -10,6 +10,7 @@ use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
+use Atlas\Modules\Billing\Application\MarkInvoiceOverdueHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
@@ -109,6 +110,7 @@ final class DemoAccountSeeder
         private readonly IssueInvoiceHandler $issueInvoice,
         private readonly SendInvoiceHandler $sendInvoice,
         private readonly RecordPaymentHandler $recordPayment,
+        private readonly MarkInvoiceOverdueHandler $markInvoiceOverdue,
         private readonly PublishAnalyticsSnapshotHandler $publishSnapshot,
         private readonly OutboxProcessor $outbox,
     ) {}
@@ -459,6 +461,13 @@ final class DemoAccountSeeder
         );
 
         $this->backdateOverdueInvoice($invoice['invoice_id'], $payment['payment_id']);
+        $row = DB::table('billing.invoices')->where('id', $invoice['invoice_id'])->first();
+        $this->markInvoiceOverdue->handle(
+            workspaceId: $workspaceId,
+            invoiceId: $invoice['invoice_id'],
+            clock: new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
+            expectedRevision: (int) $row->version,
+        );
     }
 
     private function seedClient(

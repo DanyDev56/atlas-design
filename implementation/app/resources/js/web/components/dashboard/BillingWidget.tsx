@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { WidgetCard, EmptyWidgetMessage } from '@/components/dashboard/WidgetCard';
 import { StatusBadge } from '@/components/crm/StatusBadge';
 import type { DashboardWidget, BillingPayload } from '@/types/api';
-import { formatMoney } from '@/utils/format';
+import { formatMoney, invoiceDisplayStatus } from '@/utils/format';
 
 export function BillingWidget({ widget }: { widget: DashboardWidget<BillingPayload> }) {
     const invoices = widget.payload?.recent_invoices ?? [];
@@ -24,11 +24,7 @@ export function BillingWidget({ widget }: { widget: DashboardWidget<BillingPaylo
                                         </p>
                                         <div className="mt-1.5">
                                             <StatusBadge
-                                                status={
-                                                    invoice.settlement_status && invoice.settlement_status !== 'Unpaid'
-                                                        ? invoice.settlement_status
-                                                        : invoice.status
-                                                }
+                                                status={invoiceDisplayStatus(invoice)}
                                             />
                                         </div>
                                     </div>

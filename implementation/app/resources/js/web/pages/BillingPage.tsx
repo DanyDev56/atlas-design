@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientSummary, InvoiceSummary, QuoteSummary } from '@/types/api';
-import { formatMoney } from '@/utils/format';
+import { formatMoney, invoiceDisplayStatus } from '@/utils/format';
 
 export function BillingPage() {
     const { session } = useAuth();
@@ -127,9 +127,7 @@ export function BillingPage() {
                             ) : (
                                 <ul className="mt-4 divide-y divide-atlas-border overflow-hidden rounded-2xl border border-atlas-border bg-atlas-card shadow-sm">
                                     {invoices.map((invoice) => {
-                                        const status = invoice.settlement_status !== 'Unpaid'
-                                            ? invoice.settlement_status
-                                            : invoice.status;
+                                        const status = invoiceDisplayStatus(invoice);
 
                                         return (
                                             <li key={invoice.invoice_id}>

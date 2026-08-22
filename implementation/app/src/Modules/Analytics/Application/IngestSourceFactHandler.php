@@ -27,6 +27,7 @@ final class IngestSourceFactHandler
         'billing.quote_sent',
         'billing.quote_accepted',
         'billing.invoice_issued',
+        'billing.invoice_overdue',
         'billing.payment_recorded',
         'billing.credit_note_issued',
         'billing.invoice_balance_changed',
@@ -118,7 +119,7 @@ final class IngestSourceFactHandler
 
                 return ['quote', $quoteId, $version, $fact, 'billing'];
             })(),
-            'billing.invoice_issued', 'billing.invoice_balance_changed' => (function () use ($workspaceId, $payload): array {
+            'billing.invoice_issued', 'billing.invoice_overdue', 'billing.invoice_balance_changed' => (function () use ($workspaceId, $payload): array {
                 $invoiceId = $payload['invoice_id'];
                 $version = (int) DB::table('billing.invoices')->where('id', $invoiceId)->value('version');
                 $fact = $this->invoiceFacts->handle($workspaceId, $invoiceId, $version);

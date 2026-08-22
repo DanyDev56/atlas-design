@@ -129,6 +129,8 @@ final class BillingQueryHandler
             'paid_at' => $invoice->paidAt()?->format(DATE_ATOM),
             'last_reminded_at' => $invoice->lastRemindedAt()?->format(DATE_ATOM),
             'reminder_count' => $invoice->reminderCount(),
+            'overdue' => $invoice->isOverdue(),
+            'overdue_at' => $invoice->overdueAt()?->format(DATE_ATOM),
             'is_historical_import' => $invoice->isHistoricalImport(),
             'original_number' => $invoice->originalNumber(),
             'source_system' => $provenance->source_system ?? null,
@@ -197,6 +199,8 @@ final class BillingQueryHandler
                 'sent_at' => $row->sent_at,
                 'due_date' => $row->due_date,
                 'paid_at' => $row->paid_at,
+                'overdue' => $row->overdue_at !== null && (int) $row->balance_cents > 0,
+                'overdue_at' => $row->overdue_at,
                 'is_historical_import' => (bool) $row->is_historical_import,
                 'original_number' => $row->original_number,
             ])
@@ -221,6 +225,7 @@ final class BillingQueryHandler
                 'total_cents' => (int) $row->total_cents,
                 'balance_cents' => (int) $row->balance_cents,
                 'currency' => $row->currency,
+                'overdue' => $row->overdue_at !== null && (int) $row->balance_cents > 0,
             ])
             ->all();
     }

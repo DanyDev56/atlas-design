@@ -42,6 +42,7 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->where('settlement_status', 'PartiallyPaid')
             ->where('due_date', '<', now())
             ->where('balance_cents', 240000)
+            ->whereNotNull('overdue_at')
             ->exists());
         $this->assertTrue(DB::table('billing.invoices')
             ->where('workspace_id', $result->workspaceId)

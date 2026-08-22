@@ -38,6 +38,7 @@ final class GetInvoiceAnalyticsFactHandler
             'due_date' => $row?->due_date,
             'outstanding_balance_cents' => $invoice->balanceCents(),
             'settlement_status' => $invoice->settlementStatus(),
+            'overdue' => $invoice->isOverdue(),
             'paid_at' => $row?->paid_at,
         ];
         $fact['fact_hash'] = hash('sha256', json_encode($fact, JSON_THROW_ON_ERROR));

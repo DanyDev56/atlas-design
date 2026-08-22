@@ -49,6 +49,8 @@ final class PostgresInvoiceRepository
                 'sent_at' => $invoice->sentAt()?->format('Y-m-d H:i:sP'),
                 'last_reminded_at' => $invoice->lastRemindedAt()?->format('Y-m-d H:i:sP'),
                 'reminder_count' => $invoice->reminderCount(),
+                'overdue_at' => $invoice->overdueAt()?->format('Y-m-d H:i:sP'),
+                'overdue_due_date' => $invoice->overdueDueDate()?->format('Y-m-d H:i:sP'),
             ]);
     }
 
@@ -104,5 +106,35 @@ final class PostgresInvoiceRepository
             ->count();
 
         return sprintf('INV-%06d', $count + 1);
+    }
+
+    /**
+     * @return list<array{workspace_id: string, invoice_id: string, version: int}>
+     */
+    public function listDueForOverdueMark(\DateTimeImmutable $clock, int $limit): array
+    {
+        return DB::table('billing.invoices as invoices')
+            ->join('workspace.workspaces as workspaces', 'workspaces.id', '=', 'invoices.workspace_id')
+            ->where('workspaces.status', 'Active')
+            ->where('workspaces.access_state', 'Active')
+            ->where('invoices.status', Invoice::STATUS_ISSUED)
+            ->where('invoices.is_historical_import', false)
+            ->where('invoices.balance_cents', '>', 0)
+            ->whereNotNull('invoices.due_date')
+            ->where('invoices.due_date', '<', $clock->format('Y-m-d H:i:sP'))
+            ->whereNull('invoices.overdue_at')
+            ->orderBy('invoices.due_date')
+            ->limit($limit)
+            ->get([
+                'invoices.workspace_id',
+                'invoices.id',
+                'invoices.version',
+            ])
+            ->map(fn ($row): array => [
+                'workspace_id' => (string) $row->workspace_id,
+                'invoice_id' => (string) $row->id,
+                'version' => (int) $row->version,
+            ])
+            ->all();
     }
 }

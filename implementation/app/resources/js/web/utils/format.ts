@@ -15,10 +15,28 @@ export function formatStatus(status: string): string {
         Unpaid: 'À encaisser',
         PartiallyPaid: 'Partiellement réglée',
         Paid: 'Réglée',
+        Overdue: 'En retard',
         Active: 'Actif',
         Archived: 'Archivé',
     };
     return labels[status] ?? status;
+}
+
+export function invoiceDisplayStatus(invoice: {
+    status: string;
+    settlement_status?: string;
+    overdue?: boolean;
+    balance_cents?: number;
+}): string {
+    if (invoice.overdue && (invoice.balance_cents === undefined || invoice.balance_cents > 0)) {
+        return 'Overdue';
+    }
+
+    if (invoice.settlement_status && invoice.settlement_status !== 'Unpaid') {
+        return invoice.settlement_status;
+    }
+
+    return invoice.status;
 }
 
 export function formatPriority(priority: string): string {

@@ -12,6 +12,7 @@ const statusStyles: Record<string, string> = {
     Unpaid: 'bg-amber-50 text-amber-800',
     PartiallyPaid: 'bg-amber-50 text-amber-800',
     Paid: 'bg-emerald-50 text-emerald-700',
+    Overdue: 'bg-rose-50 text-rose-800',
     Active: 'bg-atlas-accent-soft text-atlas-accent',
 };
 

@@ -46,6 +46,8 @@ final class Invoice
         private readonly ?string $originalNumber = null,
         private ?\DateTimeImmutable $lastRemindedAt = null,
         private int $reminderCount = 0,
+        private ?\DateTimeImmutable $overdueAt = null,
+        private ?\DateTimeImmutable $overdueDueDate = null,
     ) {}
 
     public static function createDraftFromQuote(
@@ -123,6 +125,8 @@ final class Invoice
             originalNumber: $row['original_number'] ?? null,
             lastRemindedAt: isset($row['last_reminded_at']) ? new \DateTimeImmutable((string) $row['last_reminded_at']) : null,
             reminderCount: (int) ($row['reminder_count'] ?? 0),
+            overdueAt: isset($row['overdue_at']) ? new \DateTimeImmutable((string) $row['overdue_at']) : null,
+            overdueDueDate: isset($row['overdue_due_date']) ? new \DateTimeImmutable((string) $row['overdue_due_date']) : null,
         );
     }
 
@@ -173,6 +177,46 @@ final class Invoice
         $this->reminderCount++;
         $this->version++;
         $this->updatedAt = $now;
+    }
+
+    public function alreadyMarkedOverdueForCurrentDueDate(): bool
+    {
+        return $this->overdueAt !== null
+            && $this->dueDate !== null
+            && $this->overdueDueDate !== null
+            && $this->overdueDueDate->format('Y-m-d') === $this->dueDate->format('Y-m-d');
+    }
+
+    public function markOverdue(int $expectedRevision, \DateTimeImmutable $clock): void
+    {
+        if ($this->historicalImport) {
+            throw new \DomainException('Historical imports are read-only.');
+        }
+
+        if ($this->status !== self::STATUS_ISSUED) {
+            throw new \DomainException('Invoice is not issued.');
+        }
+
+        if ($this->balanceCents <= 0) {
+            throw new \DomainException('Invoice has no outstanding balance.');
+        }
+
+        if ($this->dueDate === null || $this->dueDate >= $clock) {
+            throw new \DomainException('Invoice is not overdue.');
+        }
+
+        if ($this->alreadyMarkedOverdueForCurrentDueDate()) {
+            throw new \DomainException('Invoice overdue already materialized.');
+        }
+
+        if ($this->version !== $expectedRevision) {
+            throw new \DomainException('Invoice version conflict.');
+        }
+
+        $this->overdueAt = $clock;
+        $this->overdueDueDate = $this->dueDate;
+        $this->version++;
+        $this->updatedAt = $clock;
     }
 
     public function applyPayment(int $amountCents, \DateTimeImmutable $now): void
@@ -328,5 +372,20 @@ final class Invoice
     public function reminderCount(): int
     {
         return $this->reminderCount;
+    }
+
+    public function overdueAt(): ?\DateTimeImmutable
+    {
+        return $this->overdueAt;
+    }
+
+    public function overdueDueDate(): ?\DateTimeImmutable
+    {
+        return $this->overdueDueDate;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->alreadyMarkedOverdueForCurrentDueDate() && $this->balanceCents > 0;
     }
 }

@@ -224,6 +224,7 @@ export interface BillingPayload {
         total_cents?: number;
         balance_cents?: number;
         currency?: string;
+        overdue?: boolean;
     }>;
 }
 
@@ -497,6 +498,8 @@ export interface InvoiceSummary {
     paid_at: string | null;
     last_reminded_at?: string | null;
     reminder_count?: number;
+    overdue?: boolean;
+    overdue_at?: string | null;
     original_number?: string | null;
     is_historical_import?: boolean;
 }

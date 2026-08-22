@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('atlas:retention:purge')->dailyAt('03:00');
+        $schedule->command('atlas:billing:mark-overdue')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         //
