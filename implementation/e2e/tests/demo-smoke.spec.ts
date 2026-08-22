@@ -120,6 +120,60 @@ test('un export client peut être prévisualisé sans modifier le CRM', async ({
     await expect(result.getByText('Aucun client n’a encore été importé.', { exact: false })).toBeVisible();
 });
 
+test('les trois fichiers Billing sont pris en compte dès leur première sélection', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'La sélection des fichiers suffit sur un viewport.');
+
+    await navigateFromShell(page, 'Facturation');
+    await page.getByRole('link', { name: 'Importer un historique' }).click();
+
+    await page.route('**/api/workspaces/*/billing-history-imports/preview', async (route) => {
+        const body = route.request().postData() ?? '';
+        expect(body).toContain('filename="quotes.csv"');
+        expect(body).toContain('filename="invoices.csv"');
+        expect(body).toContain('filename="payments.csv"');
+
+        await route.fulfill({
+            status: 201,
+            json: {
+                preview_id: '00000000-0000-4000-8000-000000000201',
+                schema_version: '1.0',
+                source_system: 'LegacyBilling',
+                source_exported_at: new Date().toISOString(),
+                package_hash: 'a'.repeat(64),
+                quote_count: 1,
+                invoice_count: 0,
+                payment_count: 0,
+                validation_error_count: 0,
+                valid_for_confirmation: true,
+                quotes: [],
+                invoices: [],
+                payments: [],
+                validation_errors: [],
+                expires_at: '2099-01-01T00:00:00+00:00',
+            },
+        });
+    });
+
+    const form = page.getByRole('form', { name: 'Prévisualiser un import historique de facturation' });
+    const files = [
+        ['Fichier des devis', 'quotes.csv', 'external_id\nquote-e2e'],
+        ['Fichier des factures', 'invoices.csv', 'external_id'],
+        ['Fichier des paiements', 'payments.csv', 'external_id'],
+    ] as const;
+
+    for (const [label, name, content] of files) {
+        await form.getByLabel(label).setInputFiles({
+            name,
+            mimeType: 'text/csv',
+            buffer: Buffer.from(content),
+        });
+        await expect(form.getByLabel(label)).toHaveValue(new RegExp(`${name}$`));
+    }
+
+    await form.getByRole('button', { name: 'Prévisualiser le package' }).click();
+    await expect(page.getByRole('heading', { name: 'Package prêt pour la confirmation' })).toBeVisible();
+});
+
 test('la navigation mobile reste utilisable sans débordement horizontal', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Contrôle réservé au viewport mobile.');
 

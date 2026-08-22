@@ -72,6 +72,20 @@ services:
       - "5173:5173"
     command: sleep infinity
 
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    profiles: [e2e]
+    working_dir: /workspace/implementation/e2e
+    volumes:
+      - ..:/workspace
+    network_mode: service:app
+    environment:
+      CI: "true"
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+      PLAYWRIGHT_SKIP_WEBSERVER: "true"
+      NO_PROXY: localhost,127.0.0.1
+      no_proxy: localhost,127.0.0.1
+
   api:
     <<: *runtime-base
     build:

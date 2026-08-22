@@ -61,6 +61,19 @@ jobs:
             ./vendor/bin/pest --colors=never
           '
 
+  e2e:
+    name: Browser E2E (Playwright)
+    needs: spike
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run browser E2E suite
+        run: ./implementation/scripts/run-e2e.sh
+
   oci:
     name: OCI image build
     runs-on: ubuntu-latest

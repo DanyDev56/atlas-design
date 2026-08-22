@@ -9,25 +9,23 @@ mobile. Il reste séparé des dépendances Vite de l’application.
 Un runtime Node 22 local au dossier garantit la version requise par Playwright,
 même si le Node global est plus ancien.
 
-Préparer l’application et les données :
+La commande standard prépare l’application et les données, démarre le serveur
+si nécessaire, installe Chromium puis exécute Pest et Playwright :
 
 ```bash
-make up
-make demo-seed
-make demo-seed-empty
-make serve
+make test
 ```
 
-Si la suite backend est exécutée après ces commandes, rejouer les deux seeds :
-les tests d’intégration réinitialisent leur base avant la recette navigateur.
-
-Depuis la racine du dépôt :
+Pour ne lancer que la recette navigateur :
 
 ```bash
-npm --prefix implementation/e2e ci
-npx --prefix implementation/e2e playwright install chromium
-npm --prefix implementation/e2e test
+make e2e
 ```
+
+Les tests E2E sont aussi exécutés systématiquement par le workflow
+`Application quality gates` sur chaque pull request et push vers `main`.
+La suite backend réinitialisant sa base, les seeds démo sont rejoués juste avant
+Playwright.
 
 Windows (PowerShell), pour forcer Edge et des captures :
 

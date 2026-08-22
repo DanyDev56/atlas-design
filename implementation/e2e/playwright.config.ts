@@ -15,6 +15,14 @@ export default defineConfig({
     expect: { timeout: 10_000 },
     retries: process.env.CI ? 2 : 0,
     reporter: process.env.CI ? 'github' : 'list',
+    webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+        ? undefined
+        : {
+            command: 'docker compose -f ../docker-compose.yml exec -T app php artisan serve --host=0.0.0.0 --port=8000',
+            url: 'http://127.0.0.1:8000/up',
+            reuseExistingServer: !process.env.CI,
+            timeout: 120_000,
+        },
     use: {
         baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:8000',
         channel: browserChannel,

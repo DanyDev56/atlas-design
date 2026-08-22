@@ -1,4 +1,4 @@
-.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
+.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test test-backend e2e check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -44,8 +44,13 @@ bootstrap:
 fix-permissions:
 	./implementation/scripts/fix-permissions.sh
 
-test:
+test: test-backend e2e
+
+test-backend:
 	./implementation/scripts/run-tests.sh
+
+e2e:
+	./implementation/scripts/run-e2e.sh
 
 migrate-test:
 	./implementation/scripts/migrate-and-test.sh
