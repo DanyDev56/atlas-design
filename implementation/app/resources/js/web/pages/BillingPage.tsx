@@ -139,7 +139,8 @@ export function BillingPage() {
                                                 >
                                                     <div className="min-w-0">
                                                         <p className="truncate font-medium text-atlas-ink">
-                                                            {invoice.invoice_number ?? `Facture ${invoice.invoice_id.slice(0, 8).toUpperCase()}`}
+                                                            {invoice.kind === 'Deposit' ? 'Acompte' : 'Facture'}{' '}
+                                                            {invoice.invoice_number ?? invoice.invoice_id.slice(0, 8).toUpperCase()}
                                                         </p>
                                                         <p className="mt-1 text-xs text-atlas-ink-muted">
                                                             {clientNames.get(invoice.client_id) ?? 'Facture client'}

@@ -102,6 +102,21 @@ export async function createInvoiceFromQuote(
     return apiRequest('POST', workspacePath(workspaceId, `/quotes/${quoteId}/invoices`), {}, { token });
 }
 
+export async function createDepositInvoiceFromQuote(
+    token: string,
+    workspaceId: string,
+    quoteId: string,
+    amountCents: number,
+    expectedRevision: number,
+): Promise<InvoiceSummary> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, `/quotes/${quoteId}/deposit-invoices`),
+        { amount_cents: amountCents, expected_revision: expectedRevision },
+        { token, idempotency: true },
+    );
+}
+
 export async function listInvoices(token: string, workspaceId: string): Promise<InvoiceSummary[]> {
     return apiRequest<InvoiceSummary[]>('GET', workspacePath(workspaceId, '/invoices'), undefined, { token });
 }

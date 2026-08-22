@@ -456,6 +456,9 @@ export interface QuoteSummary {
 export interface QuoteDetail extends QuoteSummary {
     lines: QuoteLine[];
     invoice_id: string | null;
+    deposit_invoice_id?: string | null;
+    final_invoice_id?: string | null;
+    deposit_invoice_status?: string | null;
 }
 
 export interface PublicQuoteDetail {
@@ -480,6 +483,7 @@ export interface InvoiceSummary {
     invoice_id: string;
     client_id: string;
     quote_id: string | null;
+    kind?: 'Final' | 'Deposit';
     status: string;
     settlement_status: string;
     invoice_number: string | null;

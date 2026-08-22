@@ -18,7 +18,7 @@ use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
-final class CreateFinalInvoiceFromQuoteHandler
+final class CreateDepositInvoiceFromQuoteHandler
 {
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
@@ -32,13 +32,17 @@ final class CreateFinalInvoiceFromQuoteHandler
         string $actorUserId,
         string $workspaceId,
         string $quoteId,
+        int $amountCents,
+        int $expectedQuoteRevision,
         string $requestId,
         ?string $correlationId = null,
     ): array {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.invoices.create');
 
-        $scope = 'billing.create_final_invoice_from_quote';
-        $fingerprint = hash('sha256', json_encode([$workspaceId, $quoteId], JSON_THROW_ON_ERROR));
+        $scope = 'billing.create_deposit_invoice_from_quote';
+        $fingerprint = hash('sha256', json_encode([
+            $workspaceId, $quoteId, $amountCents, $expectedQuoteRevision,
+        ], JSON_THROW_ON_ERROR));
         $cached = $this->idempotency->find($scope, $requestId);
 
         if ($cached !== null) {
@@ -50,26 +54,21 @@ final class CreateFinalInvoiceFromQuoteHandler
         }
 
         return DB::transaction(function () use (
-            $workspaceId, $quoteId, $requestId, $scope, $fingerprint, $correlationId,
+            $workspaceId, $quoteId, $amountCents, $expectedQuoteRevision,
+            $requestId, $scope, $fingerprint, $correlationId,
         ): array {
-            $existingFinal = $this->invoices->findByQuoteIdAndKind(
-                $workspaceId,
-                $quoteId,
-                Invoice::KIND_FINAL,
-                true,
-            );
-            if ($existingFinal !== null) {
-                return $this->serialize($existingFinal);
-            }
-
-            $deposit = $this->invoices->findByQuoteIdAndKind(
+            $existing = $this->invoices->findByQuoteIdAndKind(
                 $workspaceId,
                 $quoteId,
                 Invoice::KIND_DEPOSIT,
                 true,
             );
-            if ($deposit !== null && $deposit->status() !== Invoice::STATUS_ISSUED) {
-                throw new \DomainException('Deposit invoice is still a draft.');
+            if ($existing !== null) {
+                return $this->serialize($existing);
+            }
+
+            if ($this->invoices->findByQuoteIdAndKind($workspaceId, $quoteId, Invoice::KIND_FINAL, true) !== null) {
+                throw new \DomainException('Final invoice already exists.');
             }
 
             $quote = $this->quotes->findById($workspaceId, new QuoteId($quoteId));
@@ -82,10 +81,8 @@ final class CreateFinalInvoiceFromQuoteHandler
             if ($quote->status() !== Quote::STATUS_ACCEPTED) {
                 throw new \DomainException('Quote is not accepted.');
             }
-
-            $remainder = $quote->totalCents() - ($deposit?->totalCents() ?? 0);
-            if ($remainder <= 0) {
-                throw new \DomainException('No remainder after deposit.');
+            if ($quote->version() !== $expectedQuoteRevision) {
+                throw new \DomainException('Quote version conflict.');
             }
 
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
@@ -93,8 +90,8 @@ final class CreateFinalInvoiceFromQuoteHandler
                 InvoiceId::generate(),
                 $quote,
                 $now,
-                Invoice::KIND_FINAL,
-                $deposit !== null ? $remainder : null,
+                Invoice::KIND_DEPOSIT,
+                $amountCents,
             );
             $this->invoices->insert($invoice);
             $this->outbox->append(OutgoingMessage::fromDomainEvent(new InvoiceCreated(

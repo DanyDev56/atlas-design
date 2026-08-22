@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Billing;
 
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
+use Atlas\Modules\Billing\Application\CreateDepositInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
@@ -21,6 +22,7 @@ final class QuoteController extends Controller
         private readonly UpdateQuoteDraftHandler $updateQuoteDraft,
         private readonly SendQuoteHandler $sendQuote,
         private readonly CreateFinalInvoiceFromQuoteHandler $createInvoiceFromQuote,
+        private readonly CreateDepositInvoiceFromQuoteHandler $createDepositInvoiceFromQuote,
         private readonly BillingQueryHandler $queries,
     ) {}
 
@@ -107,6 +109,25 @@ final class QuoteController extends Controller
             workspaceId: $workspaceId,
             quoteId: $quoteId,
             requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
+        ), 201);
+    }
+
+    public function createDepositInvoice(Request $request, string $workspaceId, string $quoteId): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount_cents' => ['required', 'integer', 'min:1'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->respond(fn () => $this->createDepositInvoiceFromQuote->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+            quoteId: $quoteId,
+            amountCents: (int) $validated['amount_cents'],
+            expectedQuoteRevision: (int) $validated['expected_revision'],
+            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+            correlationId: $request->attributes->get('correlation_id'),
         ), 201);
     }
 

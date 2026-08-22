@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Billing\Application;
 
+use Atlas\Modules\Billing\Domain\Invoice;
 use Atlas\Modules\Billing\Domain\InvoiceId;
 use Atlas\Modules\Billing\Domain\CreditNoteId;
 use Atlas\Modules\Billing\Domain\QuoteId;
@@ -56,7 +57,8 @@ final class BillingQueryHandler
             throw new \DomainException('Quote not found.');
         }
 
-        $invoice = $this->invoices->findByQuoteId($workspaceId, $quoteId);
+        $deposit = $this->invoices->findByQuoteIdAndKind($workspaceId, $quoteId, Invoice::KIND_DEPOSIT);
+        $final = $this->invoices->findByQuoteIdAndKind($workspaceId, $quoteId, Invoice::KIND_FINAL);
         $provenance = DB::table('billing.quotes')->where('id', $quoteId)->first();
 
         return [
@@ -68,7 +70,10 @@ final class BillingQueryHandler
             'total_cents' => $quote->totalCents(),
             'currency' => $quote->currency(),
             'version' => $quote->version(),
-            'invoice_id' => $invoice?->id()->value,
+            'invoice_id' => $final?->id()->value ?? $deposit?->id()->value,
+            'deposit_invoice_id' => $deposit?->id()->value,
+            'final_invoice_id' => $final?->id()->value,
+            'deposit_invoice_status' => $deposit?->status(),
             'original_number' => $quote->originalNumber(),
             'is_historical_import' => $quote->isHistoricalImport(),
             'source_system' => $provenance->source_system ?? null,
@@ -109,6 +114,7 @@ final class BillingQueryHandler
             'invoice_id' => $invoice->id()->value,
             'client_id' => $invoice->clientId(),
             'quote_id' => $invoice->quoteId(),
+            'kind' => $invoice->kind(),
             'status' => $invoice->status(),
             'settlement_status' => $invoice->settlementStatus(),
             'invoice_number' => $invoice->invoiceNumber(),
@@ -179,6 +185,7 @@ final class BillingQueryHandler
                 'invoice_id' => $row->id,
                 'client_id' => $row->client_id,
                 'quote_id' => $row->quote_id,
+                'kind' => $row->kind ?? 'Final',
                 'status' => $row->status,
                 'settlement_status' => $row->settlement_status,
                 'invoice_number' => $row->invoice_number,

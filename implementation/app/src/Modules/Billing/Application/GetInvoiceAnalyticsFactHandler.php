@@ -30,7 +30,7 @@ final class GetInvoiceAnalyticsFactHandler
             'invoice_id' => $invoiceId,
             'aggregate_version' => $aggregateVersion,
             'client_id' => $invoice->clientId(),
-            'kind' => 'Final',
+            'kind' => $invoice->kind(),
             'document_status' => $invoice->status(),
             'gross_amount_cents' => $invoice->totalCents(),
             'currency_code' => $invoice->currency(),

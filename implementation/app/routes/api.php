@@ -115,6 +115,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::patch('/quotes/{quoteId}', [QuoteController::class, 'update']);
             Route::post('/quotes/{quoteId}/send', [QuoteController::class, 'send']);
             Route::post('/quotes/{quoteId}/invoices', [QuoteController::class, 'createInvoice']);
+            Route::post('/quotes/{quoteId}/deposit-invoices', [QuoteController::class, 'createDepositInvoice']);
 
             Route::get('/invoices', [InvoiceController::class, 'index']);
             Route::get('/invoices/{invoiceId}', [InvoiceController::class, 'show']);

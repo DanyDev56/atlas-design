@@ -16,12 +16,17 @@ final class Invoice
 
     public const SETTLEMENT_PAID = 'Paid';
 
+    public const KIND_FINAL = 'Final';
+
+    public const KIND_DEPOSIT = 'Deposit';
+
     /** @param list<array<string, mixed>> $lines */
     private function __construct(
         private readonly InvoiceId $id,
         private readonly string $workspaceId,
         private readonly string $clientId,
         private readonly ?string $quoteId,
+        private readonly string $kind,
         private string $status,
         private string $settlementStatus,
         private ?string $invoiceNumber,
@@ -43,23 +48,40 @@ final class Invoice
         private int $reminderCount = 0,
     ) {}
 
-    /** @param list<array<string, mixed>> $lines */
     public static function createDraftFromQuote(
         InvoiceId $id,
         Quote $quote,
         \DateTimeImmutable $now,
+        string $kind = self::KIND_FINAL,
+        ?int $amountCents = null,
     ): self {
+        if (! in_array($kind, [self::KIND_FINAL, self::KIND_DEPOSIT], true)) {
+            throw new \DomainException('Invalid invoice kind.');
+        }
+
+        $total = $amountCents ?? $quote->totalCents();
+        if ($total <= 0 || $total > $quote->totalCents()) {
+            throw new \DomainException('Invoice amount exceeds quote total.');
+        }
+
+        $lines = $kind === self::KIND_DEPOSIT
+            ? [['description' => 'Acompte', 'quantity' => 1, 'unit_price_cents' => $total]]
+            : ($amountCents !== null && $amountCents < $quote->totalCents()
+                ? [['description' => 'Solde du devis', 'quantity' => 1, 'unit_price_cents' => $total]]
+                : $quote->lines());
+
         return new self(
             id: $id,
             workspaceId: $quote->workspaceId(),
             clientId: $quote->clientId(),
             quoteId: $quote->id()->value,
+            kind: $kind,
             status: self::STATUS_DRAFT,
             settlementStatus: self::SETTLEMENT_UNPAID,
             invoiceNumber: null,
-            lines: $quote->lines(),
-            totalCents: $quote->totalCents(),
-            balanceCents: $quote->totalCents(),
+            lines: $lines,
+            totalCents: $total,
+            balanceCents: $total,
             currency: $quote->currency(),
             clientSnapshot: $quote->clientSnapshot(),
             version: 1,
@@ -81,6 +103,7 @@ final class Invoice
             workspaceId: $row['workspace_id'],
             clientId: $row['client_id'],
             quoteId: $row['quote_id'],
+            kind: (string) ($row['kind'] ?? self::KIND_FINAL),
             status: $row['status'],
             settlementStatus: $row['settlement_status'],
             invoiceNumber: $row['invoice_number'],
@@ -208,6 +231,11 @@ final class Invoice
     public function quoteId(): ?string
     {
         return $this->quoteId;
+    }
+
+    public function kind(): string
+    {
+        return $this->kind;
     }
 
     public function status(): string

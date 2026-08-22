@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { createInvoiceFromQuote, downloadBillingDocument, getQuote, sendQuote, updateQuote } from '@/api/billing';
+import { createDepositInvoiceFromQuote, createInvoiceFromQuote, downloadBillingDocument, getQuote, sendQuote, updateQuote } from '@/api/billing';
 import { getClient } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -52,6 +52,7 @@ export function QuoteDetailPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [sentQuote, setSentQuote] = useState<SendQuoteResponse | null>(null);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [depositAmount, setDepositAmount] = useState('');
 
     async function loadQuote() {
         if (!quoteId) return;
@@ -63,6 +64,9 @@ export function QuoteDetailPage() {
             setQuote(quoteData);
             setLines(quoteData.lines.map((line) => editableLine(line)));
             setDirty(false);
+            if (!depositAmount) {
+                setDepositAmount(((Math.round(quoteData.total_cents * 0.3) / 100) || 0).toFixed(2).replace('.', ','));
+            }
 
             try {
                 setClient(await getClient(token, workspaceId, quoteData.client_id));
@@ -193,8 +197,8 @@ export function QuoteDetailPage() {
     async function onCreateInvoice() {
         if (!quote || quote.status !== 'Accepted') return;
 
-        if (quote.invoice_id) {
-            navigate(`/app/billing/invoices/${quote.invoice_id}`);
+        if (quote.final_invoice_id) {
+            navigate(`/app/billing/invoices/${quote.final_invoice_id}`);
             return;
         }
 
@@ -204,8 +208,37 @@ export function QuoteDetailPage() {
         try {
             const invoice = await createInvoiceFromQuote(token, workspaceId, quote.quote_id);
             navigate(`/app/billing/invoices/${invoice.invoice_id}`);
-        } catch {
-            setError('La facture n’a pas pu être créée. Rechargez le devis avant de réessayer.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'La facture n’a pas pu être créée.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function onCreateDeposit(event: FormEvent) {
+        event.preventDefault();
+        if (!quote || quote.status !== 'Accepted' || quote.deposit_invoice_id) return;
+
+        const amountCents = parseUnitPrice(depositAmount);
+        if (amountCents === null || amountCents <= 0 || amountCents > quote.total_cents) {
+            setError(`L’acompte doit être compris entre 0,01 et ${formatMoney(quote.total_cents, quote.currency)}.`);
+            return;
+        }
+
+        setActionLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const invoice = await createDepositInvoiceFromQuote(
+                token,
+                workspaceId,
+                quote.quote_id,
+                amountCents,
+                quote.version,
+            );
+            navigate(`/app/billing/invoices/${invoice.invoice_id}`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'L’acompte n’a pas pu être créé.');
         } finally {
             setActionLoading(false);
         }
@@ -469,20 +502,54 @@ export function QuoteDetailPage() {
                             <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
                                 <h3 className="font-semibold text-emerald-950">Le devis est accepté</h3>
                                 <p className="mt-2 text-sm leading-relaxed text-emerald-900">
-                                    Créez la facture correspondante. Atlas reprendra les prestations et le montant validés par le client.
+                                    Créez un acompte optionnel, puis la facture du reliquat. Atlas reprend le montant validé par le client.
                                 </p>
-                                <button
-                                    type="button"
-                                    disabled={actionLoading}
-                                    onClick={() => void onCreateInvoice()}
-                                    className="mt-4 min-h-11 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
-                                >
-                                    {actionLoading
-                                        ? 'Préparation…'
-                                        : quote.invoice_id
-                                          ? 'Ouvrir la facture'
-                                          : 'Créer la facture'}
-                                </button>
+
+                                {quote.deposit_invoice_id && (
+                                    <p className="mt-3 text-sm text-emerald-900">
+                                        Acompte : {quote.deposit_invoice_status === 'Issued' ? 'émis' : 'brouillon'}.{' '}
+                                        <Link
+                                            to={`/app/billing/invoices/${quote.deposit_invoice_id}`}
+                                            className="font-semibold underline"
+                                        >
+                                            Ouvrir l’acompte
+                                        </Link>
+                                    </p>
+                                )}
+
+                                {!quote.deposit_invoice_id && !quote.final_invoice_id && (
+                                    <form onSubmit={onCreateDeposit} className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                                        <FormField label={`Montant de l’acompte (${quote.currency})`}>
+                                            <input
+                                                required
+                                                inputMode="decimal"
+                                                className={inputClassName}
+                                                value={depositAmount}
+                                                onChange={(event) => setDepositAmount(event.target.value)}
+                                            />
+                                        </FormField>
+                                        <SubmitButton loading={actionLoading} loadingLabel="Création…">
+                                            Créer l’acompte
+                                        </SubmitButton>
+                                    </form>
+                                )}
+
+                                <div className="mt-4 flex flex-wrap gap-3">
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading || (quote.deposit_invoice_status === 'Draft')}
+                                        onClick={() => void onCreateInvoice()}
+                                        className="min-h-11 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
+                                    >
+                                        {actionLoading
+                                            ? 'Préparation…'
+                                            : quote.final_invoice_id
+                                              ? 'Ouvrir la facture finale'
+                                              : quote.deposit_invoice_id
+                                                ? 'Créer la facture du reliquat'
+                                                : 'Créer la facture complète'}
+                                    </button>
+                                </div>
                             </section>
                         )}
                     </>

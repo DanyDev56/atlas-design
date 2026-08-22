@@ -311,7 +311,8 @@ export function InvoiceDetailPage() {
                         <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">
-                                    {invoice.invoice_number ?? `Facture ${invoice.invoice_id.slice(0, 8).toUpperCase()}`}
+                                    {invoice.kind === 'Deposit' ? 'Acompte' : 'Facture'}{' '}
+                                    {invoice.invoice_number ?? invoice.invoice_id.slice(0, 8).toUpperCase()}
                                 </p>
                                 <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">
                                     {client?.display_name ?? 'Facture client'}

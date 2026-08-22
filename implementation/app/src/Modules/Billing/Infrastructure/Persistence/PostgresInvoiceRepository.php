@@ -17,6 +17,7 @@ final class PostgresInvoiceRepository
             'workspace_id' => $invoice->workspaceId(),
             'client_id' => $invoice->clientId(),
             'quote_id' => $invoice->quoteId(),
+            'kind' => $invoice->kind(),
             'status' => $invoice->status(),
             'settlement_status' => $invoice->settlementStatus(),
             'invoice_number' => $invoice->invoiceNumber(),
@@ -71,7 +72,25 @@ final class PostgresInvoiceRepository
         $row = DB::table('billing.invoices')
             ->where('workspace_id', $workspaceId)
             ->where('quote_id', $quoteId)
+            ->orderByRaw("case when kind = 'Final' then 0 else 1 end")
+            ->orderBy('created_at')
             ->first();
+
+        return $row !== null ? Invoice::reconstitute((array) $row) : null;
+    }
+
+    public function findByQuoteIdAndKind(string $workspaceId, string $quoteId, string $kind, bool $forUpdate = false): ?Invoice
+    {
+        $query = DB::table('billing.invoices')
+            ->where('workspace_id', $workspaceId)
+            ->where('quote_id', $quoteId)
+            ->where('kind', $kind);
+
+        if ($forUpdate) {
+            $query->lockForUpdate();
+        }
+
+        $row = $query->first();
 
         return $row !== null ? Invoice::reconstitute((array) $row) : null;
     }

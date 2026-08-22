@@ -55,7 +55,9 @@ et prise en compte dans le net facturé Analytics. Les PDF déterministes des
 devis, factures et avoirs sont générés à l'émission et téléchargeables par les
 membres autorisés. Les relances manuelles sont enregistrées sur une facture
 émise avec solde positif (`billing.invoices.remind`) et placées dans l’outbox
-sans envoi email réel. L'import historique des avoirs reste hors périmètre.
+sans envoi email réel. Un acompte unique (`Deposit`) peut être créé depuis un
+devis accepté, puis la facture finale facture le reliquat une fois l’acompte
+émis. L'import historique des avoirs reste hors périmètre.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).

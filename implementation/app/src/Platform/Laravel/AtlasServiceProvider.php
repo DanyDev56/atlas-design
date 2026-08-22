@@ -36,6 +36,7 @@ use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
 use Atlas\Modules\Billing\Application\ConfirmHistoricalBillingHistoryImportHandler;
+use Atlas\Modules\Billing\Application\CreateDepositInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
 use Atlas\Modules\Billing\Application\ExecuteHistoricalBillingHistoryImportHandler;
@@ -250,6 +251,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(SendQuoteHandler::class);
         $this->app->singleton(AcceptQuoteHandler::class);
         $this->app->singleton(CreateFinalInvoiceFromQuoteHandler::class);
+        $this->app->singleton(CreateDepositInvoiceFromQuoteHandler::class);
         $this->app->singleton(IssueInvoiceHandler::class);
         $this->app->singleton(SendInvoiceHandler::class);
         $this->app->singleton(RequestInvoiceReminderHandler::class);
