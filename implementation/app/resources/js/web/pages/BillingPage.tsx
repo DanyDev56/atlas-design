@@ -59,12 +59,20 @@ export function BillingPage() {
                             Suivez vos devis, vos factures émises et les montants qui restent à encaisser.
                         </p>
                     </div>
-                    <Link
-                        to="/app/crm"
-                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
-                    >
-                        Créer depuis le CRM
-                    </Link>
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            to="/app/billing/import"
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                        >
+                            Importer un historique
+                        </Link>
+                        <Link
+                            to="/app/crm"
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                        >
+                            Créer depuis le CRM
+                        </Link>
+                    </div>
                 </div>
 
                 {error && (

@@ -30,19 +30,20 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
-| **4** | Enrichissement CRM (contacts client) + Import clients | ✓ CRM | Prévisualisation + import borné *clients* ; Billing historique reporté |
+| **4** | Enrichissement CRM (contacts client) + Import clients + Import Billing | ✓ CRM/Billing | Prévisualisation + import borné *clients* et *devis/factures/paiements* ; rebuild Analytics reporté |
 
 ---
 
 ## Priorité actuelle
 
-Les lots 0 à 4 CRM sont livrés. L’import historique **clients** est exécuté par
-l’outbox (`crm.client_history_import_requested`) et converge sans doublon sur
-`(Workspace, SourceSystem, ExternalId)`.
+Les lots 0 à 4 CRM et l’import historique Billing sont livrés. L’import
+**clients** converge sur `(Workspace, SourceSystem, ExternalId)` ; l’import
+Billing matérialise devis, factures et paiements via l’outbox
+(`billing.history_import_requested`) sans événements opérationnels.
 
-L’import Billing (devis, factures, paiements) et le rebuild Analytics du package
-canonique BPT-013 restent **hors périmètre**. Settings, notes de crédit et zone
-dashboard « Activité mesurée » aussi.
+Le rebuild Analytics borné du package canonique BPT-013 reste **hors
+périmètre**. Settings, notes de crédit et zone dashboard « Activité mesurée »
+aussi.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
@@ -319,9 +320,26 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Isolation par workspace et permission `crm.clients.import-history` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
 
+### Import historique Billing (livré, borné devis/factures/paiements)
+
+- Accessibilité depuis Facturation via `/app/billing/import`
+- Trois CSV canoniques (`quotes`, `invoices`, `payments`) ; un fichier peut
+  n’avoir que ses en-têtes, le package doit contenir au moins un enregistrement
+- Prévisualisation non destructive : clients résolus depuis l’import CRM du
+  même `SourceSystem`, arithmétique exacte, références paiement → facture
+- Empreinte SHA256 immuable du package ; confirmation idempotente
+- Exécution via l’outbox (`BillingHistoryImportRequested` → worker
+  `atlas:outbox:work` ; le contrôleur draine aussi l’outbox pour le dev local)
+- Checkpoints `Quotes` → `Invoices` → `Payments` → `Validate` ; soldes dérivés
+  des paiements ; numéros source conservés, aucune séquence Atlas
+- Aucun événement `QuoteSent` / `InvoiceIssued` / `PaymentRecorded` ; completion
+  par `BillingHistoryImportCompleted`
+- Documents importés lisibles et verrouillés contre les mutations opérationnelles
+- Permission `billing.history.import` (Critical)
+- Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
+
 ### Hors scope Lot 4 (BPT-013 restant)
 
-- Import historique Quotes / Invoices / Payments (`ImportHistoricalBillingHistory`)
 - Rebuild Analytics borné après les deux completions
 - Step-up d'authentification pour la permission Critical
 - Connecteurs Freebe, Indy, Tiime

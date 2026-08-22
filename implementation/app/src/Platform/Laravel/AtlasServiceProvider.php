@@ -7,6 +7,7 @@ namespace Atlas\Platform\Laravel;
 use Atlas\Composition\Advisor\OutboxAdvisorEvaluateConsumer;
 use Atlas\Composition\Analytics\OutboxAnalyticsIngestConsumer;
 use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
+use Atlas\Composition\Billing\OutboxHistoricalBillingImportConsumer;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
 use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\BusinessHealth\OutboxBusinessHealthEvaluateConsumer;
@@ -31,16 +32,21 @@ use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshot
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
+use Atlas\Modules\Billing\Application\ConfirmHistoricalBillingHistoryImportHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
+use Atlas\Modules\Billing\Application\ExecuteHistoricalBillingHistoryImportHandler;
 use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
+use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
 use Atlas\Modules\Billing\Application\UpdateQuoteDraftHandler;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportPreviewRepository;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportRunRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPaymentRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
@@ -76,9 +82,9 @@ use Atlas\Modules\Crm\Application\UpdateContactHandler;
 use Atlas\Modules\Crm\Application\UpdateOpportunityHandler;
 use Atlas\Modules\Crm\Application\WinOpportunityHandler;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresActivityRepository;
-use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportPreviewRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportRunRepository;
+use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
@@ -136,6 +142,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(SpikeEventCounterConsumer::class),
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
                     $app->make(OutboxHistoricalClientsImportConsumer::class),
+                    $app->make(OutboxHistoricalBillingImportConsumer::class),
                     $app->make(OutboxAnalyticsIngestConsumer::class),
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
@@ -204,6 +211,8 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(CrmQueryHandler::class);
 
         $this->app->singleton(PostgresBillingIdempotencyStore::class);
+        $this->app->singleton(PostgresBillingHistoryImportPreviewRepository::class);
+        $this->app->singleton(PostgresBillingHistoryImportRunRepository::class);
         $this->app->singleton(PostgresQuoteRepository::class);
         $this->app->singleton(PostgresInvoiceRepository::class);
         $this->app->singleton(PostgresPaymentRepository::class);
@@ -216,6 +225,10 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(IssueInvoiceHandler::class);
         $this->app->singleton(SendInvoiceHandler::class);
         $this->app->singleton(RecordPaymentHandler::class);
+        $this->app->singleton(PreviewHistoricalBillingHistoryHandler::class);
+        $this->app->singleton(ConfirmHistoricalBillingHistoryImportHandler::class);
+        $this->app->singleton(ExecuteHistoricalBillingHistoryImportHandler::class);
+        $this->app->singleton(OutboxHistoricalBillingImportConsumer::class);
         $this->app->singleton(BillingQueryHandler::class);
         $this->app->singleton(GetQuoteAnalyticsFactHandler::class);
         $this->app->singleton(GetInvoiceAnalyticsFactHandler::class);

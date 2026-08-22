@@ -54,6 +54,10 @@ final class UpdateQuoteDraftHandler
                 throw new \DomainException('Quote not found.');
             }
 
+            if ($quote->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($quote->version() !== $expectedRevision) {
                 throw new \DomainException('Quote version conflict.');
             }

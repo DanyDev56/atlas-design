@@ -45,6 +45,7 @@ différent lève `Idempotency conflict.`
 | `IssueInvoiceHandler` | `billing.issue_invoice` | workspaceId, invoiceId |
 | `SendInvoiceHandler` | `billing.send_invoice` | workspaceId, invoiceId |
 | `RecordPaymentHandler` | `billing.record_payment` | workspaceId, invoiceId, amount, method |
+| `ConfirmHistoricalBillingHistoryImportHandler` | `billing.confirm_historical_billing_import` | workspaceId, previewId, packageHash, sourceSystem |
 
 ## Analytics / Health / Advisor / Notifications
 

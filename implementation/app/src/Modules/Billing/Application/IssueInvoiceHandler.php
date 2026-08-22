@@ -58,6 +58,10 @@ final class IssueInvoiceHandler
                 throw new \DomainException('Invoice not found.');
             }
 
+            if ($invoice->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($invoice->status() === Invoice::STATUS_ISSUED) {
                 return [
                     'invoice_id' => $invoiceId,

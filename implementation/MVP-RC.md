@@ -57,14 +57,15 @@ Clôture engineering : [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Checklist
 Les éléments suivants restent hors de cette clôture technique et sont tracés
 avec owner et plan dans [`MVP-CLOSURE.md`](MVP-CLOSURE.md) :
 
-- import historique **Billing** (devis/factures/paiements) et rebuild Analytics ;
+- rebuild Analytics après import historique (BPT-013) ;
 - dispatch email fournisseur réel ;
 - accessibilité clavier et responsive playground ;
 - sauvegarde/restauration et migrations down en production ;
 - step-up SEC-T différé ;
 
-L’import **clients** CRM et Advisor complete/dismiss sont livrés après cette
-clôture (Palier 4) — voir [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md).
+L’import **clients** CRM, l’import **Billing** historique et Advisor
+complete/dismiss sont livrés après cette clôture (Palier 4) — voir
+[`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md).
 
 ## Démonstration locale
 

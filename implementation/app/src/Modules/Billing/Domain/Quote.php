@@ -30,6 +30,8 @@ final class Quote
         private ?\DateTimeImmutable $sentAt,
         private ?\DateTimeImmutable $acceptedAt,
         private ?\DateTimeImmutable $validUntil,
+        private bool $historicalImport,
+        private readonly ?string $originalNumber = null,
     ) {}
 
     /** @param list<array<string, mixed>> $lines */
@@ -62,6 +64,7 @@ final class Quote
             sentAt: null,
             acceptedAt: null,
             validUntil: $now->modify('+30 days'),
+            historicalImport: false,
         );
     }
 
@@ -87,6 +90,8 @@ final class Quote
             sentAt: isset($row['sent_at']) ? new \DateTimeImmutable($row['sent_at']) : null,
             acceptedAt: isset($row['accepted_at']) ? new \DateTimeImmutable($row['accepted_at']) : null,
             validUntil: isset($row['valid_until']) ? new \DateTimeImmutable($row['valid_until']) : null,
+            historicalImport: (bool) ($row['is_historical_import'] ?? false),
+            originalNumber: $row['original_number'] ?? null,
         );
     }
 
@@ -206,5 +211,15 @@ final class Quote
     public function validUntil(): ?\DateTimeImmutable
     {
         return $this->validUntil;
+    }
+
+    public function isHistoricalImport(): bool
+    {
+        return $this->historicalImport;
+    }
+
+    public function originalNumber(): ?string
+    {
+        return $this->originalNumber;
     }
 }

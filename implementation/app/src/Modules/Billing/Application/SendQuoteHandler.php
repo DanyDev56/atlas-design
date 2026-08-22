@@ -59,6 +59,10 @@ final class SendQuoteHandler
                 throw new \DomainException('Quote not found.');
             }
 
+            if ($quote->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($quote->status() === Quote::STATUS_SENT || $quote->status() === Quote::STATUS_ACCEPTED) {
                 throw new \DomainException('Quote already sent.');
             }

@@ -72,6 +72,10 @@ final class AcceptQuoteHandler
                 throw new \DomainException('Invalid or expired proof.');
             }
 
+            if ($quote->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($quote->status() === Quote::STATUS_ACCEPTED) {
                 if ($quote->version() !== $expectedRevision) {
                     throw new \DomainException('Quote version conflict.');

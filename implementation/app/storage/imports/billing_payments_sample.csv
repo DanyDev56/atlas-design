@@ -1,0 +1,6 @@
+external_id,invoice_external_id,amount_received_cents,amount_applied_cents,currency,received_at,status
+payment-001,invoice-001,48000,48000,EUR,2024-03-20T16:15:00Z,Active
+payment-002,invoice-001,48000,48000,EUR,2024-04-02T09:40:00Z,Active
+payment-003,invoice-003,70000,70000,EUR,2025-02-12T11:00:00Z,Active
+payment-004,invoice-005,42000,42000,EUR,2025-05-04T15:30:00Z,Active
+payment-005,invoice-006,10000,10000,EUR,2025-06-01T10:05:00Z,Active

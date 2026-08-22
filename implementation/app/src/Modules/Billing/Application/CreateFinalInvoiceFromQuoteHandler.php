@@ -58,6 +58,10 @@ final class CreateFinalInvoiceFromQuoteHandler
                 throw new \DomainException('Quote not found.');
             }
 
+            if ($quote->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($quote->status() !== Quote::STATUS_ACCEPTED) {
                 throw new \DomainException('Quote is not accepted.');
             }

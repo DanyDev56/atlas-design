@@ -96,7 +96,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 | Idempotence | ☑ | J1, J3, cross-cutting |
 | Conflit de révision | ☑ | `MvpAcceptanceCrossCuttingTest` |
 | Reprise outbox | ☑ | `OutboxWorkspaceSpikeTest`, `MvpJ3EndToEndAcceptanceTest` |
-| Import historique | ◐ | Clients CRM : `ClientHistoryImportPreviewTest`. Billing + rebuild Analytics : spec [`historical-import.md`](../evolution/blueprint/historical-import.md) |
+| Import historique | ◐ | Clients : `ClientHistoryImportPreviewTest`. Billing : `BillingHistoryImportTest`. Rebuild Analytics : spec [`historical-import.md`](../evolution/blueprint/historical-import.md) |
 | Effet externe (email) | ◐ | Inbox in-app ; dispatch fournisseur réel différé |
 | Reconstruction projections | ◐ | Rebuild via reprocess outbox ; pas de commande dédiée |
 | Accessibilité clavier | ◻ | Playground non audité |
@@ -120,7 +120,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 
 | Écart | Impact | Owner | Plan | Accepté le |
 |---|---|---|---|---|
-| Import historique CRM/Billing | Moyen | Product + Engineering | **CRM clients** livré Palier 4 (preview/confirm/outbox, identité externe). **Billing + rebuild Analytics** toujours ouverts (BPT-013). | 2026-08-07 / maj 2026-08-22 |
+| Import historique CRM/Billing | Moyen | Product + Engineering | **CRM clients** et **Billing** (preview/confirm/outbox, identité externe, pas d’effets opérationnels) livrés Palier 4. **Rebuild Analytics** toujours ouvert (BPT-013). | 2026-08-07 / maj 2026-08-22 |
 | Advisor `CompleteRecommendation` / `DismissRecommendation` | Faible | Engineering | ☑ Livré (`RecommendationDecisionHandler` + UI Advisor) | 2026-08-07 / maj 2026-08-22 |
 | Dispatch email fournisseur réel | Moyen | Engineering | Adaptateur Notifications + consentement testé | 2026-08-07 |
 | `ExpireNotification` et events outbox Notifications dédiés | Faible | Engineering | Durcissement Notifications Palier 3 | 2026-08-07 |

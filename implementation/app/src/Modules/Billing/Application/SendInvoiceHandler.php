@@ -52,6 +52,10 @@ final class SendInvoiceHandler
                 throw new \DomainException('Invoice not found.');
             }
 
+            if ($invoice->isHistoricalImport()) {
+                throw new \DomainException('Historical imports are read-only.');
+            }
+
             if ($invoice->status() !== Invoice::STATUS_ISSUED) {
                 throw new \DomainException('Invoice is not issued.');
             }

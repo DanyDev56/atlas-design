@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
+use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\PublicQuoteController;
@@ -96,6 +97,9 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
             Route::get('/quotes', [QuoteController::class, 'index']);
             Route::post('/quotes', [QuoteController::class, 'store']);
+            Route::post('/billing-history-imports/preview', [BillingHistoryImportController::class, 'preview']);
+            Route::post('/billing-history-imports/confirm', [BillingHistoryImportController::class, 'confirm']);
+            Route::get('/billing-history-imports/{importRunId}', [BillingHistoryImportController::class, 'show']);
             Route::get('/quotes/{quoteId}', [QuoteController::class, 'show']);
             Route::patch('/quotes/{quoteId}', [QuoteController::class, 'update']);
             Route::post('/quotes/{quoteId}/send', [QuoteController::class, 'send']);

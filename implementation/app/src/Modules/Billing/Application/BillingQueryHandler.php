@@ -36,6 +36,8 @@ final class BillingQueryHandler
                 'total_cents' => (int) $row->total_cents,
                 'currency' => $row->currency,
                 'version' => (int) $row->version,
+                'original_number' => $row->original_number ?? null,
+                'is_historical_import' => (bool) ($row->is_historical_import ?? false),
             ])
             ->all();
     }
@@ -52,6 +54,7 @@ final class BillingQueryHandler
         }
 
         $invoice = $this->invoices->findByQuoteId($workspaceId, $quoteId);
+        $provenance = DB::table('billing.quotes')->where('id', $quoteId)->first();
 
         return [
             'quote_id' => $quote->id()->value,
@@ -63,6 +66,10 @@ final class BillingQueryHandler
             'currency' => $quote->currency(),
             'version' => $quote->version(),
             'invoice_id' => $invoice?->id()->value,
+            'original_number' => $quote->originalNumber(),
+            'is_historical_import' => $quote->isHistoricalImport(),
+            'source_system' => $provenance->source_system ?? null,
+            'external_id' => $provenance->external_id ?? null,
         ];
     }
 
@@ -76,6 +83,24 @@ final class BillingQueryHandler
         if ($invoice === null) {
             throw new \DomainException('Invoice not found.');
         }
+
+        $provenance = DB::table('billing.invoices')->where('id', $invoiceId)->first();
+        $payments = DB::table('billing.payments')
+            ->where('workspace_id', $workspaceId)
+            ->where('invoice_id', $invoiceId)
+            ->orderBy('recorded_at')
+            ->get()
+            ->map(fn ($row): array => [
+                'payment_id' => $row->id,
+                'amount_cents' => (int) $row->amount_cents,
+                'currency' => $row->currency,
+                'recorded_at' => $row->recorded_at,
+                'is_historical_import' => (bool) $row->is_historical_import,
+                'external_id' => $row->external_id,
+                'amount_received_cents' => $row->amount_received_cents !== null ? (int) $row->amount_received_cents : null,
+                'amount_applied_cents' => $row->amount_applied_cents !== null ? (int) $row->amount_applied_cents : null,
+            ])
+            ->all();
 
         return [
             'invoice_id' => $invoice->id()->value,
@@ -93,6 +118,11 @@ final class BillingQueryHandler
             'sent_at' => $invoice->sentAt()?->format(DATE_ATOM),
             'due_date' => $invoice->dueDate()?->format(DATE_ATOM),
             'paid_at' => $invoice->paidAt()?->format(DATE_ATOM),
+            'is_historical_import' => $invoice->isHistoricalImport(),
+            'original_number' => $invoice->originalNumber(),
+            'source_system' => $provenance->source_system ?? null,
+            'external_id' => $provenance->external_id ?? null,
+            'payments' => $payments,
         ];
     }
 
@@ -120,6 +150,8 @@ final class BillingQueryHandler
                 'sent_at' => $row->sent_at,
                 'due_date' => $row->due_date,
                 'paid_at' => $row->paid_at,
+                'is_historical_import' => (bool) $row->is_historical_import,
+                'original_number' => $row->original_number,
             ])
             ->all();
     }

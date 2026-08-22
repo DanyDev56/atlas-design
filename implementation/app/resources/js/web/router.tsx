@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { AdvisorPage } from '@/pages/AdvisorPage';
+import { BillingHistoryImportPage } from '@/pages/BillingHistoryImportPage';
 import { BillingPage } from '@/pages/BillingPage';
 import { BusinessHealthPage } from '@/pages/BusinessHealthPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
@@ -30,6 +31,7 @@ export function AppRouter() {
                 <Route path="crm/clients/:clientId" element={<ClientDetailPage />} />
                 <Route path="crm/opportunities/:opportunityId" element={<OpportunityDetailPage />} />
                 <Route path="billing" element={<BillingPage />} />
+                <Route path="billing/import" element={<BillingHistoryImportPage />} />
                 <Route path="billing/quotes/:quoteId" element={<QuoteDetailPage />} />
                 <Route path="billing/invoices/:invoiceId" element={<InvoiceDetailPage />} />
                 <Route path="health" element={<BusinessHealthPage />} />

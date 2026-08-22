@@ -123,8 +123,9 @@ Elle n'est ni un score, ni une Recommendation, ni une nouvelle vérité métier.
 
 ## État d'implémentation (août 2026)
 
-La tranche livrée sous `implementation/` couvre **uniquement**
-`ImportHistoricalClients` (CSV clients, prévisualisation, confirm, outbox,
-identité externe). `ImportHistoricalBillingHistory` et le rebuild Analytics
-borné ne sont pas implémentés. Un import clients ne doit donc pas être présenté
-comme le package canonique complet de ce document.
+La tranche livrée sous `implementation/` couvre `ImportHistoricalClients` et
+`ImportHistoricalBillingHistory` (trois CSV devis/factures/paiements,
+prévisualisation, confirm, outbox, identité externe, soldes dérivés). Le rebuild
+Analytics borné n'est pas implémenté. Un import clients ou Billing ne doit donc
+pas être présenté comme le package canonique complet de ce document, tant que
+la génération Analytics n'a pas basculé après les deux completions.

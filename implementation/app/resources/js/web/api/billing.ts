@@ -1,5 +1,7 @@
 import { apiRequest } from '@/api/client';
 import type {
+    BillingHistoryImportPreview,
+    BillingHistoryImportRun,
     InvoiceDetail,
     InvoiceSummary,
     PaymentResponse,
@@ -147,6 +149,66 @@ export async function recordPayment(
         'POST',
         workspacePath(workspaceId, `/invoices/${invoiceId}/payments`),
         { amount_cents: amountCents, reference: reference || undefined },
+        { token },
+    );
+}
+
+export async function previewHistoricalBilling(
+    token: string,
+    workspaceId: string,
+    input: {
+        sourceSystem: string;
+        sourceExportedAt: string;
+        quotesFile: File;
+        invoicesFile: File;
+        paymentsFile: File;
+    },
+): Promise<BillingHistoryImportPreview> {
+    const form = new FormData();
+    form.append('source_system', input.sourceSystem);
+    form.append('source_exported_at', input.sourceExportedAt);
+    form.append('quotes_file', input.quotesFile);
+    form.append('invoices_file', input.invoicesFile);
+    form.append('payments_file', input.paymentsFile);
+
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, '/billing-history-imports/preview'),
+        form,
+        { token, idempotency: false },
+    );
+}
+
+export async function confirmHistoricalBillingImport(
+    token: string,
+    workspaceId: string,
+    previewId: string,
+    packageHash: string,
+    sourceSystem?: string,
+    sourceExportedAt?: string,
+): Promise<BillingHistoryImportRun> {
+    return apiRequest(
+        'POST',
+        workspacePath(workspaceId, '/billing-history-imports/confirm'),
+        {
+            preview_id: previewId,
+            package_hash: packageHash,
+            source_system: sourceSystem,
+            source_exported_at: sourceExportedAt,
+        },
+        { token, idempotency: true },
+    );
+}
+
+export async function getHistoricalBillingImport(
+    token: string,
+    workspaceId: string,
+    runId: string,
+): Promise<BillingHistoryImportRun> {
+    return apiRequest(
+        'GET',
+        workspacePath(workspaceId, `/billing-history-imports/${runId}`),
+        undefined,
         { token },
     );
 }

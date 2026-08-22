@@ -37,6 +37,8 @@ final class Invoice
         private ?\DateTimeImmutable $sentAt,
         private ?\DateTimeImmutable $dueDate,
         private ?\DateTimeImmutable $paidAt,
+        private bool $historicalImport,
+        private readonly ?string $originalNumber = null,
     ) {}
 
     /** @param list<array<string, mixed>> $lines */
@@ -65,6 +67,7 @@ final class Invoice
             sentAt: null,
             dueDate: null,
             paidAt: null,
+            historicalImport: false,
         );
     }
 
@@ -91,6 +94,8 @@ final class Invoice
             sentAt: isset($row['sent_at']) ? new \DateTimeImmutable($row['sent_at']) : null,
             dueDate: isset($row['due_date']) ? new \DateTimeImmutable($row['due_date']) : null,
             paidAt: isset($row['paid_at']) ? new \DateTimeImmutable($row['paid_at']) : null,
+            historicalImport: (bool) ($row['is_historical_import'] ?? false),
+            originalNumber: $row['original_number'] ?? null,
         );
     }
 
@@ -225,5 +230,15 @@ final class Invoice
     public function paidAt(): ?\DateTimeImmutable
     {
         return $this->paidAt;
+    }
+
+    public function isHistoricalImport(): bool
+    {
+        return $this->historicalImport;
+    }
+
+    public function originalNumber(): ?string
+    {
+        return $this->originalNumber;
     }
 }

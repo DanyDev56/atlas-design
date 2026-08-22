@@ -66,6 +66,7 @@ final class BootstrapIdentityForWorkspaceHandler
         'billing.payments.read',
         'billing.payments.record',
         'billing.payments.reverse',
+        'billing.history.import',
         'analytics.metrics.read',
         'analytics.facts.ingest',
         'analytics.projections.rebuild',

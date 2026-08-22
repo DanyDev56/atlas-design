@@ -74,6 +74,7 @@ final class PostgresInvoiceRepository
         $count = (int) DB::table('billing.invoices')
             ->where('workspace_id', $workspaceId)
             ->where('status', Invoice::STATUS_ISSUED)
+            ->where('is_historical_import', false)
             ->count();
 
         return sprintf('INV-%06d', $count + 1);

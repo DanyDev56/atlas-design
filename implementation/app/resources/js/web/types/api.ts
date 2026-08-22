@@ -387,6 +387,8 @@ export interface QuoteSummary {
     total_cents: number;
     currency: string;
     version: number;
+    original_number?: string | null;
+    is_historical_import?: boolean;
 }
 
 export interface QuoteDetail extends QuoteSummary {
@@ -427,6 +429,8 @@ export interface InvoiceSummary {
     sent_at: string | null;
     due_date: string | null;
     paid_at: string | null;
+    original_number?: string | null;
+    is_historical_import?: boolean;
 }
 
 export interface InvoiceDetail extends InvoiceSummary {
@@ -440,4 +444,77 @@ export interface PaymentResponse {
     balance_cents: number;
     settlement_status: string;
     version: number;
+}
+
+export type BillingHistoryImportRecordKind = 'quotes' | 'invoices' | 'payments' | 'package';
+
+export interface BillingHistoryImportCounts {
+    quotes: number;
+    invoices: number;
+    payments: number;
+}
+
+export interface BillingHistoryImportValidationError {
+    file: BillingHistoryImportRecordKind;
+    line: number;
+    field: string;
+    code: string;
+    message: string;
+}
+
+export interface BillingHistoryImportResolvedClient {
+    client_external_id: string;
+    client_id: string;
+    display_name?: string;
+}
+
+export interface BillingHistoryImportRecord {
+    line: number;
+    external_id: string;
+    client_external_id?: string;
+    client_id?: string;
+    client_display_name?: string;
+    original_number?: string;
+    validation_status: 'Valid' | 'Invalid';
+    [field: string]: string | number | undefined;
+}
+
+export interface BillingHistoryImportPreview {
+    preview_id: string;
+    schema_version: string;
+    source_system: string;
+    source_exported_at: string;
+    package_hash: string;
+    quote_count: number;
+    invoice_count: number;
+    payment_count: number;
+    validation_error_count: number;
+    valid_for_confirmation: boolean;
+    quotes: BillingHistoryImportRecord[];
+    invoices: BillingHistoryImportRecord[];
+    payments: BillingHistoryImportRecord[];
+    validation_errors: BillingHistoryImportValidationError[];
+    expires_at: string;
+}
+
+export type BillingHistoryImportPhase =
+    | 'Pending'
+    | 'Quotes'
+    | 'Invoices'
+    | 'Payments'
+    | 'Validate'
+    | 'Completed'
+    | 'Failed';
+
+export interface BillingHistoryImportRun {
+    import_run_id: string;
+    status: 'Pending' | 'Processing' | 'Completed' | 'Failed' | 'Conflict';
+    checkpoint: BillingHistoryImportPhase;
+    quote_count?: number;
+    invoice_count?: number;
+    payment_count?: number;
+    processed_quotes?: number;
+    processed_invoices?: number;
+    processed_payments?: number;
+    error?: string | null;
 }
