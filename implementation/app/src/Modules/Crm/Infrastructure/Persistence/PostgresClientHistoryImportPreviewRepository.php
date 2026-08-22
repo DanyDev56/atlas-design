@@ -31,6 +31,10 @@ final class PostgresClientHistoryImportPreviewRepository
             return null;
         }
 
+        $records = json_decode((string) $row->records, true, 512, JSON_THROW_ON_ERROR);
+        $errors = json_decode((string) $row->validation_errors, true, 512, JSON_THROW_ON_ERROR);
+        $duplicates = json_decode((string) $row->duplicate_candidates, true, 512, JSON_THROW_ON_ERROR);
+
         return [
             'id' => $row->id,
             'workspace_id' => $row->workspace_id,
@@ -41,11 +45,13 @@ final class PostgresClientHistoryImportPreviewRepository
             'row_count' => (int) $row->row_count,
             'valid_row_count' => (int) $row->valid_row_count,
             'validation_error_count' => (int) $row->validation_error_count,
-            'duplicate_candidate_count' => property_exists($row, 'duplicate_candidate_count') ? (int) $row->duplicate_candidate_count : 0,
-            'valid_for_confirmation' => property_exists($row, 'valid_for_confirmation') ? (bool) $row->valid_for_confirmation : true,
-            'records' => json_decode((string) $row->records, true, 512, JSON_THROW_ON_ERROR),
-            'validation_errors' => json_decode((string) $row->validation_errors, true, 512, JSON_THROW_ON_ERROR),
-            'duplicate_candidates' => json_decode((string) $row->duplicate_candidates, true, 512, JSON_THROW_ON_ERROR),
+            'duplicate_candidate_count' => count($duplicates),
+            'valid_for_confirmation' => (int) $row->valid_row_count > 0
+                && (int) $row->validation_error_count === 0
+                && $duplicates === [],
+            'records' => $records,
+            'validation_errors' => $errors,
+            'duplicate_candidates' => $duplicates,
             'created_by' => $row->created_by,
             'expires_at' => $row->expires_at,
             'created_at' => $row->created_at,
@@ -68,6 +74,30 @@ final class PostgresClientHistoryImportPreviewRepository
             ->whereIn(DB::raw('LOWER(display_name)'), array_values(array_unique($normalizedNames)))
             ->get()
             ->map(fn($row): array => ['id' => $row->id, 'display_name' => $row->display_name])
+            ->all();
+    }
+
+    /**
+     * @param  list<string>  $externalIds
+     * @return list<array{id: string, external_id: string, canonical_record_hash: string|null}>
+     */
+    public function findClientsByHistoricalIdentity(string $workspaceId, string $sourceSystem, array $externalIds): array
+    {
+        if ($externalIds === []) {
+            return [];
+        }
+
+        return DB::table('crm.clients')
+            ->select(['id', 'external_id', 'canonical_record_hash'])
+            ->where('workspace_id', $workspaceId)
+            ->where('source_system', $sourceSystem)
+            ->whereIn('external_id', array_values(array_unique($externalIds)))
+            ->get()
+            ->map(fn ($row): array => [
+                'id' => $row->id,
+                'external_id' => $row->external_id,
+                'canonical_record_hash' => $row->canonical_record_hash,
+            ])
             ->all();
     }
 }

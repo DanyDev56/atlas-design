@@ -3,7 +3,7 @@ title: Palier 4 — UI démo / early access
 status: Completed
 owner: Product + Engineering
 date: 2026-08-07
-last_updated: 2026-08-16
+last_updated: 2026-08-22
 references:
   - ../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../evolution/blueprint/navigation.md
@@ -30,26 +30,22 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 | **1** | Dashboard (widgets composition) | ✓ | Démo 2 min convaincante |
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
-| **4** | Enrichissement CRM (contacts client) + Import historique | ✓ | Parcours J2 + prévisualisation et import borné |
+| **4** | Enrichissement CRM (contacts client) + Import clients | ✓ CRM | Prévisualisation + import borné *clients* ; Billing historique reporté |
 
 ---
 
 ## Priorité actuelle
 
-La recette locale du polish UI/UX est validée, y compris la compréhension du
-dashboard en moins de 30 secondes. La tranche courante enrichit la fiche client
-avec ses contacts avant de poursuivre les autres opérations CRM. Les travaux
-de publication et de déploiement de l'image OCI sont volontairement différés et
-restent tracés dans le
+Les lots 0 à 4 CRM sont livrés. L’import historique **clients** est exécuté par
+l’outbox (`crm.client_history_import_requested`) et converge sans doublon sur
+`(Workspace, SourceSystem, ExternalId)`.
+
+L’import Billing (devis, factures, paiements) et le rebuild Analytics du package
+canonique BPT-013 restent **hors périmètre**. Settings, notes de crédit et zone
+dashboard « Activité mesurée » aussi.
+
+Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
-
-L'ordre de travail retenu est :
-
-1. afficher les contacts rattachés à un client et identifier le principal ;
-2. permettre leur ajout depuis la fiche avec contrôle de révision ;
-3. relier ensuite le contact choisi aux opportunités commerciales ;
-4. poursuivre avec l'édition et le cycle de vie CRM sans déplacer les règles
-   métier dans le frontend.
 
 ---
 
@@ -215,7 +211,7 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 
 ---
 
-## Lot 4 — Enrichissement CRM (en cours)
+## Lot 4 — Enrichissement CRM
 
 ### Livré
 
@@ -305,27 +301,30 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
   devis causal ; les deux sources produisent le même événement `OpportunityWon`
   et le même fait Analytics sans exposer l'acteur dans l'outbox
 
-### Import historique (livré)
+### Import historique clients (livré, borné CRM)
 
 - Accessibilité depuis la navigation CRM via `/app/crm/import`
 - Téléchargement d'un modèle CSV canonique avec colonnes obligatoires et optionnelles
 - Prévisualisation non destructive : validation structurelle, détection de doublons
-  et doublons probables entre lignes et clients existants
+  et conflits d'identité historique `(SourceSystem, ExternalId)`
 - Empreinte SHA256 immuable du package pour détection de modifications
-- Affichage des erreurs de validation par ligne avec codes métier
-- Tableau des lignes canoniques avec statut de validation
-- Confirmation explicite avec contrôle de l'empreinte
-- Suivi de progression de l'import avec barre d'avancement en temps réel
-- Conversion des identifiants externes en références internes
+- Confirmation explicite avec contrôle de l'empreinte, idempotence par
+  `Idempotency-Key` et convergence du même `package_hash`
+- Exécution via l'outbox (`ClientHistoryImportRequested` → worker
+  `atlas:outbox:work` ; le contrôleur draine aussi l'outbox pour le dev local)
+- Identité externe persistée sur le Client (pas dans le seul JSON profil) ;
+  un rejeu identique ne duplique pas ; un contenu divergent sous la même clé
+  est `Conflict`
+- Aucun événement `ClientCreated` ; completion par `ClientHistoryImportCompleted`
 - Isolation par workspace et permission `crm.clients.import-history` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
-- Gestion des conflits et des retrys : idempotence par previewId et packageHash
-- Package brut supprimé après traitement ; manifeste conservé pour audit
 
-### Suite logique future
+### Hors scope Lot 4 (BPT-013 restant)
 
-- Connecteurs additionnels (Freebe, Indy, Tiime)
-- Import historique des factures et paiements (Billing)
+- Import historique Quotes / Invoices / Payments (`ImportHistoricalBillingHistory`)
+- Rebuild Analytics borné après les deux completions
+- Step-up d'authentification pour la permission Critical
+- Connecteurs Freebe, Indy, Tiime
 
 ---
 

@@ -120,3 +120,11 @@ Elle n'est ni un score, ni une Recommendation, ni une nouvelle vérité métier.
 - la suppression du fichier brut respecte la fenêtre de vingt-quatre heures ;
 - l'utilisateur obtient une surface utile même si Business Health conclut à
   `Limited` ou `InsufficientData`.
+
+## État d'implémentation (août 2026)
+
+La tranche livrée sous `implementation/` couvre **uniquement**
+`ImportHistoricalClients` (CSV clients, prévisualisation, confirm, outbox,
+identité externe). `ImportHistoricalBillingHistory` et le rebuild Analytics
+borné ne sont pas implémentés. Un import clients ne doit donc pas être présenté
+comme le package canonique complet de ce document.

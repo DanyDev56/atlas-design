@@ -79,7 +79,7 @@ Référence : [`mvp-acceptance.md`](../evolution/roadmap/mvp-acceptance.md).
 | 3 | Retry, conflit, indisponibilité, reconstruction | ◐ | Retry/conflit/outbox prouvés ; reconstruction complète non automatisée |
 | 4 | Journaux et métriques pour localiser une rupture | ◐ | OTLP + backlog monitor + runbooks ; gate Jaeger manuelle |
 | 5 | Fixtures FIX-001…010 déterministes | ☑ | Oracle `scripts/check-mvp-reference-fixtures.sh` + Pest |
-| 6 | Aucune exclusion nécessaire au résultat nominal | ◐ | Parcours à froid sans import ; import historique différé |
+| 6 | Aucune exclusion nécessaire au résultat nominal | ◐ | Parcours à froid sans import Billing ; import **clients** CRM disponible |
 | 7 | Dashboard et frontières Blueprint respectées | ☑ | Composition par lectures publiques uniquement |
 | 8 | SEC-001 validé, gaps fermés, risques High/Critical acceptés | ◐ | Subset beta SEC-TEST ☑ ; step-up et fuzz différés |
 
@@ -96,7 +96,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 | Idempotence | ☑ | J1, J3, cross-cutting |
 | Conflit de révision | ☑ | `MvpAcceptanceCrossCuttingTest` |
 | Reprise outbox | ☑ | `OutboxWorkspaceSpikeTest`, `MvpJ3EndToEndAcceptanceTest` |
-| Import historique | ◻ | Spec [`historical-import.md`](../evolution/blueprint/historical-import.md) — non implémenté |
+| Import historique | ◐ | Clients CRM : `ClientHistoryImportPreviewTest`. Billing + rebuild Analytics : spec [`historical-import.md`](../evolution/blueprint/historical-import.md) |
 | Effet externe (email) | ◐ | Inbox in-app ; dispatch fournisseur réel différé |
 | Reconstruction projections | ◐ | Rebuild via reprocess outbox ; pas de commande dédiée |
 | Accessibilité clavier | ◻ | Playground non audité |
@@ -120,8 +120,8 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 
 | Écart | Impact | Owner | Plan | Accepté le |
 |---|---|---|---|---|
-| Import historique CRM/Billing absent | Moyen | Product + Engineering | Palier 3 ou incrément dédié post-clôture | 2026-08-07 |
-| Advisor `CompleteRecommendation` / `DismissRecommendation` | Faible | Engineering | Compléter boucle Advisor avant beta | 2026-08-07 |
+| Import historique CRM/Billing | Moyen | Product + Engineering | **CRM clients** livré Palier 4 (preview/confirm/outbox, identité externe). **Billing + rebuild Analytics** toujours ouverts (BPT-013). | 2026-08-07 / maj 2026-08-22 |
+| Advisor `CompleteRecommendation` / `DismissRecommendation` | Faible | Engineering | ☑ Livré (`RecommendationDecisionHandler` + UI Advisor) | 2026-08-07 / maj 2026-08-22 |
 | Dispatch email fournisseur réel | Moyen | Engineering | Adaptateur Notifications + consentement testé | 2026-08-07 |
 | `ExpireNotification` et events outbox Notifications dédiés | Faible | Engineering | Durcissement Notifications Palier 3 | 2026-08-07 |
 | OpenTelemetry OTLP non branché | Moyen | Engineering | ☑ Track A lot 2 — [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) | 2026-08-07 |

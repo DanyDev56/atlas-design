@@ -21,7 +21,7 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 |---|---|
 | Utilisateurs | Beta fermée **interne** — équipe Atlas + proches |
 | Support | `beta@atlas-design.fr` *(placeholder — à confirmer avant ouverture externe)* |
-| Environnement démo J1–J3 | Local validé (`make serve`, playground) |
+| Environnement démo J1–J3 | Local validé (`make serve` + `/app`, `make demo-seed`) ; playground = outil dev |
 | Tag release rollback | `beta-0.1.0` |
 
 ## CI / qualité
@@ -58,7 +58,7 @@ Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
 
 - [x] Draft rétention beta validé (SEC-GAP-004) — `atlas:retention:purge` + schedule quotidien
 - [x] Liste utilisateurs beta + support définis — beta interne ; support `beta@atlas-design.fr`
-- [x] Playground / parcours J1–J3 démontrés — local (`make serve`, playground)
+- [x] Playground / parcours J1–J3 démontrés — local (`make serve`, `/app`)
 
 ## Rollback
 

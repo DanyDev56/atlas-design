@@ -10,6 +10,7 @@ use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
 use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\BusinessHealth\OutboxBusinessHealthEvaluateConsumer;
+use Atlas\Composition\Crm\OutboxHistoricalClientsImportConsumer;
 use Atlas\Composition\Dashboard\DashboardQueryHandler;
 use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
@@ -60,6 +61,7 @@ use Atlas\Modules\Crm\Application\CorrectActivityHandler;
 use Atlas\Modules\Crm\Application\CreateClientHandler;
 use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\CrmQueryHandler;
+use Atlas\Modules\Crm\Application\ExecuteHistoricalClientsImportHandler;
 use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
 use Atlas\Modules\Crm\Application\LoseOpportunityHandler;
 use Atlas\Modules\Crm\Application\PreviewHistoricalClientsHandler;
@@ -133,6 +135,7 @@ final class AtlasServiceProvider extends ServiceProvider
                 [
                     $app->make(SpikeEventCounterConsumer::class),
                     $app->make(QuoteAcceptedWinOpportunityConsumer::class),
+                    $app->make(OutboxHistoricalClientsImportConsumer::class),
                     $app->make(OutboxAnalyticsIngestConsumer::class),
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
@@ -182,6 +185,8 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(ArchiveContactHandler::class);
         $this->app->singleton(ChangeClientPrimaryContactHandler::class);
         $this->app->singleton(ConfirmHistoricalClientsImportHandler::class);
+        $this->app->singleton(ExecuteHistoricalClientsImportHandler::class);
+        $this->app->singleton(OutboxHistoricalClientsImportConsumer::class);
         $this->app->singleton(UpdateContactHandler::class);
         $this->app->singleton(UpdateClientBillingProfileHandler::class);
         $this->app->singleton(UpdateClientProfileHandler::class);

@@ -1,11 +1,15 @@
 # Recette UI locale
 
 Ce harnais vérifie le compte démo dans un vrai navigateur, en desktop et en
-mobile. Il reste séparé des dépendances Vite de l’application et utilise Edge
-installé sur Windows. Un runtime Node 22 local au dossier garantit la version
-requise par Playwright, même si le Node global est plus ancien.
+mobile. Il reste séparé des dépendances Vite de l’application.
 
-Préparer l’application et les données depuis le terminal habituel :
+- **Linux / macOS** : Chromium Playwright (canal par défaut).
+- **Windows** : Edge (`msedge`) si `PLAYWRIGHT_CHANNEL` n’est pas défini.
+
+Un runtime Node 22 local au dossier garantit la version requise par Playwright,
+même si le Node global est plus ancien.
+
+Préparer l’application et les données :
 
 ```bash
 make up
@@ -17,17 +21,18 @@ make serve
 Si la suite backend est exécutée après ces commandes, rejouer les deux seeds :
 les tests d’intégration réinitialisent leur base avant la recette navigateur.
 
-Puis lancer la recette depuis PowerShell, à la racine du dépôt :
+Depuis la racine du dépôt :
 
-```powershell
+```bash
 npm --prefix implementation/e2e ci
+npx --prefix implementation/e2e playwright install chromium
 npm --prefix implementation/e2e test
 ```
 
-Pour conserver des captures temporaires de chaque écran dans le dossier
-système `%TEMP%/atlas-playwright-results` :
+Windows (PowerShell), pour forcer Edge et des captures :
 
 ```powershell
+npm --prefix implementation/e2e ci
 $env:ATLAS_E2E_SCREENSHOTS='true'
 npm --prefix implementation/e2e test
 ```

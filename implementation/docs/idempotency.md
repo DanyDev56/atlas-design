@@ -1,7 +1,7 @@
 ---
 title: Catalogue idempotence — handlers MVP
 owner: Engineering
-last_updated: 2026-08-07
+last_updated: 2026-08-22
 references:
   - ../SEC-TEST-MATRIX.md
 ---
@@ -30,6 +30,7 @@ différent lève `Idempotency conflict.`
 | `CreateOpportunityHandler` | `crm.create_opportunity` | workspaceId, clientId, title, amount, currency |
 | `QualifyOpportunityHandler` | `crm.qualify_opportunity` | workspaceId, opportunityId, expectedRevision |
 | `AddContactHandler` | `crm.add_contact` | workspaceId, clientId, contact fields |
+| `ConfirmHistoricalClientsImportHandler` | `crm.confirm_historical_clients_import` | workspaceId, previewId, packageHash, sourceSystem |
 | `WinOpportunityFromQuoteHandler` | `crm.win_opportunity_from_quote` | workspaceId, quoteId, opportunityId |
 
 ## Billing (`billing.idempotency_keys`)

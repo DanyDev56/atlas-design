@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Crm\Application;
 
-use Atlas\Modules\Crm\Application\Jobs\ImportHistoricalClientsJob;
 use Atlas\Modules\Crm\Domain\ClientHistoryImportRequested;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportPreviewRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportRunRepository;
+use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Messaging\OutgoingMessage;
+use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,12 +21,11 @@ final class ConfirmHistoricalClientsImportHandler
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PostgresClientHistoryImportPreviewRepository $previews,
         private readonly PostgresClientHistoryImportRunRepository $importRuns,
+        private readonly PostgresCrmIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
     ) {}
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function handle(
         string $actorUserId,
         string $workspaceId,
@@ -39,13 +38,38 @@ final class ConfirmHistoricalClientsImportHandler
     ): array {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.clients.import-history');
 
+        $normalizedPackageHash = preg_replace('/^sha256:/i', '', $packageHash) ?? $packageHash;
+        $scope = 'crm.confirm_historical_clients_import';
+        $fingerprint = hash('sha256', json_encode([
+            $workspaceId,
+            $previewId,
+            $normalizedPackageHash,
+            trim($sourceSystem),
+        ], JSON_THROW_ON_ERROR));
+        $cached = $this->idempotency->find($scope, $requestId);
+
+        if ($cached !== null) {
+            if ($cached['fingerprint'] !== $fingerprint) {
+                throw new \DomainException('Idempotency conflict.');
+            }
+
+            return $cached['response_payload'];
+        }
+
+        $existingRun = $this->importRuns->findActiveByPackageHash($workspaceId, $normalizedPackageHash);
+
+        if ($existingRun !== null) {
+            $response = $this->serializeRun($existingRun, $requestId, $correlationId);
+            $this->idempotency->store($scope, $requestId, $fingerprint, $response);
+
+            return $response;
+        }
+
         $preview = $this->previews->findById($workspaceId, $previewId);
 
         if ($preview === null) {
             throw new \DomainException('Preview not found.');
         }
-
-        $normalizedPackageHash = preg_replace('/^sha256:/i', '', $packageHash) ?? $packageHash;
 
         if ($preview['package_hash'] !== $normalizedPackageHash) {
             throw new \DomainException('Package hash mismatch.');
@@ -71,26 +95,27 @@ final class ConfirmHistoricalClientsImportHandler
         $now = now();
         $occurredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
-        DB::transaction(function () use (
+        $run = DB::transaction(function () use (
             $importRunId,
             $workspaceId,
             $previewId,
             $sourceSystem,
             $preview,
-            $packageHash,
+            $normalizedPackageHash,
             $clientCount,
             $actorUserId,
             $now,
             $occurredAt,
             $correlationId,
-        ): void {
+            $requestId,
+        ): array {
             $this->importRuns->insert([
                 'id' => $importRunId,
                 'workspace_id' => $workspaceId,
                 'preview_id' => $previewId,
                 'source_system' => $sourceSystem,
                 'source_exported_at' => $preview['source_exported_at'],
-                'package_hash' => $packageHash,
+                'package_hash' => $normalizedPackageHash,
                 'status' => 'Processing',
                 'client_count' => $clientCount,
                 'processed_count' => 0,
@@ -99,36 +124,48 @@ final class ConfirmHistoricalClientsImportHandler
                 'updated_at' => $now->format('Y-m-d H:i:sP'),
             ]);
 
-            $event = new ClientHistoryImportRequested(
-                importRunId: $importRunId,
-                workspaceId: $workspaceId,
-                sourceSystem: $sourceSystem,
-                packageHash: $preview['package_hash'],
-                clientCount: $clientCount,
-                eventId: EventId::generate(),
-                occurredAt: $occurredAt,
-            );
+            $this->outbox->append(OutgoingMessage::fromDomainEvent(
+                new ClientHistoryImportRequested(
+                    importRunId: $importRunId,
+                    workspaceId: $workspaceId,
+                    sourceSystem: $sourceSystem,
+                    packageHash: $normalizedPackageHash,
+                    clientCount: $clientCount,
+                    eventId: EventId::generate(),
+                    occurredAt: $occurredAt,
+                ),
+                correlationId: $correlationId,
+            ));
 
-            $this->outbox->append(OutgoingMessage::fromDomainEvent($event, correlationId: $correlationId));
+            return $this->serializeRun([
+                'id' => $importRunId,
+                'workspace_id' => $workspaceId,
+                'status' => 'Processing',
+                'client_count' => $clientCount,
+                'processed_count' => 0,
+                'preview_id' => $previewId,
+                'source_system' => $sourceSystem,
+                'package_hash' => $normalizedPackageHash,
+            ], $requestId, $correlationId);
         });
 
-        ImportHistoricalClientsJob::dispatchAfterResponse(
-            importRunId: $importRunId,
-            workspaceId: $workspaceId,
-            previewId: $previewId,
-            preview: $preview,
-            correlationId: $correlationId,
-        );
+        $this->idempotency->store($scope, $requestId, $fingerprint, $run);
 
+        return $run;
+    }
+
+    /** @param array<string, mixed> $run */
+    private function serializeRun(array $run, string $requestId, ?string $correlationId): array
+    {
         return [
-            'import_run_id' => $importRunId,
-            'workspace_id' => $workspaceId,
-            'preview_id' => $previewId,
-            'source_system' => $sourceSystem,
-            'package_hash' => $packageHash,
-            'status' => 'Processing',
-            'client_count' => $clientCount,
-            'processed_count' => 0,
+            'import_run_id' => $run['id'] ?? $run['import_run_id'],
+            'workspace_id' => $run['workspace_id'] ?? null,
+            'preview_id' => $run['preview_id'] ?? null,
+            'source_system' => $run['source_system'] ?? null,
+            'package_hash' => $run['package_hash'] ?? null,
+            'status' => $run['status'] ?? 'Processing',
+            'client_count' => (int) ($run['client_count'] ?? 0),
+            'processed_count' => (int) ($run['processed_count'] ?? 0),
             'correlation_id' => $correlationId,
             'request_id' => $requestId,
         ];

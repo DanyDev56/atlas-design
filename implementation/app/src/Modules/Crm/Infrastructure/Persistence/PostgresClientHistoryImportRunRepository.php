@@ -36,6 +36,18 @@ final class PostgresClientHistoryImportRunRepository
         return $row ? (array) $row : null;
     }
 
+    public function findActiveByPackageHash(string $workspaceId, string $packageHash): ?array
+    {
+        $row = DB::table('crm.client_history_import_runs')
+            ->where('workspace_id', $workspaceId)
+            ->where('package_hash', $packageHash)
+            ->whereIn('status', ['Processing', 'Completed'])
+            ->orderBy('created_at')
+            ->first();
+
+        return $row ? (array) $row : null;
+    }
+
     public function updateProcessedCount(string $importRunId, int $processedCount): void
     {
         DB::table('crm.client_history_import_runs')

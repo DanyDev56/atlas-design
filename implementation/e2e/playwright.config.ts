@@ -2,7 +2,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-const browserChannel = process.env.CI ? undefined : (process.env.PLAYWRIGHT_CHANNEL ?? 'msedge');
+const browserChannel = process.env.CI
+    ? undefined
+    : (process.env.PLAYWRIGHT_CHANNEL ?? (process.platform === 'win32' ? 'msedge' : undefined));
 
 export default defineConfig({
     testDir: './tests',

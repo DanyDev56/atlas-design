@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Atlas\Modules\Crm\Application\PreviewHistoricalClientsHandler;
 use Atlas\Modules\Crm\Application\ConfirmHistoricalClientsImportHandler;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportRunRepository;
+use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,6 +19,7 @@ final class ClientHistoryImportController extends Controller
         private readonly PreviewHistoricalClientsHandler $previewHistoricalClients,
         private readonly ConfirmHistoricalClientsImportHandler $confirmHistoricalClientsImport,
         private readonly PostgresClientHistoryImportRunRepository $importRuns,
+        private readonly OutboxProcessor $outbox,
     ) {}
 
     public function preview(Request $request, string $workspaceId): JsonResponse
@@ -48,16 +50,32 @@ final class ClientHistoryImportController extends Controller
 
         $packageHash = preg_replace('/^sha256:/i', '', $validated['package_hash']);
 
-        return $this->respond(fn() => $this->confirmHistoricalClientsImport->handle(
-            actorUserId: (string) $request->attributes->get('authenticated_user_id'),
-            workspaceId: $workspaceId,
-            previewId: $validated['preview_id'],
-            packageHash: $packageHash,
-            sourceSystem: $validated['source_system'],
-            sourceExportedAt: $validated['source_exported_at'],
-            requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
-            correlationId: $request->attributes->get('correlation_id'),
-        ), 202);
+        return $this->respond(function () use ($request, $workspaceId, $validated, $packageHash): array {
+            $accepted = $this->confirmHistoricalClientsImport->handle(
+                actorUserId: (string) $request->attributes->get('authenticated_user_id'),
+                workspaceId: $workspaceId,
+                previewId: $validated['preview_id'],
+                packageHash: $packageHash,
+                sourceSystem: $validated['source_system'],
+                sourceExportedAt: $validated['source_exported_at'],
+                requestId: $request->header('Idempotency-Key') ?? (string) Str::uuid(),
+                correlationId: $request->attributes->get('correlation_id'),
+            );
+
+            $this->outbox->processPending(100);
+            $run = $this->importRuns->findById($workspaceId, $accepted['import_run_id']);
+
+            if ($run === null) {
+                return $accepted;
+            }
+
+            return [
+                ...$accepted,
+                'status' => $run['status'] ?? $accepted['status'],
+                'processed_count' => (int) ($run['processed_count'] ?? $accepted['processed_count']),
+                'client_count' => (int) ($run['client_count'] ?? $accepted['client_count']),
+            ];
+        }, 202);
     }
 
     public function show(Request $request, string $workspaceId, string $importRunId): JsonResponse

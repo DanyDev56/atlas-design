@@ -76,7 +76,7 @@ final class PreviewHistoricalClientsHandler
         $parsed = $this->parseCsv($contents, $exportedAt);
         $records = $parsed['records'];
         $errors = $parsed['errors'];
-        $duplicates = $this->findDuplicateCandidates($workspaceId, $records);
+        $duplicates = $this->findDuplicateCandidates($workspaceId, $sourceSystem, $records);
         $linesWithErrors = array_fill_keys(array_column($errors, 'line'), true);
 
         foreach ($records as &$record) {
@@ -335,7 +335,7 @@ final class PreviewHistoricalClientsHandler
      * @param  list<array<string, mixed>>  $records
      * @return list<array<string, mixed>>
      */
-    private function findDuplicateCandidates(string $workspaceId, array $records): array
+    private function findDuplicateCandidates(string $workspaceId, string $sourceSystem, array $records): array
     {
         $duplicates = [];
         $packageNames = [];
@@ -355,6 +355,42 @@ final class PreviewHistoricalClientsHandler
             }
         }
 
+        $historicalIdentities = $this->previews->findClientsByHistoricalIdentity(
+            $workspaceId,
+            $sourceSystem,
+            array_values(array_filter(array_map(
+                fn (array $record): string => (string) ($record['external_id'] ?? ''),
+                $records,
+            ))),
+        );
+        $historicalByExternalId = [];
+
+        foreach ($historicalIdentities as $client) {
+            $historicalByExternalId[$client['external_id']] = $client;
+        }
+
+        foreach ($records as $record) {
+            $externalId = (string) ($record['external_id'] ?? '');
+
+            if ($externalId === '' || ! isset($historicalByExternalId[$externalId])) {
+                continue;
+            }
+
+            $matched = $historicalByExternalId[$externalId];
+
+            if ($matched['canonical_record_hash'] === ($record['canonical_record_hash'] ?? null)) {
+                continue;
+            }
+
+            $duplicates[] = [
+                'line' => $record['line'],
+                'display_name' => $record['profile']['display_name'],
+                'kind' => 'ConflictingHistoricalIdentity',
+                'matched_client_id' => $matched['id'],
+                'matched_external_id' => $externalId,
+            ];
+        }
+
         $existingClients = $this->previews->findClientsByNormalizedDisplayNames(
             $workspaceId,
             array_keys($packageNames),
@@ -368,15 +404,25 @@ final class PreviewHistoricalClientsHandler
         foreach ($records as $record) {
             $normalizedName = mb_strtolower($record['profile']['display_name']);
 
-            if (isset($existingByName[$normalizedName])) {
-                $duplicates[] = [
-                    'line' => $record['line'],
-                    'display_name' => $record['profile']['display_name'],
-                    'kind' => 'ExistingClient',
-                    'matched_client_id' => $existingByName[$normalizedName]['id'],
-                    'matched_display_name' => $existingByName[$normalizedName]['display_name'],
-                ];
+            if (! isset($existingByName[$normalizedName])) {
+                continue;
             }
+
+            $matchedClientId = $existingByName[$normalizedName]['id'];
+            $externalId = (string) ($record['external_id'] ?? '');
+            $historicalMatch = $historicalByExternalId[$externalId] ?? null;
+
+            if ($historicalMatch !== null && $historicalMatch['id'] === $matchedClientId) {
+                continue;
+            }
+
+            $duplicates[] = [
+                'line' => $record['line'],
+                'display_name' => $record['profile']['display_name'],
+                'kind' => 'ExistingClient',
+                'matched_client_id' => $matchedClientId,
+                'matched_display_name' => $existingByName[$normalizedName]['display_name'],
+            ];
         }
 
         return $duplicates;
