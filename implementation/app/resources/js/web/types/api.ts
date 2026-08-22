@@ -482,6 +482,8 @@ export interface QuoteDetail extends QuoteSummary {
     deposit_invoice_id?: string | null;
     final_invoice_id?: string | null;
     deposit_invoice_status?: string | null;
+    email_delivery_status: 'Pending' | 'Retrying' | 'Accepted' | 'Cancelled' | 'Failed' | null;
+    email_delivery_updated_at: string | null;
 }
 
 export interface PublicQuoteDetail {
@@ -500,6 +502,8 @@ export interface SendQuoteResponse {
     status: string;
     version: number;
     public_accept_token: string;
+    delivery_status: 'Pending';
+    resent: boolean;
 }
 
 export interface InvoiceSummary {
@@ -529,6 +533,8 @@ export interface InvoiceSummary {
 export interface InvoiceDetail extends InvoiceSummary {
     lines: QuoteLine[];
     credit_notes: CreditNote[];
+    email_delivery_status: 'Pending' | 'Retrying' | 'Accepted' | 'Cancelled' | 'Failed' | null;
+    email_delivery_updated_at: string | null;
 }
 
 export interface CreditNote {

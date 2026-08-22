@@ -10,11 +10,15 @@ use Atlas\Modules\Advisor\Infrastructure\Persistence\PostgresRecommendationRepos
 use Atlas\Modules\Identity\Domain\User;
 use Atlas\Modules\Identity\Domain\UserId;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
+use Atlas\Modules\Notifications\Domain\AdvisorEmailDeliveryRequested;
 use Atlas\Modules\Notifications\Domain\NotificationPolicy;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationPreferenceRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Platform\Messaging\EventId;
+use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class ProcessAdvisorNotificationSignalHandler
@@ -28,6 +32,7 @@ final class ProcessAdvisorNotificationSignalHandler
         private readonly PostgresNotificationTopicCursorRepository $cursors,
         private readonly PostgresNotificationsIdempotencyStore $idempotency,
         private readonly NotificationPlanEvaluator $evaluator,
+        private readonly OutboxWriter $outbox,
     ) {}
 
     /** @return array<string, mixed> */
@@ -52,7 +57,7 @@ final class ProcessAdvisorNotificationSignalHandler
         }
 
         return DB::transaction(function () use (
-            $workspaceId, $advisorOverviewVersion, $scope, $fingerprint, $requestId,
+            $workspaceId, $advisorOverviewVersion, $scope, $fingerprint, $requestId, $sourceEventId,
         ): array {
             $lastVersion = $this->cursors->lastOverviewVersion(
                 $workspaceId,
@@ -137,6 +142,19 @@ final class ProcessAdvisorNotificationSignalHandler
                     displayUntil: $validUntil,
                 );
                 $createdIds[] = $notificationId;
+
+                if (in_array(NotificationPolicy::CHANNEL_EMAIL, $plan['channels'], true)) {
+                    $this->outbox->append(OutgoingMessage::fromDomainEvent(
+                        new AdvisorEmailDeliveryRequested(
+                            notificationId: $notificationId,
+                            workspaceId: $workspaceId,
+                            recipientUserId: $recipient['user_id'],
+                            eventId: EventId::generate(),
+                            occurredAt: $now,
+                        ),
+                        causationId: $sourceEventId,
+                    ));
+                }
             }
 
             $this->cursors->advance(

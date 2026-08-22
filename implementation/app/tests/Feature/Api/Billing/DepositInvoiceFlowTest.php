@@ -105,6 +105,7 @@ final class DepositInvoiceFlowTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Deposit Client',
             'profile' => [],
+            'billing_profile' => ['billing_email' => 'factures@deposit-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

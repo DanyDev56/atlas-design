@@ -60,6 +60,11 @@ final class BillingQueryHandler
         $deposit = $this->invoices->findByQuoteIdAndKind($workspaceId, $quoteId, Invoice::KIND_DEPOSIT);
         $final = $this->invoices->findByQuoteIdAndKind($workspaceId, $quoteId, Invoice::KIND_FINAL);
         $provenance = DB::table('billing.quotes')->where('id', $quoteId)->first();
+        $emailDelivery = $this->documentEmailDelivery(
+            'billing.quote_delivery_requested',
+            'quote_id',
+            $quoteId,
+        );
 
         return [
             'quote_id' => $quote->id()->value,
@@ -78,6 +83,38 @@ final class BillingQueryHandler
             'is_historical_import' => $quote->isHistoricalImport(),
             'source_system' => $provenance->source_system ?? null,
             'external_id' => $provenance->external_id ?? null,
+            'email_delivery_status' => $emailDelivery['status'] ?? null,
+            'email_delivery_updated_at' => $emailDelivery['updated_at'] ?? null,
+        ];
+    }
+
+    /** @return array{status: string, updated_at: mixed}|null */
+    private function documentEmailDelivery(string $eventType, string $payloadKey, string $documentId): ?array
+    {
+        $row = DB::table('platform.outbox_messages as outbox')
+            ->leftJoin('platform.email_deliveries as delivery', 'delivery.event_id', '=', 'outbox.event_id')
+            ->where('outbox.event_type', $eventType)
+            ->whereRaw("outbox.payload->>'{$payloadKey}' = ?", [$documentId])
+            ->orderByDesc('outbox.created_at')
+            ->first([
+                'delivery.status as delivery_status',
+                'delivery.updated_at as delivery_updated_at',
+                'outbox.attempts',
+                'outbox.failed_at',
+                'outbox.created_at',
+            ]);
+
+        if ($row === null) {
+            return null;
+        }
+
+        $status = is_string($row->delivery_status)
+            ? $row->delivery_status
+            : ($row->failed_at !== null ? 'Failed' : ((int) $row->attempts > 0 ? 'Retrying' : 'Pending'));
+
+        return [
+            'status' => $status,
+            'updated_at' => $row->delivery_updated_at ?? $row->created_at,
         ];
     }
 
@@ -93,6 +130,11 @@ final class BillingQueryHandler
         }
 
         $provenance = DB::table('billing.invoices')->where('id', $invoiceId)->first();
+        $emailDelivery = $this->documentEmailDelivery(
+            'billing.invoice_delivery_requested',
+            'invoice_id',
+            $invoiceId,
+        );
         $payments = DB::table('billing.payments')
             ->where('workspace_id', $workspaceId)
             ->where('invoice_id', $invoiceId)
@@ -137,6 +179,8 @@ final class BillingQueryHandler
             'external_id' => $provenance->external_id ?? null,
             'payments' => $payments,
             'credit_notes' => $this->creditNotes->listForInvoice($workspaceId, $invoiceId),
+            'email_delivery_status' => $emailDelivery['status'] ?? null,
+            'email_delivery_updated_at' => $emailDelivery['updated_at'] ?? null,
         ];
     }
 

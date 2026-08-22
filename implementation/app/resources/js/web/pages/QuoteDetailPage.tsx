@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
-import type { ClientDetail, QuoteDetail, QuoteLine, SendQuoteResponse } from '@/types/api';
+import type { ClientDetail, QuoteDetail, QuoteLine } from '@/types/api';
 import { formatMoney } from '@/utils/format';
 
 interface EditableQuoteLine {
@@ -50,8 +50,6 @@ export function QuoteDetailPage() {
     const [dirty, setDirty] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [sentQuote, setSentQuote] = useState<SendQuoteResponse | null>(null);
-    const [linkCopied, setLinkCopied] = useState(false);
     const [depositAmount, setDepositAmount] = useState('');
 
     async function loadQuote() {
@@ -83,6 +81,16 @@ export function QuoteDetailPage() {
     useEffect(() => {
         void loadQuote();
     }, [quoteId, token, workspaceId]);
+
+    useEffect(() => {
+        if (!quoteId || !['Pending', 'Retrying'].includes(quote?.email_delivery_status ?? '')) return;
+
+        const timer = window.setInterval(() => {
+            void getQuote(token, workspaceId, quoteId).then(setQuote).catch(() => undefined);
+        }, 1500);
+
+        return () => window.clearInterval(timer);
+    }, [quoteId, quote?.email_delivery_status, token, workspaceId]);
 
     function changeLine(key: string, field: 'description' | 'quantity' | 'unitPrice', value: string) {
         setLines((current) => current.map((line) => (line.key === key ? { ...line, [field]: value } : line)));
@@ -165,18 +173,28 @@ export function QuoteDetailPage() {
     }
 
     async function onSend() {
-        if (!quote || quote.status !== 'Draft' || dirty) return;
+        if (!quote || !['Draft', 'Sent'].includes(quote.status) || dirty) return;
+
+        if (!client?.billing_profile?.billing_email) {
+            setError('Renseignez l’adresse email de facturation du client avant d’envoyer ce devis.');
+            return;
+        }
 
         setActionLoading(true);
         setError(null);
         setSuccess(null);
-        setSentQuote(null);
-        setLinkCopied(false);
         try {
             const result = await sendQuote(token, workspaceId, quote.quote_id, quote.version);
-            setSentQuote(result);
-            setQuote({ ...quote, status: result.status, version: result.version });
-            setSuccess('Le devis est envoyé. Partagez maintenant le lien d’acceptation avec votre client.');
+            setQuote({
+                ...quote,
+                status: result.status,
+                version: result.version,
+                email_delivery_status: result.delivery_status,
+                email_delivery_updated_at: new Date().toISOString(),
+            });
+            setSuccess(result.resent
+                ? 'Le renvoi est en cours. Atlas attend la confirmation du serveur email.'
+                : 'Le devis est verrouillé et son email est en cours d’envoi.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Envoi du devis impossible');
         } finally {
@@ -241,21 +259,6 @@ export function QuoteDetailPage() {
             setError(err instanceof Error ? err.message : 'L’acompte n’a pas pu être créé.');
         } finally {
             setActionLoading(false);
-        }
-    }
-
-    const acceptUrl =
-        sentQuote &&
-        `${window.location.origin}/app/quotes/accept/${workspaceId}/${sentQuote.quote_id}?token=${encodeURIComponent(sentQuote.public_accept_token)}`;
-
-    async function copyAcceptUrl() {
-        if (!acceptUrl) return;
-
-        try {
-            await navigator.clipboard.writeText(acceptUrl);
-            setLinkCopied(true);
-        } catch {
-            setError('Le lien n’a pas pu être copié. Sélectionnez-le manuellement.');
         }
     }
 
@@ -324,42 +327,49 @@ export function QuoteDetailPage() {
                                         Télécharger le PDF
                                     </button>
                                 )}
+                                {quote.status === 'Sent' && !quote.is_historical_import && (
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading || quote.email_delivery_status === 'Pending' || quote.email_delivery_status === 'Retrying'}
+                                        onClick={() => void onSend()}
+                                        className="min-h-10 rounded-lg bg-atlas-ink px-3 text-sm font-semibold text-white hover:bg-atlas-sidebar disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {actionLoading ? 'Renvoi…' : 'Renvoyer l’email'}
+                                    </button>
+                                )}
                             </div>
                         </div>
 
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}
                         {success && <div className="mt-6"><SuccessBanner message={success} /></div>}
 
-                        {sentQuote && acceptUrl && (
-                            <div
-                                role="status"
-                                className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900"
-                            >
-                                <p className="font-medium">Lien d’acceptation à transmettre au client</p>
-                                <input
-                                    readOnly
-                                    aria-label="Lien d’acceptation du devis"
-                                    value={acceptUrl}
-                                    onFocus={(event) => event.currentTarget.select()}
-                                    className="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 font-mono text-xs text-emerald-900"
-                                />
-                                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                                    <button
-                                        type="button"
-                                        onClick={() => void copyAcceptUrl()}
-                                        className="min-h-11 rounded-lg bg-emerald-800 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-900"
-                                    >
-                                        {linkCopied ? 'Lien copié ✓' : 'Copier le lien'}
-                                    </button>
-                                    <a
-                                        href={acceptUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
-                                    >
-                                        Prévisualiser la page client
-                                    </a>
-                                </div>
+                        {quote.email_delivery_status === 'Accepted' && (
+                            <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                                Email accepté par le serveur de messagerie du client.
+                            </div>
+                        )}
+                        {['Pending', 'Retrying'].includes(quote.email_delivery_status ?? '') && (
+                            <div role="status" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                {quote.email_delivery_status === 'Retrying'
+                                    ? 'La première tentative a échoué. Atlas va réessayer automatiquement.'
+                                    : 'L’email est en cours de remise au serveur de messagerie.'}
+                            </div>
+                        )}
+                        {['Cancelled', 'Failed'].includes(quote.email_delivery_status ?? '') && (
+                            <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+                                L’email n’a pas été envoyé. Vérifiez{' '}
+                                <Link to={`/app/crm/clients/${quote.client_id}`} className="font-semibold underline">
+                                    l’adresse de facturation du client
+                                </Link>
+                                , puis utilisez « Renvoyer l’email ».
+                            </div>
+                        )}
+                        {quote.status === 'Draft' && client && !client.billing_profile?.billing_email && (
+                            <div role="alert" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                Ajoutez une adresse email de facturation avant l’envoi.{' '}
+                                <Link to={`/app/crm/clients/${client.client_id}`} className="font-semibold underline">
+                                    Modifier le client
+                                </Link>
                             </div>
                         )}
 

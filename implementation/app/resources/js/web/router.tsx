@@ -19,6 +19,7 @@ import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage';
 import { PublicQuoteAcceptPage } from '@/pages/PublicQuoteAcceptPage';
 import { QuoteDetailPage } from '@/pages/QuoteDetailPage';
 import { RegisterPage } from '@/pages/RegisterPage';
+import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 export function AppRouter() {
@@ -28,6 +29,7 @@ export function AppRouter() {
             <Route path="/app/register" element={<RegisterPage />} />
             <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/app/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/app/verify-email" element={<VerifyEmailPage />} />
             <Route path="/app/invitations/:invitationId/accept" element={<AcceptInvitationPage />} />
             <Route path="/app/onboarding" element={<OnboardingPage />} />
             <Route path="/app/quotes/accept/:workspaceId/:quoteId" element={<PublicQuoteAcceptPage />} />

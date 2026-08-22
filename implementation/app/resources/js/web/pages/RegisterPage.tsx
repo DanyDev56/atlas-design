@@ -47,8 +47,8 @@ export function RegisterPage() {
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
                     <p className="font-semibold">Vérification requise</p>
                     <p className="mt-2">
-                        L’accès de {verificationRequiredFor} doit être activé avant la première connexion.
-                        Contactez l’équipe Atlas si aucun parcours de vérification ne vous a été transmis.
+                        Un lien vient d’être envoyé à {verificationRequiredFor}. Ouvrez-le avant votre première
+                        connexion. En développement, l’email est visible dans Mailpit sur le port 8025.
                     </p>
                 </div>
                 <Link

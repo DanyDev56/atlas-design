@@ -161,7 +161,7 @@ export async function requestInvoiceReminder(
         workspacePath(workspaceId, `/invoices/${invoiceId}/remind`),
         {
             expected_revision: expectedRevision,
-            delivery: 'ManualChannel',
+            delivery: 'EmailChannel',
             message: message || undefined,
         },
         { token, idempotency: true },
@@ -173,7 +173,14 @@ export async function sendInvoice(
     workspaceId: string,
     invoiceId: string,
     expectedRevision: number,
-): Promise<{ invoice_id: string; status: string; version: number }> {
+): Promise<{
+    invoice_id: string;
+    status: string;
+    version: number;
+    sent_at: string | null;
+    delivery_status: 'Pending';
+    resent: boolean;
+}> {
     return apiRequest(
         'POST',
         workspacePath(workspaceId, `/invoices/${invoiceId}/send`),

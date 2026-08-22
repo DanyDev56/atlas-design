@@ -17,6 +17,7 @@ trait RunsMvpCommercialFlow
             'kind' => 'Organization',
             'display_name' => 'Acceptance Client',
             'profile' => [],
+            'billing_profile' => ['billing_email' => 'factures@acceptance-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

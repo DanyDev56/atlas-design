@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atlas\Modules\Identity\Infrastructure\Persistence;
 
 use Atlas\Platform\Support\UuidGenerator;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 final class PostgresInvitationRepository
@@ -31,6 +32,7 @@ final class PostgresInvitationRepository
             'status' => 'Pending',
             'delivery_status' => 'Requested',
             'token_hash' => self::hashToken($token),
+            'delivery_secret' => Crypt::encryptString($token),
             'expires_at' => $expiresAt->format('Y-m-d H:i:sP'),
             'created_at' => $now->format('Y-m-d H:i:sP'),
             'updated_at' => $now->format('Y-m-d H:i:sP'),
@@ -38,6 +40,52 @@ final class PostgresInvitationRepository
         ]);
 
         return ['id' => $id, 'token' => $token];
+    }
+
+    /** @return array{email: string, token: string, workspace_name: string, expires_at: string}|null */
+    public function findDeliveryContext(string $invitationId, string $workspaceId): ?array
+    {
+        $row = DB::table('identity.invitations as invitation')
+            ->join('workspace.workspaces as workspace', 'workspace.id', '=', 'invitation.workspace_id')
+            ->where('invitation.id', $invitationId)
+            ->where('invitation.workspace_id', $workspaceId)
+            ->where('invitation.status', 'Pending')
+            ->where('invitation.expires_at', '>', now())
+            ->first([
+                'invitation.recipient_email',
+                'invitation.delivery_secret',
+                'invitation.expires_at',
+                'workspace.name as workspace_name',
+            ]);
+
+        if ($row === null || $row->delivery_secret === null) {
+            return null;
+        }
+
+        return [
+            'email' => (string) $row->recipient_email,
+            'token' => Crypt::decryptString((string) $row->delivery_secret),
+            'workspace_name' => (string) $row->workspace_name,
+            'expires_at' => (string) $row->expires_at,
+        ];
+    }
+
+    public function markDeliveryAccepted(string $invitationId): void
+    {
+        DB::table('identity.invitations')
+            ->where('id', $invitationId)
+            ->where('delivery_status', 'Requested')
+            ->update([
+                'delivery_status' => 'Accepted',
+                'updated_at' => now()->toIso8601String(),
+            ]);
+    }
+
+    public function discardDeliverySecret(string $invitationId): void
+    {
+        DB::table('identity.invitations')
+            ->where('id', $invitationId)
+            ->update(['delivery_secret' => null]);
     }
 
     /** @return array<string, mixed>|null */
@@ -103,6 +151,7 @@ final class PostgresInvitationRepository
             ->update([
                 'status' => 'Accepted',
                 'token_hash' => hash('sha256', 'consumed:'.$invitationId.':'.$acceptedAt->format('U.u')),
+                'delivery_secret' => null,
                 'accepted_by' => $acceptedBy,
                 'membership_id' => $membershipId,
                 'accepted_at' => $acceptedAt->format('Y-m-d H:i:sP'),
@@ -121,6 +170,7 @@ final class PostgresInvitationRepository
             ->update([
                 'status' => 'Revoked',
                 'token_hash' => hash('sha256', 'revoked:'.$invitationId.':'.$revokedAt->format('U.u')),
+                'delivery_secret' => null,
                 'updated_at' => $revokedAt->format('Y-m-d H:i:sP'),
                 'version' => DB::raw('version + 1'),
             ]);

@@ -12,6 +12,13 @@ x-app-environment: &app-environment
   OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-none}
   LOG_CHANNEL: stack
   LOG_STACK: json_stderr
+  MAIL_MAILER: smtp
+  MAIL_HOST: mailpit
+  MAIL_PORT: 1025
+  MAIL_FROM_ADDRESS: no-reply@atlas.local
+  MAIL_FROM_NAME: Atlas
+  MAIL_LINKS_URL: http://localhost:8000
+  MAIL_MESSAGE_ID_DOMAIN: atlas.local
 
 x-runtime-environment: &runtime-environment
   <<: *app-environment
@@ -19,6 +26,15 @@ x-runtime-environment: &runtime-environment
   APP_DEBUG: ${RUNTIME_APP_DEBUG:-false}
   APP_KEY: ${RUNTIME_APP_KEY:-}
   APP_URL: ${RUNTIME_APP_URL:-http://localhost:8080}
+  MAIL_MAILER: ${RUNTIME_MAIL_MAILER:-log}
+  MAIL_HOST: ${RUNTIME_MAIL_HOST:-mailpit}
+  MAIL_PORT: ${RUNTIME_MAIL_PORT:-1025}
+  MAIL_USERNAME: ${RUNTIME_MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${RUNTIME_MAIL_PASSWORD:-}
+  MAIL_FROM_ADDRESS: ${RUNTIME_MAIL_FROM_ADDRESS:-no-reply@atlas.local}
+  MAIL_FROM_NAME: ${RUNTIME_MAIL_FROM_NAME:-Atlas}
+  MAIL_LINKS_URL: ${RUNTIME_MAIL_LINKS_URL:-http://localhost:8080}
+  MAIL_MESSAGE_ID_DOMAIN: ${RUNTIME_MAIL_MESSAGE_ID_DOMAIN:-atlas.local}
 
 x-development-base: &development-base
   image: atlas-app:development
@@ -33,6 +49,8 @@ x-development-base: &development-base
   depends_on:
     postgres:
       condition: service_healthy
+    mailpit:
+      condition: service_started
 
 x-runtime-base: &runtime-base
   image: atlas-app:runtime
@@ -47,6 +65,13 @@ x-runtime-base: &runtime-base
   environment: *runtime-environment
 
 services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+
   postgres:
     image: postgres:18-alpine
     environment:
@@ -59,6 +84,7 @@ services:
       - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/01-schemas.sql:ro
       - ./docker/postgres/init-roles.sql:/docker-entrypoint-initdb.d/02-roles.sql:ro
+      - ./docker/postgres/init-test-database.sql:/docker-entrypoint-initdb.d/03-test-database.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U atlas -d atlas"]
       interval: 5s
@@ -71,6 +97,14 @@ services:
       - "8000:8000"
       - "5173:5173"
     command: sleep infinity
+
+  outbox-worker:
+    <<: *development-base
+    restart: unless-stopped
+    command: >-
+      sh -c 'until test -f vendor/autoload.php && php artisan migrate --force --no-interaction;
+      do sleep 2; done;
+      exec php artisan atlas:outbox:work --batch=100 --sleep=2'
 
   e2e:
     image: mcr.microsoft.com/playwright:v1.62.1-noble
@@ -88,6 +122,7 @@ services:
 
   api:
     <<: *runtime-base
+    profiles: [runtime]
     build:
       context: .
       dockerfile: Dockerfile
@@ -107,6 +142,7 @@ services:
 
   worker:
     <<: *runtime-base
+    profiles: [runtime]
     environment:
       <<: *runtime-environment
       OTEL_SERVICE_NAME: atlas-worker
@@ -114,6 +150,7 @@ services:
 
   scheduler:
     <<: *runtime-base
+    profiles: [runtime]
     environment:
       <<: *runtime-environment
       OTEL_SERVICE_NAME: atlas-scheduler

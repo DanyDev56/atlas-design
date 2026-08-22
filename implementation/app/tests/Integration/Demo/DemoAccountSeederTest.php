@@ -156,6 +156,10 @@ final class DemoAccountSeederTest extends IntegrationTestCase
             ->where('workspace_id', $initial->workspaceId)
             ->where('display_name', 'Horizon Digital')
             ->count());
+        $this->assertSame(6, DB::table('crm.clients')
+            ->where('workspace_id', $initial->workspaceId)
+            ->whereRaw("billing_profile->>'billing_email' IS NOT NULL")
+            ->count());
     }
 
     public function test_seeds_a_distinct_and_idempotent_empty_ui_scenario(): void

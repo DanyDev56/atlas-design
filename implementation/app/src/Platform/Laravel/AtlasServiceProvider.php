@@ -8,12 +8,15 @@ use Atlas\Composition\Advisor\OutboxAdvisorEvaluateConsumer;
 use Atlas\Composition\Analytics\OutboxAnalyticsIngestConsumer;
 use Atlas\Composition\Analytics\OutboxHistoricalImportAnalyticsRebuildConsumer;
 use Atlas\Composition\Analytics\SourceFactSummaryBuilder;
+use Atlas\Composition\Billing\OutboxBillingEmailConsumer;
 use Atlas\Composition\Billing\OutboxHistoricalBillingImportConsumer;
 use Atlas\Composition\Billing\QuoteAcceptedWinOpportunityConsumer;
 use Atlas\Composition\Billing\WinOpportunityFromQuoteHandler;
 use Atlas\Composition\BusinessHealth\OutboxBusinessHealthEvaluateConsumer;
 use Atlas\Composition\Crm\OutboxHistoricalClientsImportConsumer;
 use Atlas\Composition\Dashboard\DashboardQueryHandler;
+use Atlas\Composition\Identity\OutboxIdentityEmailConsumer;
+use Atlas\Composition\Notifications\OutboxNotificationsEmailConsumer;
 use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
@@ -34,37 +37,37 @@ use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsSnapshot
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresHistoricalImportRebuildRepository;
 use Atlas\Modules\Analytics\Infrastructure\PostgresAnalyticsIdempotencyStore;
 use Atlas\Modules\Billing\Application\AcceptQuoteHandler;
+use Atlas\Modules\Billing\Application\BillingDocumentArtifactService;
 use Atlas\Modules\Billing\Application\BillingQueryHandler;
 use Atlas\Modules\Billing\Application\ConfirmHistoricalBillingHistoryImportHandler;
 use Atlas\Modules\Billing\Application\CreateDepositInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateFinalInvoiceFromQuoteHandler;
 use Atlas\Modules\Billing\Application\CreateQuoteHandler;
+use Atlas\Modules\Billing\Application\CreditNoteCommandHandler;
 use Atlas\Modules\Billing\Application\ExecuteHistoricalBillingHistoryImportHandler;
+use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\IssueInvoiceHandler;
-use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Application\MarkDueInvoicesOverdueHandler;
 use Atlas\Modules\Billing\Application\MarkInvoiceOverdueHandler;
+use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\RequestInvoiceReminderHandler;
-use Atlas\Modules\Billing\Application\CreditNoteCommandHandler;
-use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
-use Atlas\Modules\Billing\Application\BillingDocumentArtifactService;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
 use Atlas\Modules\Billing\Application\UpdateQuoteDraftHandler;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportPreviewRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportRunRepository;
-use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresCreditNoteRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresDocumentArtifactRepository;
-use Atlas\Modules\Billing\Infrastructure\Rendering\DeterministicPdfRenderer;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPaymentRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
+use Atlas\Modules\Billing\Infrastructure\Rendering\DeterministicPdfRenderer;
 use Atlas\Modules\BusinessHealth\Application\BusinessHealthQueryHandler;
 use Atlas\Modules\BusinessHealth\Application\EvaluateBusinessHealthHandler;
 use Atlas\Modules\BusinessHealth\Application\HealthPolicyEvaluator;
@@ -101,21 +104,22 @@ use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
-use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\AcceptWorkspaceInvitationHandler;
+use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
+use Atlas\Modules\Identity\Application\CompleteAccountRecoveryHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
 use Atlas\Modules\Identity\Application\CreateWorkspaceInvitationHandler;
 use Atlas\Modules\Identity\Application\ElevateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
-use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\ListWorkspaceInvitationsHandler;
+use Atlas\Modules\Identity\Application\ListWorkspaceMembersHandler;
+use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\RequestAccountRecoveryHandler;
 use Atlas\Modules\Identity\Application\RevokeWorkspaceInvitationHandler;
-use Atlas\Modules\Identity\Application\CompleteAccountRecoveryHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresAccountRecoveryRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresEmailVerificationRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresInvitationRepository;
-use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresAccountRecoveryRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresSessionRepository;
@@ -130,7 +134,6 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
-use Atlas\Modules\Identity\Application\ListWorkspaceMembersHandler;
 use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
 use Atlas\Modules\Workspace\Application\ChangeWorkspacePreferencesHandler;
 use Atlas\Modules\Workspace\Application\CreateWorkspaceHandler;
@@ -141,6 +144,10 @@ use Atlas\Modules\Workspace\Application\WorkspaceSummaryQueryHandler;
 use Atlas\Modules\Workspace\Domain\WorkspaceRepository;
 use Atlas\Modules\Workspace\Infrastructure\Persistence\PostgresWorkspaceRepository;
 use Atlas\Modules\Workspace\Infrastructure\PostgresWorkspaceIdempotencyStore;
+use Atlas\Platform\Mail\EmailHtmlRenderer;
+use Atlas\Platform\Mail\Infrastructure\LaravelSmtpEmailSender;
+use Atlas\Platform\Mail\Infrastructure\PostgresEmailDeliveryRepository;
+use Atlas\Platform\Mail\TransactionalEmailSender;
 use Atlas\Platform\Messaging\InboxStore;
 use Atlas\Platform\Messaging\Infrastructure\OutboxBacklogMonitor;
 use Atlas\Platform\Messaging\Infrastructure\OutboxDeadLetterManager;
@@ -161,6 +168,9 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(OutboxWriter::class, PostgresOutboxWriter::class);
         $this->app->singleton(InboxStore::class, PostgresInboxStore::class);
         $this->app->singleton(WorkspaceRepository::class, PostgresWorkspaceRepository::class);
+        $this->app->singleton(TransactionalEmailSender::class, LaravelSmtpEmailSender::class);
+        $this->app->singleton(PostgresEmailDeliveryRepository::class);
+        $this->app->singleton(EmailHtmlRenderer::class);
 
         $this->app->singleton(SpikeEventCounterConsumer::class);
         $this->app->singleton(OutboxProcessor::class, function ($app): OutboxProcessor {
@@ -176,6 +186,9 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(OutboxBusinessHealthEvaluateConsumer::class),
                     $app->make(OutboxAdvisorEvaluateConsumer::class),
                     $app->make(OutboxNotificationsProcessConsumer::class),
+                    $app->make(OutboxIdentityEmailConsumer::class),
+                    $app->make(OutboxBillingEmailConsumer::class),
+                    $app->make(OutboxNotificationsEmailConsumer::class),
                 ],
                 $app->make(OutboxBacklogMonitor::class),
                 maxAttempts: (int) config('platform.outbox.max_attempts', 5),
@@ -194,6 +207,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresMembershipRepository::class);
         $this->app->singleton(PostgresEmailVerificationRepository::class);
         $this->app->singleton(PostgresInvitationRepository::class);
+        $this->app->singleton(OutboxIdentityEmailConsumer::class);
         $this->app->singleton(PostgresAccountRecoveryRepository::class);
         $this->app->singleton(PostgresIdempotencyStore::class);
         $this->app->singleton(PostgresBootstrapWorkflowRepository::class);
@@ -289,6 +303,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(GetPaymentAnalyticsFactHandler::class);
         $this->app->singleton(WinOpportunityFromQuoteHandler::class);
         $this->app->singleton(QuoteAcceptedWinOpportunityConsumer::class);
+        $this->app->singleton(OutboxBillingEmailConsumer::class);
 
         $this->app->singleton(PostgresAnalyticsIdempotencyStore::class);
         $this->app->singleton(PostgresAnalyticsFactRepository::class);
@@ -330,6 +345,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(MarkNotificationReadHandler::class);
         $this->app->singleton(ChangeNotificationPreferencesHandler::class);
         $this->app->singleton(OutboxNotificationsProcessConsumer::class);
+        $this->app->singleton(OutboxNotificationsEmailConsumer::class);
         $this->app->singleton(DashboardQueryHandler::class);
     }
 

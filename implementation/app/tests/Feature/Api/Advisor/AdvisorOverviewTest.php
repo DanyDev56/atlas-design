@@ -22,6 +22,7 @@ final class AdvisorOverviewTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Advisor Client',
             'profile' => [],
+            'billing_profile' => ['billing_email' => 'factures@advisor-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

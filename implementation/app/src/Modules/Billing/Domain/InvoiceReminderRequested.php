@@ -15,6 +15,7 @@ final readonly class InvoiceReminderRequested implements DomainEvent
         public string $delivery,
         public int $reminderCount,
         public int $aggregateVersion,
+        public ?string $message,
         private EventId $eventId,
         private \DateTimeImmutable $occurredAt,
     ) {}
@@ -42,6 +43,7 @@ final readonly class InvoiceReminderRequested implements DomainEvent
             'delivery' => $this->delivery,
             'reminder_count' => $this->reminderCount,
             'aggregate_version' => $this->aggregateVersion,
+            'message' => $this->message,
         ];
     }
 }

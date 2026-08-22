@@ -21,6 +21,7 @@ use Atlas\Modules\Crm\Application\CreateOpportunityHandler;
 use Atlas\Modules\Crm\Application\QualifyOpportunityHandler;
 use Atlas\Modules\Crm\Application\RecordActivityHandler;
 use Atlas\Modules\Crm\Application\RemoveActivityHandler;
+use Atlas\Modules\Crm\Application\UpdateClientBillingProfileHandler;
 use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
@@ -29,7 +30,7 @@ use Illuminate\Support\Facades\DB;
 
 final class DemoAccountSeeder
 {
-    public const SCENARIO_VERSION = '4';
+    public const SCENARIO_VERSION = '5';
 
     public const EMAIL = 'demo@atlas.test';
 
@@ -103,6 +104,7 @@ final class DemoAccountSeeder
         private readonly RecordActivityHandler $recordActivity,
         private readonly CorrectActivityHandler $correctActivity,
         private readonly RemoveActivityHandler $removeActivity,
+        private readonly UpdateClientBillingProfileHandler $updateClientBillingProfile,
         private readonly CreateQuoteHandler $createQuote,
         private readonly SendQuoteHandler $sendQuote,
         private readonly AcceptQuoteHandler $acceptQuote,
@@ -129,6 +131,11 @@ final class DemoAccountSeeder
 
         if (! $this->workspaceHasCurrentScenario($workspaceId)) {
             $this->seedSampleData($userId, $workspaceId);
+            $this->drainOutbox();
+            $sampleDataSeeded = true;
+        }
+
+        if ($this->ensureScenarioBillingProfiles($userId, $workspaceId)) {
             $this->drainOutbox();
             $sampleDataSeeded = true;
         }
@@ -486,11 +493,48 @@ final class DemoAccountSeeder
                 'email' => $email,
                 'demo_scenario_version' => self::SCENARIO_VERSION,
             ],
-            billingProfile: null,
+            billingProfile: [
+                'billing_name' => $displayName,
+                'billing_email' => $email,
+            ],
             requestId: $this->requestId('client-'.$suffix),
         );
 
         return $client['client_id'];
+    }
+
+    private function ensureScenarioBillingProfiles(string $actorUserId, string $workspaceId): bool
+    {
+        $updated = false;
+        $clients = DB::table('crm.clients')
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('display_name', self::EXPECTED_CLIENT_NAMES)
+            ->get();
+
+        foreach ($clients as $client) {
+            $profile = json_decode((string) $client->profile, true, 512, JSON_THROW_ON_ERROR);
+            $billingProfile = json_decode((string) $client->billing_profile, true, 512, JSON_THROW_ON_ERROR);
+            $email = is_string($profile['email'] ?? null) ? strtolower(trim($profile['email'])) : '';
+
+            if (filter_var($billingProfile['billing_email'] ?? null, FILTER_VALIDATE_EMAIL) !== false
+                || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                continue;
+            }
+
+            $billingProfile['billing_name'] ??= (string) $client->display_name;
+            $billingProfile['billing_email'] = $email;
+            $this->updateClientBillingProfile->handle(
+                actorUserId: $actorUserId,
+                workspaceId: $workspaceId,
+                clientId: (string) $client->id,
+                billingProfile: $billingProfile,
+                expectedRevision: (int) $client->version,
+                requestId: $this->requestId('billing-profile-'.$client->id),
+            );
+            $updated = true;
+        }
+
+        return $updated;
     }
 
     private function seedScenarioContacts(string $actorUserId, string $workspaceId): bool

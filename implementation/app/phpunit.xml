@@ -24,8 +24,8 @@
         </include>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
         <env name="ATLAS_DEVELOPMENT_ROUTES" value="true"/>
         <env name="ATLAS_DEBUG_VERIFICATION_TOKENS" value="true"/>
         <env name="OTEL_TRACES_EXPORTER" value="none"/>
@@ -36,10 +36,10 @@
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="postgres"/>
         <env name="DB_PORT" value="5432"/>
-        <env name="DB_DATABASE" value="atlas"/>
+        <env name="DB_DATABASE" value="atlas_test" force="true"/>
         <env name="DB_USERNAME" value="atlas"/>
         <env name="DB_PASSWORD" value="atlas_dev"/>
-        <env name="MAIL_MAILER" value="array"/>
+        <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

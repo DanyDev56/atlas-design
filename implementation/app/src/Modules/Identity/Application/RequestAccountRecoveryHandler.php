@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Identity\Application;
 
+use Atlas\Modules\Identity\Domain\AccountRecoverySendRequested;
 use Atlas\Modules\Identity\Domain\User;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresAccountRecoveryRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
+use Atlas\Platform\Messaging\EventId;
+use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class RequestAccountRecoveryHandler
@@ -16,6 +20,7 @@ final class RequestAccountRecoveryHandler
         private readonly PostgresUserRepository $users,
         private readonly PostgresAccountRecoveryRepository $tokens,
         private readonly PostgresIdempotencyStore $idempotency,
+        private readonly OutboxWriter $outbox,
     ) {}
 
     /** @return array{status: string, recovery_token?: string} */
@@ -41,11 +46,18 @@ final class RequestAccountRecoveryHandler
             if ($user !== null && $user->status() === User::STATUS_ACTIVE) {
                 $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
                 $plainToken = PostgresAccountRecoveryRepository::generatePlainToken();
-                $this->tokens->createToken(
+                $tokenId = $this->tokens->createToken(
                     $user->id()->value,
                     PostgresAccountRecoveryRepository::hashToken($plainToken),
                     $now->modify('+1 hour'),
+                    $plainToken,
                 );
+                $this->outbox->append(OutgoingMessage::fromDomainEvent(new AccountRecoverySendRequested(
+                    userId: $user->id(),
+                    deliverySecretHandle: $tokenId,
+                    eventId: EventId::generate(),
+                    occurredAt: $now,
+                )));
                 $response['recovery_token'] = $plainToken;
             }
 

@@ -13,8 +13,8 @@ use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
@@ -105,8 +105,7 @@ final class CreateWorkspaceInvitationHandler
             $this->outbox->append(OutgoingMessage::fromDomainEvent(new InvitationSendRequested(
                 invitationId: $created['id'],
                 workspaceId: $workspaceId,
-                recipientEmail: $normalizedEmail,
-                deliverySecretHandle: 'identity-invitation:'.$created['id'],
+                deliverySecretHandle: $created['id'],
                 expiresAt: $expiresAt->format(DATE_ATOM),
                 eventId: EventId::generate(),
                 occurredAt: $now,

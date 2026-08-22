@@ -16,6 +16,10 @@ return [
 
     'default' => env('MAIL_MAILER', 'log'),
 
+    'links_url' => env('MAIL_LINKS_URL', env('APP_URL', 'http://localhost:8000')),
+
+    'message_id_domain' => env('MAIL_MESSAGE_ID_DOMAIN', 'atlas.local'),
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations

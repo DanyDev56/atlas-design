@@ -12,7 +12,6 @@ final readonly class InvitationSendRequested implements DomainEvent
     public function __construct(
         public string $invitationId,
         public string $workspaceId,
-        public string $recipientEmail,
         public string $deliverySecretHandle,
         public string $expiresAt,
         private EventId $eventId,
@@ -39,7 +38,6 @@ final readonly class InvitationSendRequested implements DomainEvent
         return [
             'invitation_id' => $this->invitationId,
             'workspace_id' => $this->workspaceId,
-            'recipient_email' => $this->recipientEmail,
             'delivery_secret_handle' => $this->deliverySecretHandle,
             'expires_at' => $this->expiresAt,
         ];

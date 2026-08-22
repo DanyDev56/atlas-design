@@ -76,7 +76,7 @@ final class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'expected_revision' => ['required', 'integer', 'min:1'],
-            'delivery' => ['sometimes', 'in:ManualChannel'],
+            'delivery' => ['sometimes', 'in:ManualChannel,EmailChannel'],
             'message' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 

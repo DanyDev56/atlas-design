@@ -77,6 +77,16 @@ export function InvoiceDetailPage() {
         void loadInvoice();
     }, [invoiceId, token, workspaceId]);
 
+    useEffect(() => {
+        if (!invoiceId || !['Pending', 'Retrying'].includes(invoice?.email_delivery_status ?? '')) return;
+
+        const timer = window.setInterval(() => {
+            void getInvoice(token, workspaceId, invoiceId).then(setInvoice).catch(() => undefined);
+        }, 1500);
+
+        return () => window.clearInterval(timer);
+    }, [invoiceId, invoice?.email_delivery_status, token, workspaceId]);
+
     async function onIssue() {
         if (!invoice || invoice.status !== 'Draft') return;
 
@@ -94,18 +104,31 @@ export function InvoiceDetailPage() {
         }
     }
 
-    async function onConfirmSent() {
-        if (!invoice || invoice.status !== 'Issued' || invoice.sent_at) return;
+    async function onSend() {
+        if (!invoice || invoice.status !== 'Issued' || invoice.is_historical_import) return;
+
+        if (!client?.billing_profile?.billing_email) {
+            setError('Renseignez l’adresse email de facturation du client avant d’envoyer cette facture.');
+            return;
+        }
 
         setActionLoading(true);
         setError(null);
         setSuccess(null);
         try {
-            await sendInvoice(token, workspaceId, invoice.invoice_id, invoice.version);
-            await loadInvoice(false);
-            setSuccess('L’envoi de la facture est enregistré dans Atlas.');
-        } catch {
-            setError('L’envoi n’a pas pu être confirmé. Rechargez la facture avant de réessayer.');
+            const result = await sendInvoice(token, workspaceId, invoice.invoice_id, invoice.version);
+            setInvoice({
+                ...invoice,
+                version: result.version,
+                sent_at: result.sent_at,
+                email_delivery_status: result.delivery_status,
+                email_delivery_updated_at: new Date().toISOString(),
+            });
+            setSuccess(result.resent
+                ? 'Le renvoi est en cours. Atlas attend la confirmation du serveur email.'
+                : 'La facture est en cours d’envoi par email.');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'La facture n’a pas pu être envoyée.');
         } finally {
             setActionLoading(false);
         }
@@ -139,7 +162,7 @@ export function InvoiceDetailPage() {
             );
             await loadInvoice(false);
             setReminderMessage('');
-            setSuccess('La relance est enregistrée. Envoyez-la par votre canal habituel ; Atlas ne l’envoie pas à votre place.');
+            setSuccess('La relance est en cours d’envoi par email.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'La relance n’a pas pu être enregistrée.');
         } finally {
@@ -317,7 +340,7 @@ export function InvoiceDetailPage() {
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-atlas-ink-muted">
                                     {invoice.issued_at && <span>Émise le {formatDate(invoice.issued_at)}</span>}
                                     {invoice.due_date && <span>Échéance le {formatDate(invoice.due_date)}</span>}
-                                    {invoice.sent_at && <span>Envoi confirmé</span>}
+                                    {invoice.sent_at && <span>Envoi email demandé</span>}
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
@@ -336,6 +359,28 @@ export function InvoiceDetailPage() {
 
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}
                         {success && <div className="mt-6"><SuccessBanner message={success} /></div>}
+
+                        {invoice.email_delivery_status === 'Accepted' && (
+                            <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                                Email accepté par le serveur de messagerie du client.
+                            </div>
+                        )}
+                        {['Pending', 'Retrying'].includes(invoice.email_delivery_status ?? '') && (
+                            <div role="status" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                {invoice.email_delivery_status === 'Retrying'
+                                    ? 'La première tentative a échoué. Atlas va réessayer automatiquement.'
+                                    : 'La facture est en cours de remise au serveur de messagerie.'}
+                            </div>
+                        )}
+                        {['Cancelled', 'Failed'].includes(invoice.email_delivery_status ?? '') && (
+                            <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+                                L’email n’a pas été envoyé. Vérifiez{' '}
+                                <Link to={`/app/crm/clients/${invoice.client_id}`} className="font-semibold underline">
+                                    l’adresse de facturation du client
+                                </Link>
+                                , puis utilisez « Renvoyer l’email ».
+                            </div>
+                        )}
 
                         <section aria-labelledby="invoice-lines-title" className="mt-8">
                             <div className="flex items-center justify-between gap-4">
@@ -400,19 +445,25 @@ export function InvoiceDetailPage() {
                             </section>
                         )}
 
-                        {invoice.status === 'Issued' && !invoice.sent_at && (
+                        {invoice.status === 'Issued' && !invoice.is_historical_import && (
                             <section className="mt-6 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
-                                <h3 className="font-semibold text-atlas-ink">Confirmer l’envoi</h3>
+                                <h3 className="font-semibold text-atlas-ink">
+                                    {invoice.sent_at ? 'Renvoyer la facture' : 'Envoyer la facture'}
+                                </h3>
                                 <p className="mt-2 text-sm leading-relaxed text-atlas-ink-muted">
-                                    Envoyez la facture par votre canal habituel, puis confirmez ici que le client l’a reçue.
+                                    Atlas envoie le PDF à l’adresse email de facturation du client.
                                 </p>
                                 <button
                                     type="button"
-                                    disabled={actionLoading}
-                                    onClick={() => void onConfirmSent()}
-                                    className="mt-4 min-h-11 rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50 disabled:opacity-50"
+                                    disabled={actionLoading || invoice.email_delivery_status === 'Pending' || invoice.email_delivery_status === 'Retrying'}
+                                    onClick={() => void onSend()}
+                                    className="mt-4 min-h-11 rounded-xl bg-atlas-ink px-4 py-2.5 text-sm font-semibold text-white hover:bg-atlas-sidebar disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    {actionLoading ? 'Enregistrement…' : 'Confirmer l’envoi'}
+                                    {actionLoading
+                                        ? 'Envoi…'
+                                        : invoice.sent_at
+                                          ? 'Renvoyer l’email'
+                                          : 'Envoyer par email'}
                                 </button>
                             </section>
                         )}
@@ -454,17 +505,17 @@ export function InvoiceDetailPage() {
                             </form>
                         )}
 
-                        {invoice.status === 'Issued' && invoice.balance_cents > 0 && !invoice.is_historical_import && (
+                        {invoice.status === 'Issued' && invoice.sent_at && invoice.balance_cents > 0 && !invoice.is_historical_import && (
                             <form onSubmit={onRemind} className="mt-6 rounded-2xl border border-atlas-border bg-atlas-card p-5 shadow-sm">
                                 <h3 className="font-semibold text-atlas-ink">Relancer le client</h3>
                                 <p className="mt-2 text-sm leading-relaxed text-atlas-ink-muted">
-                                    Enregistrez une relance manuelle. Le PDF de la facture reste inchangé.
+                                    Envoyez une relance par email. Le PDF de la facture reste inchangé.
                                     {invoice.last_reminded_at
                                         ? ` Dernière relance le ${formatDate(invoice.last_reminded_at)}.`
                                         : ''}
                                 </p>
                                 <div className="mt-5">
-                                    <FormField label="Message" hint="Facultatif — note interne jointe à la relance.">
+                                    <FormField label="Message" hint="Facultatif — texte ajouté à l’email de relance.">
                                         <textarea
                                             maxLength={1000}
                                             rows={3}
@@ -477,7 +528,7 @@ export function InvoiceDetailPage() {
                                 </div>
                                 <div className="mt-5 max-w-xs">
                                     <SubmitButton loading={actionLoading} loadingLabel="Enregistrement…">
-                                        Enregistrer la relance
+                                        Envoyer la relance
                                     </SubmitButton>
                                 </div>
                             </form>

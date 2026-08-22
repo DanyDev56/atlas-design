@@ -42,6 +42,9 @@ docker compose exec app php artisan db:show
 ```
 
 Après le bootstrap, l'application Laravel se trouve dans `implementation/app/`.
+Les emails de développement sont capturés par Mailpit sur
+<http://localhost:8025>. Voir le
+[`runbook de livraison email`](runbooks/email-delivery.md).
 
 ---
 

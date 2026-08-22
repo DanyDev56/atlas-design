@@ -22,6 +22,7 @@ final class NotificationInboxTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Notify Client',
             'profile' => [],
+            'billing_profile' => ['billing_email' => 'factures@notify-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

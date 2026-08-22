@@ -249,12 +249,28 @@ final class MvpJ2BillingFlowTest extends IntegrationTestCase
         ])->assertOk()
             ->assertJsonPath('status', 'Issued');
 
-        $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/send", [
+        $sentInvoice = $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/send", [
             'expected_revision' => $issued->json('version'),
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),
-        ])->assertOk();
+        ])->assertOk()
+            ->assertJsonPath('delivery_status', 'Pending')
+            ->assertJsonPath('resent', false);
+
+        app(OutboxProcessor::class)->processPending();
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()->assertJsonPath('email_delivery_status', 'Accepted');
+
+        $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/send", [
+            'expected_revision' => $sentInvoice->json('version'),
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertOk()
+            ->assertJsonPath('delivery_status', 'Pending')
+            ->assertJsonPath('resent', true);
 
         $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/payments", [
             'amount_cents' => 50000,

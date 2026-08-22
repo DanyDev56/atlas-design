@@ -22,6 +22,7 @@ final class BusinessHealthAssessmentTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Health Client',
             'profile' => [],
+            'billing_profile' => ['billing_email' => 'factures@health-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

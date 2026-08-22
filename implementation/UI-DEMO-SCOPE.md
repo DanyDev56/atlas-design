@@ -49,17 +49,18 @@ Settings borné est livré : profil commercial, préférences, identité de
 facturation (step-up), lecture des membres et invitations vers le rôle membre
 standard. La preuve d’invitation est liée à l’adresse vérifiée, expire après
 7 jours, peut être révoquée tant qu’elle est en attente et ne crée le
-membership qu’à l’acceptation atomique. Le jeton n’est
-exposé qu’en développement ; l’envoi email réel et les rôles avancés restent
-hors périmètre.
+membership qu’à l’acceptation atomique. Le jeton n’est exposé qu’en
+développement. L’invitation est maintenant remise par email via l’outbox ; les
+rôles avancés restent hors périmètre.
 
 Les avoirs de facturation sont livrés sur la fiche facture : brouillon,
 émission, application totale ou partielle au solde, reliquat en crédit client
 et prise en compte dans le net facturé Analytics. Les PDF déterministes des
 devis, factures et avoirs sont générés à l'émission et téléchargeables par les
-membres autorisés. Les relances manuelles sont enregistrées sur une facture
-émise avec solde positif (`billing.invoices.remind`) et placées dans l’outbox
-sans envoi email réel. Un acompte unique (`Deposit`) peut être créé depuis un
+membres autorisés. Les relances sont enregistrées sur une facture émise avec
+solde positif (`billing.invoices.remind`), placées dans l’outbox puis remises
+par email avec le PDF de facture. Le canal manuel reste accepté par
+compatibilité API. Un acompte unique (`Deposit`) peut être créé depuis un
 devis accepté, puis la facture finale facture le reliquat une fois l’acompte
 émis. L’import historique Billing inclut les avoirs déjà appliqués : CSV
 canonique, soldes recalculés avec les paiements, identité
@@ -76,7 +77,8 @@ La récupération de mot de passe est livrée : demande opaque
 (`POST /api/auth/recovery`), preuve à usage unique (1 h), nouveau mot de passe
 (`POST /api/auth/recovery/complete`) qui incrémente `UserSecurityVersion` et
 révoque toutes les sessions. Pas d’auto-connexion. Le jeton n’est exposé qu’en
-debug, comme la vérification d’email. Pas d’envoi email réel.
+debug, comme la vérification d’email. Les deux preuves sont désormais remises
+par email via l’outbox.
 
 Les travaux de publication OCI restent différés :
 [`runbook des rôles d'exécution`](runbooks/runtime-roles.md#livraison-differee).
@@ -141,7 +143,7 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 1. CRM → Nouveau client
 2. Client → Nouvelle opportunité
 3. Opportunité → Qualifier → Nouveau devis → Envoyer
-4. Copier le lien d'acceptation → page publique → Confirmer
+4. Ouvrir l'email dans Mailpit → suivre le lien d'acceptation → Confirmer
 
 ---
 
@@ -178,17 +180,17 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Onboarding reformulé autour de l'activité, avec progression et attente claire
   avant l'arrivée sur le dashboard
 - Confirmations accessibles après création d'un client, d'une opportunité et
-  d'un devis ; lien public copiable et prévisualisable après envoi
+  d'un devis, avec suivi explicite de sa livraison email
 - Page publique de devis complète avant acceptation : destinataire, lignes,
   montant total, validité et consentement explicite, avec lecture bornée par le
   jeton et erreurs masquées
 - Espace Facturation accessible depuis la navigation, avec liste des devis et
   accès au détail
 - Vérification obligatoire avant envoi : édition multi-lignes des brouillons,
-  total recalculé par l'API, verrouillage explicite et lien client disponible
+  total recalculé par l'API, verrouillage explicite et livraison email suivie
   uniquement après l'envoi
 - Parcours facture après acceptation : création idempotente depuis le devis,
-  émission numérotée, confirmation d'envoi, paiements partiels et solde restant
+  émission numérotée, envoi email suivi, renvoi possible, paiements partiels et solde restant
   autoritatif
 - Liste persistante des factures dans Facturation, enrichie par le CRM sans en
   dépendre pour rester consultable

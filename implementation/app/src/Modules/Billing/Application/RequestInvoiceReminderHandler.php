@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Billing\Application;
 
-use Atlas\Modules\Billing\Domain\Invoice;
 use Atlas\Modules\Billing\Domain\InvoiceId;
 use Atlas\Modules\Billing\Domain\InvoiceReminderRequested;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\PostgresBillingIdempotencyStore;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Support\Facades\DB;
 
 final class RequestInvoiceReminderHandler
 {
     public const DELIVERY_MANUAL = 'ManualChannel';
+
+    public const DELIVERY_EMAIL = 'EmailChannel';
 
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
@@ -38,7 +39,7 @@ final class RequestInvoiceReminderHandler
     ): array {
         $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.invoices.remind');
 
-        if ($delivery !== self::DELIVERY_MANUAL) {
+        if (! in_array($delivery, [self::DELIVERY_MANUAL, self::DELIVERY_EMAIL], true)) {
             throw new \DomainException('Unsupported reminder delivery.');
         }
 
@@ -75,6 +76,7 @@ final class RequestInvoiceReminderHandler
                 delivery: $delivery,
                 reminderCount: $invoice->reminderCount(),
                 aggregateVersion: $invoice->version(),
+                message: $message,
                 eventId: EventId::generate(),
                 occurredAt: $now,
             ), correlationId: $correlationId));

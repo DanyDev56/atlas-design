@@ -16,6 +16,19 @@ abstract class IntegrationTestCase extends TestCase
 
     protected function beforeRefreshingDatabase(): void
     {
+        config()->set('database.connections.pgsql.database', 'atlas_test');
+        DB::purge('pgsql');
+
+        $databaseName = (string) DB::connection('pgsql')
+            ->selectOne('SELECT current_database() AS name')
+            ->name;
+
+        if ($databaseName !== 'atlas_test') {
+            throw new \LogicException(
+                "Integration tests refuse to reset the non-test database [{$databaseName}].",
+            );
+        }
+
         if (self::$atlasSchemasPrepared) {
             return;
         }

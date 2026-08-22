@@ -23,6 +23,7 @@ final class AnalyticsSnapshotTest extends IntegrationTestCase
             'kind' => 'Organization',
             'display_name' => 'Snapshot Client',
             'profile' => ['email' => 'snap@test'],
+            'billing_profile' => ['billing_email' => 'factures@snapshot-client.test'],
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),

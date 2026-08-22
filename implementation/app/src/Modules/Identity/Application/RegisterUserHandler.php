@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Identity\Application;
 
+use Atlas\Modules\Identity\Domain\EmailVerificationSendRequested;
 use Atlas\Modules\Identity\Domain\User;
 use Atlas\Modules\Identity\Domain\UserCreated;
 use Atlas\Modules\Identity\Domain\UserId;
@@ -51,10 +52,11 @@ final class RegisterUserHandler
 
             $plainToken = PostgresEmailVerificationRepository::generatePlainToken();
             $this->users->insert($user, $hash);
-            $this->verificationTokens->createToken(
+            $verificationTokenId = $this->verificationTokens->createToken(
                 $userId->value,
                 PostgresEmailVerificationRepository::hashToken($plainToken),
                 $now->modify('+24 hours'),
+                $plainToken,
             );
 
             $createdEvent = new UserCreated(
@@ -64,6 +66,12 @@ final class RegisterUserHandler
                 occurredAt: $now,
             );
             $this->outbox->append(OutgoingMessage::fromDomainEvent($createdEvent));
+            $this->outbox->append(OutgoingMessage::fromDomainEvent(new EmailVerificationSendRequested(
+                userId: $userId,
+                deliverySecretHandle: $verificationTokenId,
+                eventId: EventId::generate(),
+                occurredAt: $now,
+            )));
 
             $responseForClient = [
                 'user_id' => $userId->value,
