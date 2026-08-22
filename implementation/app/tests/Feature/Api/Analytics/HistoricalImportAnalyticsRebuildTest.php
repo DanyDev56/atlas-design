@@ -9,15 +9,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Integration\IntegrationTestCase;
 use Tests\Support\AuthenticatesWorkspaceOwner;
+use Tests\Support\ElevatesSession;
 
 final class HistoricalImportAnalyticsRebuildTest extends IntegrationTestCase
 {
     use AuthenticatesWorkspaceOwner;
+    use ElevatesSession;
 
     public function test_correlated_import_completions_rebuild_analytics_without_operational_events(): void
     {
         $owner = $this->onboardOwner($this, 'historical-rebuild@test.local');
         $headers = $this->headers($owner['token']);
+        $this->elevateSession($this, $owner);
 
         $clientPreview = $this->post(
             "/api/workspaces/{$owner['workspace_id']}/client-history-imports/preview",

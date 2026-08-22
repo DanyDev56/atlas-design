@@ -12,6 +12,7 @@ import {
     SubmitButton,
     inputClassName,
 } from '@/components/auth/AuthLayout';
+import { StepUpPasswordDialog, useImportStepUp } from '@/components/auth/StepUpPasswordDialog';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { useAuth } from '@/hooks/useAuth';
 import type {
@@ -82,6 +83,7 @@ export function BillingHistoryImportPage() {
     const { session } = useAuth();
     const token = session!.token;
     const workspaceId = session!.workspaceId!;
+    const stepUp = useImportStepUp(token);
     const [sourceSystem, setSourceSystem] = useState('LegacyBilling');
     const [sourceExportedAt, setSourceExportedAt] = useState(() => localDateTimeValue(new Date()));
     const [quotesFile, setQuotesFile] = useState<File | null>(null);
@@ -179,14 +181,16 @@ export function BillingHistoryImportPage() {
         setError(null);
         setConflict(false);
         try {
-            setRun(await confirmHistoricalBillingImport(
-                token,
-                workspaceId,
-                preview.preview_id,
-                packageHash(preview.package_hash),
-                preview.source_system,
-                preview.source_exported_at,
-            ));
+            await stepUp.runWithStepUp(async () => {
+                setRun(await confirmHistoricalBillingImport(
+                    token,
+                    workspaceId,
+                    preview.preview_id,
+                    packageHash(preview.package_hash),
+                    preview.source_system,
+                    preview.source_exported_at,
+                ));
+            });
         } catch (err) {
             setConflict(err instanceof ApiClientError && err.status === 409);
             setError(err instanceof Error ? err.message : 'Confirmation impossible.');
@@ -356,6 +360,15 @@ export function BillingHistoryImportPage() {
                         onRestart={resetAll}
                     />
                 )}
+                <StepUpPasswordDialog
+                    open={stepUp.promptOpen}
+                    password={stepUp.password}
+                    error={stepUp.promptError}
+                    submitting={stepUp.submitting}
+                    onPasswordChange={stepUp.setPassword}
+                    onSubmit={(event) => void stepUp.submitPassword(event)}
+                    onCancel={stepUp.closePrompt}
+                />
             </div>
         </RequireAuth>
     );

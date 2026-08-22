@@ -93,6 +93,7 @@ use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
 use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
+use Atlas\Modules\Identity\Application\ElevateSessionHandler;
 use Atlas\Modules\Identity\Application\GetWorkspaceOwnerReadinessHandler;
 use Atlas\Modules\Identity\Application\RegisterUserHandler;
 use Atlas\Modules\Identity\Application\VerifyUserEmailHandler;
@@ -174,6 +175,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(RegisterUserHandler::class);
         $this->app->singleton(VerifyUserEmailHandler::class);
         $this->app->singleton(CreateSessionHandler::class);
+        $this->app->singleton(ElevateSessionHandler::class);
         $this->app->singleton(BootstrapIdentityForWorkspaceHandler::class);
         $this->app->singleton(GetWorkspaceOwnerReadinessHandler::class);
         $this->app->singleton(CreateWorkspaceHandler::class);

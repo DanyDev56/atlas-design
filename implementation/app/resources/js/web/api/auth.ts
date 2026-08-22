@@ -4,6 +4,7 @@ import type {
     LoginResponse,
     RegisterResponse,
     SessionContextResponse,
+    SessionElevationResponse,
     WorkspaceBootstrapResponse,
 } from '@/types/api';
 
@@ -39,6 +40,10 @@ export async function verifyEmail(userId: string, token: string): Promise<void> 
 
 export async function fetchSessionContext(token: string): Promise<SessionContextResponse> {
     return apiRequest<SessionContextResponse>('GET', '/auth/session/context', undefined, { token });
+}
+
+export async function elevateSession(token: string, password: string): Promise<SessionElevationResponse> {
+    return apiRequest<SessionElevationResponse>('POST', '/auth/session/elevate', { password }, { token, idempotency: true });
 }
 
 export async function revokeSession(token: string): Promise<void> {

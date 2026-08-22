@@ -9,6 +9,7 @@ use Atlas\Modules\Billing\Application\ConfirmHistoricalBillingHistoryImportHandl
 use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportRunRepository;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
+use Atlas\Platform\Security\StepUpRequiredException;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,6 +58,7 @@ final class BillingHistoryImportController extends Controller
             $accepted = $this->confirmImport->handle(
                 actorUserId: (string) $request->attributes->get('authenticated_user_id'),
                 workspaceId: $workspaceId,
+                sessionId: (string) $request->attributes->get('session_id'),
                 previewId: $validated['preview_id'],
                 packageHash: $validated['package_hash'],
                 sourceSystem: $validated['source_system'] ?? '',
@@ -110,6 +112,13 @@ final class BillingHistoryImportController extends Controller
         try {
             return response()->json($action(), $status);
         } catch (\DomainException $exception) {
+            if ($exception instanceof StepUpRequiredException) {
+                return response()->json([
+                    'error' => 'StepUpRequired',
+                    'messages' => [$exception->getMessage()],
+                ], 403);
+            }
+
             $message = $exception->getMessage();
             $status = match (true) {
                 $message === 'Unauthorized.' => 403,

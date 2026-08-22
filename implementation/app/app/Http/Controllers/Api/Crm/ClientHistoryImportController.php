@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Crm;
 
 use App\Http\Controllers\Controller;
-use Atlas\Modules\Crm\Application\PreviewHistoricalClientsHandler;
 use Atlas\Modules\Crm\Application\ConfirmHistoricalClientsImportHandler;
+use Atlas\Modules\Crm\Application\PreviewHistoricalClientsHandler;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresClientHistoryImportRunRepository;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
+use Atlas\Platform\Security\StepUpRequiredException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -54,6 +55,7 @@ final class ClientHistoryImportController extends Controller
             $accepted = $this->confirmHistoricalClientsImport->handle(
                 actorUserId: (string) $request->attributes->get('authenticated_user_id'),
                 workspaceId: $workspaceId,
+                sessionId: (string) $request->attributes->get('session_id'),
                 previewId: $validated['preview_id'],
                 packageHash: $packageHash,
                 sourceSystem: $validated['source_system'],
@@ -107,6 +109,13 @@ final class ClientHistoryImportController extends Controller
         try {
             return response()->json($action(), $status);
         } catch (\DomainException $exception) {
+            if ($exception instanceof StepUpRequiredException) {
+                return response()->json([
+                    'error' => 'StepUpRequired',
+                    'messages' => [$exception->getMessage()],
+                ], 403);
+            }
+
             $code = $exception->getMessage() === 'Unauthorized.' ? 403 : 422;
 
             return response()->json([

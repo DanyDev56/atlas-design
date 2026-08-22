@@ -57,14 +57,14 @@ Clôture engineering : [`PALIER-3-CLOSURE.md`](PALIER-3-CLOSURE.md) · Checklist
 Les éléments suivants restent hors de cette clôture technique et sont tracés
 avec owner et plan dans [`MVP-CLOSURE.md`](MVP-CLOSURE.md) :
 
-- step-up d'authentification et connecteurs d'import externe ;
+- connecteurs d'import externe ;
 - accessibilité clavier et responsive playground ;
 - sauvegarde/restauration et migrations down en production ;
 - step-up SEC-T différé ;
 
 L’import **clients** CRM, l’import **Billing** historique, le rebuild Analytics
-borné et Advisor complete/dismiss sont livrés après cette clôture (Palier 4) —
-voir [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md).
+borné, le step-up de confirmation d’import et Advisor complete/dismiss sont
+livrés après cette clôture (Palier 4) — voir [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md).
 
 ## Démonstration locale
 

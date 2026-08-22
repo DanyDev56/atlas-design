@@ -11,11 +11,13 @@ use Illuminate\Support\Str;
 use Tests\Integration\IntegrationTestCase;
 use Tests\Support\AddsWorkspaceMember;
 use Tests\Support\AuthenticatesWorkspaceOwner;
+use Tests\Support\ElevatesSession;
 
 final class ClientHistoryImportPreviewTest extends IntegrationTestCase
 {
     use AddsWorkspaceMember;
     use AuthenticatesWorkspaceOwner;
+    use ElevatesSession;
 
     public function test_owner_previews_a_bounded_canonical_client_package_without_business_mutation(): void
     {
@@ -74,6 +76,20 @@ final class ClientHistoryImportPreviewTest extends IntegrationTestCase
             ],
             $this->headers($owner['token']),
         )->assertCreated()->json();
+
+        $this->post(
+            "/api/workspaces/{$owner['workspace_id']}/client-history-imports/confirm",
+            [
+                'preview_id' => $preview['preview_id'],
+                'package_hash' => 'sha256:'.$preview['package_hash'],
+                'source_system' => 'LegacyCRM',
+                'source_exported_at' => '2025-01-01T12:00:00Z',
+            ],
+            $this->headers($owner['token']) + ['Idempotency-Key' => (string) Str::uuid()],
+        )->assertForbidden()
+            ->assertJsonPath('error', 'StepUpRequired');
+
+        $this->elevateSession($this, $owner);
 
         $idempotencyKey = (string) Str::uuid();
         $response = $this->post(
@@ -145,6 +161,7 @@ final class ClientHistoryImportPreviewTest extends IntegrationTestCase
             $this->headers($owner['token']),
         )->assertCreated()->json();
 
+        $this->elevateSession($this, $owner);
         $this->post(
             "/api/workspaces/{$owner['workspace_id']}/client-history-imports/confirm",
             [

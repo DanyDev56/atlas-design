@@ -4,15 +4,33 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Security;
 
+use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresSessionRepository;
 use Atlas\Modules\Workspace\Domain\Workspace;
 use Illuminate\Support\Facades\DB;
 
 final class WorkspaceAuthorizer
 {
+    public function __construct(
+        private readonly PostgresSessionRepository $sessions,
+    ) {}
+
     public function authorize(string $userId, string $workspaceId, string $permission): void
     {
         if (! $this->hasPermission($userId, $workspaceId, $permission)) {
             throw new \DomainException('Unauthorized.');
+        }
+    }
+
+    public function authorizeElevated(
+        string $userId,
+        string $workspaceId,
+        string $permission,
+        string $sessionId,
+    ): void {
+        $this->authorize($userId, $workspaceId, $permission);
+
+        if (! in_array($permission, $this->sessions->activeElevationPermissions($sessionId), true)) {
+            throw new StepUpRequiredException();
         }
     }
 

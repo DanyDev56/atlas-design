@@ -19,7 +19,8 @@ final class SessionContextTest extends IntegrationTestCase
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
             ->assertJsonPath('user_id', $owner['user_id'])
-            ->assertJsonPath('workspace_id', $owner['workspace_id']);
+            ->assertJsonPath('workspace_id', $owner['workspace_id'])
+            ->assertJsonPath('elevation_expires_at', null);
     }
 
     public function test_verified_user_without_workspace_receives_null_workspace_id(): void

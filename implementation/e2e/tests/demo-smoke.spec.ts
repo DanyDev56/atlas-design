@@ -118,6 +118,13 @@ test('un export client peut être prévisualisé sans modifier le CRM', async ({
     await expect(result.getByRole('heading', { name: 'Aperçu prêt pour la confirmation' })).toBeVisible();
     await expect(result.getByText('Import Démo Noroît', { exact: true })).toBeVisible();
     await expect(result.getByText('Aucun client n’a encore été importé.', { exact: false })).toBeVisible();
+
+    await result.getByRole('button', { name: 'Confirmer et importer' }).click();
+    const stepUp = page.getByRole('dialog', { name: 'Confirmer votre identité' });
+    await expect(stepUp).toBeVisible();
+    await stepUp.getByLabel('Mot de passe').fill(password);
+    await stepUp.getByRole('button', { name: 'Continuer l’import' }).click();
+    await expect(page.getByText('Import terminé avec succès.', { exact: false })).toBeVisible({ timeout: 20_000 });
 });
 
 test('les trois fichiers Billing sont pris en compte dès leur première sélection', async ({ page }, testInfo) => {

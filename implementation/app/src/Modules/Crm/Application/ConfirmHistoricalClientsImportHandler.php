@@ -29,6 +29,7 @@ final class ConfirmHistoricalClientsImportHandler
     public function handle(
         string $actorUserId,
         string $workspaceId,
+        string $sessionId,
         string $previewId,
         string $packageHash,
         string $sourceSystem,
@@ -36,7 +37,12 @@ final class ConfirmHistoricalClientsImportHandler
         string $requestId,
         ?string $correlationId = null,
     ): array {
-        $this->authorizer->authorize($actorUserId, $workspaceId, 'crm.clients.import-history');
+        $this->authorizer->authorizeElevated(
+            $actorUserId,
+            $workspaceId,
+            'crm.clients.import-history',
+            $sessionId,
+        );
 
         $normalizedPackageHash = preg_replace('/^sha256:/i', '', $packageHash) ?? $packageHash;
         $scope = 'crm.confirm_historical_clients_import';

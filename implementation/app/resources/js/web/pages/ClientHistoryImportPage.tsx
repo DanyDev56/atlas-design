@@ -10,6 +10,7 @@ import {
     SubmitButton,
     inputClassName,
 } from "@/components/auth/AuthLayout";
+import { StepUpPasswordDialog, useImportStepUp } from "@/components/auth/StepUpPasswordDialog";
 import { RequireAuth } from "@/components/layout/RequireAuth";
 import { useAuth } from "@/hooks/useAuth";
 import type { ClientHistoryImportPreview } from "@/types/api";
@@ -33,6 +34,7 @@ export function ClientHistoryImportPage() {
     const { session } = useAuth();
     const token = session!.token;
     const workspaceId = session!.workspaceId!;
+    const stepUp = useImportStepUp(token);
     const [sourceSystem, setSourceSystem] = useState("LegacyCRM");
     const [sourceExportedAt, setSourceExportedAt] = useState(() =>
         localDateTimeValue(new Date()),
@@ -119,18 +121,20 @@ export function ClientHistoryImportPage() {
         setError(null);
 
         try {
-            const result = await confirmHistoricalClientsImport(
-                token,
-                workspaceId,
-                {
-                    previewId: preview.preview_id,
-                    packageHash: `sha256:${preview.package_hash}`,
-                    sourceSystem: preview.source_system,
-                    sourceExportedAt: preview.source_exported_at,
-                },
-            );
-            setImportRunId(result.import_run_id);
-            setImportProgress({ imported: 0, total: preview.valid_row_count });
+            await stepUp.runWithStepUp(async () => {
+                const result = await confirmHistoricalClientsImport(
+                    token,
+                    workspaceId,
+                    {
+                        previewId: preview.preview_id,
+                        packageHash: `sha256:${preview.package_hash}`,
+                        sourceSystem: preview.source_system,
+                        sourceExportedAt: preview.source_exported_at,
+                    },
+                );
+                setImportRunId(result.import_run_id);
+                setImportProgress({ imported: 0, total: preview.valid_row_count });
+            });
         } catch (err) {
             setError(
                 err instanceof Error ? err.message : "Confirmation impossible",
@@ -585,6 +589,15 @@ export function ClientHistoryImportPage() {
                         )}
                     </section>
                 )}
+                <StepUpPasswordDialog
+                    open={stepUp.promptOpen}
+                    password={stepUp.password}
+                    error={stepUp.promptError}
+                    submitting={stepUp.submitting}
+                    onPasswordChange={stepUp.setPassword}
+                    onSubmit={(event) => void stepUp.submitPassword(event)}
+                    onCancel={stepUp.closePrompt}
+                />
             </div>
         </RequireAuth>
     );

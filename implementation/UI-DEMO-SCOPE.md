@@ -337,6 +337,9 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 - Documents importés lisibles et verrouillés contre les mutations opérationnelles
 - Permission `billing.history.import` (Critical)
 - Endpoints API : POST `preview`, POST `confirm`, GET status par `import_run_id`
+- Confirmation CRM et Billing : step-up par re-saisie du mot de passe
+  (`POST /api/auth/session/elevate`, portée `PermissionScoped`, 15 min).
+  La prévisualisation n’exige pas d’élévation.
 
 ### Rebuild Analytics après import (livré, borné)
 
@@ -352,7 +355,6 @@ sont définis. Les opt-in `ATLAS_DEVELOPMENT_ROUTES` et
 
 ### Hors scope Lot 4 (BPT-013 restant)
 
-- Step-up d'authentification pour la permission Critical
 - Connecteurs Freebe, Indy, Tiime
 
 ---

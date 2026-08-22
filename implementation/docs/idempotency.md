@@ -19,6 +19,7 @@ différent lève `Idempotency conflict.`
 |---|---|---|
 | `RegisterUserHandler` | `identity.register_user` | email, displayName |
 | `RevokeSessionHandler` | `identity.revoke_session` | actorUserId, sessionId |
+| `ElevateSessionHandler` | `identity.elevate_session` | actorUserId, sessionId |
 | `RemoveMembershipHandler` | `identity.remove_membership` | actorUserId, workspaceId, membershipId |
 | `BootstrapFirstWorkspaceHandler` | `onboarding.bootstrap_first_workspace` | userId, workspace name |
 

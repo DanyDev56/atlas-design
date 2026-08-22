@@ -29,6 +29,7 @@ final class ConfirmHistoricalBillingHistoryImportHandler
     public function handle(
         string $actorUserId,
         string $workspaceId,
+        string $sessionId,
         string $previewId,
         string $packageHash,
         string $sourceSystem,
@@ -36,7 +37,12 @@ final class ConfirmHistoricalBillingHistoryImportHandler
         string $requestId,
         ?string $correlationId = null,
     ): array {
-        $this->authorizer->authorize($actorUserId, $workspaceId, 'billing.history.import');
+        $this->authorizer->authorizeElevated(
+            $actorUserId,
+            $workspaceId,
+            'billing.history.import',
+            $sessionId,
+        );
         $packageHash = preg_replace('/^sha256:/i', '', $packageHash) ?? $packageHash;
         $fingerprint = hash('sha256', json_encode([$workspaceId, $previewId, $packageHash, trim($sourceSystem)], JSON_THROW_ON_ERROR));
         $scope = 'billing.confirm_historical_billing_import';

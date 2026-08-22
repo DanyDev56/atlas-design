@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Crm\OpportunityController;
 use App\Http\Controllers\Api\Crm\PipelineController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\Dev\ProcessOutboxController;
+use App\Http\Controllers\Api\ElevateSessionController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\RegisterUserController;
@@ -52,6 +53,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
     Route::middleware(BearerSessionMiddleware::class)->group(function (): void {
         Route::post('/auth/session/revoke', RevokeSessionController::class);
+        Route::middleware('throttle:auth')->post('/auth/session/elevate', ElevateSessionController::class);
         Route::get('/auth/session/context', SessionContextController::class);
 
         Route::post('/workspaces/first', BootstrapWorkspaceController::class);

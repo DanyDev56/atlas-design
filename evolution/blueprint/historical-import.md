@@ -125,5 +125,6 @@ Elle n'est ni un score, ni une Recommendation, ni une nouvelle vérité métier.
 
 La tranche livrée sous `implementation/` couvre `ImportHistoricalClients`,
 `ImportHistoricalBillingHistory` et le rebuild Analytics borné après corrélation
-des deux completions. Les connecteurs externes et le step-up d'authentification
-restent hors de cette tranche.
+des deux completions. Les connecteurs externes restent hors de cette tranche.
+Le step-up d'authentification est exigé pour confirmer un import historique
+(re-saisie du mot de passe, élévation bornée 15 minutes).

@@ -120,7 +120,7 @@ Légende : ☑ prouvé — ◐ partiel — ◻ non couvert.
 
 | Écart | Impact | Owner | Plan | Accepté le |
 |---|---|---|---|---|
-| Import historique CRM/Billing | Moyen | Product + Engineering | **CRM clients**, **Billing** et **rebuild Analytics** livrés Palier 4 (BPT-013). Step-up et connecteurs restent ouverts. | 2026-08-07 / maj 2026-08-22 |
+| Import historique CRM/Billing | Moyen | Product + Engineering | **CRM clients**, **Billing**, **rebuild Analytics** et **step-up de confirmation** livrés Palier 4 (BPT-013). Connecteurs restent ouverts. | 2026-08-07 / maj 2026-08-22 |
 | Advisor `CompleteRecommendation` / `DismissRecommendation` | Faible | Engineering | ☑ Livré (`RecommendationDecisionHandler` + UI Advisor) | 2026-08-07 / maj 2026-08-22 |
 | Dispatch email fournisseur réel | Moyen | Engineering | Adaptateur Notifications + consentement testé | 2026-08-07 |
 | `ExpireNotification` et events outbox Notifications dédiés | Faible | Engineering | Durcissement Notifications Palier 3 | 2026-08-07 |

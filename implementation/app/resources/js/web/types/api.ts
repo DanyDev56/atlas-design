@@ -33,6 +33,13 @@ export interface WorkspaceSummaryResponse {
 export interface SessionContextResponse {
     user_id: string;
     workspace_id: string | null;
+    elevation_expires_at: string | null;
+}
+
+export interface SessionElevationResponse {
+    session_id: string;
+    elevation_scope: string;
+    elevation_expires_at: string;
 }
 
 export interface DashboardWidget<T = unknown> {
