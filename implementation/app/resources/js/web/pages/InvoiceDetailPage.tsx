@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import {
     applyCreditNote,
     createCreditNote,
+    downloadBillingDocument,
     getInvoice,
     issueCreditNote,
     issueInvoice,
@@ -105,6 +106,15 @@ export function InvoiceDetailPage() {
             setError('L’envoi n’a pas pu être confirmé. Rechargez la facture avant de réessayer.');
         } finally {
             setActionLoading(false);
+        }
+    }
+
+    async function onDownloadPdf(documentType: 'invoice' | 'credit_note', documentId: string) {
+        setError(null);
+        try {
+            await downloadBillingDocument(token, workspaceId, documentType, documentId);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Téléchargement du document impossible.');
         }
     }
 
@@ -283,7 +293,18 @@ export function InvoiceDetailPage() {
                                     {invoice.sent_at && <span>Envoi confirmé</span>}
                                 </div>
                             </div>
-                            <StatusBadge status={displayedStatus} />
+                            <div className="flex flex-col items-end gap-3">
+                                <StatusBadge status={displayedStatus} />
+                                {invoice.status === 'Issued' && !invoice.is_historical_import && (
+                                    <button
+                                        type="button"
+                                        onClick={() => void onDownloadPdf('invoice', invoice.invoice_id)}
+                                        className="min-h-10 rounded-lg border border-atlas-border bg-white px-3 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                                    >
+                                        Télécharger le PDF
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}
@@ -430,6 +451,15 @@ export function InvoiceDetailPage() {
                                                     </p>
                                                 </div>
                                                 <div className="flex gap-2">
+                                                    {creditNote.status !== 'Draft' && creditNote.status !== 'Discarded' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => void onDownloadPdf('credit_note', creditNote.credit_note_id)}
+                                                            className="min-h-10 rounded-lg border border-atlas-border px-3 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                                                        >
+                                                            PDF
+                                                        </button>
+                                                    )}
                                                     {creditNote.status === 'Draft' && (
                                                         <button
                                                             type="button"

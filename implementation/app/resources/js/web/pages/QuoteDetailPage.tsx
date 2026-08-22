@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { createInvoiceFromQuote, getQuote, sendQuote, updateQuote } from '@/api/billing';
+import { createInvoiceFromQuote, downloadBillingDocument, getQuote, sendQuote, updateQuote } from '@/api/billing';
 import { getClient } from '@/api/crm';
 import { ErrorBanner, FormField, SubmitButton, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StatusBadge } from '@/components/crm/StatusBadge';
@@ -180,6 +180,16 @@ export function QuoteDetailPage() {
         }
     }
 
+    async function onDownloadPdf() {
+        if (!quote || quote.status === 'Draft') return;
+        setError(null);
+        try {
+            await downloadBillingDocument(token, workspaceId, 'quote', quote.quote_id);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Téléchargement du devis impossible.');
+        }
+    }
+
     async function onCreateInvoice() {
         if (!quote || quote.status !== 'Accepted') return;
 
@@ -270,7 +280,18 @@ export function QuoteDetailPage() {
                                         : 'Ce devis est verrouillé depuis son envoi.'}
                                 </p>
                             </div>
-                            <StatusBadge status={quote.status} />
+                            <div className="flex flex-col items-end gap-3">
+                                <StatusBadge status={quote.status} />
+                                {quote.status !== 'Draft' && !quote.is_historical_import && (
+                                    <button
+                                        type="button"
+                                        onClick={() => void onDownloadPdf()}
+                                        className="min-h-10 rounded-lg border border-atlas-border bg-white px-3 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                                    >
+                                        Télécharger le PDF
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}

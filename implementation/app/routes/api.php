@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
 use App\Http\Controllers\Api\Billing\CreditNoteController;
+use App\Http\Controllers\Api\Billing\DocumentArtifactController;
 use App\Http\Controllers\Api\Billing\InvoiceController;
 use App\Http\Controllers\Api\Billing\PublicQuoteAcceptController;
 use App\Http\Controllers\Api\Billing\PublicQuoteController;
@@ -127,6 +128,8 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/credit-notes/{creditNoteId}/discard', [CreditNoteController::class, 'discard']);
             Route::post('/credit-notes/{creditNoteId}/issue', [CreditNoteController::class, 'issue']);
             Route::post('/credit-notes/{creditNoteId}/apply', [CreditNoteController::class, 'apply']);
+            Route::get('/documents/{documentType}/{documentId}/artifact', [DocumentArtifactController::class, 'show'])
+                ->where('documentType', 'quote|invoice|credit_note');
 
             Route::get('/analytics/snapshot/latest', [AnalyticsController::class, 'latestSnapshot']);
             Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);

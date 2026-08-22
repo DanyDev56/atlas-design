@@ -24,6 +24,7 @@ final class SendQuoteHandler
         private readonly PostgresPublicDocumentProofRepository $proofs,
         private readonly PostgresBillingIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
+        private readonly BillingDocumentArtifactService $documents,
     ) {}
 
     public function handle(
@@ -74,6 +75,17 @@ final class SendQuoteHandler
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $quote->send($now);
             $this->quotes->update($quote);
+            $this->documents->create(
+                workspaceId: $workspaceId,
+                documentType: 'quote',
+                documentId: $quoteId,
+                documentVersion: $quote->version(),
+                documentNumber: 'DEV-'.strtoupper(substr($quoteId, 0, 8)),
+                documentLines: $quote->lines(),
+                totalCents: $quote->totalCents(),
+                currency: $quote->currency(),
+                clientSnapshot: $quote->clientSnapshot(),
+            );
 
             $plainToken = PostgresPublicDocumentProofRepository::generatePlainToken();
             $expiresAt = $now->modify('+30 days');

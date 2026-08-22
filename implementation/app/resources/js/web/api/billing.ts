@@ -206,6 +206,33 @@ export async function applyCreditNote(
     );
 }
 
+export async function downloadBillingDocument(
+    token: string,
+    workspaceId: string,
+    documentType: 'quote' | 'invoice' | 'credit_note',
+    documentId: string,
+): Promise<void> {
+    const response = await fetch(
+        `/api${workspacePath(workspaceId, `/documents/${documentType}/${documentId}/artifact`)}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!response.ok) {
+        const body = await response.json().catch(() => null) as { messages?: string[] } | null;
+        throw new Error(body?.messages?.[0] ?? 'Téléchargement du document impossible.');
+    }
+
+    const disposition = response.headers.get('Content-Disposition') ?? '';
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? `${documentType}.pdf`;
+    const url = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+}
+
 export async function previewHistoricalBilling(
     token: string,
     workspaceId: string,

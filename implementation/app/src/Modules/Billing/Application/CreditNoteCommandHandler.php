@@ -25,6 +25,7 @@ final class CreditNoteCommandHandler
         private readonly PostgresCreditNoteRepository $creditNotes,
         private readonly PostgresBillingIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
+        private readonly BillingDocumentArtifactService $documents,
     ) {}
 
     /** @param list<array<string, mixed>> $lines */
@@ -143,6 +144,17 @@ final class CreditNoteCommandHandler
             $now = $this->now();
             $creditNote->issue($this->creditNotes->nextNumber($workspaceId), $expectedRevision, $now);
             $this->creditNotes->update($creditNote);
+            $this->documents->create(
+                workspaceId: $workspaceId,
+                documentType: 'credit_note',
+                documentId: $creditNoteId,
+                documentVersion: $creditNote->version(),
+                documentNumber: $creditNote->number() ?? $creditNoteId,
+                documentLines: $creditNote->lines(),
+                totalCents: $creditNote->totalCents(),
+                currency: $creditNote->currency(),
+                clientSnapshot: $creditNote->clientSnapshot(),
+            );
             $this->append('billing.credit_note_issued', $creditNote, $now, $correlationId);
 
             return $this->response($creditNote);

@@ -22,6 +22,7 @@ final class IssueInvoiceHandler
         private readonly PostgresInvoiceRepository $invoices,
         private readonly PostgresBillingIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
+        private readonly BillingDocumentArtifactService $documents,
     ) {}
 
     public function handle(
@@ -87,6 +88,17 @@ final class IssueInvoiceHandler
             );
 
             $this->invoices->update($invoice);
+            $this->documents->create(
+                workspaceId: $workspaceId,
+                documentType: 'invoice',
+                documentId: $invoiceId,
+                documentVersion: $invoice->version(),
+                documentNumber: $invoice->invoiceNumber() ?? $invoiceId,
+                documentLines: $invoice->lines(),
+                totalCents: $invoice->totalCents(),
+                currency: $invoice->currency(),
+                clientSnapshot: $invoice->clientSnapshot(),
+            );
             $this->outbox->append(OutgoingMessage::fromDomainEvent($event, correlationId: $correlationId));
 
             $response = [

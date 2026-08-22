@@ -39,6 +39,12 @@ final class CreditNoteFlowTest extends IntegrationTestCase
             ->assertJsonPath('status', 'Issued')
             ->assertJsonPath('credit_note_number', 'CN-000001');
 
+        $pdf = $this->get(
+            "/api/workspaces/{$owner['workspace_id']}/documents/credit_note/{$creditNoteId}/artifact",
+            ['Authorization' => 'Bearer '.$owner['token']],
+        )->assertOk()->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-1.4', $pdf->getContent());
+
         app(OutboxProcessor::class)->processPending();
         $this->assertDatabaseHas('analytics.source_facts', [
             'workspace_id' => $owner['workspace_id'],

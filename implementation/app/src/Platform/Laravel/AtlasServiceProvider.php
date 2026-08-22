@@ -47,6 +47,7 @@ use Atlas\Modules\Billing\Application\PreviewHistoricalBillingHistoryHandler;
 use Atlas\Modules\Billing\Application\RecordPaymentHandler;
 use Atlas\Modules\Billing\Application\CreditNoteCommandHandler;
 use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
+use Atlas\Modules\Billing\Application\BillingDocumentArtifactService;
 use Atlas\Modules\Billing\Application\SendInvoiceHandler;
 use Atlas\Modules\Billing\Application\SendQuoteHandler;
 use Atlas\Modules\Billing\Application\UpdateQuoteDraftHandler;
@@ -54,6 +55,8 @@ use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImpor
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresBillingHistoryImportRunRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresInvoiceRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresCreditNoteRepository;
+use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresDocumentArtifactRepository;
+use Atlas\Modules\Billing\Infrastructure\Rendering\DeterministicPdfRenderer;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPaymentRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresPublicDocumentProofRepository;
 use Atlas\Modules\Billing\Infrastructure\Persistence\PostgresQuoteRepository;
@@ -237,6 +240,8 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresQuoteRepository::class);
         $this->app->singleton(PostgresInvoiceRepository::class);
         $this->app->singleton(PostgresCreditNoteRepository::class);
+        $this->app->singleton(PostgresDocumentArtifactRepository::class);
+        $this->app->singleton(DeterministicPdfRenderer::class);
         $this->app->singleton(PostgresPaymentRepository::class);
         $this->app->singleton(PostgresPublicDocumentProofRepository::class);
         $this->app->singleton(CreateQuoteHandler::class);
@@ -249,6 +254,7 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(RecordPaymentHandler::class);
         $this->app->singleton(CreditNoteCommandHandler::class);
         $this->app->singleton(GetCreditNoteAnalyticsFactHandler::class);
+        $this->app->singleton(BillingDocumentArtifactService::class);
         $this->app->singleton(PreviewHistoricalBillingHistoryHandler::class);
         $this->app->singleton(ConfirmHistoricalBillingHistoryImportHandler::class);
         $this->app->singleton(ExecuteHistoricalBillingHistoryImportHandler::class);
