@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import {
     createWorkspaceInvitation,
     getWorkspaceBillingIdentity,
@@ -14,6 +15,7 @@ import {
 import { ErrorBanner, FormField, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StepUpPasswordDialog, useImportStepUp } from '@/components/auth/StepUpPasswordDialog';
 import { RequireAuth } from '@/components/layout/RequireAuth';
+import type { AppShellOutletContext } from '@/components/layout/AppShell';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,6 +29,7 @@ import type {
 
 export function SettingsPage() {
     const { session } = useAuth();
+    const { refreshWorkspaceSummary } = useOutletContext<AppShellOutletContext>();
     const token = session!.token;
     const workspaceId = session!.workspaceId!;
     const stepUp = useImportStepUp(token);
@@ -118,6 +121,7 @@ export function SettingsPage() {
                 expected_revision: profile.profile_version,
             });
             setProfile(updated);
+            await refreshWorkspaceSummary();
             setProfileSuccess('Profil commercial enregistré.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Enregistrement impossible');

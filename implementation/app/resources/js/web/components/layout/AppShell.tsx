@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface AppShellOutletContext {
     refreshUnreadCount: () => Promise<void>;
+    refreshWorkspaceSummary: () => Promise<void>;
 }
 
 const navItems = [
@@ -92,6 +93,7 @@ export function AppShell() {
     const menuButtonRef = useRef<HTMLButtonElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const mobileDialogRef = useRef<HTMLElement>(null);
+    const workspaceRequestIdRef = useRef(0);
     const token = session?.token ?? null;
     const workspaceId = session?.workspaceId ?? null;
     const currentSection = navItems.find((item) => item.end
@@ -115,6 +117,27 @@ export function AppShell() {
         }
     }, [token, workspaceId]);
 
+    const refreshWorkspaceSummary = useCallback(async () => {
+        const requestId = workspaceRequestIdRef.current + 1;
+        workspaceRequestIdRef.current = requestId;
+
+        if (!token || !workspaceId) {
+            setWorkspaceName(null);
+            setWorkspaceNameUnavailable(false);
+            return;
+        }
+
+        try {
+            const summary = await getWorkspaceSummary(token, workspaceId);
+            if (workspaceRequestIdRef.current !== requestId) return;
+
+            setWorkspaceName(summary.display_name);
+            setWorkspaceNameUnavailable(false);
+        } catch {
+            if (workspaceRequestIdRef.current === requestId) setWorkspaceNameUnavailable(true);
+        }
+    }, [token, workspaceId]);
+
     const closeMobileNav = useCallback(() => {
         setMobileNavOpen(false);
         window.requestAnimationFrame(() => menuButtonRef.current?.focus());
@@ -134,28 +157,12 @@ export function AppShell() {
     }, [location.pathname, refreshUnreadCount]);
 
     useEffect(() => {
-        if (!token || !workspaceId) {
-            setWorkspaceName(null);
-            setWorkspaceNameUnavailable(false);
-            return;
-        }
-
-        let cancelled = false;
         setWorkspaceName(null);
         setWorkspaceNameUnavailable(false);
+        void refreshWorkspaceSummary();
 
-        void getWorkspaceSummary(token, workspaceId)
-            .then((summary) => {
-                if (!cancelled) setWorkspaceName(summary.display_name);
-            })
-            .catch(() => {
-                if (!cancelled) setWorkspaceNameUnavailable(true);
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [token, workspaceId, location.pathname]);
+        return () => { workspaceRequestIdRef.current += 1; };
+    }, [refreshWorkspaceSummary]);
 
     useEffect(() => {
         if (!mobileNavOpen) return;
@@ -297,7 +304,7 @@ export function AppShell() {
                 </header>
 
                 <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-4 sm:p-6 lg:p-10 xl:p-12">
-                    <Outlet context={{ refreshUnreadCount } satisfies AppShellOutletContext} />
+                    <Outlet context={{ refreshUnreadCount, refreshWorkspaceSummary } satisfies AppShellOutletContext} />
                 </main>
             </div>
         </div>

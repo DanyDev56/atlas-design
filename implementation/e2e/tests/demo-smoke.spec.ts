@@ -53,6 +53,77 @@ test('les paramètres exposent le profil et les membres du workspace', async ({ 
     await expect(page.getByText('owner', { exact: false })).toBeVisible();
 });
 
+test('la navigation conserve le nom du workspace sans le recharger', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le comportement réseau est identique sur les deux viewports.');
+
+    await expect(page.getByRole('link', { name: 'Studio Atlas Démo', exact: true })).toBeVisible();
+    let summaryRequests = 0;
+    page.on('request', (request) => {
+        if (/\/api\/workspaces\/[^/]+\/summary$/.test(new URL(request.url()).pathname)) summaryRequests += 1;
+    });
+
+    await navigateFromShell(page, 'CRM');
+    await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible();
+    await navigateFromShell(page, 'Facturation');
+    await expect(page.getByRole('heading', { name: 'Facturation' })).toBeVisible();
+
+    expect(summaryRequests).toBe(0);
+    await expect(page.getByRole('link', { name: 'Studio Atlas Démo', exact: true })).toBeVisible();
+});
+
+test('le shell actualise le nom après l’enregistrement du profil', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le comportement est partagé par le shell responsive.');
+
+    await navigateFromShell(page, 'Paramètres');
+    const displayNameInput = page.getByLabel('Nom d’affichage');
+    await expect(displayNameInput).toHaveValue('Studio Atlas Démo');
+
+    let summaryRequests = 0;
+    await page.route('**/api/workspaces/*/summary', async (route) => {
+        summaryRequests += 1;
+        const segments = new URL(route.request().url()).pathname.split('/');
+        await route.fulfill({
+            status: 200,
+            json: {
+                workspace_id: segments[3],
+                display_name: 'Studio Atlas Actualisé',
+                access_state: 'Active',
+                version: 2,
+            },
+        });
+    });
+    await page.route('**/api/workspaces/*/profile', async (route) => {
+        if (route.request().method() !== 'PUT') {
+            await route.continue();
+            return;
+        }
+
+        const body = route.request().postDataJSON() as {
+            display_name: string;
+            trading_name: string | null;
+            activity_description: string | null;
+            expected_revision: number;
+        };
+        const segments = new URL(route.request().url()).pathname.split('/');
+        await route.fulfill({
+            status: 200,
+            json: {
+                workspace_id: segments[3],
+                display_name: body.display_name,
+                trading_name: body.trading_name,
+                activity_description: body.activity_description,
+                profile_version: body.expected_revision + 1,
+            },
+        });
+    });
+
+    await displayNameInput.fill('Studio Atlas Actualisé');
+    await page.getByRole('button', { name: 'Enregistrer le profil' }).click();
+
+    await expect(page.getByRole('link', { name: 'Studio Atlas Actualisé', exact: true })).toBeVisible();
+    expect(summaryRequests).toBe(1);
+});
+
 test('les données démo rendent les principaux dossiers identifiables', async ({ page }) => {
     await navigateFromShell(page, 'CRM');
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible();
