@@ -6,6 +6,7 @@ import { BillingWidget } from '@/components/dashboard/BillingWidget';
 import { BusinessHealthWidget } from '@/components/dashboard/BusinessHealthWidget';
 import { MeasuredActivityWidget } from '@/components/dashboard/MeasuredActivityWidget';
 import { PipelineWidget } from '@/components/dashboard/PipelineWidget';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardResponse } from '@/types/api';
@@ -70,27 +71,21 @@ export function DashboardPage() {
     }).format(new Date());
 
     return (
-        <div className="mx-auto max-w-6xl">
-            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-                <div>
-                    <p className="text-sm font-medium capitalize text-atlas-accent">{today}</p>
-                    <h2 className="mt-1 text-3xl font-semibold tracking-tight text-atlas-ink sm:text-4xl">
-                        Bonjour{displayName ? `, ${displayName}` : ''}
-                    </h2>
-                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-atlas-ink-muted">
-                        Voici ce qui mérite votre attention et où en est votre activité aujourd’hui.
-                    </p>
-                </div>
-                {unread > 0 && (
+        <div className="atlas-page max-w-6xl">
+            <PageHeader
+                eyebrow={today}
+                title={`Bonjour${displayName ? `, ${displayName}` : ''}`}
+                description="Voici ce qui mérite votre attention et où en est votre activité aujourd’hui."
+                actions={unread > 0 ? (
                     <Link
                         to="/app/notifications"
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-atlas-accent-soft px-4 py-2 text-sm font-semibold text-atlas-accent transition-colors hover:bg-atlas-accent hover:text-white"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-teal-200/80 bg-atlas-accent-soft px-4 py-2 text-sm font-semibold text-atlas-accent hover:border-atlas-accent hover:bg-atlas-accent hover:text-white"
                     >
                         <span className="h-2 w-2 rounded-full bg-atlas-accent" aria-hidden="true" />
                         {unread} notification{unread > 1 ? 's' : ''} non lue{unread > 1 ? 's' : ''}
                     </Link>
-                )}
-            </div>
+                ) : undefined}
+            />
 
             {loading && <PageSkeleton rows={4} variant="cards" />}
 

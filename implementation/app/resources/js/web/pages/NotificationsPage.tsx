@@ -5,6 +5,7 @@ import { ErrorBanner } from '@/components/auth/AuthLayout';
 import type { AppShellOutletContext } from '@/components/layout/AppShell';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { NotificationSummary } from '@/types/api';
@@ -139,17 +140,15 @@ function NotificationsInbox() {
         : notifications;
 
     return (
-            <div className="mx-auto max-w-4xl">
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">Inbox</p>
-                    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">Notifications</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-atlas-ink-muted">
-                        Retrouvez les priorités qui demandent votre attention et ouvrez directement le bon espace de travail.
-                    </p>
-                </div>
+            <div className="atlas-page max-w-5xl">
+                <PageHeader
+                    eyebrow="Centre d’attention"
+                    title="Notifications"
+                    description="Retrouvez les priorités qui demandent votre attention et ouvrez directement le bon espace de travail."
+                />
 
                 {!loading && !error && notifications.length > 0 && (
-                    <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-b border-atlas-border">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-atlas-border">
                         <div className="flex gap-1" role="group" aria-label="Filtrer les notifications">
                             <button
                                 type="button"

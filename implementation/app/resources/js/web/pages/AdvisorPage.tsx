@@ -5,6 +5,7 @@ import { ApiClientError } from '@/api/client';
 import { ErrorBanner } from '@/components/auth/AuthLayout';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type { AdvisorDismissalReason, AdvisorOverview, AdvisorRecommendation } from '@/types/api';
@@ -345,21 +346,17 @@ function AdvisorContent() {
         && overview.primary_recommendation === null;
 
     return (
-        <div className="mx-auto max-w-6xl">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">Advisor</p>
-                    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">Vos prochaines actions</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-atlas-ink-muted">
-                        Des priorités expliquées à partir de la dernière évaluation Santé, sans exécuter d’action à votre place.
-                    </p>
-                </div>
-                {overview && (
+        <div className="atlas-page max-w-6xl">
+            <PageHeader
+                eyebrow="Advisor"
+                title="Vos prochaines actions"
+                description="Des priorités expliquées à partir de la dernière évaluation Santé, sans exécuter d’action à votre place."
+                actions={overview ? (
                     <p className="text-xs text-atlas-ink-muted">
                         Mis à jour le <time dateTime={overview.updated_at}>{formatAdvisorDate(overview.updated_at)}</time>
                     </p>
-                )}
-            </div>
+                ) : undefined}
+            />
 
             {loading && <div className="mt-8"><PageSkeleton rows={3} variant="cards" /></div>}
 

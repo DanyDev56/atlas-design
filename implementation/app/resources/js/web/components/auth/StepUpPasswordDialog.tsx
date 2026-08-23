@@ -123,15 +123,16 @@ export function StepUpPasswordDialog({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-atlas-sidebar/60 px-4 backdrop-blur-sm">
             <form
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="step-up-title"
                 onSubmit={onSubmit}
-                className="w-full max-w-md rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-xl"
+                className="w-full max-w-md rounded-[1.5rem] border border-white/70 bg-atlas-card p-6 shadow-[0_28px_80px_rgb(0_0_0/0.24)] sm:p-7"
             >
-                <h3 id="step-up-title" className="text-lg font-semibold text-atlas-ink">
+                <span className="mb-4 grid size-10 place-items-center rounded-xl bg-atlas-accent-soft text-lg font-bold text-atlas-accent" aria-hidden="true">✓</span>
+                <h3 id="step-up-title" className="text-xl font-semibold tracking-tight text-atlas-ink">
                     Confirmer votre identité
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-atlas-ink-muted">

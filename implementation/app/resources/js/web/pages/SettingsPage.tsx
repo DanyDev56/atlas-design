@@ -15,6 +15,7 @@ import { ErrorBanner, FormField, SuccessBanner, inputClassName } from '@/compone
 import { StepUpPasswordDialog, useImportStepUp } from '@/components/auth/StepUpPasswordDialog';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import type {
     WorkspaceBillingIdentityResponse,
@@ -218,19 +219,34 @@ export function SettingsPage() {
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-3xl">
-                <h2 className="text-3xl font-semibold tracking-tight text-atlas-ink">Paramètres</h2>
-                <p className="mt-2 text-sm leading-relaxed text-atlas-ink-muted">
-                    Profil commercial, identité de facturation, préférences et membres du workspace.
-                    Les invitations attribuent le rôle membre standard ; les rôles avancés restent hors de cette surface.
-                </p>
+            <div className="atlas-page max-w-4xl">
+                <PageHeader
+                    eyebrow="Votre espace"
+                    title="Paramètres"
+                    description="Gérez le profil de l’activité, l’identité de facturation, vos préférences et les membres de l’espace."
+                />
 
                 {loading && <div className="mt-8"><PageSkeleton rows={4} /></div>}
                 <div className="mt-6"><ErrorBanner message={error} /></div>
 
                 {!loading && profile && billing && preferences && (
-                    <div className="mt-8 space-y-8">
-                        <form onSubmit={onSaveProfile} className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                    <div className="grid items-start gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
+                        <aside className="sticky top-24 hidden rounded-2xl border border-atlas-border bg-white/70 p-2 shadow-sm lg:block">
+                            <nav aria-label="Sections des paramètres" className="space-y-1 text-sm font-medium">
+                                {[
+                                    ['#workspace-profile', 'Profil de l’activité'],
+                                    ['#billing-identity', 'Facturation'],
+                                    ['#workspace-preferences', 'Préférences'],
+                                    ['#workspace-members', 'Membres'],
+                                ].map(([href, label]) => (
+                                    <a key={href} href={href} className="block rounded-xl px-3 py-2.5 text-atlas-ink-muted hover:bg-atlas-accent-soft hover:text-atlas-accent">
+                                        {label}
+                                    </a>
+                                ))}
+                            </nav>
+                        </aside>
+                        <div className="min-w-0 space-y-8">
+                        <form id="workspace-profile" onSubmit={onSaveProfile} className="scroll-mt-28 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Profil de l’activité</h3>
                             <SuccessBanner message={profileSuccess} />
                             <div className="mt-5 space-y-4">
@@ -249,7 +265,7 @@ export function SettingsPage() {
                             </button>
                         </form>
 
-                        <form onSubmit={onSaveBilling} className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                        <form id="billing-identity" onSubmit={onSaveBilling} className="scroll-mt-28 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Identité de facturation</h3>
                             <p className="mt-1 text-sm text-atlas-ink-muted">
                                 Action critique : une preuve récente par mot de passe est exigée. Les documents déjà émis ne changent pas.
@@ -268,7 +284,7 @@ export function SettingsPage() {
                             </button>
                         </form>
 
-                        <form onSubmit={onSavePreferences} className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                        <form id="workspace-preferences" onSubmit={onSavePreferences} className="scroll-mt-28 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Préférences</h3>
                             <SuccessBanner message={preferencesSuccess} />
                             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -302,7 +318,7 @@ export function SettingsPage() {
                             </button>
                         </form>
 
-                        <section className="rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
+                        <section id="workspace-members" className="scroll-mt-28 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Membres</h3>
                             <form onSubmit={onInviteMember} className="mt-5 rounded-xl border border-atlas-border bg-atlas-surface p-4">
                                 <h4 className="text-sm font-semibold text-atlas-ink">Inviter un membre</h4>
@@ -384,6 +400,7 @@ export function SettingsPage() {
                                 ))}
                             </ul>
                         </section>
+                        </div>
                     </div>
                 )}
 

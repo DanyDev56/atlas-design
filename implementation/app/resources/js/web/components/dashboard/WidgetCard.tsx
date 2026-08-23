@@ -19,8 +19,8 @@ const stateLabels: Record<DataState, string> = {
 
 const accentRing: Record<NonNullable<WidgetCardProps['accent']>, string> = {
     default: 'border-atlas-border',
-    priority: 'border-atlas-warm/30 bg-gradient-to-br from-white to-amber-50/60',
-    health: 'border-atlas-accent/30',
+    priority: 'border-atlas-warm/25 bg-gradient-to-br from-white via-white to-amber-50/60',
+    health: 'border-atlas-accent/25 bg-gradient-to-br from-white to-emerald-50/30',
 };
 
 export function WidgetCard({
@@ -32,17 +32,18 @@ export function WidgetCard({
     accent = 'default',
 }: WidgetCardProps) {
     return (
-        <article className={`rounded-2xl border bg-atlas-card p-5 shadow-sm sm:p-6 ${accentRing[accent]}`}>
+        <article className={`group relative overflow-hidden rounded-[1.25rem] border bg-atlas-card p-5 shadow-sm sm:p-6 ${accentRing[accent]}`}>
+            <span className={`absolute inset-x-0 top-0 h-0.5 ${accent === 'priority' ? 'bg-atlas-warm/70' : accent === 'health' ? 'bg-atlas-accent/65' : 'bg-transparent'}`} aria-hidden="true" />
             <header className="mb-4 flex items-start justify-between gap-4">
                 <div>
-                    <h3 className="text-base font-semibold text-atlas-ink">{title}</h3>
+                    <h3 className="text-base font-semibold tracking-[-0.01em] text-atlas-ink">{title}</h3>
                     {subtitle && <p className="mt-0.5 text-sm text-atlas-ink-muted">{subtitle}</p>}
                 </div>
                 <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
                         dataState === 'Data'
-                            ? 'bg-atlas-accent-soft text-atlas-accent'
-                            : 'bg-slate-100 text-atlas-ink-muted'
+                            ? 'border-teal-200/80 bg-atlas-accent-soft text-atlas-accent'
+                            : 'border-slate-200 bg-slate-100 text-atlas-ink-muted'
                     }`}
                 >
                     {stateLabels[dataState]}
@@ -63,7 +64,7 @@ export function WidgetCard({
 
 export function EmptyWidgetMessage({ children }: { children: ReactNode }) {
     return (
-        <div className="flex h-full flex-col items-start justify-center gap-3 rounded-xl bg-atlas-surface px-4 py-6 text-sm leading-relaxed text-atlas-ink-muted">
+        <div className="flex h-full flex-col items-start justify-center gap-3 rounded-xl border border-dashed border-atlas-border bg-atlas-surface/70 px-4 py-6 text-sm leading-relaxed text-atlas-ink-muted">
             {children}
         </div>
     );

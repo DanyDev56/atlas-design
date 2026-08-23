@@ -7,6 +7,8 @@ import { StatusBadge } from '@/components/crm/StatusBadge';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Icon } from '@/components/ui/Icon';
 import { useAuth } from '@/hooks/useAuth';
 import type { ClientSummary, InvoiceSummary, QuoteSummary } from '@/types/api';
 import { formatMoney, invoiceDisplayStatus } from '@/utils/format';
@@ -45,35 +47,52 @@ export function BillingPage() {
     }, [token, workspaceId]);
 
     const clientNames = new Map(clients.map((client) => [client.client_id, client.display_name]));
+    const invoicesToCollect = invoices.filter((invoice) => invoice.balance_cents > 0).length;
+    const quotesInProgress = quotes.filter((quote) => ['Draft', 'Sent'].includes(quote.status)).length;
+    const settledInvoices = invoices.filter((invoice) => invoice.balance_cents === 0).length;
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-5xl">
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">
-                            Facturation
-                        </p>
-                        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">Facturation</h2>
-                        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-atlas-ink-muted">
-                            Suivez vos devis, vos factures émises et les montants qui restent à encaisser.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
+            <div className="atlas-page max-w-5xl">
+                <PageHeader
+                    eyebrow="Revenus & encaissements"
+                    title="Facturation"
+                    description="Suivez vos devis, vos factures émises et les montants qui restent à encaisser."
+                    actions={<div className="flex flex-wrap gap-3">
                         <Link
                             to="/app/billing/import"
-                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink shadow-sm hover:border-atlas-accent/30 hover:bg-atlas-surface"
                         >
+                            <Icon name="upload" className="size-4 text-atlas-ink-muted" />
                             Importer un historique
                         </Link>
                         <Link
                             to="/app/crm"
-                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-4 py-2.5 text-sm font-semibold text-atlas-ink hover:bg-slate-50"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-atlas-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#066557]"
                         >
+                            <Icon name="plus" className="size-4" />
                             Créer depuis le CRM
                         </Link>
-                    </div>
-                </div>
+                    </div>}
+                />
+
+                {!loading && !error && (quotes.length > 0 || invoices.length > 0) && (
+                    <dl className="mb-8 grid overflow-hidden rounded-2xl border border-atlas-border bg-white/75 shadow-sm sm:grid-cols-3 sm:divide-x sm:divide-atlas-border">
+                        {[
+                            ['À encaisser', invoicesToCollect, 'factures avec un solde'],
+                            ['Devis en cours', quotesInProgress, 'à préparer ou en attente'],
+                            ['Soldées', settledInvoices, 'factures encaissées'],
+                        ].map(([label, value, detail]) => (
+                            <div key={label} className="px-5 py-4 not-first:border-t not-first:border-atlas-border sm:not-first:border-t-0">
+                                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-atlas-ink-muted">{label}</dt>
+                                <dd className="mt-1 flex items-baseline gap-2">
+                                    <span className="text-2xl font-semibold tabular-nums tracking-tight text-atlas-ink">{value}</span>
+                                    <span className="text-xs text-atlas-ink-muted">{detail}</span>
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
+                )}
 
                 {error && (
                     <div className="mt-6">
@@ -135,14 +154,19 @@ export function BillingPage() {
                                                     to={`/app/billing/invoices/${invoice.invoice_id}`}
                                                     className="flex min-h-20 flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:px-6"
                                                 >
-                                                    <div className="min-w-0">
-                                                        <p className="truncate font-medium text-atlas-ink">
-                                                            {invoice.kind === 'Deposit' ? 'Acompte' : 'Facture'}{' '}
-                                                            {invoice.invoice_number ?? invoice.invoice_id.slice(0, 8).toUpperCase()}
-                                                        </p>
-                                                        <p className="mt-1 text-xs text-atlas-ink-muted">
-                                                            {clientNames.get(invoice.client_id) ?? 'Facture client'}
-                                                        </p>
+                                                    <div className="flex min-w-0 items-center gap-3.5">
+                                                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                                                            <Icon name="billing" className="size-[18px]" />
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-semibold text-atlas-ink">
+                                                                {invoice.kind === 'Deposit' ? 'Acompte' : 'Facture'}{' '}
+                                                                {invoice.invoice_number ?? invoice.invoice_id.slice(0, 8).toUpperCase()}
+                                                            </p>
+                                                            <p className="mt-1 text-xs text-atlas-ink-muted">
+                                                                {clientNames.get(invoice.client_id) ?? 'Facture client'}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     <div className="flex items-center gap-4">
                                                         <StatusBadge status={status} />
@@ -187,13 +211,18 @@ export function BillingPage() {
                                                 state={{ from: 'billing' }}
                                                 className="flex min-h-20 flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:px-6"
                                             >
-                                                <div className="min-w-0">
-                                                    <p className="truncate font-medium text-atlas-ink">
-                                                        {clientNames.get(quote.client_id) ?? 'Devis client'}
-                                                    </p>
-                                                    <p className="mt-1 text-xs text-atlas-ink-muted">
-                                                        Devis {quote.quote_id.slice(0, 8).toUpperCase()}
-                                                    </p>
+                                                <div className="flex min-w-0 items-center gap-3.5">
+                                                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-atlas-accent-soft text-atlas-accent">
+                                                        <Icon name="billing" className="size-[18px]" />
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-semibold text-atlas-ink">
+                                                            {clientNames.get(quote.client_id) ?? 'Devis client'}
+                                                        </p>
+                                                        <p className="mt-1 text-xs text-atlas-ink-muted">
+                                                            Devis {quote.quote_id.slice(0, 8).toUpperCase()}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <StatusBadge status={quote.status} />

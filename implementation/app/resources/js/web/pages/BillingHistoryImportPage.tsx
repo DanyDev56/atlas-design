@@ -14,6 +14,7 @@ import {
 } from '@/components/auth/AuthLayout';
 import { StepUpPasswordDialog, useImportStepUp } from '@/components/auth/StepUpPasswordDialog';
 import { RequireAuth } from '@/components/layout/RequireAuth';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import type {
     BillingHistoryImportCounts,
@@ -236,21 +237,18 @@ export function BillingHistoryImportPage() {
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-6xl">
-                <Link to="/app/billing" className="text-sm font-medium text-atlas-accent hover:underline">
+            <div className="atlas-page max-w-6xl">
+                <Link to="/app/billing" className="inline-flex items-center rounded-lg px-1 py-1 text-sm font-semibold text-atlas-accent hover:text-[#055c50]">
                     ← Retour à la facturation
                 </Link>
 
-                <header className="mt-5 max-w-3xl">
-                    <p className="text-sm font-medium text-atlas-accent">Facturation · Reprise de données</p>
-                    <h2 className="mt-1 text-3xl font-semibold tracking-tight text-atlas-ink">
-                        Importer un historique de facturation
-                    </h2>
-                    <p className="mt-3 text-sm leading-6 text-atlas-ink-muted">
-                        Prévisualisez ensemble vos devis, factures, paiements et avoirs. Aucun document n’est créé
-                        avant votre confirmation et aucune notification n’est envoyée.
-                    </p>
-                </header>
+                <div className="mt-5">
+                    <PageHeader
+                        eyebrow="Facturation · Reprise de données"
+                        title="Importer un historique de facturation"
+                        description="Prévisualisez ensemble vos devis, factures, paiements et avoirs. Aucun document n’est créé avant votre confirmation et aucune notification n’est envoyée."
+                    />
+                </div>
 
                 <ErrorBanner message={error} />
                 {conflict && (

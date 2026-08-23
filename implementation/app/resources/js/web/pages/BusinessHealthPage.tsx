@@ -6,6 +6,7 @@ import { ApiClientError } from '@/api/client';
 import { ErrorBanner } from '@/components/auth/AuthLayout';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import type {
@@ -318,16 +319,12 @@ function BusinessHealthContent() {
         : null;
 
     return (
-        <div className="mx-auto max-w-6xl">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">Pilotage</p>
-                    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">Santé de l’activité</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-atlas-ink-muted">
-                        Une lecture explicable de vos données commerciales et de facturation récentes.
-                    </p>
-                </div>
-                <div className="flex flex-col items-start gap-3 sm:items-end">
+        <div className="atlas-page max-w-6xl">
+            <PageHeader
+                eyebrow="Pilotage"
+                title="Santé de l’activité"
+                description="Une lecture explicable de vos données commerciales et de facturation récentes."
+                actions={<div className="flex flex-col items-start gap-3 sm:items-end">
                     {assessment && (
                         <p className="text-xs text-atlas-ink-muted">
                             Évaluation du <time dateTime={assessment.assessed_at}>{formatAssessmentDate(assessment.assessed_at)}</time>
@@ -345,8 +342,8 @@ function BusinessHealthContent() {
                               ? 'En attente du worker'
                               : 'Actualiser l’analyse'}
                     </button>
-                </div>
-            </div>
+                </div>}
+            />
 
             {refreshError && (
                 <div className="mt-6">

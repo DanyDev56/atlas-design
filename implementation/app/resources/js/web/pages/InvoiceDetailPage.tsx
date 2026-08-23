@@ -306,8 +306,8 @@ export function InvoiceDetailPage() {
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-4xl">
-                <Link to="/app/billing" className="text-sm font-medium text-atlas-accent hover:underline">
+            <div className="atlas-page max-w-5xl">
+                <Link to="/app/billing" className="inline-flex items-center rounded-lg px-1 py-1 text-sm font-semibold text-atlas-accent hover:text-[#055c50]">
                     ← Retour à la facturation
                 </Link>
 
@@ -328,13 +328,13 @@ export function InvoiceDetailPage() {
 
                 {invoice && !loading && (
                     <>
-                        <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+                        <div className="mt-5 flex flex-wrap items-start justify-between gap-4 rounded-[1.5rem] border border-atlas-border bg-white/85 p-5 shadow-sm sm:p-6">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-atlas-accent">
                                     {invoice.kind === 'Deposit' ? 'Acompte' : 'Facture'}{' '}
                                     {invoice.invoice_number ?? invoice.invoice_id.slice(0, 8).toUpperCase()}
                                 </p>
-                                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-atlas-ink">
+                                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-atlas-ink sm:text-4xl">
                                     {client?.display_name ?? 'Facture client'}
                                 </h2>
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-atlas-ink-muted">

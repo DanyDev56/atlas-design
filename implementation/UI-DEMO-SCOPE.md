@@ -231,6 +231,10 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - États vides vérifiés sur dashboard, CRM, Facturation, Santé, Advisor et
   Notifications en desktop et mobile ; titres exposés comme vrais niveaux de
   section aux technologies d’assistance
+- Fondations visuelles harmonisées sur tous les parcours : signature Atlas,
+  navigation iconographique, en-têtes contextuels, surfaces, formulaires,
+  statuts, chargements et feedbacks documentés dans
+  [`docs/ui-foundations.md`](docs/ui-foundations.md)
 
 ### Compte démo
 

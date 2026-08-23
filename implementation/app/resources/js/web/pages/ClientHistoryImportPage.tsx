@@ -12,6 +12,7 @@ import {
 } from "@/components/auth/AuthLayout";
 import { StepUpPasswordDialog, useImportStepUp } from "@/components/auth/StepUpPasswordDialog";
 import { RequireAuth } from "@/components/layout/RequireAuth";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import type { ClientHistoryImportPreview } from "@/types/api";
 
@@ -182,26 +183,20 @@ export function ClientHistoryImportPage() {
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-6xl">
+            <div className="atlas-page max-w-6xl">
                 <Link
                     to="/app/crm"
-                    className="text-sm font-medium text-atlas-accent hover:underline"
+                    className="inline-flex items-center rounded-lg px-1 py-1 text-sm font-semibold text-atlas-accent hover:text-[#055c50]"
                 >
                     ← Retour aux clients
                 </Link>
 
-                <div className="mt-5 max-w-3xl">
-                    <p className="text-sm font-medium text-atlas-accent">
-                        CRM · Reprise de données
-                    </p>
-                    <h2 className="mt-1 text-3xl font-semibold tracking-tight text-atlas-ink">
-                        Prévisualiser des clients historiques
-                    </h2>
-                    <p className="mt-3 text-sm leading-6 text-atlas-ink-muted">
-                        Vérifiez un export avant toute création dans Atlas.
-                        Cette étape ne modifie aucun client et n’envoie aucune
-                        notification.
-                    </p>
+                <div className="mt-5">
+                    <PageHeader
+                        eyebrow="CRM · Reprise de données"
+                        title="Prévisualiser des clients historiques"
+                        description="Vérifiez un export avant toute création dans Atlas. Cette étape ne modifie aucun client et n’envoie aucune notification."
+                    />
                 </div>
 
                 <ErrorBanner message={error} />

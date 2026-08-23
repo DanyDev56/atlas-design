@@ -258,11 +258,11 @@ export function OpportunityDetailPage() {
 
     return (
         <RequireAuth>
-            <div className="mx-auto max-w-4xl">
+            <div className="atlas-page max-w-5xl">
                 {client && (
                     <Link
                         to={`/app/crm/clients/${client.client_id}`}
-                        className="text-sm font-medium text-atlas-accent hover:underline"
+                        className="inline-flex items-center rounded-lg px-1 py-1 text-sm font-semibold text-atlas-accent hover:text-[#055c50]"
                     >
                         ← {client.display_name}
                     </Link>
@@ -284,9 +284,10 @@ export function OpportunityDetailPage() {
 
                 {opportunity && client && !loading && (
                     <>
-                        <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+                        <div className="mt-5 flex flex-wrap items-start justify-between gap-4 rounded-[1.5rem] border border-atlas-border bg-white/85 p-5 shadow-sm sm:p-6">
                             <div>
-                                <h2 className="text-3xl font-semibold tracking-tight text-atlas-ink">
+                                <p className="atlas-kicker">Opportunité commerciale</p>
+                                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-atlas-ink sm:text-4xl">
                                     {opportunity.title}
                                 </h2>
                                 <p className="mt-2 text-sm text-atlas-ink-muted">
