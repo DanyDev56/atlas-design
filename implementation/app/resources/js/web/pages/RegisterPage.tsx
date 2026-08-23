@@ -1,5 +1,5 @@
-import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { FormEvent, useEffect, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
     AuthLayout,
     ErrorBanner,
@@ -8,10 +8,14 @@ import {
     inputClassName,
 } from '@/components/auth/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { normalizeInvitationContinuation, rememberInvitationContinuation } from '@/utils/invitationContinuation';
 
 export function RegisterPage() {
     const { registerAccount, isAuthenticated, session } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const locationState = location.state as { from?: string } | null;
+    const invitationUrl = normalizeInvitationContinuation(locationState?.from);
     const [email, setEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
@@ -19,8 +23,12 @@ export function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [verificationRequiredFor, setVerificationRequiredFor] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (invitationUrl) rememberInvitationContinuation(invitationUrl);
+    }, [invitationUrl]);
+
     if (isAuthenticated) {
-        return <Navigate to={session?.workspaceId ? '/app' : '/app/onboarding'} replace />;
+        return <Navigate to={invitationUrl ?? (session?.workspaceId ? '/app' : '/app/onboarding')} replace />;
     }
 
     async function onSubmit(event: FormEvent) {
@@ -30,7 +38,7 @@ export function RegisterPage() {
         try {
             const authenticated = await registerAccount(email, displayName, password);
             if (authenticated) {
-                navigate('/app/onboarding');
+                navigate(invitationUrl ?? '/app/onboarding');
             } else {
                 setVerificationRequiredFor(email);
             }
@@ -43,16 +51,23 @@ export function RegisterPage() {
 
     if (verificationRequiredFor) {
         return (
-            <AuthLayout title="Compte créé" subtitle="Votre adresse doit encore être vérifiée.">
+            <AuthLayout
+                title="Compte créé"
+                subtitle={invitationUrl
+                    ? 'Vérifiez votre adresse pour rejoindre l’espace.'
+                    : 'Votre adresse doit encore être vérifiée.'}
+            >
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
                     <p className="font-semibold">Vérification requise</p>
                     <p className="mt-2">
                         Un lien vient d’être envoyé à {verificationRequiredFor}. Ouvrez-le avant votre première
-                        connexion. En développement, l’email est visible dans Mailpit sur le port 8025.
+                        connexion. {invitationUrl && 'Vous reprendrez ensuite automatiquement cette invitation. '}
+                        En développement, l’email est visible dans Mailpit sur le port 8025.
                     </p>
                 </div>
                 <Link
                     to="/app/login"
+                    state={invitationUrl ? { from: invitationUrl } : undefined}
                     className="mt-5 block text-center text-sm font-medium text-atlas-accent hover:underline"
                 >
                     Retour à la connexion
@@ -62,7 +77,12 @@ export function RegisterPage() {
     }
 
     return (
-        <AuthLayout title="Créer un compte" subtitle="Démarrez avec Atlas en quelques secondes.">
+        <AuthLayout
+            title={invitationUrl ? 'Créer votre compte' : 'Créer un compte'}
+            subtitle={invitationUrl
+                ? 'Utilisez l’adresse qui a reçu l’invitation.'
+                : 'Démarrez avec Atlas en quelques secondes.'}
+        >
             <form onSubmit={onSubmit} className="space-y-4">
                 <ErrorBanner message={error} />
                 <FormField label="Email">
@@ -100,7 +120,11 @@ export function RegisterPage() {
             </form>
             <p className="mt-4 text-center text-sm text-atlas-ink-muted">
                 Déjà inscrit ?{' '}
-                <Link to="/app/login" className="font-medium text-atlas-accent hover:underline">
+                <Link
+                    to="/app/login"
+                    state={invitationUrl ? { from: invitationUrl } : undefined}
+                    className="font-medium text-atlas-accent hover:underline"
+                >
                     Se connecter
                 </Link>
             </p>

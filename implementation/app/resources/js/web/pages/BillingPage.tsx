@@ -152,9 +152,9 @@ export function BillingPage() {
                                             <li key={invoice.invoice_id}>
                                                 <Link
                                                     to={`/app/billing/invoices/${invoice.invoice_id}`}
-                                                    className="flex min-h-20 flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:px-6"
+                                                    className="flex min-h-20 flex-col items-stretch gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                                                 >
-                                                    <div className="flex min-w-0 items-center gap-3.5">
+                                                    <div className="flex w-full min-w-0 items-center gap-3.5 sm:w-auto">
                                                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
                                                             <Icon name="billing" className="size-[18px]" />
                                                         </span>
@@ -168,9 +168,9 @@ export function BillingPage() {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
                                                         <StatusBadge status={status} />
-                                                        <div className="min-w-28 text-right">
+                                                        <div className="ml-auto text-right sm:min-w-28">
                                                             <p className="text-sm font-semibold tabular-nums text-atlas-ink">
                                                                 {formatMoney(invoice.total_cents, invoice.currency)}
                                                             </p>
@@ -209,9 +209,9 @@ export function BillingPage() {
                                             <Link
                                                 to={`/app/billing/quotes/${quote.quote_id}`}
                                                 state={{ from: 'billing' }}
-                                                className="flex min-h-20 flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:px-6"
+                                                className="flex min-h-20 flex-col items-stretch gap-4 px-5 py-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                                             >
-                                                <div className="flex min-w-0 items-center gap-3.5">
+                                                <div className="flex w-full min-w-0 items-center gap-3.5 sm:w-auto">
                                                     <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-atlas-accent-soft text-atlas-accent">
                                                         <Icon name="billing" className="size-[18px]" />
                                                     </span>
@@ -224,9 +224,9 @@ export function BillingPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
                                                     <StatusBadge status={quote.status} />
-                                                    <p className="min-w-24 text-right text-sm font-semibold tabular-nums text-atlas-ink">
+                                                    <p className="ml-auto text-right text-sm font-semibold tabular-nums text-atlas-ink sm:min-w-24">
                                                         {formatMoney(quote.total_cents, quote.currency)}
                                                     </p>
                                                     <span aria-hidden="true" className="text-atlas-ink-muted">→</span>

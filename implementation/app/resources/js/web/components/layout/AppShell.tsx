@@ -17,7 +17,6 @@ const navItems = [
     { to: '/app/billing', label: 'Facturation', shortLabel: 'Facturation', icon: 'billing' as IconName, end: false },
     { to: '/app/health', label: 'Santé de l’activité', shortLabel: 'Santé', icon: 'activity' as IconName, end: false },
     { to: '/app/advisor', label: 'Conseils Atlas', shortLabel: 'Advisor', icon: 'advisor' as IconName, end: false },
-    { to: '/app/settings', label: 'Paramètres', shortLabel: 'Paramètres', icon: 'settings' as IconName, end: false },
 ];
 
 function SidebarNav({ onNavigate, workspaceName }: { onNavigate?: () => void; workspaceName: string | null }) {
@@ -59,13 +58,21 @@ function SidebarNav({ onNavigate, workspaceName }: { onNavigate?: () => void; wo
             </nav>
 
             <div className="mt-6 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3">
-                <Link to="/app/settings" onClick={onNavigate} className="group flex min-w-0 items-center gap-3">
+                <Link
+                    to="/app/settings"
+                    aria-label="Gérer l’espace"
+                    onClick={onNavigate}
+                    className="group flex min-w-0 items-center gap-3 rounded-xl"
+                >
                     <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-atlas-accent text-xs font-bold text-white">
                         {userInitial}
                     </span>
                     <span className="min-w-0">
                         <span className="block truncate text-xs font-semibold text-white/90">Espace · {workspaceName ?? 'Atlas'}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-white/42">{session?.email}</span>
+                        <span className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-white/42 group-hover:text-white/75">
+                            <Icon name="settings" className="size-3" />
+                            Gérer l’espace
+                        </span>
                     </span>
                     <Icon name="chevron-right" className="ml-auto size-4 shrink-0 text-white/25 group-hover:text-white/70" />
                 </Link>
@@ -99,6 +106,9 @@ export function AppShell() {
     const currentSection = navItems.find((item) => item.end
         ? location.pathname === item.to
         : location.pathname.startsWith(item.to));
+    const currentSectionLabel = location.pathname.startsWith('/app/settings')
+        ? 'Paramètres'
+        : (currentSection?.shortLabel ?? 'Votre espace');
 
     const refreshUnreadCount = useCallback(async () => {
         if (!token || !workspaceId) {
@@ -212,7 +222,7 @@ export function AppShell() {
             >
                 Aller au contenu
             </a>
-            <aside className="hidden w-[17rem] shrink-0 flex-col bg-atlas-sidebar p-3 text-white md:flex">
+            <aside className="sticky top-0 hidden h-screen w-[17rem] shrink-0 self-start flex-col overflow-y-auto bg-atlas-sidebar p-3 text-white md:flex">
                 <SidebarNav workspaceName={workspaceName} />
             </aside>
 
@@ -263,7 +273,7 @@ export function AppShell() {
                         </button>
                         <div className="hidden min-w-0 sm:block">
                             <p className="text-[11px] font-medium text-atlas-ink-muted">Atlas Pilotage</p>
-                            <p className="truncate text-sm font-semibold text-atlas-ink">{currentSection?.shortLabel ?? 'Votre espace'}</p>
+                            <p className="truncate text-sm font-semibold text-atlas-ink">{currentSectionLabel}</p>
                         </div>
                         <div className="md:hidden"><Brand compact /></div>
                     </div>

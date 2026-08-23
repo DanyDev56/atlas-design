@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { verifyEmail } from '@/api/auth';
 import { AuthLayout, ErrorBanner, SuccessBanner } from '@/components/auth/AuthLayout';
+import { readInvitationContinuation } from '@/utils/invitationContinuation';
 
 export function VerifyEmailPage() {
     const [params] = useSearchParams();
@@ -11,6 +12,7 @@ export function VerifyEmailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [verified, setVerified] = useState(false);
+    const invitationUrl = readInvitationContinuation();
 
     useEffect(() => {
         if (started.current) return;
@@ -41,9 +43,10 @@ export function VerifyEmailPage() {
             {!loading && (
                 <Link
                     to="/app/login"
+                    state={invitationUrl ? { from: invitationUrl } : undefined}
                     className="mt-4 block w-full rounded-xl bg-atlas-accent px-4 py-3 text-center text-sm font-semibold text-white hover:opacity-90"
                 >
-                    Aller à la connexion
+                    {invitationUrl ? 'Continuer vers l’invitation' : 'Aller à la connexion'}
                 </Link>
             )}
         </AuthLayout>

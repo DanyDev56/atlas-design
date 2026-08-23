@@ -20,13 +20,19 @@ export function LoginPage() {
     const location = useLocation();
     const locationState = location.state as { recovered?: boolean; from?: string } | null;
     const recovered = Boolean(locationState?.recovered);
+    const invitationFlow = locationState?.from?.startsWith('/app/invitations/') ?? false;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     if (isAuthenticated) {
-        return <Navigate to={session?.workspaceId ? '/app' : '/app/onboarding'} replace />;
+        return (
+            <Navigate
+                to={locationState?.from ?? (session?.workspaceId ? '/app' : '/app/onboarding')}
+                replace
+            />
+        );
     }
 
     function fillDemoCredentials() {
@@ -50,8 +56,13 @@ export function LoginPage() {
     }
 
     return (
-        <AuthLayout title="Connexion" subtitle="Accédez à votre espace Atlas.">
-            {demoCredentialsAvailable && (
+        <AuthLayout
+            title={invitationFlow ? 'Rejoindre l’espace' : 'Connexion'}
+            subtitle={invitationFlow
+                ? 'Connectez-vous avec l’adresse invitée ou créez votre compte.'
+                : 'Accédez à votre espace Atlas.'}
+        >
+            {demoCredentialsAvailable && !invitationFlow && (
                 <div className="mb-6 rounded-xl border border-atlas-border bg-atlas-surface px-4 py-3">
                     <p className="text-sm font-medium text-atlas-ink">Compte démo présentation</p>
                     <p className="mt-1 font-mono text-xs text-atlas-ink-muted">
@@ -99,9 +110,13 @@ export function LoginPage() {
                 <SubmitButton loading={loading} loadingLabel="Connexion…">Se connecter</SubmitButton>
             </form>
             <p className="mt-4 text-center text-sm text-atlas-ink-muted">
-                Pas de compte ?{' '}
-                <Link to="/app/register" className="font-medium text-atlas-accent hover:underline">
-                    S'inscrire
+                {invitationFlow ? 'Première connexion ?' : 'Pas de compte ?'}{' '}
+                <Link
+                    to="/app/register"
+                    state={locationState?.from ? { from: locationState.from } : undefined}
+                    className="font-medium text-atlas-accent hover:underline"
+                >
+                    {invitationFlow ? 'Créer mon compte' : "S'inscrire"}
                 </Link>
             </p>
         </AuthLayout>

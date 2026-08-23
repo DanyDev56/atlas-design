@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
     applyCreditNote,
@@ -45,11 +45,13 @@ export function InvoiceDetailPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [emailDeliveryConfirmation, setEmailDeliveryConfirmation] = useState<string | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentReference, setPaymentReference] = useState('');
     const [creditAmount, setCreditAmount] = useState('');
     const [creditReason, setCreditReason] = useState('');
     const [reminderMessage, setReminderMessage] = useState('');
+    const emailDeliveryRequestedRef = useRef(false);
 
     async function loadInvoice(showSkeleton = true) {
         if (!invoiceId) return;
@@ -81,11 +83,30 @@ export function InvoiceDetailPage() {
         if (!invoiceId || !['Pending', 'Retrying'].includes(invoice?.email_delivery_status ?? '')) return;
 
         const timer = window.setInterval(() => {
-            void getInvoice(token, workspaceId, invoiceId).then(setInvoice).catch(() => undefined);
+            void getInvoice(token, workspaceId, invoiceId).then((nextInvoice) => {
+                setInvoice(nextInvoice);
+
+                if (!emailDeliveryRequestedRef.current) return;
+
+                if (nextInvoice.email_delivery_status === 'Accepted') {
+                    emailDeliveryRequestedRef.current = false;
+                    setEmailDeliveryConfirmation('Email remis au serveur de messagerie.');
+                } else if (['Cancelled', 'Failed'].includes(nextInvoice.email_delivery_status ?? '')) {
+                    emailDeliveryRequestedRef.current = false;
+                }
+            }).catch(() => undefined);
         }, 1500);
 
         return () => window.clearInterval(timer);
     }, [invoiceId, invoice?.email_delivery_status, token, workspaceId]);
+
+    useEffect(() => {
+        if (!emailDeliveryConfirmation) return;
+
+        const timer = window.setTimeout(() => setEmailDeliveryConfirmation(null), 5000);
+
+        return () => window.clearTimeout(timer);
+    }, [emailDeliveryConfirmation]);
 
     async function onIssue() {
         if (!invoice || invoice.status !== 'Draft') return;
@@ -115,8 +136,11 @@ export function InvoiceDetailPage() {
         setActionLoading(true);
         setError(null);
         setSuccess(null);
+        setEmailDeliveryConfirmation(null);
+        emailDeliveryRequestedRef.current = false;
         try {
             const result = await sendInvoice(token, workspaceId, invoice.invoice_id, invoice.version);
+            emailDeliveryRequestedRef.current = true;
             setInvoice({
                 ...invoice,
                 version: result.version,
@@ -124,9 +148,6 @@ export function InvoiceDetailPage() {
                 email_delivery_status: result.delivery_status,
                 email_delivery_updated_at: new Date().toISOString(),
             });
-            setSuccess(result.resent
-                ? 'Le renvoi est en cours. Atlas attend la confirmation du serveur email.'
-                : 'La facture est en cours d’envoi par email.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'La facture n’a pas pu être envoyée.');
         } finally {
@@ -360,9 +381,9 @@ export function InvoiceDetailPage() {
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}
                         {success && <div className="mt-6"><SuccessBanner message={success} /></div>}
 
-                        {invoice.email_delivery_status === 'Accepted' && (
+                        {emailDeliveryConfirmation && (
                             <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                                Email accepté par le serveur de messagerie du client.
+                                {emailDeliveryConfirmation}
                             </div>
                         )}
                         {['Pending', 'Retrying'].includes(invoice.email_delivery_status ?? '') && (

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { RequireAuth } from '@/components/layout/RequireAuth';
 import { AdvisorPage } from '@/pages/AdvisorPage';
 import { AcceptInvitationPage } from '@/pages/AcceptInvitationPage';
 import { BillingHistoryImportPage } from '@/pages/BillingHistoryImportPage';
@@ -33,7 +34,7 @@ export function AppRouter() {
             <Route path="/app/invitations/:invitationId/accept" element={<AcceptInvitationPage />} />
             <Route path="/app/onboarding" element={<OnboardingPage />} />
             <Route path="/app/quotes/accept/:workspaceId/:quoteId" element={<PublicQuoteAcceptPage />} />
-            <Route path="/app" element={<AppShell />}>
+            <Route path="/app" element={<RequireAuth><AppShell /></RequireAuth>}>
                 <Route index element={<DashboardPage />} />
                 <Route path="crm" element={<CrmClientsPage />} />
                 <Route path="crm/import" element={<ClientHistoryImportPage />} />

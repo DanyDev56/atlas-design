@@ -24,6 +24,14 @@ async function navigateFromShell(page: Page, destination: string) {
     await page.getByRole('link', { name: destination, exact: true }).click();
 }
 
+async function navigateToSettings(page: Page) {
+    const mobileMenu = page.getByRole('button', { name: 'Ouvrir le menu' });
+
+    if (await mobileMenu.isVisible()) await mobileMenu.click();
+
+    await page.getByRole('link', { name: 'Gérer l’espace', exact: true }).click();
+}
+
 test.describe('scénario démo complet', () => {
     test.beforeEach(async ({ page }) => {
         await login(page);
@@ -46,11 +54,24 @@ test('le dashboard présente la priorité et les indicateurs essentiels', async 
 test('les paramètres exposent le profil et les membres du workspace', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'La lecture des paramètres suffit sur un viewport.');
 
-    await navigateFromShell(page, 'Paramètres');
+    await navigateToSettings(page);
     await expect(page.getByRole('heading', { name: 'Paramètres' })).toBeVisible();
     await expect(page.getByLabel('Nom d’affichage')).toHaveValue('Studio Atlas Démo');
     await expect(page.getByText('Présentation Atlas', { exact: true })).toBeVisible();
     await expect(page.getByText('owner', { exact: false })).toBeVisible();
+});
+
+test('les paramètres restent accessibles depuis la carte workspace', async ({ page }) => {
+    const mobileMenu = page.getByRole('button', { name: 'Ouvrir le menu' });
+    if (await mobileMenu.isVisible()) await mobileMenu.click();
+
+    const navigation = page.getByRole('navigation', { name: 'Navigation principale' });
+    await expect(navigation.getByRole('link', { name: 'Paramètres', exact: true })).toHaveCount(0);
+
+    const settingsLink = page.getByRole('link', { name: 'Gérer l’espace', exact: true });
+    await expect(settingsLink).toBeVisible();
+    await settingsLink.click();
+    await expect(page.getByRole('heading', { name: 'Paramètres' })).toBeVisible();
 });
 
 test('la navigation conserve le nom du workspace sans le recharger', async ({ page }, testInfo) => {
@@ -74,7 +95,7 @@ test('la navigation conserve le nom du workspace sans le recharger', async ({ pa
 test('le shell actualise le nom après l’enregistrement du profil', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Le comportement est partagé par le shell responsive.');
 
-    await navigateFromShell(page, 'Paramètres');
+    await navigateToSettings(page);
     const displayNameInput = page.getByLabel('Nom d’affichage');
     await expect(displayNameInput).toHaveValue('Studio Atlas Démo');
 
@@ -122,6 +143,34 @@ test('le shell actualise le nom après l’enregistrement du profil', async ({ p
 
     await expect(page.getByRole('link', { name: 'Studio Atlas Actualisé', exact: true })).toBeVisible();
     expect(summaryRequests).toBe(1);
+});
+
+test('la navigation desktop reste visible sur une page longue', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'La navigation mobile utilise déjà un panneau fixe.');
+
+    await navigateToSettings(page);
+    await expect(page.getByRole('heading', { name: 'Paramètres' })).toBeVisible();
+
+    const sidebar = page.locator('aside').first();
+    await expect(sidebar).toHaveCSS('position', 'sticky');
+
+    const membersHeading = page.getByRole('heading', { name: 'Membres' });
+    await membersHeading.scrollIntoViewIfNeeded();
+    await expect(membersHeading).toBeVisible();
+    await expect.poll(async () => Math.round((await sidebar.boundingBox())?.y ?? -1)).toBe(0);
+    await expect(sidebar.getByRole('link', { name: 'Gérer l’espace', exact: true })).toBeVisible();
+});
+
+test('la déconnexion depuis une page métier retourne toujours à la connexion', async ({ page }) => {
+    await navigateFromShell(page, 'Facturation');
+    await expect(page.getByRole('heading', { name: 'Facturation' })).toBeVisible();
+
+    const mobileMenu = page.getByRole('button', { name: 'Ouvrir le menu' });
+    if (await mobileMenu.isVisible()) await mobileMenu.click();
+
+    await page.getByRole('button', { name: 'Déconnexion' }).click();
+    await expect(page).toHaveURL(/\/app\/login$/);
+    await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible();
 });
 
 test('les données démo rendent les principaux dossiers identifiables', async ({ page }) => {
@@ -440,6 +489,174 @@ test('les trois états de facturation actionnables ouvrent le bon écran', async
         .click();
     await expect(page.getByRole('heading', { name: 'Enregistrer un paiement' })).toBeVisible();
     await expect(page.getByText('Reste à encaisser', { exact: true })).toBeVisible();
+});
+
+test('les cartes de facturation occupent toute la largeur sur mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Cette vérification cible la disposition mobile.');
+
+    await navigateFromShell(page, 'Facturation');
+
+    for (const regionName of ['Factures', 'Devis']) {
+        const card = page.getByRole('region', { name: regionName }).getByRole('link').first();
+        await expect(card).toBeVisible();
+
+        const cardBox = await card.boundingBox();
+        const contentRows = card.locator(':scope > div');
+        const identityBox = await contentRows.nth(0).boundingBox();
+        const actionsBox = await contentRows.nth(1).boundingBox();
+
+        expect(cardBox).not.toBeNull();
+        expect(identityBox).not.toBeNull();
+        expect(actionsBox).not.toBeNull();
+        expect(identityBox!.width).toBeGreaterThan(cardBox!.width - 48);
+        expect(actionsBox!.width).toBeGreaterThan(cardBox!.width - 48);
+    }
+});
+
+test('la confirmation de remise d’un email est temporaire', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le comportement temporel est identique sur les deux viewports.');
+
+    await navigateFromShell(page, 'Facturation');
+    await page.getByRole('region', { name: 'Devis' })
+        .getByRole('link')
+        .filter({ hasText: 'Maison Lumen' })
+        .click();
+
+    const confirmation = page.getByText('Email remis au serveur de messagerie.', { exact: true });
+    await expect(confirmation).toHaveCount(0);
+    await expect(page.getByText('Email accepté par le serveur de messagerie du client.', { exact: true })).toHaveCount(0);
+
+    await page.route('**/api/workspaces/*/quotes/*', async (route) => {
+        const request = route.request();
+        const pathname = new URL(request.url()).pathname;
+
+        if (request.method() === 'POST' && pathname.endsWith('/send')) {
+            const payload = request.postDataJSON() as { expected_revision: number };
+            const quoteId = pathname.split('/').at(-2)!;
+            await route.fulfill({
+                status: 200,
+                json: {
+                    quote_id: quoteId,
+                    status: 'Sent',
+                    version: payload.expected_revision + 1,
+                    public_accept_token: 'test-token',
+                    delivery_status: 'Pending',
+                    resent: true,
+                },
+            });
+            return;
+        }
+
+        if (request.method() === 'GET') {
+            const response = await route.fetch();
+            const quote = await response.json();
+            await route.fulfill({
+                response,
+                json: {
+                    ...quote,
+                    email_delivery_status: 'Accepted',
+                    email_delivery_updated_at: new Date().toISOString(),
+                },
+            });
+            return;
+        }
+
+        await route.fallback();
+    });
+
+    await page.getByRole('button', { name: 'Renvoyer l’email' }).click();
+    await expect(confirmation).toBeVisible({ timeout: 5000 });
+    await expect(confirmation).toHaveCount(0, { timeout: 7000 });
+});
+
+test('le changement de compte conserve le lien d’invitation', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le flux d’authentification est identique sur les deux viewports.');
+
+    const invitationUrl = '/app/invitations/00000000-0000-4000-8000-000000000000/accept?token=test-token';
+    await page.goto(invitationUrl);
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Changer de compte' }).click();
+    await expect(page).toHaveURL(/\/app\/login$/);
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Mot de passe').fill(password);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+
+    await expect(page).toHaveURL(invitationUrl);
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+});
+
+test('un invité sans compte revient à l’invitation après son inscription', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le flux d’inscription est identique sur les deux viewports.');
+
+    const invitationUrl = '/app/invitations/11111111-1111-4111-8111-111111111111/accept?token=invitation-token';
+    const invitedUserId = '22222222-2222-4222-8222-222222222222';
+
+    await page.goto(invitationUrl);
+    await page.getByRole('button', { name: 'Changer de compte' }).click();
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+    await expect(page.getByText('Connectez-vous avec l’adresse invitée ou créez votre compte.')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Créer mon compte' }).click();
+    await expect(page.getByRole('heading', { name: 'Créer votre compte' })).toBeVisible();
+    await expect(page.getByText('Utilisez l’adresse qui a reçu l’invitation.')).toBeVisible();
+
+    await page.route('**/api/auth/register', async (route) => {
+        await route.fulfill({
+            status: 201,
+            json: {
+                user_id: invitedUserId,
+                status: 'PendingVerification',
+            },
+        });
+    });
+    await page.route('**/api/auth/verify-email', async (route) => {
+        await route.fulfill({ status: 200, json: { status: 'Verified' } });
+    });
+    await page.route('**/api/auth/login', async (route) => {
+        await route.fulfill({
+            status: 200,
+            json: {
+                session_id: '33333333-3333-4333-8333-333333333333',
+                user_id: invitedUserId,
+                token: 'session-token',
+                expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+            },
+        });
+    });
+    await page.route('**/api/auth/session/context', async (route) => {
+        await route.fulfill({
+            status: 200,
+            json: {
+                user_id: invitedUserId,
+                workspace_id: null,
+                elevation_expires_at: null,
+            },
+        });
+    });
+
+    await page.getByLabel('Email').fill('nouvel-invite@atlas.test');
+    await page.getByLabel('Nom affiché').fill('Nouvel invité');
+    await page.getByLabel('Mot de passe').fill('Invitation2026!');
+    await page.getByRole('button', { name: 'Créer mon compte' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Compte créé' })).toBeVisible();
+    await expect(page.getByText('Vous reprendrez ensuite automatiquement cette invitation.')).toBeVisible();
+
+    await page.goto(`/app/verify-email?user_id=${invitedUserId}&token=verification-token`);
+    await expect(page.getByText('Votre adresse est vérifiée. Vous pouvez maintenant vous connecter.')).toBeVisible();
+    await page.getByRole('link', { name: 'Continuer vers l’invitation' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+    await page.getByLabel('Email').fill('nouvel-invite@atlas.test');
+    await page.getByLabel('Mot de passe').fill('Invitation2026!');
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+
+    await expect(page).toHaveURL(invitationUrl);
+    await expect(page.getByRole('heading', { name: 'Rejoindre l’espace' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Accepter l’invitation' })).toBeVisible();
 });
 });
 

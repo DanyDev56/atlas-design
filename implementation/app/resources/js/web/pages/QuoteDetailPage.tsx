@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { createDepositInvoiceFromQuote, createInvoiceFromQuote, downloadBillingDocument, getQuote, sendQuote, updateQuote } from '@/api/billing';
 import { getClient } from '@/api/crm';
@@ -50,7 +50,9 @@ export function QuoteDetailPage() {
     const [dirty, setDirty] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [emailDeliveryConfirmation, setEmailDeliveryConfirmation] = useState<string | null>(null);
     const [depositAmount, setDepositAmount] = useState('');
+    const emailDeliveryRequestedRef = useRef(false);
 
     async function loadQuote() {
         if (!quoteId) return;
@@ -86,11 +88,30 @@ export function QuoteDetailPage() {
         if (!quoteId || !['Pending', 'Retrying'].includes(quote?.email_delivery_status ?? '')) return;
 
         const timer = window.setInterval(() => {
-            void getQuote(token, workspaceId, quoteId).then(setQuote).catch(() => undefined);
+            void getQuote(token, workspaceId, quoteId).then((nextQuote) => {
+                setQuote(nextQuote);
+
+                if (!emailDeliveryRequestedRef.current) return;
+
+                if (nextQuote.email_delivery_status === 'Accepted') {
+                    emailDeliveryRequestedRef.current = false;
+                    setEmailDeliveryConfirmation('Email remis au serveur de messagerie.');
+                } else if (['Cancelled', 'Failed'].includes(nextQuote.email_delivery_status ?? '')) {
+                    emailDeliveryRequestedRef.current = false;
+                }
+            }).catch(() => undefined);
         }, 1500);
 
         return () => window.clearInterval(timer);
     }, [quoteId, quote?.email_delivery_status, token, workspaceId]);
+
+    useEffect(() => {
+        if (!emailDeliveryConfirmation) return;
+
+        const timer = window.setTimeout(() => setEmailDeliveryConfirmation(null), 5000);
+
+        return () => window.clearTimeout(timer);
+    }, [emailDeliveryConfirmation]);
 
     function changeLine(key: string, field: 'description' | 'quantity' | 'unitPrice', value: string) {
         setLines((current) => current.map((line) => (line.key === key ? { ...line, [field]: value } : line)));
@@ -183,8 +204,11 @@ export function QuoteDetailPage() {
         setActionLoading(true);
         setError(null);
         setSuccess(null);
+        setEmailDeliveryConfirmation(null);
+        emailDeliveryRequestedRef.current = false;
         try {
             const result = await sendQuote(token, workspaceId, quote.quote_id, quote.version);
+            emailDeliveryRequestedRef.current = true;
             setQuote({
                 ...quote,
                 status: result.status,
@@ -192,9 +216,6 @@ export function QuoteDetailPage() {
                 email_delivery_status: result.delivery_status,
                 email_delivery_updated_at: new Date().toISOString(),
             });
-            setSuccess(result.resent
-                ? 'Le renvoi est en cours. Atlas attend la confirmation du serveur email.'
-                : 'Le devis est verrouillé et son email est en cours d’envoi.');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Envoi du devis impossible');
         } finally {
@@ -343,9 +364,9 @@ export function QuoteDetailPage() {
                         {error && <div className="mt-6"><ErrorBanner message={error} /></div>}
                         {success && <div className="mt-6"><SuccessBanner message={success} /></div>}
 
-                        {quote.email_delivery_status === 'Accepted' && (
+                        {emailDeliveryConfirmation && (
                             <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                                Email accepté par le serveur de messagerie du client.
+                                {emailDeliveryConfirmation}
                             </div>
                         )}
                         {['Pending', 'Retrying'].includes(quote.email_delivery_status ?? '') && (
