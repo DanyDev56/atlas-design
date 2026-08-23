@@ -1,5 +1,19 @@
 # Product Metrics
 
+## Consultation
+
+La cible est un back-office opérateur unique, séparé des Workspaces, qui réunit
+activation beta, usage produit, abonnements Atlas, santé technique, support et
+conformité. Son périmètre, ses audiences et ses états d'absence sont définis
+dans le [Blueprint du back-office](../blueprint/backoffice.md), et chaque
+métrique avec sa source, sa fraîcheur et son niveau d'accès dans le
+[catalogue opérateur](../blueprint/backoffice-metrics.md).
+
+Avant son implémentation, les métriques restent réparties entre Dashboard,
+Business Health, endpoints Analytics, Jaeger, logs outbox, Stripe et registres
+beta. Cette dispersion est un état transitoire ; elle ne doit pas être masquée
+par une prétendue vue globale manuelle.
+
 ## Valeur
 
 Temps nécessaire pour envoyer un premier devis.

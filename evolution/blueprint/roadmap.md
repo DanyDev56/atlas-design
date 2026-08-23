@@ -3,7 +3,7 @@ id: BPT-012
 title: Product Delivery Roadmap
 status: In Review
 owner: Product
-version: 1.6.0
+version: 1.7.0
 last_updated: 2026-08-23
 
 references:
@@ -17,6 +17,9 @@ references:
   - ../../fondation/product/pricing-strategy.md
   - ../governance/pricing-validation.md
   - ../../fondation/decisions/ADR-003-subscriptions-context-ownership.md
+  - ../../fondation/decisions/ADR-004-operator-control-plane.md
+  - backoffice.md
+  - backoffice-implementation-plan.md
 ---
 
 # Roadmap de livraison
@@ -64,12 +67,18 @@ Recommendation et notification éligible/non éligible.
 - sécurité, accessibilité et performance ;
 - migrations, sauvegarde, restauration et reconstruction ;
 - observabilité, alertes, runbooks et support ;
+- plan de contrôle opérateur en lecture seule pour suivre beta, métriques,
+  opérations, support et conformité sans autorité Workspace implicite ;
 - beta fermée, mesure des outcomes et corrections ;
 - validation du packaging `Atlas Solo`, de la disposition à payer et de
   l'économie unitaire, sans encaissement tant que le gate commercial n'est pas
   satisfait.
 
-Gate : Definition of Done MVP satisfaite et risques résiduels acceptés.
+Gate : Definition of Done MVP satisfaite, risques résiduels acceptés et
+back-office lecture seule validé jusqu'à l'incrément 5 de son
+[plan d'implémentation](backoffice-implementation-plan.md). Les actions
+opérateur sensibles restent désactivées tant que leur gate propre n'est pas
+prouvée.
 
 ### Gate commercial distinct
 

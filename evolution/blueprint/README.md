@@ -3,8 +3,8 @@ id: BPT-001
 title: Product Blueprint
 status: In Review
 owner: Product
-version: 1.5.0
-last_updated: 2026-08-06
+version: 1.6.0
+last_updated: 2026-08-23
 
 references:
   - modules.md
@@ -17,6 +17,9 @@ references:
   - public-api.md
   - integrations.md
   - historical-import.md
+  - backoffice.md
+  - backoffice-metrics.md
+  - backoffice-implementation-plan.md
   - implementation-plan.md
   - roadmap.md
   - ../roadmap/mvp-scope.md
@@ -25,6 +28,7 @@ references:
   - ../../fondation/README.md
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
+  - ../../fondation/decisions/ADR-004-operator-control-plane.md
   - ../../fondation/security/mvp-threat-model.md
 ---
 
@@ -55,7 +59,9 @@ erreurs. Le Blueprint en montre l'assemblage.
 8. [`permissions.md`](permissions.md), [`public-api.md`](public-api.md) et
    [`integrations.md`](integrations.md) — frontières d'exécution ;
 9. [`roadmap.md`](roadmap.md) — séquencement produit après le MVP ;
-10. [`reference-fixtures/`](../reference-fixtures/README.md) — entrées et
+10. [`backoffice.md`](backoffice.md) — plan de contrôle interne proposé pour la
+    beta, ses métriques et son ordre d'implémentation ;
+11. [`reference-fixtures/`](../reference-fixtures/README.md) — entrées et
    résultats exécutables de la chaîne de décision.
 
 ---
@@ -79,6 +85,9 @@ erreurs. Le Blueprint en montre l'assemblage.
   utilisent des ports de livraison distincts ;
 - `Automation`, `Projects`, les connecteurs produit et l'API publique externe
   sont différés après la preuve du MVP.
+- le back-office est une surface opérateur séparée en cours de décision dans
+  `ADR-004` ; il n'étend aucune permission Workspace et ne devient normatif
+  qu'après acceptation de cet ADR.
 
 ---
 

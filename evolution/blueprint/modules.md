@@ -3,16 +3,18 @@ id: BPT-004
 title: Product Modules
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-06
+version: 1.2.0
+last_updated: 2026-08-23
 
 references:
   - README.md
   - product-map.md
   - dashboard.md
   - navigation.md
+  - backoffice.md
   - ../roadmap/mvp-scope.md
   - ../../fondation/domains/README.md
+  - ../../fondation/decisions/ADR-004-operator-control-plane.md
 ---
 
 # Modules du produit
@@ -54,6 +56,19 @@ Client, Quote, Invoice, Payment ou résultat d'import.
 
 Settings regroupe des écrans appartenant à Identity, Workspace et
 Notifications. La proximité de navigation ne crée aucune propriété partagée.
+
+### Back-office opérateur — proposition post-MVP
+
+Le back-office n'appartient pas à la navigation client et n'est pas un
+Dashboard doté de droits supplémentaires. `ADR-004` propose un contexte de
+support `Operations` pour les dossiers support, la cohorte beta, les demandes
+de données, les approbations et l'audit privilégié. Il compose uniquement les
+contrats publics des domaines et ne possède aucune vérité CRM, Billing,
+Analytics, Advisor ou Subscriptions.
+
+Tant que l'ADR reste `Proposed`, `Operations` n'est pas ajouté à la liste
+normative des bounded contexts et aucune implémentation ne doit anticiper son
+acceptation.
 
 ---
 

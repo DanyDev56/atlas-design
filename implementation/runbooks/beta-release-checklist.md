@@ -21,6 +21,8 @@ references:
   - privacy-notice.fr.md
   - ../../fondation/product/pricing-strategy.md
   - ../../evolution/governance/pricing-validation.md
+  - ../../evolution/blueprint/backoffice.md
+  - ../../evolution/blueprint/backoffice-implementation-plan.md
 ---
 
 # Checklist release beta fermée
@@ -165,6 +167,10 @@ satisfait.
 
 - [x] Logs JSON corrélés, traces HTTP/outbox et runbooks d'incident disponibles.
 - [x] Monitoring du backlog, retries et dead-letters de l'outbox implémenté.
+- [x] Back-office opérateur, catalogue de métriques et ordre d'implémentation
+  documentés avant tout code ; `ADR-004` reste à accepter.
+- [ ] Accepter `ADR-004`, fermer `SEC-GAP-005` et valider les incréments 0 à 5
+  du back-office en lecture seule sur la cible.
 - [ ] Collecter durablement logs et traces des trois rôles sans donnée sensible.
 - [ ] Configurer une alerte réellement reçue pour indisponibilité HTTP, erreurs
   applicatives, backlog/dead-letter, échec scheduler et saturation PostgreSQL.

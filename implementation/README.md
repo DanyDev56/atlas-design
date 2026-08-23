@@ -122,6 +122,11 @@ projets de textes sont centralisés dans le
 [`programme beta fermée`](runbooks/beta-program.md) ; sa décision d'ouverture
 reste pilotée par la
 [`checklist de release`](runbooks/beta-release-checklist.md).
+Le futur plan de contrôle interne est spécifié dans le
+[`Blueprint du back-office`](../evolution/blueprint/backoffice.md), son
+[`catalogue de métriques`](../evolution/blueprint/backoffice-metrics.md) et son
+[`plan d'implémentation`](../evolution/blueprint/backoffice-implementation-plan.md).
+`ADR-004` doit être accepté avant toute route ou migration opérateur.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

@@ -3,12 +3,13 @@ id: BPT-007
 title: MVP Permission Composition
 status: In Review
 owner: Product and Security
-version: 1.0.0
-last_updated: 2026-08-06
+version: 1.1.0
+last_updated: 2026-08-23
 
 references:
   - README.md
   - navigation.md
+  - backoffice.md
   - ../../fondation/domains/identity/permissions.md
   - ../../fondation/domains/workspace/permissions.md
   - ../../fondation/domains/crm/permissions.md
@@ -17,6 +18,7 @@ references:
   - ../../fondation/domains/business-health/permissions.md
   - ../../fondation/domains/advisor/permissions.md
   - ../../fondation/domains/notifications/permissions.md
+  - ../../fondation/decisions/ADR-004-operator-control-plane.md
 ---
 
 # Composition des permissions du MVP
@@ -40,6 +42,26 @@ Active User
 Un rôle n'est jamais une permission. Les noms `Owner`, `Admin`, `Member` ou
 `Viewer` ne permettent donc aucune décision implicite dans l'interface, une API
 ou un domaine.
+
+## Autorité opérateur proposée
+
+L'autorité Workspace ci-dessus ne peut pas autoriser `/backoffice`. `ADR-004`
+propose une audience et des grants plateforme séparés :
+
+```text
+Active User
+  + Operator Session Audience
+  + Active, provisioned OperatorGrant
+  + exact operations PermissionKey
+  + object, sensitivity, step-up and approval checks
+  -> Allowed | Denied
+```
+
+Un grant opérateur n'est créé ni par une invitation Workspace, ni par le rôle
+Owner, ni par une variable frontend. Les clés proposées, profils minimaux et
+règles de double approbation sont catalogués dans
+[`backoffice.md`](backoffice.md). Tant que `ADR-004` n'est pas accepté, elles ne
+sont pas ajoutées au catalogue Identity exécutable.
 
 ---
 

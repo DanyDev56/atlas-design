@@ -3,14 +3,15 @@ id: SEC-001
 title: MVP Transversal Threat Model
 status: In Review
 owner: Product, Engineering and Security
-version: 1.3.0
-last_updated: 2026-08-06
+version: 1.4.0
+last_updated: 2026-08-23
 
 references:
   - README.md
   - ../constitution.md
   - ../decisions/ADR-001-mvp-application-topology.md
   - ../decisions/ADR-002-mvp-implementation-stack.md
+  - ../decisions/ADR-004-operator-control-plane.md
   - ../domain-map/context-map.md
   - ../domain-map/dependencies.md
   - ../domains/identity/api.md
@@ -23,6 +24,7 @@ references:
   - ../../evolution/roadmap/mvp-acceptance.md
   - ../../evolution/blueprint/dashboard.md
   - ../../evolution/blueprint/historical-import.md
+  - ../../evolution/blueprint/backoffice.md
   - ../../evolution/governance/quality-gates.md
 ---
 
@@ -159,6 +161,29 @@ corrélation ou une réidentification.
 | fournisseur externe | rendu, stockage ou livraison selon un port minimal | callback forgé, exfiltration, contenu altéré, SSRF, indisponibilité. |
 | opérateur ou support | diagnostic/remédiation explicitement approuvés | accès permanent, impersonation non bornée, modification ou suppression de traces. |
 | pipeline ou dépendance compromise | build, migration ou runtime approuvés | injection de code, secret exfiltré, configuration affaiblie. |
+
+---
+
+## Plan de contrôle opérateur proposé
+
+`ADR-004` introduit une nouvelle frontière fortement privilégiée. Tant qu'il
+reste `Proposed`, `SEC-GAP-005` demeure ouvert et aucune interface opérateur
+n'est réputée sûre. Son acceptation et son implémentation doivent garantir :
+
+- audience, session, routes et grants séparés des Workspaces ;
+- provisioning hors inscription publique et révocation immédiate ;
+- MFA/step-up proportionné, accès temporaire et moindre privilège ;
+- aucune impersonation ni bypass global en V1 ;
+- recherche bornée, masquage par défaut et révélation sensible auditée ;
+- aucune écriture directe dans les schémas métier ;
+- audit append-only de toute consultation et action privilégiée ;
+- double approbation des exports, fermetures et actions destructrices ;
+- feature flag serveur ramenant le back-office en lecture seule ;
+- tests croisés entre compte client, opérateur, objet transverse, grant révoqué
+  et session périmée.
+
+Le back-office ne réduit aucune exigence de `SEC-B01` à `SEC-B07`. Il ajoute un
+point d'entrée à `SEC-B07` et doit réutiliser les contrats publics à `SEC-B03`.
 
 ---
 
@@ -407,7 +432,7 @@ d'exploitation. Avant cela, ils constituent des exigences de conception.
 | `SEC-GAP-002` | Le workflow de récupération existe, mais ses commandes détaillées, preuve, rotation et facteurs de secours doivent être contractés au niveau des autres commandes Identity. | Identity | avant `MVP-J1` complet | Open |
 | `SEC-GAP-003` | Entropie, TTL, capacités, rotation, transport et limites de `PublicDocumentProof` non quantifiés. | Billing + Security | avant exposition publique de `MVP-J2` | Open |
 | `SEC-GAP-004` | Classification opérationnelle, durées de rétention, suppression/export et données de support non décidées. | Product + Security | avant données réelles | Open |
-| `SEC-GAP-005` | Modèle opérateur/support, break-glass, impersonation, approbation et séparation des devoirs non défini. | Engineering + Security | avant accès production | Open |
+| `SEC-GAP-005` | Modèle opérateur/support proposé par `ADR-004`, mais audience, MFA, break-glass, approbation, rétention d'audit et séparation des devoirs non encore acceptés ni testés. | Engineering + Security | avant accès beta externe | Open |
 | `SEC-GAP-006` | `ADR-002` propose PostgreSQL et un hébergement managé en UE ; fournisseur, gestionnaire de secrets/keys, chiffrement, backup, RPO/RTO et rotation restent à décider. | Engineering | ADR de stack et fournisseur avant production | Open |
 | `SEC-GAP-007` | Seuils de rate limit, quotas, budgets fournisseurs et protection edge restent à calibrer. | Product + Platform | avant beta exposée | Open |
 | `SEC-GAP-008` | Runbooks incident, niveaux d'alerte, conservation des preuves et exercices de restauration/confinement absents. | Security + Platform | avant release candidate | Open |

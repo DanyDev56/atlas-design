@@ -3,15 +3,17 @@ id: BPT-005
 title: MVP Navigation
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-06
+version: 1.1.0
+last_updated: 2026-08-23
 
 references:
   - README.md
   - modules.md
   - dashboard.md
+  - backoffice.md
   - ../roadmap/mvp-scope.md
   - ../../fondation/language/domain-language.md
+  - ../../fondation/decisions/ADR-004-operator-control-plane.md
 ---
 
 # Navigation du MVP
@@ -100,3 +102,14 @@ canoniques conservent les noms définis dans Product Language.
 
 `Projects`, `Analytics` autonome, `Automation`, `Integrations`, marketplace et
 administration d'API ne sont pas des destinations du MVP.
+
+## Navigation opérateur séparée
+
+Le back-office proposé par `ADR-004` utilise `/backoffice` et une audience de
+session distincte. Il n'apparaît jamais dans le menu Workspace, y compris pour
+un Owner. Réciproquement, son menu ne reprend pas la navigation `/app` et ne
+permet aucune bascule implicite « voir comme l'utilisateur ».
+
+Son arborescence et ses règles sont définies dans
+[`backoffice.md`](backoffice.md). Cette séparation ne devient normative
+qu'après acceptation de l'ADR.
