@@ -46,6 +46,40 @@ final class SubscriptionTest extends TestCase
         self::assertSame(4, $subscription->version());
     }
 
+    public function test_canceled_subscription_can_be_restored_or_replaced(): void
+    {
+        $subscription = Subscription::activate(
+            new SubscriptionId('subscription-1'),
+            'plan-1',
+            $this->event(RecurringBillingEventType::Activated, '2026-08-23T10:00:00+00:00'),
+        );
+        $subscription->apply($this->event(RecurringBillingEventType::Canceled, '2026-08-24T10:00:00+00:00'));
+        $subscription->apply($this->event(RecurringBillingEventType::Renewed, '2026-08-25T10:00:00+00:00'));
+
+        self::assertSame('Active', $subscription->status());
+        self::assertNull($subscription->canceledAt());
+
+        $subscription->apply($this->event(RecurringBillingEventType::Canceled, '2026-08-26T10:00:00+00:00'));
+        $subscription->resubscribe('plan-2', new VerifiedRecurringBillingEvent(
+            provider: 'fake',
+            providerEventId: 'event-replacement',
+            type: RecurringBillingEventType::Activated,
+            workspaceId: 'workspace-1',
+            providerSubscriptionReference: 'fake-subscription-2',
+            planPriceId: 'price-2',
+            occurredAt: new \DateTimeImmutable('2026-08-27T10:00:00+00:00'),
+            currentPeriodStart: new \DateTimeImmutable('2026-08-27T00:00:00+00:00'),
+            currentPeriodEnd: new \DateTimeImmutable('2026-09-27T00:00:00+00:00'),
+            cancelAtPeriodEnd: false,
+        ));
+
+        self::assertSame('Active', $subscription->status());
+        self::assertSame('plan-2', $subscription->planId());
+        self::assertSame('price-2', $subscription->planPriceId());
+        self::assertSame('fake-subscription-2', $subscription->providerReference());
+        self::assertSame(5, $subscription->version());
+    }
+
     private function event(RecurringBillingEventType $type, string $occurredAt): VerifiedRecurringBillingEvent
     {
         return new VerifiedRecurringBillingEvent(

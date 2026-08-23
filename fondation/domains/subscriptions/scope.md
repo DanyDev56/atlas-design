@@ -56,6 +56,11 @@ commercial normalisé s'applique et quelles capacités en résultent.
 - le catalogue candidat n'est pas public ;
 - un Trial expiré conserve uniquement lecture, export et gestion d'abonnement ;
 - checkout et enforcement sont désactivés par défaut ;
+- l'enforcement ne peut être activé sans durée de grâce `PastDue` explicite ;
+- RBAC décide qui peut agir, Entitlement décide si le Workspace dispose encore
+  de la capacité ; aucune décision commerciale ne remplace une autorisation ;
+- les invitations en attente réservent une place et le plafond membre est
+  vérifié atomiquement par Identity à partir du contrat d'Entitlement ;
 - un retour de checkout ne prouve jamais un paiement ;
 - seul un événement signé du prestataire peut modifier une Subscription ;
 - un événement externe est traité au plus une fois par couple prestataire/id ;
@@ -69,7 +74,10 @@ commercial normalisé s'applique et quelles capacités en résultent.
 |---|---|
 | `Atlas Solo@1`, 24 €/mois et 240 €/an | Candidat interne persisté |
 | Trial de 30 jours sur activation | Implémenté via outbox |
-| Entitlements Full/Restricted | Implémentés, enforcement désactivé |
+| Entitlements Full/Restricted | Implémentés et gardes serveur branchées ; enforcement désactivé |
+| Accès expiré | Lectures, export et gestion d'abonnement conservés ; mutations gardées |
+| Grâce `PastDue` | Politique configurable et fail-closed ; durée commerciale non décidée |
+| Limite de membres | Owner, membres actifs et invitations valides contrôlés atomiquement quand l'enforcement est actif |
 | Lecture API propriétaire | Implémentée |
 | UI propriétaire essai, offre et prix candidat | Implémentée dans Gérer l'espace |
 | Gateway factice | Implémenté derrière feature flag, simulation sans paiement |
@@ -77,7 +85,8 @@ commercial normalisé s'applique et quelles capacités en résultent.
 | Inbox webhook factice signée | Implémentée, dédupliquée, ordonnée et rejouable ; désactivée par défaut |
 | Reprise des Workspaces actifs antérieurs | Commande idempotente avec `--dry-run` |
 | Prestataire réel et encaissement récurrent | Non implémentés |
-| BillingAccount, portail, résiliation et dunning | Non implémentés |
+| Restauration et resouscription | Implémentées avec historique des références prestataire |
+| BillingAccount, portail, résiliation utilisateur et dunning | Non implémentés |
 
 L'existence technique du candidat ne valide ni son prix ni son ouverture
 commerciale.

@@ -95,6 +95,7 @@ export function AppShell() {
     const [notificationsUnavailable, setNotificationsUnavailable] = useState(false);
     const [workspaceName, setWorkspaceName] = useState<string | null>(null);
     const [workspaceNameUnavailable, setWorkspaceNameUnavailable] = useState(false);
+    const [subscriptionRestricted, setSubscriptionRestricted] = useState(false);
     const { session } = useAuth();
     const location = useLocation();
     const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -161,6 +162,13 @@ export function AppShell() {
     useEffect(() => {
         setMobileNavOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        const onRestricted = () => setSubscriptionRestricted(true);
+        window.addEventListener('atlas:subscription-access-restricted', onRestricted);
+
+        return () => window.removeEventListener('atlas:subscription-access-restricted', onRestricted);
+    }, []);
 
     useEffect(() => {
         void refreshUnreadCount();
@@ -314,6 +322,27 @@ export function AppShell() {
                 </header>
 
                 <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-4 sm:p-6 lg:p-10 xl:p-12">
+                    {subscriptionRestricted && !location.pathname.startsWith('/app/settings/subscription') && (
+                        <div role="alert" className="mx-auto mb-6 flex max-w-6xl flex-col gap-3 rounded-2xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm sm:flex-row sm:items-center">
+                            <div className="min-w-0 flex-1">
+                                <p className="font-semibold">L’accès à cette action est actuellement restreint.</p>
+                                <p className="mt-0.5 text-amber-900/75">Vos données restent consultables et exportables. Vérifiez l’état de votre abonnement.</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Link to="/app/settings/subscription" className="rounded-xl bg-amber-950 px-3 py-2 font-semibold text-white hover:bg-amber-900">
+                                    Gérer l’abonnement
+                                </Link>
+                                <button
+                                    type="button"
+                                    aria-label="Masquer l’avertissement"
+                                    onClick={() => setSubscriptionRestricted(false)}
+                                    className="grid size-9 place-items-center rounded-xl text-amber-900/60 hover:bg-amber-100 hover:text-amber-950"
+                                >
+                                    <Icon name="close" className="size-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <Outlet context={{ refreshUnreadCount, refreshWorkspaceSummary } satisfies AppShellOutletContext} />
                 </main>
             </div>

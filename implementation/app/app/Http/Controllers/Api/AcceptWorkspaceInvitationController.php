@@ -6,6 +6,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Atlas\Modules\Identity\Application\AcceptWorkspaceInvitationHandler;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionAccessRestrictedException;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionLimitExceededException;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionPolicyUnavailableException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,12 +34,31 @@ final class AcceptWorkspaceInvitationController extends Controller
                 correlationId: $request->attributes->get('correlation_id'),
             ));
         } catch (\DomainException $exception) {
-            $status = $exception->getMessage() === 'Idempotency conflict.' ? 409 : 422;
+            $status = match (true) {
+                $exception instanceof SubscriptionAccessRestrictedException => 402,
+                $exception instanceof SubscriptionPolicyUnavailableException => 503,
+                $exception instanceof SubscriptionLimitExceededException => 409,
+                $exception->getMessage() === 'Idempotency conflict.' => 409,
+                default => 422,
+            };
 
-            return response()->json([
-                'error' => class_basename($exception),
+            $payload = [
+                'error' => match (true) {
+                    $exception instanceof SubscriptionAccessRestrictedException => 'SubscriptionAccessRestricted',
+                    $exception instanceof SubscriptionPolicyUnavailableException => 'SubscriptionPolicyUnavailable',
+                    $exception instanceof SubscriptionLimitExceededException => 'SubscriptionLimitExceeded',
+                    default => class_basename($exception),
+                },
                 'messages' => [$exception->getMessage()],
-            ], $status);
+            ];
+
+            if ($exception instanceof SubscriptionLimitExceededException) {
+                $payload['limit_name'] = $exception->limitName;
+                $payload['limit'] = $exception->limit;
+                $payload['current'] = $exception->current;
+            }
+
+            return response()->json($payload, $status);
         }
     }
 }

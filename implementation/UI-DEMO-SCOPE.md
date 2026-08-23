@@ -31,8 +31,10 @@ développement. Un cycle d'abonnement factice peut aussi être alimenté par des
 webhooks HMAC pour vérifier activation, renouvellement, échec, résiliation,
 ordre et rejeu. L'UI distingue explicitement cet état simulé d'un encaissement.
 Elle n'expose encore ni offre contractuelle, abonnement réel ou portail de
-résiliation, et aucun enforcement n'est actif. Aucun prix ne doit être présenté
-comme commercialisable avant passage du
+résiliation. Les gardes serveur, le bandeau d'accès restreint et le compteur de
+places dans la gestion des membres sont livrés, mais l'enforcement reste
+désactivé. Aucun prix ne doit être présenté comme
+commercialisable avant passage du
 [gate tarifaire](../fondation/product/pricing-strategy.md#gate-avant-commercialisation-payante).
 
 ---
@@ -46,7 +48,7 @@ comme commercialisable avant passage du
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
 | **4** | Enrichissement CRM + Import clients/Billing + rebuild Analytics | ✓ BPT-013 | Package historique clients/Billing puis génération Analytics isolée |
-| **5** | Abonnement candidat + checkout et cycle récurrent simulés | ✓ local | Prix présenté comme hypothèse, webhooks factices signés, aucun paiement ni enforcement |
+| **5** | Abonnement candidat + checkout, cycle et accès simulés | ✓ local | Webhooks factices signés, gardes désactivées par défaut, aucun paiement |
 
 ---
 

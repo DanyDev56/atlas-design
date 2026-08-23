@@ -100,6 +100,15 @@ final class PostgresInvitationRepository
         return $row !== null ? (array) $row : null;
     }
 
+    public function countPendingActive(string $workspaceId, \DateTimeImmutable $now): int
+    {
+        return (int) DB::table('identity.invitations')
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'Pending')
+            ->where('expires_at', '>', $now->format('Y-m-d H:i:sP'))
+            ->count();
+    }
+
     /** @return array<string, mixed>|null */
     public function findByIdForUpdate(string $invitationId): ?array
     {

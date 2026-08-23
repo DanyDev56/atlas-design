@@ -9,6 +9,7 @@ use Atlas\Modules\Identity\Application\CreateWorkspaceInvitationHandler;
 use Atlas\Modules\Identity\Application\ListWorkspaceInvitationsHandler;
 use Atlas\Modules\Identity\Application\ListWorkspaceMembersHandler;
 use Atlas\Modules\Identity\Application\RevokeWorkspaceInvitationHandler;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionLimitExceededException;
 use Atlas\Modules\Workspace\Application\ChangeWorkspacePreferencesHandler;
 use Atlas\Modules\Workspace\Application\UpdateWorkspaceBillingIdentityHandler;
 use Atlas\Modules\Workspace\Application\UpdateWorkspaceProfileHandler;
@@ -208,13 +209,24 @@ final class WorkspaceController extends Controller
                 'Unauthorized.' => 403,
                 'Workspace not found.' => 404,
                 'Conflict.', 'Idempotency conflict.' => 409,
+                'Workspace subscription limit reached.' => 409,
                 default => 422,
             };
 
-            return response()->json([
-                'error' => class_basename($exception),
+            $payload = [
+                'error' => $exception instanceof SubscriptionLimitExceededException
+                    ? 'SubscriptionLimitExceeded'
+                    : class_basename($exception),
                 'messages' => [$exception->getMessage()],
-            ], $status);
+            ];
+
+            if ($exception instanceof SubscriptionLimitExceededException) {
+                $payload['limit_name'] = $exception->limitName;
+                $payload['limit'] = $exception->limit;
+                $payload['current'] = $exception->current;
+            }
+
+            return response()->json($payload, $status);
         }
     }
 }

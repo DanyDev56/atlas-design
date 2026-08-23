@@ -259,7 +259,9 @@ Le comportement cible doit être défini et livré avant commercialisation :
 - messages distincts pour essai terminé, paiement échoué et accès révoqué.
 
 Les durées de grâce et de conservation restent à valider avec Legal, Security et
-Support. Elles ne sont pas fixées par ce document.
+Support. Elles ne sont pas fixées par ce document. Techniquement, l'enforcement
+refuse de démarrer sans durée de grâce explicitement configurée ; une valeur
+vide ne vaut donc jamais consentement implicite à une coupure immédiate.
 
 ---
 
@@ -528,13 +530,16 @@ ne constitue pas une preuve de paiement ni une intégration commerciale.
 | E-mails transactionnels | Environnement et outbox disponibles |
 | Contexte propriétaire | `Subscriptions`, décision `ADR-003` acceptée |
 | Catalogue de plans | `Atlas Solo@1` candidat persisté, non public |
-| Essai et entitlements | Trial de 30 jours et projection Full/Restricted implémentés ; enforcement désactivé |
+| Essai et entitlements | Trial de 30 jours, projection Full/Restricted et gardes serveur implémentés ; enforcement désactivé |
+| Politique d'accès | Lecture, export et abonnement préservés ; mutations gardées ; grâce `PastDue` obligatoire avant activation |
+| Limite d'équipe candidate | `members_total=3` projeté ; invitations en attente incluses dans le contrôle, enforcement désactivé |
 | Checkout | Gateway factice déterministe derrière feature flag ; aucun encaissement |
 | Cycle récurrent normalisé | Activation, renouvellement, échec et résiliation implémentés avec inbox idempotente |
 | Webhooks de développement | Prestataire factice, signature HMAC, ordre, déduplication et rejeu implémentés ; désactivés par défaut |
 | Prestataire et paiement réels | Non implémentés |
 | Portail de facturation Atlas | Non implémenté |
-| Dunning et période de grâce | Non implémentés |
+| Restauration et resouscription | Cycle factice et historique des références prestataire implémentés |
+| Dunning et durée de grâce commerciale | Non décidés |
 | Page tarifaire publique contractuelle | Non publiée |
 
 La présence de cette stratégie tarifaire n'autorise donc pas encore une mise en
@@ -549,12 +554,13 @@ La vente d'`Atlas Solo` exige :
 1. validation Product du prix et du packaging à partir de décisions réelles ;
 2. décision sur le contexte propriétaire de Subscription et Entitlement —
    **faite avec `ADR-003`** ;
-3. catalogue de plans versionné — **socle fait** — et entitlements appliqués
-   côté serveur — **enforcement restant** ;
+3. catalogue de plans versionné et entitlements appliqués côté serveur —
+   **socle et gardes faits, activation restant soumise au gate** ;
 4. checkout et webhooks idempotents d'un prestataire de paiement — **contrat et
    simulation faits, prestataire réel restant** ;
 5. aucun stockage local de données de carte ;
-6. cycle essai, souscription, renouvellement, résiliation et restauration testé ;
+6. cycle essai, souscription, renouvellement, résiliation et restauration testé
+   — **socle factice fait, prestataire réel restant** ;
 7. traitement explicite des paiements échoués et de la période de grâce ;
 8. factures d'abonnement et affichage HT/TTC validés avec Legal et Finance ;
 9. portail client pour moyen de paiement, factures et résiliation ;

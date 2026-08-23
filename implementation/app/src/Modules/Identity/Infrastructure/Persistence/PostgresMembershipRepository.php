@@ -82,6 +82,14 @@ final class PostgresMembershipRepository
             ->count();
     }
 
+    public function countActive(string $workspaceId): int
+    {
+        return (int) DB::table('identity.memberships')
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'Active')
+            ->count();
+    }
+
     public function isActiveOwnerMembership(string $membershipId): bool
     {
         return DB::table('identity.memberships as m')

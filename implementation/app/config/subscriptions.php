@@ -12,5 +12,8 @@ return [
     'checkout_enabled' => (bool) env('SUBSCRIPTIONS_CHECKOUT_ENABLED', false),
     'webhooks_enabled' => (bool) env('SUBSCRIPTIONS_WEBHOOKS_ENABLED', false),
     'fake_webhook_secret' => env('SUBSCRIPTIONS_FAKE_WEBHOOK_SECRET', ''),
+    'past_due_grace_days' => is_numeric(env('SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS'))
+        ? (int) env('SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS')
+        : null,
     'enforcement_enabled' => (bool) env('SUBSCRIPTIONS_ENFORCEMENT_ENABLED', false),
 ];

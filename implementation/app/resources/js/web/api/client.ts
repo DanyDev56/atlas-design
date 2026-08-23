@@ -67,6 +67,9 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
         const err = data as ApiError;
+        if (response.status === 402 && err.error === 'SubscriptionAccessRestricted') {
+            window.dispatchEvent(new CustomEvent('atlas:subscription-access-restricted', { detail: err }));
+        }
         throw new ApiClientError(
             err.messages?.[0] ?? err.error ?? `HTTP ${response.status}`,
             response.status,

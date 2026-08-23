@@ -3,6 +3,13 @@ export type DataState = 'Data' | 'NoData' | 'InsufficientData' | 'Unavailable';
 export interface ApiError {
     error: string;
     messages: string[];
+    capability?: string;
+    access_level?: string;
+    source?: string;
+    valid_until?: string | null;
+    limit_name?: string;
+    limit?: number;
+    current?: number;
 }
 
 export interface LoginResponse {

@@ -12,6 +12,7 @@ use Atlas\Modules\Subscriptions\Domain\Plan;
 use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
 use Atlas\Modules\Subscriptions\Domain\RecurringBillingEventType;
 use Atlas\Modules\Subscriptions\Domain\Subscription;
+use Atlas\Modules\Subscriptions\Domain\SubscriptionEntitlementPolicy;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionId;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Domain\VerifiedRecurringBillingEvent;
@@ -29,6 +30,7 @@ final class ProcessRecurringBillingWebhookHandler
         private readonly RecurringBillingWebhookVerifier $verifier,
         private readonly RecurringBillingWebhookInbox $inbox,
         private readonly SubscriptionRepository $subscriptions,
+        private readonly SubscriptionEntitlementPolicy $entitlementPolicy,
         private readonly PlanCatalogRepository $catalog,
         private readonly EntitlementRepository $entitlements,
     ) {}
@@ -92,6 +94,7 @@ final class ProcessRecurringBillingWebhookHandler
         try {
             $status = DB::transaction(function () use ($event): string {
                 $plan = $this->defaultPlanFor($event);
+                $this->subscriptions->lockWorkspace($event->workspaceId);
                 $this->subscriptions->lockProviderReference(
                     $event->provider,
                     $event->providerSubscriptionReference,
@@ -105,10 +108,18 @@ final class ProcessRecurringBillingWebhookHandler
                     if ($event->type !== RecurringBillingEventType::Activated) {
                         return 'Deferred';
                     }
-                    if ($this->subscriptions->findByWorkspaceId($event->workspaceId) !== null) {
-                        throw new \DomainException('Workspace already has a subscription.');
+                    $workspaceSubscription = $this->subscriptions->findByWorkspaceIdForUpdate($event->workspaceId);
+                    if ($workspaceSubscription === null) {
+                        $subscription = Subscription::activate(SubscriptionId::generate(), $plan->id, $event);
+                    } else {
+                        $workspaceSubscription->resubscribe($plan->id, $event);
+                        $subscription = $workspaceSubscription;
                     }
-                    $subscription = Subscription::activate(SubscriptionId::generate(), $plan->id, $event);
+                } elseif (
+                    $subscription->provider() !== $event->provider
+                    || $subscription->providerReference() !== $event->providerSubscriptionReference
+                ) {
+                    return 'Ignored';
                 } elseif (! $subscription->apply($event)) {
                     return 'Ignored';
                 }
@@ -122,7 +133,7 @@ final class ProcessRecurringBillingWebhookHandler
                     fullCapabilities: $plan->capabilities,
                     restrictedCapabilities: self::RESTRICTED_CAPABILITIES,
                     limits: $plan->limits,
-                    validUntil: $subscription->currentPeriodEnd(),
+                    validUntil: $this->entitlementPolicy->validUntil($subscription),
                     computedAt: $event->occurredAt,
                     version: ($previous?->version ?? 0) + 1,
                 ));

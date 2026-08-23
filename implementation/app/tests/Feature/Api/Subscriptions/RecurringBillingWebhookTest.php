@@ -126,6 +126,48 @@ final class RecurringBillingWebhookTest extends IntegrationTestCase
         self::assertSame('Active', DB::table('subscriptions.recurring_subscriptions')->value('status'));
     }
 
+    public function test_canceled_workspace_can_resubscribe_with_a_new_provider_reference(): void
+    {
+        $owner = $this->onboardOwner($this, 'webhook-resubscribe@test.local');
+        $this->postWebhook($this->payload(
+            'event-first-activation',
+            'subscription.activated',
+            $owner['workspace_id'],
+        ))->assertAccepted();
+        $this->postWebhook($this->payload(
+            'event-first-cancel',
+            'subscription.canceled',
+            $owner['workspace_id'],
+            occurredAt: '2026-08-24T10:00:00+00:00',
+        ))->assertAccepted();
+        $this->postWebhook($this->payload(
+            'event-second-activation',
+            'subscription.activated',
+            $owner['workspace_id'],
+            occurredAt: '2026-08-25T10:00:00+00:00',
+            subscriptionReference: 'fake-subscription-2',
+        ))->assertAccepted();
+
+        self::assertSame(1, DB::table('subscriptions.recurring_subscriptions')->count());
+        self::assertSame('Active', DB::table('subscriptions.recurring_subscriptions')->value('status'));
+        self::assertSame('fake-subscription-2', DB::table('subscriptions.recurring_subscriptions')->value('provider_subscription_reference'));
+        self::assertSame(3, DB::table('subscriptions.recurring_subscriptions')->value('version'));
+        self::assertSame(2, DB::table('subscriptions.subscription_provider_references')->count());
+        self::assertNotNull(DB::table('subscriptions.subscription_provider_references')
+            ->where('provider_subscription_reference', 'fake-subscription-1')
+            ->value('retired_at'));
+
+        $this->postWebhook($this->payload(
+            'event-late-old-reference',
+            'subscription.renewed',
+            $owner['workspace_id'],
+            occurredAt: '2026-08-26T10:00:00+00:00',
+        ))->assertAccepted()->assertJsonPath('status', 'Ignored');
+
+        self::assertSame(3, DB::table('subscriptions.recurring_subscriptions')->value('version'));
+        self::assertSame('fake-subscription-2', DB::table('subscriptions.recurring_subscriptions')->value('provider_subscription_reference'));
+    }
+
     /** @param array<string, mixed> $payload */
     private function postWebhook(array $payload, ?string $signature = null): TestResponse
     {

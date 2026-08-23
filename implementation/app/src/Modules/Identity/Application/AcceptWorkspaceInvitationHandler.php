@@ -16,9 +16,11 @@ use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipReposito
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionLimitExceededException;
+use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementEnforcer;
 use Atlas\Platform\Messaging\EventId;
-use Atlas\Platform\Messaging\OutgoingMessage;
 use Atlas\Platform\Messaging\OutboxWriter;
+use Atlas\Platform\Messaging\OutgoingMessage;
 use Illuminate\Support\Facades\DB;
 
 final class AcceptWorkspaceInvitationHandler
@@ -30,6 +32,7 @@ final class AcceptWorkspaceInvitationHandler
         private readonly PostgresUserRepository $users,
         private readonly PostgresIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
+        private readonly WorkspaceEntitlementEnforcer $entitlements,
     ) {}
 
     /** @return array<string, mixed> */
@@ -89,6 +92,18 @@ final class AcceptWorkspaceInvitationHandler
                     !== (string) $invitation['recipient_email']
             ) {
                 throw new \DomainException('Invitation proof invalid.');
+            }
+
+            $workspaceId = (string) $invitation['workspace_id'];
+            DB::select('SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))', ['identity-member-limit', $workspaceId]);
+            $entitlement = $this->entitlements->enforce($workspaceId, 'members.invite');
+            if ($entitlement !== null && isset($entitlement->limits['members_total'])) {
+                $limit = $entitlement->limits['members_total'];
+                $current = $this->memberships->countActive($workspaceId)
+                    + $this->invitations->countPendingActive($workspaceId, $now);
+                if ($current > $limit) {
+                    throw new SubscriptionLimitExceededException('members_total', $limit, $current);
+                }
             }
 
             $roleId = new RoleId((string) $invitation['role_id']);

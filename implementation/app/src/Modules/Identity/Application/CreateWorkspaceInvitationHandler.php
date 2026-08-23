@@ -12,6 +12,8 @@ use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresMembershipReposito
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresRoleRepository;
 use Atlas\Modules\Identity\Infrastructure\Persistence\PostgresUserRepository;
 use Atlas\Modules\Identity\Infrastructure\PostgresIdempotencyStore;
+use Atlas\Modules\Subscriptions\Contracts\SubscriptionLimitExceededException;
+use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementEnforcer;
 use Atlas\Platform\Messaging\EventId;
 use Atlas\Platform\Messaging\OutboxWriter;
 use Atlas\Platform\Messaging\OutgoingMessage;
@@ -28,6 +30,7 @@ final class CreateWorkspaceInvitationHandler
         private readonly PostgresMembershipRepository $memberships,
         private readonly PostgresIdempotencyStore $idempotency,
         private readonly OutboxWriter $outbox,
+        private readonly WorkspaceEntitlementEnforcer $entitlements,
     ) {}
 
     /** @return array<string, mixed> */
@@ -66,6 +69,18 @@ final class CreateWorkspaceInvitationHandler
             $fingerprint,
             $correlationId,
         ): array {
+            DB::select('SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))', ['identity-member-limit', $workspaceId]);
+            $entitlement = $this->entitlements->enforce($workspaceId, 'members.invite');
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+            if ($entitlement !== null && isset($entitlement->limits['members_total'])) {
+                $limit = $entitlement->limits['members_total'];
+                $current = $this->memberships->countActive($workspaceId)
+                    + $this->invitations->countPendingActive($workspaceId, $now);
+                if ($current >= $limit) {
+                    throw new SubscriptionLimitExceededException('members_total', $limit, $current);
+                }
+            }
+
             $existingUser = $this->users->findByEmail($normalizedEmail);
             if ($existingUser !== null) {
                 $membership = $this->memberships->findByUserAndWorkspace($existingUser->id(), $workspaceId);
@@ -78,7 +93,6 @@ final class CreateWorkspaceInvitationHandler
                 throw new \DomainException('A pending invitation already exists for this address.');
             }
 
-            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $expiresAt = $now->modify('+7 days');
             $roleId = $this->roles->ensureRole(
                 $workspaceId,

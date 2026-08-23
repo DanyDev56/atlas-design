@@ -8,6 +8,10 @@ interface SubscriptionRepository
 {
     public function findByWorkspaceId(string $workspaceId): ?Subscription;
 
+    public function lockWorkspace(string $workspaceId): void;
+
+    public function findByWorkspaceIdForUpdate(string $workspaceId): ?Subscription;
+
     public function lockProviderReference(string $provider, string $providerReference): void;
 
     public function findByProviderReference(string $provider, string $providerReference): ?Subscription;

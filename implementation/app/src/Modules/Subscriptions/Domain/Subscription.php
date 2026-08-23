@@ -15,10 +15,10 @@ final class Subscription
     private function __construct(
         private readonly SubscriptionId $id,
         private readonly string $workspaceId,
-        private readonly string $planId,
-        private readonly string $planPriceId,
-        private readonly string $provider,
-        private readonly string $providerReference,
+        private string $planId,
+        private string $planPriceId,
+        private string $provider,
+        private string $providerReference,
         private string $status,
         private \DateTimeImmutable $currentPeriodStart,
         private \DateTimeImmutable $currentPeriodEnd,
@@ -101,6 +101,31 @@ final class Subscription
         $this->version++;
 
         return true;
+    }
+
+    public function resubscribe(string $planId, VerifiedRecurringBillingEvent $event): void
+    {
+        if ($this->status !== self::STATUS_CANCELED) {
+            throw new \DomainException('Only a canceled subscription can be replaced.');
+        }
+        if ($event->type !== RecurringBillingEventType::Activated) {
+            throw new \DomainException('Subscription activation required.');
+        }
+        if ($event->workspaceId !== $this->workspaceId || $event->occurredAt <= $this->lastProviderEventAt) {
+            throw new \DomainException('Invalid subscription replacement.');
+        }
+
+        $this->planId = $planId;
+        $this->planPriceId = $event->planPriceId;
+        $this->provider = $event->provider;
+        $this->providerReference = $event->providerSubscriptionReference;
+        $this->status = self::STATUS_ACTIVE;
+        $this->currentPeriodStart = $event->currentPeriodStart;
+        $this->currentPeriodEnd = $event->currentPeriodEnd;
+        $this->cancelAtPeriodEnd = $event->cancelAtPeriodEnd;
+        $this->canceledAt = null;
+        $this->lastProviderEventAt = $event->occurredAt;
+        $this->version++;
     }
 
     public function id(): SubscriptionId

@@ -12,6 +12,8 @@ import {
     updateWorkspacePreferences,
     updateWorkspaceProfile,
 } from '@/api/workspace';
+import { ApiClientError } from '@/api/client';
+import { getSubscriptionOverview } from '@/api/subscriptions';
 import { ErrorBanner, FormField, SuccessBanner, inputClassName } from '@/components/auth/AuthLayout';
 import { StepUpPasswordDialog, useImportStepUp } from '@/components/auth/StepUpPasswordDialog';
 import { RequireAuth } from '@/components/layout/RequireAuth';
@@ -21,6 +23,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Icon } from '@/components/ui/Icon';
 import { useAuth } from '@/hooks/useAuth';
 import type {
+    SubscriptionOverviewResponse,
     WorkspaceBillingIdentityResponse,
     WorkspaceInvitation,
     WorkspaceMember,
@@ -42,6 +45,7 @@ export function SettingsPage() {
     const [preferences, setPreferences] = useState<WorkspacePreferencesResponse | null>(null);
     const [members, setMembers] = useState<WorkspaceMember[]>([]);
     const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]);
+    const [subscriptionOverview, setSubscriptionOverview] = useState<SubscriptionOverviewResponse | null>(null);
     const [invitationEmail, setInvitationEmail] = useState('');
     const [invitationSaving, setInvitationSaving] = useState(false);
     const [invitationSuccess, setInvitationSuccess] = useState<string | null>(null);
@@ -68,6 +72,15 @@ export function SettingsPage() {
     const isOwner = members.some((member) => (
         member.user_id === session!.userId && member.role.toLocaleLowerCase('en-US') === 'owner'
     ));
+    const activeMemberCount = members.filter((member) => member.status.toLocaleLowerCase('en-US') === 'active').length;
+    const occupiedMemberSlots = activeMemberCount + pendingInvitations.length;
+    const memberLimit = subscriptionOverview?.access.limits.members_total
+        ?? subscriptionOverview?.catalog.plan.limits.members_total;
+    const memberCapacityEnforced = subscriptionOverview?.commercialization.enforcement_enabled === true
+        && memberLimit !== undefined;
+    const memberCapacityReached = memberCapacityEnforced
+        && typeof memberLimit === 'number'
+        && occupiedMemberSlots >= memberLimit;
 
     useEffect(() => {
         let cancelled = false;
@@ -113,6 +126,27 @@ export function SettingsPage() {
             cancelled = true;
         };
     }, [token, workspaceId]);
+
+    useEffect(() => {
+        if (!isOwner) {
+            setSubscriptionOverview(null);
+            return;
+        }
+
+        let cancelled = false;
+
+        void getSubscriptionOverview(token, workspaceId)
+            .then((nextOverview) => {
+                if (!cancelled) setSubscriptionOverview(nextOverview);
+            })
+            .catch(() => {
+                if (!cancelled) setSubscriptionOverview(null);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [isOwner, token, workspaceId]);
 
     async function onSaveProfile(event: FormEvent) {
         event.preventDefault();
@@ -205,7 +239,14 @@ export function SettingsPage() {
                 );
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Invitation impossible');
+            if (err instanceof ApiClientError && err.body.error === 'SubscriptionLimitExceeded') {
+                const limit = err.body.limit ?? memberLimit;
+                setError(limit === undefined
+                    ? 'Toutes les places incluses dans votre offre sont déjà utilisées.'
+                    : `Les ${limit} places incluses dans votre offre sont déjà utilisées. Révoquez une invitation ou retirez un membre avant de continuer.`);
+            } else {
+                setError(err instanceof Error ? err.message : 'Invitation impossible');
+            }
         } finally {
             setInvitationSaving(false);
         }
@@ -359,6 +400,12 @@ export function SettingsPage() {
                                 <p className="mt-1 text-xs text-atlas-ink-muted">
                                     L’invitation expire après 7 jours. Le destinataire doit utiliser un compte vérifié avec cette adresse.
                                 </p>
+                                {memberCapacityEnforced && (
+                                    <p className={`mt-2 text-xs font-medium ${memberCapacityReached ? 'text-amber-700' : 'text-atlas-ink-muted'}`}>
+                                        {occupiedMemberSlots} place{occupiedMemberSlots > 1 ? 's' : ''} utilisée{occupiedMemberSlots > 1 ? 's' : ''} sur {memberLimit}, invitations en attente comprises.
+                                        {memberCapacityReached ? ' Libérez une place pour inviter une nouvelle personne.' : ''}
+                                    </p>
+                                )}
                                 <SuccessBanner message={invitationSuccess} />
                                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                                     <input
@@ -372,7 +419,7 @@ export function SettingsPage() {
                                     />
                                     <button
                                         type="submit"
-                                        disabled={invitationSaving}
+                                        disabled={invitationSaving || memberCapacityReached}
                                         className="shrink-0 rounded-xl bg-atlas-accent px-5 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                                     >
                                         {invitationSaving ? 'Invitation…' : 'Inviter'}

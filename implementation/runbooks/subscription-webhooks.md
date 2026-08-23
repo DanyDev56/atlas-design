@@ -22,6 +22,7 @@ Conserver les flags désactivés dans `.env.example`. Dans le `.env` local :
 SUBSCRIPTIONS_GATEWAY=fake
 SUBSCRIPTIONS_WEBHOOKS_ENABLED=true
 SUBSCRIPTIONS_FAKE_WEBHOOK_SECRET=une-valeur-locale-aleatoire-de-32-caracteres
+SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS=
 SUBSCRIPTIONS_ENFORCEMENT_ENABLED=false
 ```
 
@@ -83,6 +84,49 @@ docker compose exec app php artisan atlas:subscriptions:replay-webhook fake EVEN
 Les événements antérieurs ou de même date que le dernier événement appliqué
 passent à `Ignored` et ne régressent ni la Subscription ni l'Entitlement. Les
 exceptions passent à `Failed` et peuvent être rejouées après correction.
+
+Une Subscription annulée peut être restaurée avec la même référence ou
+remplacée par une nouvelle activation. Les anciennes références restent
+historisées : leurs événements tardifs passent à `Ignored` au lieu de modifier
+la nouvelle souscription.
+
+## Enforcement d'accès
+
+Ne jamais activer `SUBSCRIPTIONS_ENFORCEMENT_ENABLED` avec une durée de grâce
+vide. Le serveur échoue volontairement avec `503 SubscriptionPolicyUnavailable`
+plutôt que d'appliquer une coupure commerciale implicite.
+
+Pour une recette locale uniquement, fixer d'abord une valeur décidée pour le
+scénario, puis recharger la configuration :
+
+```dotenv
+SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS=7
+SUBSCRIPTIONS_ENFORCEMENT_ENABLED=true
+```
+
+```bash
+docker compose exec app php artisan config:clear
+```
+
+Lorsque l'Entitlement est expiré, les mutations protégées répondent
+`402 SubscriptionAccessRestricted`. Les lectures, les exports, les préférences
+de notification et la gestion d'abonnement restent disponibles. La garde
+vérifie d'abord l'appartenance au Workspace afin de ne jamais révéler l'état
+commercial d'un autre espace.
+
+L'acceptation publique d'un devis muni d'une preuve encore valide reste
+autorisée : le blocage d'un client final après l'envoi du document créerait un
+effet de bord commercial plus grave que la mutation reçue. Les nouveaux envois
+de documents sont, eux, protégés.
+
+Le plafond `members_total` du plan compte l'Owner, les membres actifs et les
+invitations en attente non expirées. Une invitation en attente réserve donc sa
+place. La création et l'acceptation utilisent le même verrou Workspace afin que
+deux requêtes concurrentes ne dépassent pas silencieusement la limite.
+Quand l'enforcement est actif, la section Membres affiche cette occupation et
+désactive l'invitation lorsque toutes les places sont réservées. L'API reste la
+source d'autorité et retourne `limit_name`, `limit` et `current` en cas de
+conflit `SubscriptionLimitExceeded`.
 
 ## Vérifications
 

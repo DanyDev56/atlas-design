@@ -30,7 +30,7 @@ final class WorkspaceAuthorizer
         $this->authorize($userId, $workspaceId, $permission);
 
         if (! in_array($permission, $this->sessions->activeElevationPermissions($sessionId), true)) {
-            throw new StepUpRequiredException();
+            throw new StepUpRequiredException;
         }
     }
 
@@ -56,6 +56,21 @@ final class WorkspaceAuthorizer
         $permissions = json_decode($membership->permissions, true, 512, JSON_THROW_ON_ERROR);
 
         return in_array($permission, $permissions, true);
+    }
+
+    public function hasActiveMembership(string $userId, string $workspaceId): bool
+    {
+        if (! $this->isWorkspaceUsable($workspaceId)) {
+            return false;
+        }
+
+        return DB::table('identity.memberships as m')
+            ->join('identity.roles as r', 'r.id', '=', 'm.role_id')
+            ->where('m.user_id', $userId)
+            ->where('m.workspace_id', $workspaceId)
+            ->where('m.status', 'Active')
+            ->where('r.status', 'Active')
+            ->exists();
     }
 
     private function isWorkspaceUsable(string $workspaceId): bool

@@ -27,6 +27,7 @@ final class PostgresWorkspaceEntitlementReader implements WorkspaceEntitlementRe
                 accessLevel: AccessLevel::Restricted->value,
                 sourceType: 'None',
                 validUntil: null,
+                limits: [],
                 enforcementEnabled: (bool) config('subscriptions.enforcement_enabled', false),
             );
         }
@@ -40,6 +41,7 @@ final class PostgresWorkspaceEntitlementReader implements WorkspaceEntitlementRe
             accessLevel: $entitlement->accessLevelAt($now)->value,
             sourceType: $entitlement->sourceType,
             validUntil: $entitlement->validUntil?->format(DATE_ATOM),
+            limits: $entitlement->limits,
             enforcementEnabled: (bool) config('subscriptions.enforcement_enabled', false),
         );
     }

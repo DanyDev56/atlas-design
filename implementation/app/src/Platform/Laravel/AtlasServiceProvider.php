@@ -141,13 +141,16 @@ use Atlas\Modules\Subscriptions\Application\SubscriptionOverviewQueryHandler;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookInbox;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookVerifier;
+use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementEnforcer;
 use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementReader;
 use Atlas\Modules\Subscriptions\Domain\EntitlementRepository;
 use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Domain\SubscriptionEntitlementPolicy;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Domain\TrialRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingGateway;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingWebhookVerifier;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\ConfiguredWorkspaceEntitlementEnforcer;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresEntitlementRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresPlanCatalogRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresSubscriptionRepository;
@@ -192,9 +195,13 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PlanCatalogRepository::class, PostgresPlanCatalogRepository::class);
         $this->app->singleton(TrialRepository::class, PostgresTrialRepository::class);
         $this->app->singleton(SubscriptionRepository::class, PostgresSubscriptionRepository::class);
+        $this->app->singleton(SubscriptionEntitlementPolicy::class, fn (): SubscriptionEntitlementPolicy => new SubscriptionEntitlementPolicy(
+            config('subscriptions.past_due_grace_days'),
+        ));
         $this->app->singleton(EntitlementRepository::class, PostgresEntitlementRepository::class);
         $this->app->singleton(RecurringBillingWebhookInbox::class, PostgresWebhookInbox::class);
         $this->app->singleton(WorkspaceEntitlementReader::class, PostgresWorkspaceEntitlementReader::class);
+        $this->app->singleton(WorkspaceEntitlementEnforcer::class, ConfiguredWorkspaceEntitlementEnforcer::class);
         $this->app->singleton(RecurringBillingGateway::class, function (): RecurringBillingGateway {
             if (config('subscriptions.gateway', 'fake') !== 'fake') {
                 throw new \LogicException('Configured subscriptions gateway is not implemented.');
