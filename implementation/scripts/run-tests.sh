@@ -24,6 +24,7 @@ exec "${compose[@]}" exec -T \
   -e BACKOFFICE_ALLOW_TOTP_EXTERNAL=false \
   -e BACKOFFICE_READ_ONLY=true \
   -e BACKOFFICE_ACTIONS_ENABLED=false \
+  -e BACKOFFICE_BETA_BLOCKED_AFTER_DAYS=7 \
   -e CACHE_STORE=array \
   -e MAIL_MAILER=array \
   -e OTEL_TRACES_EXPORTER=none \

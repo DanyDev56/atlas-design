@@ -3,8 +3,8 @@ id: GOV-PRICING-001
 title: Pricing Validation Protocol and Evidence Register
 status: Draft
 owner: Product
-version: 0.1.0
-last_updated: 2026-08-23
+version: 0.2.0
+last_updated: 2026-08-24
 
 references:
   - ../../fondation/product/pricing-strategy.md
@@ -12,6 +12,7 @@ references:
   - experimentation.md
   - metrics.md
   - consolidation-matrix.md
+  - ../../implementation/runbooks/beta-cohort-operations.md
 ---
 
 # Validation du pricing
@@ -125,6 +126,12 @@ Le registre conserve uniquement des identifiants pseudonymes. Les notes brutes
 contenant des données personnelles restent dans un espace d'étude à accès
 restreint et selon une durée de conservation définie.
 
+Pour la cohorte fermée, le registre canonique est
+`operations.pricing_observations`, alimenté par la commande auditée décrite dans
+le runbook `beta-cohort-operations.md`. La cellule et la décision sont
+immutables. Les tableaux de ce document sont une synthèse de gouvernance et ne
+doivent pas être remplis à la main avec les observations nominatives.
+
 | Champ | Format attendu |
 |---|---|
 | `ObservationId` | identifiant pseudonyme unique |
@@ -195,7 +202,7 @@ Ces seuils sont des garde-fous internes pour une petite cohorte. Ils doivent
 
 | Observation | Date | Segment | Canal | Activation | Cellule | Décision | Motif | Biais | Preuve |
 |---|---|---|---|---|---|---|---|---|---|
-| _Aucune observation enregistrée_ | — | — | — | — | — | — | — | — | — |
+| _Consulter le registre Operations pseudonymisé_ | — | — | — | — | — | — | — | — | — |
 
 ---
 
@@ -203,9 +210,11 @@ Ces seuils sont des garde-fous internes pour une petite cohorte. Ils doivent
 
 | Cellule | Admissibles | Décisions finales | Positives | Refus prix | Refus valeur | Refus scope | Refus confiance |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `P19` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `P24` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `P29` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `P19` | — | — | — | — | — | — | — |
+| `P24` | — | — | — | — | — | — | — |
+| `P29` | — | — | — | — | — | — | — |
+
+Les tirets signifient « à lire depuis la projection », pas zéro observation.
 
 ---
 

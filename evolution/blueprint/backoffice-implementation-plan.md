@@ -3,8 +3,8 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.4.0
-last_updated: 2026-08-23
+version: 0.5.0
+last_updated: 2026-08-24
 
 references:
   - backoffice.md
@@ -40,7 +40,8 @@ action opérateur, ni exposition externe sans authentification forte.
 | 0 — décisions et menace | Partiel | ADR accepté, frontière `Operations`, TOTP et step-up borné livrés ; authentification résistante au phishing, break-glass et rétention restent ouverts |
 | 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, TOTP chiffré, récupération à usage unique, jetons hachés, révocation immédiate, audit et shell lecture seule |
 | 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
-| 3 à 7 | Non démarrés | aucune action opérateur ni donnée transverse supplémentaire raccordée |
+| 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
+| 4 à 7 | Non démarrés | aucune action opérateur web ni donnée transverse supplémentaire raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
 
@@ -136,6 +137,26 @@ fixtures de rapprochement.
 
 Aucun nom, email, note nominative ou contenu métier dans les vues Product. La
 même personne ne peut recevoir plusieurs cellules de prix sans biais visible.
+
+### Preuves livrées
+
+- registre Operations limité à cinq codes `BETA-001` à `BETA-005`, chaque
+  utilisateur et Workspace ne pouvant apparaître qu'une fois ;
+- cellule `P19`, `P24` ou `P29` équilibrée automatiquement et rendue immutable
+  par la base ; version du packaging conservée avec l'affectation ;
+- étapes `E0` à `E6` dérivées à la lecture depuis Identity, Workspace, CRM,
+  Billing, Analytics, Business Health et le registre de décision ;
+- réutilisation `E5` exigée lors d'un jour UTC distinct après la première valeur ;
+- entonnoir avec effectifs, dénominateurs et médianes observées ; aucun taux
+  n'est inventé lorsque le dénominateur vaut zéro ;
+- jalons et décisions append-only, saisis par commandes administratives avec
+  motif obligatoire et audit ;
+- listes et diagnostic sans nom, email, UUID métier, contenu ou valeur
+  financière ; grants séparés pour cohorte et métriques produit ;
+- actions web toujours désactivées par `BACKOFFICE_ACTIONS_ENABLED=false`.
+
+La gate reste partielle jusqu'à la recette Product/Security sur les cinq
+participants réels et la validation des durées de rétention des preuves.
 
 ## Incrément 4 — Exploitation et abonnements
 

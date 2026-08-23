@@ -14,4 +14,7 @@ return [
         'step_up_minutes' => (int) env('BACKOFFICE_STEP_UP_MINUTES', 10),
         'totp_issuer' => (string) env('BACKOFFICE_TOTP_ISSUER', 'Atlas Back-office'),
     ],
+    'beta' => [
+        'blocked_after_days' => (int) env('BACKOFFICE_BETA_BLOCKED_AFTER_DAYS', 7),
+    ],
 ];

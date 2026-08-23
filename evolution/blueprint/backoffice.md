@@ -3,8 +3,8 @@ id: BPT-013
 title: Operator Back-office Blueprint
 status: In Review
 owner: Product, Engineering and Security
-version: 0.3.0
-last_updated: 2026-08-23
+version: 0.4.0
+last_updated: 2026-08-24
 
 references:
   - README.md
@@ -23,11 +23,11 @@ references:
 ## Statut et objectif
 
 Ce document décrit la cible fonctionnelle du back-office Atlas. `ADR-004` est
-accepté et le premier incrément livre uniquement l'audience opérateur, les
-grants, les sessions, la MFA TOTP transitoire, le step-up, l'audit et un shell
-local en lecture seule. TOTP n'est pas présenté comme résistant au phishing et
-l'accès externe reste fermé par défaut. Les autres surfaces restent soumises à
-leurs gates respectives.
+accepté. Les incréments locaux livrés couvrent l'audience opérateur, les grants,
+les sessions, la MFA TOTP transitoire, le step-up, l'audit, le dashboard
+Outbox/Emails et la cohorte beta pseudonymisée en lecture seule. TOTP n'est pas
+présenté comme résistant au phishing et l'accès externe reste fermé par défaut.
+Les autres surfaces restent soumises à leurs gates respectives.
 
 Le back-office donne aux personnes qui exploitent Atlas une vue cohérente de la
 beta, du produit, des opérations, du support et de la conformité. Il n'est pas
@@ -71,7 +71,7 @@ alertée et revue après usage.
 | `operations.backoffice.access` | ouvrir une session opérateur et le shell |
 | `operations.dashboard.read` | lire les compteurs non sensibles globaux |
 | `operations.beta.read` | lire cohorte et activation pseudonymisées |
-| `operations.beta.manage` | modifier cellule, jalon et état de suivi |
+| `operations.beta.manage` | future mutation web bornée des jalons ; non exposée tant que les actions restent désactivées |
 | `operations.metrics.read-product` | lire les métriques produit agrégées |
 | `operations.metrics.read-financial` | lire les agrégats financiers Atlas autorisés |
 | `operations.workspaces.read-summary` | rechercher et lire un résumé Workspace |
@@ -161,10 +161,11 @@ filtrée qui explique son total.
 
 ### Cohorte beta
 
-La liste utilise `BETA-001` à `BETA-005` par défaut. Elle montre cellule de
-prix, dates, étape `E0` à `E6`, dernier jalon, blocage, support cumulé, prochaine
-action et versions d'information acceptées. Le nom et l'email sont masqués et
-révélables uniquement par Support ou Legal avec un motif.
+La liste utilise `BETA-001` à `BETA-005`. Elle montre cellule de prix, dates,
+étape `E0` à `E6`, dernier jalon, blocage, support cumulé et prochaine action.
+Le nom, l'email et les UUID métier ne sont pas chargés dans cette vue. Une
+future révélation Support ou Legal devra utiliser une permission, un motif et
+un audit séparés ; elle n'est pas livrée dans cet incrément.
 
 ### Workspaces et utilisateurs
 

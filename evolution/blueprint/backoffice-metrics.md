@@ -3,8 +3,8 @@ id: BPT-014
 title: Back-office Metrics Catalogue
 status: In Review
 owner: Product, Engineering and Operations
-version: 0.3.0
-last_updated: 2026-08-23
+version: 0.4.0
+last_updated: 2026-08-24
 
 references:
   - backoffice.md
@@ -192,9 +192,11 @@ vue « Santé des services » soit déclarée disponible.
 | Backlog outbox | compteurs à la demande et registre opérateur paginé/filtré | série temporelle et alertes durables |
 | Emails | compteurs à la demande et registre opérateur paginé/filtré, sans destinataire ni contenu | délai de remise, rejets et alertes durables |
 | Stripe | dashboard fournisseur et état local | vue corrélée, séparation sandbox/live |
-| Activation beta | définitions et tableaux manuels | projection automatisée et écrans |
+| Activation beta | projection E0–E6 à la demande, entonnoir avec dénominateurs, cellules pricing et vues pseudonymisées | série historique et sign-off Product/Security sur la cohorte réelle |
 | Support/conformité | runbooks et documents | stockage, workflow et audit opérateur |
 
-Les cartes API, runtime, sauvegarde, cohorte, support et demandes de données
-restent explicitement `NotCollected`. Le tableau ne déduit aucune valeur zéro
-de cette absence. Une panne de lecture Outbox ou Emails produit `Unavailable`.
+Les cartes API, runtime, sauvegarde, support et demandes de données restent
+explicitement `NotCollected`. La carte cohorte devient `Available` ou `NoData`
+depuis le registre Operations ; une panne de projection devient `Unavailable`.
+Le tableau ne déduit aucune valeur zéro d'une absence. Une panne de lecture
+Outbox ou Emails produit également `Unavailable`.

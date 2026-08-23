@@ -3,13 +3,14 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.3.0
-last_updated: 2026-08-23
+version: 0.4.0
+last_updated: 2026-08-24
 
 references:
   - ../../fondation/decisions/ADR-004-operator-control-plane.md
   - ../../evolution/blueprint/backoffice.md
   - ../../evolution/blueprint/backoffice-implementation-plan.md
+  - beta-cohort-operations.md
   - ../SEC-TEST-MATRIX.md
 ---
 
@@ -25,7 +26,8 @@ connexion, MFA, step-up, consultation du contexte et révocation. Un trigger
 PostgreSQL rend le registre d'audit append-only, y compris face à une mutation
 accidentelle.
 
-La vue d'ensemble lit les registres techniques Outbox et Emails. Elle expose
+La vue d'ensemble lit les registres techniques Outbox et Emails ainsi que la
+projection de cohorte beta. Elle expose
 des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
 adresses destinataires, contenus ou identifiants fournisseur. Les autres cartes
 restent `NotCollected` tant que leur instrumentation durable n'existe pas ; une
@@ -84,18 +86,19 @@ Une expiration peut être imposée avec `--expires=2026-08-24T18:00:00+02:00`.
 Les permissions supplémentaires sont passées par une liste séparée par des
 virgules et sont rejetées si elles ne figurent pas au catalogue canonique.
 
-Pour ouvrir les deux registres techniques depuis la vue générale :
+Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.beta.read,operations.metrics.read-product" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
-Sans ces grants de détail, les cartes restent visibles mais les liens et les
-API correspondantes sont refusés. Chaque refus et chaque consultation autorisée
-sont audités.
+`operations.beta.read` ouvre la liste pseudonymisée et son diagnostic borné ;
+`operations.metrics.read-product` ouvre l'entonnoir agrégé. Sans ces grants de
+détail, les cartes restent visibles mais les liens et API correspondantes sont
+refusés. Chaque refus et chaque consultation autorisée sont audités.
 
 ## Enrôler ou renouveler la MFA
 
@@ -169,9 +172,11 @@ avant un nouvel enrôlement.
   tests/Unit/Operations/OperatorPermissionCatalogTest.php \
   tests/Unit/Operations/TotpAuthenticatorTest.php \
   tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
+  tests/Unit/Operations/BetaCohortQueryHandlerTest.php \
   tests/Integration/Operations/OperatorAccessFoundationTest.php \
   tests/Integration/Operations/OperatorMfaTest.php \
-  tests/Integration/Operations/OperatorOverviewTest.php
+  tests/Integration/Operations/OperatorOverviewTest.php \
+  tests/Integration/Operations/OperatorBetaCohortTest.php
 
 make web-check
 ```

@@ -2,7 +2,7 @@
 title: Checklist — Release beta fermée
 status: In Review
 owner: Engineering + Product
-last_updated: 2026-08-23
+last_updated: 2026-08-24
 references:
   - ../PALIER-3-CLOSURE.md
   - ../SEC-TEST-MATRIX.md
@@ -17,6 +17,7 @@ references:
   - beta-program.md
   - beta-support-offboarding.md
   - beta-research-plan.md
+  - beta-cohort-operations.md
   - beta-terms.fr.md
   - privacy-notice.fr.md
   - ../../fondation/product/pricing-strategy.md
@@ -174,6 +175,9 @@ satisfait.
 - [x] Raccorder le dashboard opérateur aux registres Outbox et Emails avec
   provenance, permissions, pagination et états `NotCollected`/`Unavailable` ;
   les autres sources restent explicitement non collectées.
+- [x] Raccorder la cohorte beta pseudonymisée : registre limité à cinq,
+  dérivation E0–E6, entonnoir avec dénominateurs, jalons et décisions pricing
+  append-only, sans identité ni contenu métier dans les vues Product.
 - [ ] Fermer `SEC-GAP-005` : le socle TOTP/step-up est livré et testé ; livrer
   l'authentification résistante au phishing, le break-glass, la rétention et
   valider les incréments 0 à 5 en lecture seule sur la cible externe.
@@ -196,6 +200,8 @@ satisfait.
 - [x] Essai de 30 jours sans carte et catalogue Atlas Solo versionné dans le
   produit ; enforcement désactivé par défaut.
 - [x] Protocole de validation pricing et registre pseudonymisé disponibles.
+- [x] Projection de cohorte et écran opérateur en lecture seule disponibles ;
+  affectation pricing immutable, commandes administratives motivées et audit.
 - [x] Programme participant, limites de la beta, parcours d'information et
   matrice de preuves formalisés dans le [programme beta](beta-program.md).
 - [x] Niveaux de support, objectifs de réponse, traitement des demandes de

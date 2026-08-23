@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\ElevateSessionController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
+use App\Http\Controllers\Api\Operator\OperatorBetaController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
 use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
@@ -63,6 +64,13 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_READ);
             Route::get('/overview/emails', [OperatorOverviewController::class, 'emails'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EMAIL_READ);
+            Route::get('/beta/overview', [OperatorBetaController::class, 'overview'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::METRICS_READ_PRODUCT);
+            Route::get('/beta/participants', [OperatorBetaController::class, 'index'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::BETA_READ);
+            Route::get('/beta/participants/{betaCode}', [OperatorBetaController::class, 'show'])
+                ->where('betaCode', 'BETA-[0-9]{3}')
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::BETA_READ);
         });
     });
 

@@ -29,7 +29,7 @@ export interface OperatorStepUpResponse {
     step_up_expires_at: string;
 }
 
-export type OperatorSourceStatus = 'Available' | 'NotCollected' | 'Unavailable';
+export type OperatorSourceStatus = 'Available' | 'NoData' | 'NotCollected' | 'Unavailable';
 export type OperatorCardTone = 'Neutral' | 'Warning' | 'Critical' | 'Muted';
 
 export interface OperatorOverviewValue {
@@ -95,6 +95,76 @@ export interface OperatorEmailItem {
     updated_at: string | null;
 }
 
+export interface BetaFunnelStep {
+    stage: string;
+    reached: number;
+    denominator: number;
+    rate_percent: number | null;
+    median_duration_hours: number | null;
+}
+
+export interface BetaCohortOverview {
+    generated_at: string;
+    status: 'Available' | 'NoData';
+    participant_count: number;
+    active_count: number;
+    blocked_count: number;
+    decision_count: number;
+    funnel: BetaFunnelStep[];
+    pricing_cells: Array<{ cell: string; participants: number; decisions: number; positive: number }>;
+    source: string;
+}
+
+export interface BetaParticipant {
+    beta_code: string;
+    status: 'Active' | 'Exited';
+    pricing_cell: 'P19' | 'P24' | 'P29';
+    packaging_version: string;
+    segment: string;
+    channel: string;
+    current_stage: string;
+    current_stage_at: string;
+    stage_dates: Record<string, string | null>;
+    first_value_path: 'Analysis' | 'Document' | null;
+    stalled_days: number;
+    blocked: boolean;
+    latest_review: null | {
+        milestone: string;
+        blockage_code: string | null;
+        support_minutes: number;
+        next_action: string;
+        reviewed_at: string;
+    };
+    pricing_decision: null | {
+        decision: string;
+        primary_reason: string;
+        preference: string;
+        observed_on: string;
+        has_evidence: boolean;
+    };
+}
+
+export interface BetaParticipantDiagnostic {
+    participant: BetaParticipant;
+    diagnostic: {
+        beta_code: string;
+        analytics: {
+            status: 'Available' | 'NoData';
+            published_at: string | null;
+            freshness_status: string | null;
+            completeness_status: string | null;
+        };
+        business_health: {
+            status: 'Available' | 'NoData';
+            assessed_at: string | null;
+            assessment_status: string | null;
+            reliability: string | null;
+            coverage_percent: number | null;
+        };
+        source: string;
+    };
+}
+
 export async function loginOperator(email: string, password: string, mfaCode: string): Promise<OperatorLoginResponse> {
     return apiRequest<OperatorLoginResponse>(
         'POST',
@@ -156,4 +226,26 @@ export async function fetchOperatorEmails(
 ): Promise<OperatorPage<OperatorEmailItem>> {
     const query = new URLSearchParams({ status, page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorEmailItem>>('GET', `/operator/overview/emails?${query}`, undefined, { token });
+}
+
+export async function fetchBetaCohortOverview(token: string): Promise<BetaCohortOverview> {
+    return apiRequest<BetaCohortOverview>('GET', '/operator/beta/overview', undefined, { token });
+}
+
+export async function fetchBetaParticipants(
+    token: string,
+    filters: { stage: string; cell: string; status: string; page: number },
+): Promise<OperatorPage<BetaParticipant>> {
+    const query = new URLSearchParams({
+        stage: filters.stage,
+        cell: filters.cell,
+        status: filters.status,
+        page: String(filters.page),
+        per_page: '20',
+    });
+    return apiRequest<OperatorPage<BetaParticipant>>('GET', `/operator/beta/participants?${query}`, undefined, { token });
+}
+
+export async function fetchBetaParticipantDiagnostic(token: string, betaCode: string): Promise<BetaParticipantDiagnostic> {
+    return apiRequest<BetaParticipantDiagnostic>('GET', `/operator/beta/participants/${encodeURIComponent(betaCode)}`, undefined, { token });
 }

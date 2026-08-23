@@ -138,15 +138,18 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Modules\Operations\Application\BetaCohortQueryHandler;
 use Atlas\Modules\Operations\Application\DisableOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\EnrollOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\OperationsOverviewQueryHandler;
 use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\VerifyOperatorMfaHandler;
+use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
 use Atlas\Modules\Operations\Domain\OperatorRecoveryCodes;
 use Atlas\Modules\Operations\Domain\TotpAuthenticator;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresBetaCohortSource;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperationsOverviewSource;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorGrantRepository;
@@ -317,11 +320,18 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOperatorSessionRepository::class);
         $this->app->singleton(PostgresOperatorAuditRepository::class);
         $this->app->singleton(PostgresOperatorMfaRepository::class);
+        $this->app->singleton(BetaCohortSource::class, PostgresBetaCohortSource::class);
+        $this->app->singleton(BetaCohortQueryHandler::class, fn ($app): BetaCohortQueryHandler => new BetaCohortQueryHandler(
+            $app->make(BetaCohortSource::class),
+            (int) config('operations.beta.blocked_after_days', 7),
+        ));
         $this->app->singleton(OperationsOverviewSource::class, PostgresOperationsOverviewSource::class);
         $this->app->singleton(OperationsOverviewQueryHandler::class, fn ($app): OperationsOverviewQueryHandler => new OperationsOverviewQueryHandler(
             $app->make(OperationsOverviewSource::class),
+            $app->make(BetaCohortSource::class),
             (bool) config('operations.backoffice.read_only', true),
             (bool) config('operations.backoffice.actions_enabled', false),
+            (int) config('operations.beta.blocked_after_days', 7),
         ));
         $this->app->singleton(TotpAuthenticator::class);
         $this->app->singleton(OperatorRecoveryCodes::class, fn (): OperatorRecoveryCodes => new OperatorRecoveryCodes(

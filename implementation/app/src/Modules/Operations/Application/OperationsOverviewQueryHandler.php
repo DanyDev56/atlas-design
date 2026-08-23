@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Operations\Application;
 
+use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
 
 final class OperationsOverviewQueryHandler
 {
     public function __construct(
         private readonly OperationsOverviewSource $source,
+        private readonly BetaCohortSource $betaSource,
         private readonly bool $readOnly,
         private readonly bool $actionsEnabled,
+        private readonly int $betaBlockedAfterDays,
     ) {}
 
     /** @return array{generated_at: string, read_only: bool, actions_enabled: bool, attention_count: int, cards: list<array<string, mixed>>} */
@@ -45,14 +48,7 @@ final class OperationsOverviewQueryHandler
                 86400,
                 90000,
             ),
-            $this->notCollectedCard(
-                'beta',
-                'Participants beta',
-                'La cohorte reste tenue dans le registre de recherche avant l’incrément 3.',
-                'Operations beta projection',
-                900,
-                3600,
-            ),
+            $this->betaCard($now),
             $this->notCollectedCard(
                 'support',
                 'Demandes support',
@@ -177,6 +173,60 @@ final class OperationsOverviewQueryHandler
         );
     }
 
+    private function betaCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $participants = $this->betaSource->participants($now, $this->betaBlockedAfterDays);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'beta',
+                'Cohorte beta',
+                'La projection pseudonymisée n’a pas pu être reconstruite.',
+                'operations.beta_participants + sources métier',
+                900,
+                3600,
+                '/backoffice/beta',
+                'operations.beta.read',
+            );
+        }
+        if ($participants === []) {
+            return $this->noDataCard(
+                'beta',
+                'Cohorte beta',
+                'Aucun participant n’est inscrit dans le registre pseudonymisé.',
+                'operations.beta_participants + sources métier',
+                $now,
+                900,
+                3600,
+                '/backoffice/beta',
+                'operations.beta.read',
+            );
+        }
+
+        $active = array_values(array_filter($participants, static fn (array $participant): bool => $participant['status'] === 'Active'));
+        $blocked = count(array_filter($active, static fn (array $participant): bool => $participant['blocked']));
+        $decisions = count(array_filter($participants, static fn (array $participant): bool => $participant['pricing_decision'] !== null));
+
+        return $this->availableCard(
+            key: 'beta',
+            label: 'Cohorte beta',
+            description: 'Activation E0–E6, blocages et décisions pricing pseudonymisées.',
+            source: 'operations.beta_participants + sources métier',
+            now: $now,
+            targetSeconds: 900,
+            staleAfterSeconds: 3600,
+            tone: $blocked > 0 ? 'Warning' : 'Neutral',
+            values: [
+                ['key' => 'active', 'label' => 'Actifs', 'value' => count($active)],
+                ['key' => 'blocked', 'label' => 'Bloqués', 'value' => $blocked],
+                ['key' => 'decisions', 'label' => 'Décisions', 'value' => $decisions],
+            ],
+            context: $participants === [] ? 'Aucun participant inscrit dans le registre.' : count($participants).' participant(s) dans la cohorte.',
+            href: '/backoffice/beta',
+            detailPermission: 'operations.beta.read',
+        );
+    }
+
     private function availableCard(
         string $key,
         string $label,
@@ -263,6 +313,37 @@ final class OperationsOverviewQueryHandler
                 'target_seconds' => $targetSeconds,
                 'stale_after_seconds' => $staleAfterSeconds,
                 'state' => 'Unavailable',
+            ],
+            'href' => $href,
+            'detail_permission' => $detailPermission,
+        ];
+    }
+
+    private function noDataCard(
+        string $key,
+        string $label,
+        string $description,
+        string $source,
+        \DateTimeImmutable $now,
+        int $targetSeconds,
+        int $staleAfterSeconds,
+        ?string $href,
+        ?string $detailPermission,
+    ): array {
+        return [
+            'key' => $key,
+            'label' => $label,
+            'description' => $description,
+            'status' => 'NoData',
+            'tone' => 'Muted',
+            'values' => [],
+            'context' => 'Source disponible, mais aucune donnée admissible.',
+            'source' => $source,
+            'measured_at' => $now->format(DATE_ATOM),
+            'freshness' => [
+                'target_seconds' => $targetSeconds,
+                'stale_after_seconds' => $staleAfterSeconds,
+                'state' => 'Current',
             ],
             'href' => $href,
             'detail_permission' => $detailPermission,

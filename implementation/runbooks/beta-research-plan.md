@@ -2,9 +2,10 @@
 title: Mesure d'activation et recherche — Beta fermée
 status: In Review
 owner: Product
-last_updated: 2026-08-23
+last_updated: 2026-08-24
 references:
   - beta-program.md
+  - beta-cohort-operations.md
   - ../../evolution/governance/metrics.md
   - ../../evolution/governance/pricing-validation.md
   - ../../fondation/product/personnas/persona-primary.md
@@ -15,6 +16,10 @@ references:
 Le plan mesure l'activation à partir des états métier qu'Atlas doit déjà
 conserver. Il n'ajoute ni pixel publicitaire, ni session replay, ni SDK de
 tracking tiers. Les notes nominatives et enregistrements restent hors du dépôt.
+
+Le registre canonique est désormais la projection Operations décrite dans
+`beta-cohort-operations.md`. Le tableau ci-dessous reste un gabarit de protocole
+et ne doit pas être rempli avec des observations réelles dans Git.
 
 ## Entonnoir d'activation
 
@@ -46,6 +51,11 @@ aucun pourcentage n'est présenté seul sur une cohorte de cinq.
 | `BETA-003` | — | — | — | — | 0 min | qualifier |
 | `BETA-004` | — | — | — | — | 0 min | qualifier |
 | `BETA-005` | — | — | — | — | 0 min | qualifier |
+
+L'étape et sa date sont dérivées des sources propriétaires. Product ne saisit
+que le jalon, un éventuel code de blocage, le support cumulé et le code de
+prochaine action. Une observation déjà inscrite n'est pas corrigée en place :
+toute anomalie est traitée selon le runbook et conservée dans l'audit.
 
 ## Script d'entretien
 
@@ -108,4 +118,3 @@ résultats par cellule de prix et les biais. Elle sépare constat, interprétati
 et décision. Les cinq participants ne constituent pas une preuve statistique de
 marché ; ils servent à détecter les défauts majeurs et préparer la validation
 pricing plus large.
-

@@ -6,7 +6,7 @@ import { OperatorFrame } from '@/components/operator/OperatorFrame';
 import { Icon } from '@/components/ui/Icon';
 import { useOperatorAuth } from '@/hooks/useOperatorAuth';
 
-const statusLabels = { Available: 'Collecté', NotCollected: 'Non collecté', Unavailable: 'Indisponible' };
+const statusLabels = { Available: 'Collecté', NoData: 'Aucune donnée', NotCollected: 'Non collecté', Unavailable: 'Indisponible' };
 
 function statusClass(card: OperatorOverviewCard): string {
     if (card.status === 'Unavailable' || card.tone === 'Critical') return 'border-red-200 bg-red-50 text-red-700';

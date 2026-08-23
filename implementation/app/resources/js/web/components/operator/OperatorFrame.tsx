@@ -28,6 +28,7 @@ export function OperatorFrame({ children }: { children: ReactNode }) {
                         <span className="hidden text-xs font-semibold uppercase tracking-[.18em] text-white/50 sm:block">Back-office</span>
                         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation opérateur">
                             <Link to="/backoffice" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Vue d’ensemble</Link>
+                            {session?.permissions.includes('operations.beta.read') && <Link to="/backoffice/beta" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Cohorte beta</Link>}
                             <Link to="/backoffice/security" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Sécurité</Link>
                         </nav>
                     </div>
