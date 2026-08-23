@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-23
 
 references:
@@ -17,12 +17,19 @@ references:
 
 ## Portée actuelle
 
-Le premier incrément fournit un shell `/backoffice` sans donnée métier et en
-lecture seule. Il sépare les sessions opérateur des sessions Workspace, stocke
+Le back-office local fournit désormais une vue d'ensemble `/backoffice` en
+lecture seule et une surface de sécurité `/backoffice/security`. Il sépare les
+sessions opérateur des sessions Workspace, stocke
 les jetons uniquement sous forme hachée et audite provisioning, refus,
 connexion, MFA, step-up, consultation du contexte et révocation. Un trigger
 PostgreSQL rend le registre d'audit append-only, y compris face à une mutation
 accidentelle.
+
+La vue d'ensemble lit les registres techniques Outbox et Emails. Elle expose
+des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
+adresses destinataires, contenus ou identifiants fournisseur. Les autres cartes
+restent `NotCollected` tant que leur instrumentation durable n'existe pas ; une
+source attendue en erreur devient `Unavailable`, jamais zéro.
 
 La MFA actuelle utilise TOTP. Le secret est chiffré avec la clé applicative, un
 code temporel ne peut pas être rejoué et huit codes de récupération à usage
@@ -44,6 +51,7 @@ BACKOFFICE_ALLOW_PASSWORD_ONLY_LOCAL=false
 BACKOFFICE_REQUIRE_MFA=true
 BACKOFFICE_ALLOW_TOTP_EXTERNAL=false
 BACKOFFICE_READ_ONLY=true
+BACKOFFICE_ACTIONS_ENABLED=false
 BACKOFFICE_SESSION_MINUTES=30
 BACKOFFICE_STEP_UP_MINUTES=10
 BACKOFFICE_TOTP_ISSUER="Atlas Back-office"
@@ -75,6 +83,19 @@ Sans `--permissions`, le grant reçoit uniquement :
 Une expiration peut être imposée avec `--expires=2026-08-24T18:00:00+02:00`.
 Les permissions supplémentaires sont passées par une liste séparée par des
 virgules et sont rejetées si elles ne figurent pas au catalogue canonique.
+
+Pour ouvrir les deux registres techniques depuis la vue générale :
+
+```bash
+docker compose -f implementation/docker-compose.yml exec app php artisan \
+  atlas:operator:grant demo@atlas.test \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read" \
+  --reason="Recette locale du dashboard opérateur"
+```
+
+Sans ces grants de détail, les cartes restent visibles mais les liens et les
+API correspondantes sont refusés. Chaque refus et chaque consultation autorisée
+sont audités.
 
 ## Enrôler ou renouveler la MFA
 
@@ -147,8 +168,10 @@ avant un nouvel enrôlement.
 ./implementation/scripts/run-tests.sh \
   tests/Unit/Operations/OperatorPermissionCatalogTest.php \
   tests/Unit/Operations/TotpAuthenticatorTest.php \
+  tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
   tests/Integration/Operations/OperatorAccessFoundationTest.php \
-  tests/Integration/Operations/OperatorMfaTest.php
+  tests/Integration/Operations/OperatorMfaTest.php \
+  tests/Integration/Operations/OperatorOverviewTest.php
 
 make web-check
 ```

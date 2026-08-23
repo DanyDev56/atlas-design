@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\ElevateSessionController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
+use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
 use App\Http\Controllers\Api\RegisterUserController;
@@ -37,12 +38,14 @@ use App\Http\Controllers\Api\Subscriptions\RecurringBillingWebhookController;
 use App\Http\Controllers\Api\Subscriptions\SubscriptionController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use App\Http\Controllers\Api\Workspace\WorkspaceController;
+use Atlas\Modules\Operations\Domain\OperatorPermissionCatalog;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\CorrelationIdMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\DevelopmentOnlyMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorAccessEnabledMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorBearerSessionMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\RequireOperatorPermissionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\RequireWorkspaceEntitlementMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +57,12 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/session/context', [OperatorSessionController::class, 'show']);
             Route::middleware('throttle:auth')->post('/auth/session/elevate', OperatorStepUpController::class);
             Route::post('/auth/session/revoke', [OperatorSessionController::class, 'revoke']);
+            Route::get('/overview', [OperatorOverviewController::class, 'show'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
+            Route::get('/overview/outbox', [OperatorOverviewController::class, 'outbox'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_READ);
+            Route::get('/overview/emails', [OperatorOverviewController::class, 'emails'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EMAIL_READ);
         });
     });
 

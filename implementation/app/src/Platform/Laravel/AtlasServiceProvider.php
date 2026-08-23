@@ -141,10 +141,13 @@ use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyS
 use Atlas\Modules\Operations\Application\DisableOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\EnrollOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
+use Atlas\Modules\Operations\Application\OperationsOverviewQueryHandler;
 use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\VerifyOperatorMfaHandler;
+use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
 use Atlas\Modules\Operations\Domain\OperatorRecoveryCodes;
 use Atlas\Modules\Operations\Domain\TotpAuthenticator;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperationsOverviewSource;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorGrantRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorMfaRepository;
@@ -314,6 +317,12 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOperatorSessionRepository::class);
         $this->app->singleton(PostgresOperatorAuditRepository::class);
         $this->app->singleton(PostgresOperatorMfaRepository::class);
+        $this->app->singleton(OperationsOverviewSource::class, PostgresOperationsOverviewSource::class);
+        $this->app->singleton(OperationsOverviewQueryHandler::class, fn ($app): OperationsOverviewQueryHandler => new OperationsOverviewQueryHandler(
+            $app->make(OperationsOverviewSource::class),
+            (bool) config('operations.backoffice.read_only', true),
+            (bool) config('operations.backoffice.actions_enabled', false),
+        ));
         $this->app->singleton(TotpAuthenticator::class);
         $this->app->singleton(OperatorRecoveryCodes::class, fn (): OperatorRecoveryCodes => new OperatorRecoveryCodes(
             (string) config('app.key'),

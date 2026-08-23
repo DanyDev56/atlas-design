@@ -34,6 +34,7 @@
         <env name="BACKOFFICE_REQUIRE_MFA" value="false" force="true"/>
         <env name="BACKOFFICE_ALLOW_TOTP_EXTERNAL" value="false" force="true"/>
         <env name="BACKOFFICE_READ_ONLY" value="true" force="true"/>
+        <env name="BACKOFFICE_ACTIONS_ENABLED" value="false" force="true"/>
         <env name="BACKOFFICE_SESSION_MINUTES" value="30" force="true"/>
         <env name="BACKOFFICE_STEP_UP_MINUTES" value="10" force="true"/>
         <env name="OTEL_TRACES_EXPORTER" value="none" force="true"/>

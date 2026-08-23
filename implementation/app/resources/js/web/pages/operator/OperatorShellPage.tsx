@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ApiClientError } from '@/api/client';
 import { Brand } from '@/components/ui/Brand';
 import { Icon, type IconName } from '@/components/ui/Icon';
@@ -106,9 +106,10 @@ export function OperatorShellPage() {
             <header className="border-b border-atlas-border bg-atlas-sidebar text-white">
                 <div className="mx-auto flex min-h-20 max-w-[90rem] items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
                     <div className="flex items-center gap-5">
-                        <Brand inverse />
+                        <Link to="/backoffice" aria-label="Retour à la vue d’ensemble"><Brand inverse /></Link>
                         <span className="hidden h-6 w-px bg-white/15 sm:block" />
                         <span className="hidden text-xs font-semibold uppercase tracking-[.18em] text-white/50 sm:block">Back-office</span>
+                        <Link to="/backoffice" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex">Vue d’ensemble</Link>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="hidden text-sm text-white/60 sm:inline">{session?.displayName}</span>

@@ -171,6 +171,9 @@ satisfait.
   documentés avant tout code ; `ADR-004` est accepté.
 - [x] Livrer le socle local de l'incrément 1 : audience et session séparées,
   provisioning CLI, révocation immédiate, audit et shell en lecture seule.
+- [x] Raccorder le dashboard opérateur aux registres Outbox et Emails avec
+  provenance, permissions, pagination et états `NotCollected`/`Unavailable` ;
+  les autres sources restent explicitement non collectées.
 - [ ] Fermer `SEC-GAP-005` : le socle TOTP/step-up est livré et testé ; livrer
   l'authentification résistante au phishing, le break-glass, la rétention et
   valider les incréments 0 à 5 en lecture seule sur la cible externe.

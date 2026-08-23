@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.3.0
+version: 0.4.0
 last_updated: 2026-08-23
 
 references:
@@ -39,7 +39,8 @@ action opérateur, ni exposition externe sans authentification forte.
 |---|---|---|
 | 0 — décisions et menace | Partiel | ADR accepté, frontière `Operations`, TOTP et step-up borné livrés ; authentification résistante au phishing, break-glass et rétention restent ouverts |
 | 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, TOTP chiffré, récupération à usage unique, jetons hachés, révocation immédiate, audit et shell lecture seule |
-| 2 à 7 | Non démarrés | aucune donnée métier ni action opérateur raccordée |
+| 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
+| 3 à 7 | Non démarrés | aucune action opérateur ni donnée transverse supplémentaire raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
 
@@ -99,6 +100,26 @@ Workspace. Aucun écran métier n'est encore livré.
 
 Chaque compteur se rapproche de sa source avec des fixtures déterministes. Une
 source indisponible produit `Unavailable`, jamais une valeur rassurante.
+
+### Preuves livrées
+
+- projection à la demande `OperationsOverview`, reconstruite depuis les tables
+  propriétaires sans table de cache ni donnée de démonstration ;
+- compteurs Outbox exclusifs `Pending`, `Retrying` et `DeadLetter`, avec âge du
+  plus ancien message non distribué ;
+- compteurs email `Accepted`, `Retrying` et `Failed` limités aux événements de
+  livraison connus ;
+- registres paginés et filtrés côté serveur, sans payload, erreur brute,
+  destinataire, contenu ou identifiant fournisseur ;
+- grants de détail `operations.outbox.read` et `operations.email.read`, refus
+  audités et vue générale protégée par `operations.dashboard.read` ;
+- sources non encore instrumentées affichées `NotCollected`, et erreurs de
+  lecture affichées `Unavailable` ; aucun de ces états ne devient zéro ;
+- `BACKOFFICE_ACTIONS_ENABLED=false` maintient les actions coupées côté serveur.
+
+La gate reste partielle tant que les sources API, heartbeats, sauvegardes,
+cohorte, support et conformité ne disposent pas de projections durables et de
+fixtures de rapprochement.
 
 ## Incrément 3 — Cohorte beta et métriques produit
 

@@ -26,6 +26,8 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { RequireOperatorAuth } from '@/components/operator/RequireOperatorAuth';
 import { OperatorLoginPage } from '@/pages/operator/OperatorLoginPage';
+import { OperatorOverviewPage } from '@/pages/operator/OperatorOverviewPage';
+import { OperatorRegistryPage } from '@/pages/operator/OperatorRegistryPage';
 import { OperatorShellPage } from '@/pages/operator/OperatorShellPage';
 
 export function AppRouter() {
@@ -33,7 +35,10 @@ export function AppRouter() {
         <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/backoffice/login" element={<OperatorLoginPage />} />
-            <Route path="/backoffice" element={<RequireOperatorAuth><OperatorShellPage /></RequireOperatorAuth>} />
+            <Route path="/backoffice" element={<RequireOperatorAuth><OperatorOverviewPage /></RequireOperatorAuth>} />
+            <Route path="/backoffice/outbox" element={<RequireOperatorAuth><OperatorRegistryPage kind="outbox" /></RequireOperatorAuth>} />
+            <Route path="/backoffice/emails" element={<RequireOperatorAuth><OperatorRegistryPage kind="emails" /></RequireOperatorAuth>} />
+            <Route path="/backoffice/security" element={<RequireOperatorAuth><OperatorShellPage /></RequireOperatorAuth>} />
             <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/register" element={<RegisterPage />} />

@@ -3,7 +3,7 @@ id: BPT-014
 title: Back-office Metrics Catalogue
 status: In Review
 owner: Product, Engineering and Operations
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-23
 
 references:
@@ -182,15 +182,19 @@ vue « Santé des services » soit déclarée disponible.
 | finance et marge | quotidien | 48 h |
 | sauvegarde | après le job | prochaine fenêtre + 1 h |
 
-## État actuel avant implémentation
+## État actuel
 
 | Capacité | Disponible aujourd'hui | Manque pour le back-office |
 |---|---|---|
 | 13 métriques Analytics Workspace | API snapshot et endpoint unitaire ; plusieurs clés restent `NoData` | vue opérateur et calculs manquants |
 | Dashboard et Business Health | interface par Workspace | agrégation et diagnostic opérateur |
 | Traces HTTP/outbox | Jaeger via OTLP | métriques RED, stockage et alertes durables |
-| Backlog outbox | logs structurés et alerte webhook optionnelle | série temporelle et interface |
-| Emails | registre de livraison par message | agrégats, recherche bornée et alertes |
+| Backlog outbox | compteurs à la demande et registre opérateur paginé/filtré | série temporelle et alertes durables |
+| Emails | compteurs à la demande et registre opérateur paginé/filtré, sans destinataire ni contenu | délai de remise, rejets et alertes durables |
 | Stripe | dashboard fournisseur et état local | vue corrélée, séparation sandbox/live |
 | Activation beta | définitions et tableaux manuels | projection automatisée et écrans |
 | Support/conformité | runbooks et documents | stockage, workflow et audit opérateur |
+
+Les cartes API, runtime, sauvegarde, cohorte, support et demandes de données
+restent explicitement `NotCollected`. Le tableau ne déduit aucune valeur zéro
+de cette absence. Une panne de lecture Outbox ou Emails produit `Unavailable`.
