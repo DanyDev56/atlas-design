@@ -20,6 +20,8 @@ exec "${compose[@]}" exec -T \
   -e ATLAS_DEBUG_VERIFICATION_TOKENS=true \
   -e BACKOFFICE_ENABLED=true \
   -e BACKOFFICE_ALLOW_PASSWORD_ONLY_LOCAL=true \
+  -e BACKOFFICE_REQUIRE_MFA=false \
+  -e BACKOFFICE_ALLOW_TOTP_EXTERNAL=false \
   -e BACKOFFICE_READ_ONLY=true \
   -e CACHE_STORE=array \
   -e MAIL_MAILER=array \

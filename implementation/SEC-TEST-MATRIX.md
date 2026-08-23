@@ -1,7 +1,7 @@
 ---
 title: SEC-TEST — Matrice de vérification MVP
 owner: Engineering + Security
-last_updated: 2026-08-14
+last_updated: 2026-08-23
 references:
   - ../fondation/security/mvp-threat-model.md
   - MVP-CLOSURE.md
@@ -20,7 +20,7 @@ Légende : ☑ automatisé — ◐ partiel — ◻ planifié — — hors scope 
 | SEC-TEST-002 | SEC-T01 | — | ◻ | Fuzz login / lockout |
 | SEC-TEST-003 | SEC-T02 | `VerifyEmail` + `BetaSurfaceHardeningTest` (token debug fermé) | ◐ | Token expiré / rejoué |
 | SEC-TEST-004 | SEC-T03 | `RevokeSessionTest` | ☑ | — |
-| SEC-TEST-005 | SEC-T04 | — | ◻ | Step-up action critique |
+| SEC-TEST-005 | SEC-T04 | `OperatorMfaTest` (TOTP, anti-rejeu, récupération, rotation, step-up borné) | ◐ | Brancher puis tester une première action opérateur sensible |
 | SEC-TEST-006 | SEC-T05 | `AuthRateLimitTest`, `PublicQuoteRateLimitTest` | ☑ | — |
 | SEC-TEST-007 | SEC-T08 | `MembershipRevocationTest`, `CrmAuthorizationTest` | ☑ | — |
 | SEC-TEST-008 | SEC-T09 | `MvpJ2BillingFlowTest` (lecture/acceptation, mauvais token et workspace masqués) | ◐ | Token expiré / rejoué |
@@ -60,5 +60,6 @@ Exécuté manuellement avant release :
 | Gap | Statut Track A |
 |---|---|
 | SEC-GAP-004 (rétention / support) | ☑ purge `atlas:retention:purge` (`runbooks/data-retention-beta.md`) |
+| SEC-GAP-005 (contrôle opérateur) | ◐ audience, TOTP et step-up testés ; authentification résistante au phishing, break-glass et séparation des devoirs ouverts |
 | SEC-GAP-006 (backup hors site) | ◐ risque accepté beta ; dumps locaux 30 j ; hors site post-beta |
 | SEC-GAP-008 (runbooks / alertes) | ◐ runbooks ☑ ; webhook `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` |

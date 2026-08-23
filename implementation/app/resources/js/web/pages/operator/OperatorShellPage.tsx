@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApiClientError } from '@/api/client';
 import { Brand } from '@/components/ui/Brand';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useOperatorAuth } from '@/hooks/useOperatorAuth';
@@ -49,9 +50,19 @@ const modules: Array<{
 ];
 
 export function OperatorShellPage() {
-    const { session, logout } = useOperatorAuth();
+    const { session, logout, stepUp } = useOperatorAuth();
     const navigate = useNavigate();
     const [loggingOut, setLoggingOut] = useState(false);
+    const [stepUpOpen, setStepUpOpen] = useState(false);
+    const [stepUpLoading, setStepUpLoading] = useState(false);
+    const [stepUpError, setStepUpError] = useState<string | null>(null);
+    const [stepUpSucceeded, setStepUpSucceeded] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [mfaCode, setMfaCode] = useState('');
+    const stepUpActive = session?.stepUpExpiresAt
+        ? Date.parse(session.stepUpExpiresAt) > Date.now()
+        : false;
 
     useEffect(() => {
         const previousTitle = document.title;
@@ -67,6 +78,26 @@ export function OperatorShellPage() {
             await logout();
         } finally {
             navigate('/backoffice/login', { replace: true });
+        }
+    }
+
+    async function onStepUp(event: FormEvent) {
+        event.preventDefault();
+        setStepUpLoading(true);
+        setStepUpError(null);
+        setStepUpSucceeded(false);
+        try {
+            await stepUp(email, password, mfaCode);
+            setPassword('');
+            setMfaCode('');
+            setStepUpOpen(false);
+            setStepUpSucceeded(true);
+        } catch (error) {
+            setStepUpError(error instanceof ApiClientError
+                ? error.message
+                : 'La vérification renforcée a échoué.');
+        } finally {
+            setStepUpLoading(false);
         }
     }
 
@@ -131,6 +162,95 @@ export function OperatorShellPage() {
                     </div>
                 </section>
 
+                <section className="mt-6 rounded-2xl border border-atlas-border bg-white p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex items-start gap-4">
+                            <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${stepUpActive ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                                <Icon name={stepUpActive ? 'check' : 'lock'} className="size-5" />
+                            </span>
+                            <div>
+                                <p className="font-semibold">Authentification renforcée</p>
+                                <p className="mt-1 text-sm leading-6 text-atlas-ink-muted">
+                                    {stepUpActive && session?.stepUpExpiresAt
+                                        ? `Step-up valide jusqu’à ${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.stepUpExpiresAt))}.`
+                                        : 'Aucun step-up récent. Les futures opérations sensibles seront refusées.'}
+                                </p>
+                                <p className="mt-1 text-xs text-atlas-ink-muted/75">
+                                    Niveau de session : {session?.authenticationStrength ?? 'inconnu'}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStepUpOpen((current) => !current);
+                                setStepUpError(null);
+                                setStepUpSucceeded(false);
+                            }}
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border px-4 py-2 text-sm font-semibold hover:bg-atlas-surface"
+                        >
+                            Renouveler le step-up
+                        </button>
+                    </div>
+
+                    {stepUpSucceeded && (
+                        <p role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                            Authentification renforcée renouvelée.
+                        </p>
+                    )}
+
+                    {stepUpOpen && (
+                        <form onSubmit={onStepUp} className="mt-6 grid gap-4 border-t border-atlas-border pt-6 md:grid-cols-3">
+                            <label className="text-sm font-medium">
+                                Email opérateur
+                                <input
+                                    type="email"
+                                    required
+                                    autoComplete="username"
+                                    value={email}
+                                    onChange={(event) => setEmail(event.target.value)}
+                                    className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3.5 outline-none focus:border-atlas-accent focus:ring-2 focus:ring-atlas-accent/15"
+                                />
+                            </label>
+                            <label className="text-sm font-medium">
+                                Mot de passe
+                                <input
+                                    type="password"
+                                    required
+                                    autoComplete="current-password"
+                                    value={password}
+                                    onChange={(event) => setPassword(event.target.value)}
+                                    className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3.5 outline-none focus:border-atlas-accent focus:ring-2 focus:ring-atlas-accent/15"
+                                />
+                            </label>
+                            <label className="text-sm font-medium">
+                                Code MFA
+                                <input
+                                    type="text"
+                                    required
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    value={mfaCode}
+                                    onChange={(event) => setMfaCode(event.target.value)}
+                                    className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3.5 outline-none focus:border-atlas-accent focus:ring-2 focus:ring-atlas-accent/15"
+                                />
+                            </label>
+                            {stepUpError && (
+                                <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 md:col-span-3">
+                                    {stepUpError}
+                                </p>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={stepUpLoading}
+                                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-sidebar px-4 py-2 text-sm font-semibold text-white hover:bg-atlas-sidebar/90 disabled:opacity-50 md:col-span-3 md:justify-self-end"
+                            >
+                                {stepUpLoading ? 'Vérification…' : 'Vérifier maintenant'}
+                            </button>
+                        </form>
+                    )}
+                </section>
+
                 <section className="mt-10">
                     <div>
                         <p className="text-lg font-semibold">Surfaces préparées</p>
@@ -161,4 +281,3 @@ export function OperatorShellPage() {
         </div>
     );
 }
-

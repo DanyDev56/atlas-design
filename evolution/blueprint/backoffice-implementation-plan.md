@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-23
 
 references:
@@ -37,8 +37,8 @@ action opérateur, ni exposition externe sans authentification forte.
 
 | Incrément | État | Preuve actuelle |
 |---|---|---|
-| 0 — décisions et menace | Partiel | ADR accepté, frontière `Operations` et deny-by-default actés ; MFA, break-glass et rétention restent ouverts |
-| 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, jetons hachés, révocation immédiate, audit et shell lecture seule |
+| 0 — décisions et menace | Partiel | ADR accepté, frontière `Operations`, TOTP et step-up borné livrés ; authentification résistante au phishing, break-glass et rétention restent ouverts |
+| 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, TOTP chiffré, récupération à usage unique, jetons hachés, révocation immédiate, audit et shell lecture seule |
 | 2 à 7 | Non démarrés | aucune donnée métier ni action opérateur raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
@@ -74,6 +74,16 @@ n'existe, et chaque action cible un contrat propriétaire identifié.
 Tests positifs et négatifs entre session client, session opérateur, grant
 révoqué, session expirée, route directe, cache d'autorisation et second
 Workspace. Aucun écran métier n'est encore livré.
+
+### Preuves livrées
+
+- MFA TOTP enrôlée et tournée hors interface publique ;
+- secret chiffré, anti-rejeu temporel et codes de récupération à usage unique ;
+- sessions révoquées après rotation ou désactivation du facteur ;
+- step-up récent de dix minutes, vérifié côté serveur par middleware ;
+- refus externe par défaut, y compris avec TOTP, sans acceptation de risque
+  explicite et accès réseau borné ;
+- TOTP documenté comme contrôle transitoire non résistant au phishing.
 
 ## Incrément 2 — Dashboard lecture seule
 

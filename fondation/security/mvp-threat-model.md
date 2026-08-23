@@ -3,7 +3,7 @@ id: SEC-001
 title: MVP Transversal Threat Model
 status: In Review
 owner: Product, Engineering and Security
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-08-23
 
 references:
@@ -166,9 +166,11 @@ corrélation ou une réidentification.
 
 ## Plan de contrôle opérateur proposé
 
-`ADR-004` introduit une nouvelle frontière fortement privilégiée. Tant qu'il
-reste `Proposed`, `SEC-GAP-005` demeure ouvert et aucune interface opérateur
-n'est réputée sûre. Son acceptation et son implémentation doivent garantir :
+`ADR-004` introduit une nouvelle frontière fortement privilégiée et est
+accepté. Son premier incrément implémente l'audience séparée, les grants, la
+révocation, l'audit append-only, TOTP et le step-up. `SEC-GAP-005` reste
+partiellement ouvert tant que l'authentification résistante au phishing, le
+break-glass, la rétention et la séparation des devoirs ne sont pas recettés :
 
 - audience, session, routes et grants séparés des Workspaces ;
 - provisioning hors inscription publique et révocation immédiate ;
@@ -432,7 +434,7 @@ d'exploitation. Avant cela, ils constituent des exigences de conception.
 | `SEC-GAP-002` | Le workflow de récupération existe, mais ses commandes détaillées, preuve, rotation et facteurs de secours doivent être contractés au niveau des autres commandes Identity. | Identity | avant `MVP-J1` complet | Open |
 | `SEC-GAP-003` | Entropie, TTL, capacités, rotation, transport et limites de `PublicDocumentProof` non quantifiés. | Billing + Security | avant exposition publique de `MVP-J2` | Open |
 | `SEC-GAP-004` | Classification opérationnelle, durées de rétention, suppression/export et données de support non décidées. | Product + Security | avant données réelles | Open |
-| `SEC-GAP-005` | Modèle opérateur/support proposé par `ADR-004`, mais audience, MFA, break-glass, approbation, rétention d'audit et séparation des devoirs non encore acceptés ni testés. | Engineering + Security | avant accès beta externe | Open |
+| `SEC-GAP-005` | Audience, grants, révocation, audit append-only, TOTP et step-up opérateur sont testés. L'authentification résistante au phishing, le break-glass, l'approbation, la rétention d'audit et la séparation des devoirs restent à livrer. | Engineering + Security | avant accès beta externe | Open |
 | `SEC-GAP-006` | `ADR-002` propose PostgreSQL et un hébergement managé en UE ; fournisseur, gestionnaire de secrets/keys, chiffrement, backup, RPO/RTO et rotation restent à décider. | Engineering | ADR de stack et fournisseur avant production | Open |
 | `SEC-GAP-007` | Seuils de rate limit, quotas, budgets fournisseurs et protection edge restent à calibrer. | Product + Platform | avant beta exposée | Open |
 | `SEC-GAP-008` | Runbooks incident, niveaux d'alerte, conservation des preuves et exercices de restauration/confinement absents. | Security + Platform | avant release candidate | Open |

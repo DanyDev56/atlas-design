@@ -128,7 +128,9 @@ Le futur plan de contrôle interne est spécifié dans le
 [`plan d'implémentation`](../evolution/blueprint/backoffice-implementation-plan.md).
 Le socle local, son provisioning et sa révocation sont décrits dans le
 [`runbook d'accès au back-office`](runbooks/backoffice-access.md). `ADR-004` est
-accepté, mais l'accès externe reste bloqué jusqu'à la livraison du MFA.
+accepté ; TOTP et le step-up sont livrés localement, mais l'accès externe reste
+bloqué jusqu'à une authentification résistante au phishing ou une acceptation
+de risque strictement bornée.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

@@ -171,8 +171,9 @@ satisfait.
   documentés avant tout code ; `ADR-004` est accepté.
 - [x] Livrer le socle local de l'incrément 1 : audience et session séparées,
   provisioning CLI, révocation immédiate, audit et shell en lecture seule.
-- [ ] Fermer `SEC-GAP-005`, livrer le MFA opérateur et valider les incréments 0
-  à 5 du back-office en lecture seule sur la cible externe.
+- [ ] Fermer `SEC-GAP-005` : le socle TOTP/step-up est livré et testé ; livrer
+  l'authentification résistante au phishing, le break-glass, la rétention et
+  valider les incréments 0 à 5 en lecture seule sur la cible externe.
 - [ ] Collecter durablement logs et traces des trois rôles sans donnée sensible.
 - [ ] Configurer une alerte réellement reçue pour indisponibilité HTTP, erreurs
   applicatives, backlog/dead-letter, échec scheduler et saturation PostgreSQL.

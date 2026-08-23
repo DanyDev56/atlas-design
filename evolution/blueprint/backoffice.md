@@ -3,7 +3,7 @@ id: BPT-013
 title: Operator Back-office Blueprint
 status: In Review
 owner: Product, Engineering and Security
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-23
 
 references:
@@ -24,8 +24,10 @@ references:
 
 Ce document décrit la cible fonctionnelle du back-office Atlas. `ADR-004` est
 accepté et le premier incrément livre uniquement l'audience opérateur, les
-grants, les sessions, l'audit et un shell local en lecture seule. Les autres
-surfaces restent soumises à leurs gates respectives.
+grants, les sessions, la MFA TOTP transitoire, le step-up, l'audit et un shell
+local en lecture seule. TOTP n'est pas présenté comme résistant au phishing et
+l'accès externe reste fermé par défaut. Les autres surfaces restent soumises à
+leurs gates respectives.
 
 Le back-office donne aux personnes qui exploitent Atlas une vue cohérente de la
 beta, du produit, des opérations, du support et de la conformité. Il n'est pas

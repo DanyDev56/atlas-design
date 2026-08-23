@@ -43,6 +43,9 @@ final class OperatorBearerSessionMiddleware
         $request->attributes->set('operator_session_id', $session['id']);
         $request->attributes->set('operator_permissions', $session['permissions']);
         $request->attributes->set('operator_session_expires_at', $session['expires_at']);
+        $request->attributes->set('operator_authentication_strength', $session['authentication_strength']);
+        $request->attributes->set('operator_mfa_verified_at', $session['mfa_verified_at']);
+        $request->attributes->set('operator_step_up_at', $session['step_up_at']);
 
         return $next($request);
     }

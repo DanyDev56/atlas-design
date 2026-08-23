@@ -19,16 +19,31 @@ final class OperatorAccessEnabledMiddleware
             ], 404);
         }
 
-        $passwordOnlyAllowed = app()->environment(['local', 'testing'])
+        $localOrTesting = app()->environment(['local', 'testing']);
+        $mfaRequired = (bool) config('operations.backoffice.require_mfa', true);
+        $totpExternalAccepted = (bool) config('operations.backoffice.allow_totp_external', false);
+
+        if ($mfaRequired && ($localOrTesting || $totpExternalAccepted)) {
+            return $next($request);
+        }
+
+        $passwordOnlyAllowed = $localOrTesting
             && config('operations.backoffice.allow_password_only_local', false);
 
-        if (! $passwordOnlyAllowed) {
+        if (! $mfaRequired && $passwordOnlyAllowed) {
+            return $next($request);
+        }
+
+        if (! $localOrTesting && $mfaRequired) {
             return response()->json([
                 'error' => 'StrongAuthenticationRequired',
-                'messages' => ['L’authentification opérateur renforcée n’est pas encore configurée.'],
+                'messages' => ['La MFA TOTP externe exige une acceptation explicite du risque et un accès réseau borné.'],
             ], 503);
         }
 
-        return $next($request);
+        return response()->json([
+            'error' => 'StrongAuthenticationRequired',
+            'messages' => ['L’authentification opérateur renforcée doit être activée.'],
+        ], 503);
     }
 }

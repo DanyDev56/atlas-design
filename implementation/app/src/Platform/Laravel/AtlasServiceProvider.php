@@ -21,6 +21,7 @@ use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
 use Atlas\Composition\Operations\CreateOperatorSessionHandler;
+use Atlas\Composition\Operations\ElevateOperatorSessionHandler;
 use Atlas\Composition\Subscriptions\StartWorkspaceTrialConsumer;
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
@@ -137,10 +138,16 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Modules\Operations\Application\DisableOperatorMfaHandler;
+use Atlas\Modules\Operations\Application\EnrollOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
+use Atlas\Modules\Operations\Application\VerifyOperatorMfaHandler;
+use Atlas\Modules\Operations\Domain\OperatorRecoveryCodes;
+use Atlas\Modules\Operations\Domain\TotpAuthenticator;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorGrantRepository;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorMfaRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorSessionRepository;
 use Atlas\Modules\Subscriptions\Application\CreateBillingPortalSessionHandler;
 use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
@@ -306,6 +313,11 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOperatorGrantRepository::class);
         $this->app->singleton(PostgresOperatorSessionRepository::class);
         $this->app->singleton(PostgresOperatorAuditRepository::class);
+        $this->app->singleton(PostgresOperatorMfaRepository::class);
+        $this->app->singleton(TotpAuthenticator::class);
+        $this->app->singleton(OperatorRecoveryCodes::class, fn (): OperatorRecoveryCodes => new OperatorRecoveryCodes(
+            (string) config('app.key'),
+        ));
 
         $this->app->singleton(RegisterUserHandler::class);
         $this->app->singleton(AuthenticateCredentialsHandler::class);
@@ -316,7 +328,23 @@ final class AtlasServiceProvider extends ServiceProvider
             (int) config('operations.backoffice.session_minutes', 30),
         ));
         $this->app->singleton(RevokeOperatorSessionHandler::class);
-        $this->app->singleton(CreateOperatorSessionHandler::class);
+        $this->app->singleton(VerifyOperatorMfaHandler::class);
+        $this->app->singleton(EnrollOperatorMfaHandler::class);
+        $this->app->singleton(DisableOperatorMfaHandler::class);
+        $this->app->singleton(CreateOperatorSessionHandler::class, fn ($app): CreateOperatorSessionHandler => new CreateOperatorSessionHandler(
+            $app->make(AuthenticateCredentialsHandler::class),
+            $app->make(VerifyOperatorMfaHandler::class),
+            $app->make(OpenOperatorSessionHandler::class),
+            (bool) config('operations.backoffice.require_mfa', true),
+            (int) config('operations.backoffice.step_up_minutes', 10),
+        ));
+        $this->app->singleton(ElevateOperatorSessionHandler::class, fn ($app): ElevateOperatorSessionHandler => new ElevateOperatorSessionHandler(
+            $app->make(AuthenticateCredentialsHandler::class),
+            $app->make(VerifyOperatorMfaHandler::class),
+            $app->make(PostgresOperatorSessionRepository::class),
+            $app->make(PostgresOperatorAuditRepository::class),
+            (int) config('operations.backoffice.step_up_minutes', 10),
+        ));
         $this->app->singleton(CreateWorkspaceInvitationHandler::class);
         $this->app->singleton(AcceptWorkspaceInvitationHandler::class);
         $this->app->singleton(ListWorkspaceInvitationsHandler::class);

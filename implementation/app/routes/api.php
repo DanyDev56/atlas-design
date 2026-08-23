@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
+use App\Http\Controllers\Api\Operator\OperatorStepUpController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
@@ -51,6 +52,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
         Route::middleware(OperatorBearerSessionMiddleware::class)->group(function (): void {
             Route::get('/session/context', [OperatorSessionController::class, 'show']);
+            Route::middleware('throttle:auth')->post('/auth/session/elevate', OperatorStepUpController::class);
             Route::post('/auth/session/revoke', [OperatorSessionController::class, 'revoke']);
         });
     });

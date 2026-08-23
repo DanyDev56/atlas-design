@@ -13,6 +13,7 @@ export function OperatorLoginPage() {
     const target = (location.state as { from?: string } | null)?.from ?? '/backoffice';
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [mfaCode, setMfaCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +34,7 @@ export function OperatorLoginPage() {
         setError(null);
         setLoading(true);
         try {
-            await login(email, password);
+            await login(email, password, mfaCode);
             navigate(target, { replace: true });
         } catch (err) {
             if (err instanceof ApiClientError && err.status === 404) {
@@ -107,17 +108,27 @@ export function OperatorLoginPage() {
                                 onChange={(event) => setPassword(event.target.value)}
                             />
                         </FormField>
+                        <FormField label="Code d’authentification ou de récupération">
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                className={inputClassName}
+                                value={mfaCode}
+                                onChange={(event) => setMfaCode(event.target.value)}
+                                placeholder="123456"
+                            />
+                        </FormField>
                         <SubmitButton loading={loading} loadingLabel="Vérification…">
                             Ouvrir le back-office
                         </SubmitButton>
                     </form>
 
                     <p className="mt-6 border-t border-atlas-border pt-5 text-xs leading-5 text-atlas-ink-muted">
-                        Le mode mot de passe seul est limité aux environnements local et test. Un environnement externe exige une authentification renforcée.
+                        Le code est obligatoire dès qu’une MFA est enrôlée. Le mode mot de passe seul reste réservé aux environnements local et test.
                     </p>
                 </section>
             </main>
         </div>
     );
 }
-

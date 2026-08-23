@@ -13,6 +13,9 @@ final class PostgresOperatorSessionRepository
         string $userId,
         string $grantId,
         string $tokenHash,
+        string $authenticationStrength,
+        ?\DateTimeImmutable $mfaVerifiedAt,
+        ?\DateTimeImmutable $stepUpAt,
         \DateTimeImmutable $expiresAt,
         \DateTimeImmutable $now,
     ): void {
@@ -22,6 +25,9 @@ final class PostgresOperatorSessionRepository
             'grant_id' => $grantId,
             'token_hash' => $tokenHash,
             'status' => 'Active',
+            'authentication_strength' => $authenticationStrength,
+            'mfa_verified_at' => $mfaVerifiedAt?->format('Y-m-d H:i:sP'),
+            'step_up_at' => $stepUpAt?->format('Y-m-d H:i:sP'),
             'expires_at' => $expiresAt->format('Y-m-d H:i:sP'),
             'created_at' => $now->format('Y-m-d H:i:sP'),
         ]);
@@ -44,6 +50,9 @@ final class PostgresOperatorSessionRepository
                 'sessions.user_id',
                 'sessions.grant_id',
                 'sessions.expires_at',
+                'sessions.authentication_strength',
+                'sessions.mfa_verified_at',
+                'sessions.step_up_at',
                 'grants.permissions',
             ])
             ->first();
@@ -61,8 +70,29 @@ final class PostgresOperatorSessionRepository
             'user_id' => (string) $row->user_id,
             'grant_id' => (string) $row->grant_id,
             'expires_at' => (string) $row->expires_at,
+            'authentication_strength' => (string) $row->authentication_strength,
+            'mfa_verified_at' => $row->mfa_verified_at !== null ? (string) $row->mfa_verified_at : null,
+            'step_up_at' => $row->step_up_at !== null ? (string) $row->step_up_at : null,
             'permissions' => is_array($permissions) ? array_values(array_map('strval', $permissions)) : [],
         ];
+    }
+
+    public function elevate(
+        string $sessionId,
+        string $userId,
+        string $authenticationStrength,
+        \DateTimeImmutable $now,
+    ): bool {
+        return DB::table('operations.operator_sessions')
+            ->where('id', $sessionId)
+            ->where('user_id', $userId)
+            ->where('status', 'Active')
+            ->where('expires_at', '>', $now->format('Y-m-d H:i:sP'))
+            ->update([
+                'authentication_strength' => $authenticationStrength,
+                'mfa_verified_at' => $now->format('Y-m-d H:i:sP'),
+                'step_up_at' => $now->format('Y-m-d H:i:sP'),
+            ]) === 1;
     }
 
     public function revoke(string $sessionId, string $userId, \DateTimeImmutable $now): bool

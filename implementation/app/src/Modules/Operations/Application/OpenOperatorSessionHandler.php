@@ -20,10 +20,15 @@ final class OpenOperatorSessionHandler
         private readonly int $sessionMinutes,
     ) {}
 
-    /** @return array{session_id: string, user_id: string, token: string, expires_at: string, permissions: list<string>} */
-    public function handle(string $userId, ?string $correlationId = null): array
-    {
-        return DB::transaction(function () use ($userId, $correlationId): array {
+    /** @return array{session_id: string, user_id: string, token: string, expires_at: string, permissions: list<string>, authentication_strength: string, mfa_verified_at: string|null, step_up_expires_at: string|null} */
+    public function handle(
+        string $userId,
+        string $authenticationStrength,
+        ?\DateTimeImmutable $mfaVerifiedAt,
+        int $stepUpMinutes,
+        ?string $correlationId = null,
+    ): array {
+        return DB::transaction(function () use ($userId, $authenticationStrength, $mfaVerifiedAt, $stepUpMinutes, $correlationId): array {
             $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $grant = $this->grants->findActiveForUser($userId, $now);
 
@@ -40,6 +45,9 @@ final class OpenOperatorSessionHandler
                 $userId,
                 (string) $grant['id'],
                 PostgresOperatorSessionRepository::hashToken($plainToken),
+                $authenticationStrength,
+                $mfaVerifiedAt,
+                $mfaVerifiedAt,
                 $expiresAt,
                 $now,
             );
@@ -52,7 +60,10 @@ final class OpenOperatorSessionHandler
                 targetType: 'OperatorSession',
                 targetIdHash: hash('sha256', $sessionId),
                 correlationId: $correlationId,
-                metadata: ['grant_version' => (int) $grant['version']],
+                metadata: [
+                    'grant_version' => (int) $grant['version'],
+                    'authentication_strength' => $authenticationStrength,
+                ],
                 occurredAt: $now,
             );
 
@@ -62,6 +73,9 @@ final class OpenOperatorSessionHandler
                 'token' => $plainToken,
                 'expires_at' => $expiresAt->format(DATE_ATOM),
                 'permissions' => $grant['permissions'],
+                'authentication_strength' => $authenticationStrength,
+                'mfa_verified_at' => $mfaVerifiedAt?->format(DATE_ATOM),
+                'step_up_expires_at' => $mfaVerifiedAt?->modify('+'.max(1, min(30, $stepUpMinutes)).' minutes')->format(DATE_ATOM),
             ];
         });
     }

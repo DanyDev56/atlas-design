@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
     fetchOperatorSessionContext,
+    elevateOperatorSession,
     loginOperator as requestOperatorLogin,
     revokeOperatorSession,
 } from '@/api/operator';
@@ -23,12 +24,16 @@ export interface OperatorSessionState {
     expiresAt: string;
     permissions: string[];
     readOnly: boolean;
+    authenticationStrength: string;
+    mfaVerifiedAt: string | null;
+    stepUpExpiresAt: string | null;
 }
 
 interface OperatorAuthContextValue {
     session: OperatorSessionState | null;
     resolving: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string, mfaCode: string) => Promise<void>;
+    stepUp: (email: string, password: string, mfaCode: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -83,6 +88,9 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
                     expiresAt: context.expires_at,
                     permissions: context.permissions,
                     readOnly: context.read_only,
+                    authenticationStrength: context.authentication_strength,
+                    mfaVerifiedAt: context.mfa_verified_at,
+                    stepUpExpiresAt: context.step_up_expires_at,
                 };
                 setSession(next);
                 persistSession(next);
@@ -104,8 +112,8 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.token]);
 
-    const login = useCallback(async (email: string, password: string): Promise<void> => {
-        const result = await requestOperatorLogin(email, password);
+    const login = useCallback(async (email: string, password: string, mfaCode: string): Promise<void> => {
+        const result = await requestOperatorLogin(email, password, mfaCode);
         const next: OperatorSessionState = {
             sessionId: result.session_id,
             userId: result.user_id,
@@ -114,10 +122,26 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
             expiresAt: result.expires_at,
             permissions: result.permissions,
             readOnly: true,
+            authenticationStrength: result.authentication_strength,
+            mfaVerifiedAt: result.mfa_verified_at,
+            stepUpExpiresAt: result.step_up_expires_at,
         };
         setSession(next);
         persistSession(next);
     }, []);
+
+    const stepUp = useCallback(async (email: string, password: string, mfaCode: string): Promise<void> => {
+        if (!session?.token) throw new Error('Session opérateur absente.');
+        const result = await elevateOperatorSession(session.token, email, password, mfaCode);
+        const next: OperatorSessionState = {
+            ...session,
+            authenticationStrength: result.authentication_strength,
+            mfaVerifiedAt: result.mfa_verified_at,
+            stepUpExpiresAt: result.step_up_expires_at,
+        };
+        setSession(next);
+        persistSession(next);
+    }, [session]);
 
     const logout = useCallback(async (): Promise<void> => {
         const token = session?.token;
@@ -133,8 +157,9 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
         session,
         resolving,
         login,
+        stepUp,
         logout,
-    }), [session, resolving, login, logout]);
+    }), [session, resolving, login, stepUp, logout]);
 
     return <OperatorAuthContext.Provider value={value}>{children}</OperatorAuthContext.Provider>;
 }
@@ -145,4 +170,3 @@ export function useOperatorAuth(): OperatorAuthContextValue {
 
     return context;
 }
-

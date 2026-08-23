@@ -7,6 +7,9 @@ export interface OperatorLoginResponse {
     token: string;
     expires_at: string;
     permissions: string[];
+    authentication_strength: string;
+    mfa_verified_at: string | null;
+    step_up_expires_at: string | null;
 }
 
 export interface OperatorSessionContext {
@@ -15,14 +18,37 @@ export interface OperatorSessionContext {
     expires_at: string;
     permissions: string[];
     read_only: boolean;
+    authentication_strength: string;
+    mfa_verified_at: string | null;
+    step_up_expires_at: string | null;
 }
 
-export async function loginOperator(email: string, password: string): Promise<OperatorLoginResponse> {
+export interface OperatorStepUpResponse {
+    authentication_strength: string;
+    mfa_verified_at: string;
+    step_up_expires_at: string;
+}
+
+export async function loginOperator(email: string, password: string, mfaCode: string): Promise<OperatorLoginResponse> {
     return apiRequest<OperatorLoginResponse>(
         'POST',
         '/operator/auth/login',
-        { email, password },
+        { email, password, mfa_code: mfaCode || null },
         { auth: false },
+    );
+}
+
+export async function elevateOperatorSession(
+    token: string,
+    email: string,
+    password: string,
+    mfaCode: string,
+): Promise<OperatorStepUpResponse> {
+    return apiRequest<OperatorStepUpResponse>(
+        'POST',
+        '/operator/auth/session/elevate',
+        { email, password, mfa_code: mfaCode },
+        { token },
     );
 }
 
@@ -43,4 +69,3 @@ export async function revokeOperatorSession(token: string): Promise<void> {
         { token, idempotency: true },
     );
 }
-
