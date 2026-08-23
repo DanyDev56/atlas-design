@@ -1,9 +1,9 @@
 ---
 id: BPT-015
 title: Back-office Implementation Plan
-status: Draft
+status: In Review
 owner: Engineering, Product and Security
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-23
 
 references:
@@ -18,19 +18,28 @@ references:
 
 # Plan d'implémentation du back-office
 
-## Embargo documentaire
+## Gate documentaire — franchie le 23 août 2026
 
-Aucune route, migration, grant ou interface opérateur ne doit être implémenté
-avant :
+Les préconditions suivantes ont autorisé le démarrage du socle :
 
 1. revue et acceptation d'`ADR-004` ;
 2. validation Product du périmètre des écrans ;
 3. validation Security des audiences, permissions et actions ;
-4. décision sur la rétention de l'audit, du support et de la cohorte ;
-5. sélection des métriques strictement nécessaires à la beta.
+4. maintien des données métier, support et cohorte hors du premier incrément ;
+5. maintien des métriques hors du premier incrément jusqu'à validation de leur
+   source et de leur rétention.
 
-Une maquette visuelle statique peut être discutée, mais elle ne reçoit aucune
-donnée réelle et ne crée aucune fausse autorité.
+`ADR-004` est accepté. Toute surface ultérieure reste bloquée par sa gate
+d'incrément ; ce franchissement n'autorise ni donnée métier transverse, ni
+action opérateur, ni exposition externe sans authentification forte.
+
+## État d'avancement
+
+| Incrément | État | Preuve actuelle |
+|---|---|---|
+| 0 — décisions et menace | Partiel | ADR accepté, frontière `Operations` et deny-by-default actés ; MFA, break-glass et rétention restent ouverts |
+| 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, jetons hachés, révocation immédiate, audit et shell lecture seule |
+| 2 à 7 | Non démarrés | aucune donnée métier ni action opérateur raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
 
@@ -192,4 +201,3 @@ propre gate.
 - migration, sauvegarde, restauration et rollback répétés ;
 - documentation et runbooks mis à jour ;
 - sign-off Product, Engineering, Security et Support/Operations.
-

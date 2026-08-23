@@ -36,7 +36,7 @@ son préfixe, par exemple `CRM-ADR-*` ou `BIL-ADR-*`.
 | [`ADR-001`](ADR-001-mvp-application-topology.md) | Le MVP utilise un modular monolith à frontières fortes. | Accepted | 2026-08-06 | Engineering |
 | [`ADR-002`](ADR-002-mvp-implementation-stack.md) | Le MVP utilise PHP, Laravel, React et PostgreSQL. | Accepted | 2026-08-06 | Engineering |
 | [`ADR-003`](ADR-003-subscriptions-context-ownership.md) | Le catalogue, les essais, les abonnements Atlas et les droits d'accès appartiennent à `Subscriptions`. | Accepted | 2026-08-23 | Product and Engineering |
-| [`ADR-004`](ADR-004-operator-control-plane.md) | Le back-office utilise un plan de contrôle opérateur et un contexte `Operations` séparés des Workspaces. | Proposed | 2026-08-23 | Product, Engineering and Security |
+| [`ADR-004`](ADR-004-operator-control-plane.md) | Le back-office utilise un plan de contrôle opérateur et un contexte `Operations` séparés des Workspaces. | Accepted | 2026-08-23 | Product, Engineering and Security |
 
 ---
 

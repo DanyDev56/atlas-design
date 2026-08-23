@@ -27,13 +27,17 @@
         <ini name="memory_limit" value="256M"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
-        <env name="ATLAS_DEVELOPMENT_ROUTES" value="true"/>
-        <env name="ATLAS_DEBUG_VERIFICATION_TOKENS" value="true"/>
-        <env name="OTEL_TRACES_EXPORTER" value="none"/>
+        <env name="ATLAS_DEVELOPMENT_ROUTES" value="true" force="true"/>
+        <env name="ATLAS_DEBUG_VERIFICATION_TOKENS" value="true" force="true"/>
+        <env name="BACKOFFICE_ENABLED" value="true" force="true"/>
+        <env name="BACKOFFICE_ALLOW_PASSWORD_ONLY_LOCAL" value="true" force="true"/>
+        <env name="BACKOFFICE_READ_ONLY" value="true" force="true"/>
+        <env name="BACKOFFICE_SESSION_MINUTES" value="30" force="true"/>
+        <env name="OTEL_TRACES_EXPORTER" value="none" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
-        <env name="CACHE_STORE" value="array"/>
+        <env name="CACHE_STORE" value="array" force="true"/>
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="postgres"/>
         <env name="DB_PORT" value="5432"/>

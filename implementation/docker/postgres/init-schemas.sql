@@ -10,6 +10,7 @@ CREATE SCHEMA IF NOT EXISTS "business_health";
 CREATE SCHEMA IF NOT EXISTS advisor;
 CREATE SCHEMA IF NOT EXISTS notifications;
 CREATE SCHEMA IF NOT EXISTS subscriptions;
+CREATE SCHEMA IF NOT EXISTS operations;
 CREATE SCHEMA IF NOT EXISTS platform;
 
 -- Rôles bornés par module (dev local — identité commune pour simplifier le bootstrap).
@@ -24,6 +25,7 @@ GRANT USAGE ON SCHEMA "business_health" TO atlas;
 GRANT USAGE ON SCHEMA advisor TO atlas;
 GRANT USAGE ON SCHEMA notifications TO atlas;
 GRANT USAGE ON SCHEMA subscriptions TO atlas;
+GRANT USAGE ON SCHEMA operations TO atlas;
 GRANT USAGE ON SCHEMA platform TO atlas;
 
 GRANT CREATE ON SCHEMA identity TO atlas;
@@ -35,4 +37,5 @@ GRANT CREATE ON SCHEMA "business_health" TO atlas;
 GRANT CREATE ON SCHEMA advisor TO atlas;
 GRANT CREATE ON SCHEMA notifications TO atlas;
 GRANT CREATE ON SCHEMA subscriptions TO atlas;
+GRANT CREATE ON SCHEMA operations TO atlas;
 GRANT CREATE ON SCHEMA platform TO atlas;

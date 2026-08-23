@@ -168,9 +168,11 @@ satisfait.
 - [x] Logs JSON corrélés, traces HTTP/outbox et runbooks d'incident disponibles.
 - [x] Monitoring du backlog, retries et dead-letters de l'outbox implémenté.
 - [x] Back-office opérateur, catalogue de métriques et ordre d'implémentation
-  documentés avant tout code ; `ADR-004` reste à accepter.
-- [ ] Accepter `ADR-004`, fermer `SEC-GAP-005` et valider les incréments 0 à 5
-  du back-office en lecture seule sur la cible.
+  documentés avant tout code ; `ADR-004` est accepté.
+- [x] Livrer le socle local de l'incrément 1 : audience et session séparées,
+  provisioning CLI, révocation immédiate, audit et shell en lecture seule.
+- [ ] Fermer `SEC-GAP-005`, livrer le MFA opérateur et valider les incréments 0
+  à 5 du back-office en lecture seule sur la cible externe.
 - [ ] Collecter durablement logs et traces des trois rôles sans donnée sensible.
 - [ ] Configurer une alerte réellement reçue pour indisponibilité HTTP, erreurs
   applicatives, backlog/dead-letter, échec scheduler et saturation PostgreSQL.

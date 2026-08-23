@@ -1,9 +1,9 @@
 ---
 id: BPT-013
 title: Operator Back-office Blueprint
-status: Draft
+status: In Review
 owner: Product, Engineering and Security
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-23
 
 references:
@@ -22,9 +22,10 @@ references:
 
 ## Statut et objectif
 
-Ce document décrit la cible fonctionnelle du back-office Atlas avant toute
-implémentation. Il dépend de l'acceptation d'`ADR-004` ; tant que cet ADR reste
-`Proposed`, ce Blueprint reste `Draft` et n'autorise aucun raccourci technique.
+Ce document décrit la cible fonctionnelle du back-office Atlas. `ADR-004` est
+accepté et le premier incrément livre uniquement l'audience opérateur, les
+grants, les sessions, l'audit et un shell local en lecture seule. Les autres
+surfaces restent soumises à leurs gates respectives.
 
 Le back-office donne aux personnes qui exploitent Atlas une vue cohérente de la
 beta, du produit, des opérations, du support et de la conformité. Il n'est pas
@@ -274,4 +275,3 @@ une source non critique est indisponible et indique précisément cette source.
 - rétention de l'audit, du support et de la cohorte décidée ;
 - parcours export/fermeture aligné avec les textes publiés ;
 - plan d'implémentation séquencé avec gates exécutables.
-

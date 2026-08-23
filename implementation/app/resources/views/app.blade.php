@@ -2,11 +2,15 @@
 <html lang="fr">
 <head>
     @php($isLanding = request()->path() === '/')
+    @php($isBackoffice = request()->is('backoffice*'))
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="{{ $isLanding ? '#f7f9f6' : '#f4f6f3' }}">
-    <title>{{ $isLanding ? 'Atlas — Pilotez votre activité avec confiance' : 'Atlas' }}</title>
+    <title>{{ $isLanding ? 'Atlas — Pilotez votre activité avec confiance' : ($isBackoffice ? 'Back-office — Atlas' : 'Atlas') }}</title>
+    @if ($isBackoffice)
+        <meta name="robots" content="noindex,nofollow,noarchive">
+    @endif
     @if ($isLanding)
         <meta name="description" content="Atlas relie clients, devis, factures et données réelles pour aider les indépendants à comprendre leur activité et décider quoi faire ensuite.">
         <meta property="og:type" content="website">

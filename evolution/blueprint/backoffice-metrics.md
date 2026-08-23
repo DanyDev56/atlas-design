@@ -1,9 +1,9 @@
 ---
 id: BPT-014
 title: Back-office Metrics Catalogue
-status: Draft
+status: In Review
 owner: Product, Engineering and Operations
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-23
 
 references:
@@ -194,4 +194,3 @@ vue « Santé des services » soit déclarée disponible.
 | Stripe | dashboard fournisseur et état local | vue corrélée, séparation sandbox/live |
 | Activation beta | définitions et tableaux manuels | projection automatisée et écrans |
 | Support/conformité | runbooks et documents | stockage, workflow et audit opérateur |
-

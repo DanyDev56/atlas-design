@@ -43,6 +43,7 @@ abstract class IntegrationTestCase extends TestCase
         DB::statement('DROP SCHEMA IF EXISTS advisor CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS notifications CASCADE');
         DB::statement('DROP SCHEMA IF EXISTS subscriptions CASCADE');
+        DB::statement('DROP SCHEMA IF EXISTS operations CASCADE');
 
         DB::statement('CREATE SCHEMA IF NOT EXISTS platform');
         DB::statement('CREATE SCHEMA IF NOT EXISTS workspace');
@@ -54,6 +55,7 @@ abstract class IntegrationTestCase extends TestCase
         DB::statement('CREATE SCHEMA IF NOT EXISTS advisor');
         DB::statement('CREATE SCHEMA IF NOT EXISTS notifications');
         DB::statement('CREATE SCHEMA IF NOT EXISTS subscriptions');
+        DB::statement('CREATE SCHEMA IF NOT EXISTS operations');
 
         self::$atlasSchemasPrepared = true;
     }

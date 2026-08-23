@@ -1,10 +1,10 @@
 ---
 id: ADR-004
 title: Operator Control Plane and Back-office Boundary
-status: Proposed
+status: Accepted
 date: 2026-08-23
 owner: Product, Engineering and Security
-version: 0.1.0
+version: 1.0.0
 last_updated: 2026-08-23
 
 references:
@@ -40,8 +40,8 @@ export, fermeture, approbation et audit d'accès privilégié. Il ne peut donc p
 être réduit à un assemblage graphique sans frontière de responsabilité.
 
 `ADR-001` a figé les huit domaines du MVP et `ADR-003` a ensuite ajouté
-`Subscriptions` pour la relation commerciale entre Atlas et ses clients. Une
-acceptation d'`ADR-004` étendrait à son tour la liste normative avec un contexte
+`Subscriptions` pour la relation commerciale entre Atlas et ses clients.
+L'acceptation d'`ADR-004` étend à son tour la liste normative avec un contexte
 de support interne `Operations`, sans modifier les frontières ou la propriété
 des domaines déjà acceptés.
 
@@ -89,11 +89,10 @@ outil d'observabilité, pas devenir le plan de contrôle d'Atlas.
 
 ## Décision
 
-Atlas propose **l'option A** : un plan de contrôle opérateur séparé, servi sous
+Atlas retient **l'option A** : un plan de contrôle opérateur séparé, servi sous
 `/backoffice`, et un contexte de support `Operations` dans le modular monolith.
-Cette décision reste non normative tant que l'ADR est `Proposed`.
 
-Si elle est acceptée, cette décision amende uniquement la liste des modules
+Cette décision amende uniquement la liste des modules
 obligatoires d'`ADR-001` : `Operations` devient un contexte de support interne,
 portant le total à dix avec `Subscriptions`. Elle ne remplace ni la topologie
 du modular monolith, ni les règles de stockage, transaction, messaging et

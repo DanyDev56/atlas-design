@@ -20,6 +20,7 @@ use Atlas\Composition\Notifications\OutboxNotificationsEmailConsumer;
 use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
+use Atlas\Composition\Operations\CreateOperatorSessionHandler;
 use Atlas\Composition\Subscriptions\StartWorkspaceTrialConsumer;
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
@@ -106,6 +107,7 @@ use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresContactRepository;
 use Atlas\Modules\Crm\Infrastructure\Persistence\PostgresOpportunityRepository;
 use Atlas\Modules\Crm\Infrastructure\PostgresCrmIdempotencyStore;
 use Atlas\Modules\Identity\Application\AcceptWorkspaceInvitationHandler;
+use Atlas\Modules\Identity\Application\AuthenticateCredentialsHandler;
 use Atlas\Modules\Identity\Application\BootstrapIdentityForWorkspaceHandler;
 use Atlas\Modules\Identity\Application\CompleteAccountRecoveryHandler;
 use Atlas\Modules\Identity\Application\CreateSessionHandler;
@@ -135,6 +137,11 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
+use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRepository;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorGrantRepository;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorSessionRepository;
 use Atlas\Modules\Subscriptions\Application\CreateBillingPortalSessionHandler;
 use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
 use Atlas\Modules\Subscriptions\Application\StartTrialForWorkspaceHandler;
@@ -296,8 +303,20 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresAccountRecoveryRepository::class);
         $this->app->singleton(PostgresIdempotencyStore::class);
         $this->app->singleton(PostgresBootstrapWorkflowRepository::class);
+        $this->app->singleton(PostgresOperatorGrantRepository::class);
+        $this->app->singleton(PostgresOperatorSessionRepository::class);
+        $this->app->singleton(PostgresOperatorAuditRepository::class);
 
         $this->app->singleton(RegisterUserHandler::class);
+        $this->app->singleton(AuthenticateCredentialsHandler::class);
+        $this->app->singleton(OpenOperatorSessionHandler::class, fn ($app): OpenOperatorSessionHandler => new OpenOperatorSessionHandler(
+            $app->make(PostgresOperatorGrantRepository::class),
+            $app->make(PostgresOperatorSessionRepository::class),
+            $app->make(PostgresOperatorAuditRepository::class),
+            (int) config('operations.backoffice.session_minutes', 30),
+        ));
+        $this->app->singleton(RevokeOperatorSessionHandler::class);
+        $this->app->singleton(CreateOperatorSessionHandler::class);
         $this->app->singleton(CreateWorkspaceInvitationHandler::class);
         $this->app->singleton(AcceptWorkspaceInvitationHandler::class);
         $this->app->singleton(ListWorkspaceInvitationsHandler::class);

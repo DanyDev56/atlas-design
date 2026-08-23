@@ -9,3 +9,5 @@ Route::get('/', AppWebController::class);
 Route::get('/playground', PlaygroundController::class);
 
 Route::get('/app/{path?}', AppWebController::class)->where('path', '.*');
+
+Route::get('/backoffice/{path?}', AppWebController::class)->where('path', '.*');

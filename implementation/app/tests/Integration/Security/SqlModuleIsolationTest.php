@@ -20,6 +20,10 @@ final class SqlModuleIsolationTest extends IntegrationTestCase
         }
 
         $this->assertFalse($this->tryWorkspaceRoleAccess());
+
+        if ($this->roleExists('atlas_operations')) {
+            $this->assertFalse($this->tryOperationsRoleAccess());
+        }
     }
 
     private function roleExists(string $role): bool
@@ -39,6 +43,23 @@ final class SqlModuleIsolationTest extends IntegrationTestCase
             return true;
         } catch (\Throwable) {
             DB::connection('pgsql')->statement('ROLLBACK TO SAVEPOINT atlas_role_isolation_test');
+
+            return false;
+        }
+    }
+
+    private function tryOperationsRoleAccess(): bool
+    {
+        DB::connection('pgsql')->statement('SAVEPOINT atlas_operations_role_isolation_test');
+
+        try {
+            DB::connection('pgsql')->statement('SET LOCAL ROLE atlas_operations');
+            DB::connection('pgsql')->select('SELECT 1 FROM identity.users LIMIT 1');
+            DB::connection('pgsql')->statement('RELEASE SAVEPOINT atlas_operations_role_isolation_test');
+
+            return true;
+        } catch (\Throwable) {
+            DB::connection('pgsql')->statement('ROLLBACK TO SAVEPOINT atlas_operations_role_isolation_test');
 
             return false;
         }

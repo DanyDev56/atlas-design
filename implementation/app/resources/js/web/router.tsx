@@ -24,11 +24,17 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
+import { RequireOperatorAuth } from '@/components/operator/RequireOperatorAuth';
+import { OperatorLoginPage } from '@/pages/operator/OperatorLoginPage';
+import { OperatorShellPage } from '@/pages/operator/OperatorShellPage';
 
 export function AppRouter() {
     return (
         <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/backoffice/login" element={<OperatorLoginPage />} />
+            <Route path="/backoffice" element={<RequireOperatorAuth><OperatorShellPage /></RequireOperatorAuth>} />
+            <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/register" element={<RegisterPage />} />
             <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />

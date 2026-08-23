@@ -57,18 +57,18 @@ Client, Quote, Invoice, Payment ou résultat d'import.
 Settings regroupe des écrans appartenant à Identity, Workspace et
 Notifications. La proximité de navigation ne crée aucune propriété partagée.
 
-### Back-office opérateur — proposition post-MVP
+### Back-office opérateur — plan de contrôle post-MVP
 
 Le back-office n'appartient pas à la navigation client et n'est pas un
-Dashboard doté de droits supplémentaires. `ADR-004` propose un contexte de
+Dashboard doté de droits supplémentaires. `ADR-004` établit un contexte de
 support `Operations` pour les dossiers support, la cohorte beta, les demandes
 de données, les approbations et l'audit privilégié. Il compose uniquement les
 contrats publics des domaines et ne possède aucune vérité CRM, Billing,
 Analytics, Advisor ou Subscriptions.
 
-Tant que l'ADR reste `Proposed`, `Operations` n'est pas ajouté à la liste
-normative des bounded contexts et aucune implémentation ne doit anticiper son
-acceptation.
+`Operations` appartient désormais à la liste normative des bounded contexts de
+support. Son premier incrément ne possède encore aucune donnée métier : il se
+limite à l'identité opérateur, aux grants, aux sessions et à l'audit.
 
 ---
 

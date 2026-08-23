@@ -43,10 +43,10 @@ Un rôle n'est jamais une permission. Les noms `Owner`, `Admin`, `Member` ou
 `Viewer` ne permettent donc aucune décision implicite dans l'interface, une API
 ou un domaine.
 
-## Autorité opérateur proposée
+## Autorité opérateur
 
 L'autorité Workspace ci-dessus ne peut pas autoriser `/backoffice`. `ADR-004`
-propose une audience et des grants plateforme séparés :
+impose une audience et des grants plateforme séparés :
 
 ```text
 Active User
@@ -58,10 +58,10 @@ Active User
 ```
 
 Un grant opérateur n'est créé ni par une invitation Workspace, ni par le rôle
-Owner, ni par une variable frontend. Les clés proposées, profils minimaux et
+Owner, ni par une variable frontend. Les clés, profils minimaux et
 règles de double approbation sont catalogués dans
-[`backoffice.md`](backoffice.md). Tant que `ADR-004` n'est pas accepté, elles ne
-sont pas ajoutées au catalogue Identity exécutable.
+[`backoffice.md`](backoffice.md). Leur catalogue exécutable appartient à
+`Operations`, jamais à une Membership Identity.
 
 ---
 

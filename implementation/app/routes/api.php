@@ -25,6 +25,8 @@ use App\Http\Controllers\Api\Dev\ProcessOutboxController;
 use App\Http\Controllers\Api\ElevateSessionController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
+use App\Http\Controllers\Api\Operator\OperatorLoginController;
+use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
@@ -38,10 +40,21 @@ use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\CorrelationIdMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\DevelopmentOnlyMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\OperatorAccessEnabledMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\OperatorBearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\RequireWorkspaceEntitlementMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class])->group(function (): void {
+    Route::prefix('/operator')->middleware(OperatorAccessEnabledMiddleware::class)->group(function (): void {
+        Route::middleware('throttle:auth')->post('/auth/login', OperatorLoginController::class);
+
+        Route::middleware(OperatorBearerSessionMiddleware::class)->group(function (): void {
+            Route::get('/session/context', [OperatorSessionController::class, 'show']);
+            Route::post('/auth/session/revoke', [OperatorSessionController::class, 'revoke']);
+        });
+    });
+
     Route::middleware('throttle:auth')->group(function (): void {
         Route::post('/auth/register', RegisterUserController::class);
         Route::post('/auth/verify-email', VerifyEmailController::class);

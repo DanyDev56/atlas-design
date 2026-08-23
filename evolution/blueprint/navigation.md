@@ -105,11 +105,11 @@ administration d'API ne sont pas des destinations du MVP.
 
 ## Navigation opérateur séparée
 
-Le back-office proposé par `ADR-004` utilise `/backoffice` et une audience de
+Le back-office défini par `ADR-004` utilise `/backoffice` et une audience de
 session distincte. Il n'apparaît jamais dans le menu Workspace, y compris pour
 un Owner. Réciproquement, son menu ne reprend pas la navigation `/app` et ne
 permet aucune bascule implicite « voir comme l'utilisateur ».
 
 Son arborescence et ses règles sont définies dans
-[`backoffice.md`](backoffice.md). Cette séparation ne devient normative
-qu'après acceptation de l'ADR.
+[`backoffice.md`](backoffice.md). Cette séparation est normative ; le shell
+initial reste local et ne reçoit encore aucune donnée métier.

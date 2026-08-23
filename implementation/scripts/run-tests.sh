@@ -13,9 +13,22 @@ if ! "${compose[@]}" exec -T postgres psql -U atlas -d postgres -tAc \
   "${compose[@]}" exec -T postgres createdb -U atlas atlas_test
 fi
 
-exec "${compose[@]}" exec -T -e DB_DATABASE=atlas_test app bash -c '
+exec "${compose[@]}" exec -T \
+  -e APP_ENV=testing \
+  -e DB_DATABASE=atlas_test \
+  -e ATLAS_DEVELOPMENT_ROUTES=true \
+  -e ATLAS_DEBUG_VERIFICATION_TOKENS=true \
+  -e BACKOFFICE_ENABLED=true \
+  -e BACKOFFICE_ALLOW_PASSWORD_ONLY_LOCAL=true \
+  -e BACKOFFICE_READ_ONLY=true \
+  -e CACHE_STORE=array \
+  -e MAIL_MAILER=array \
+  -e OTEL_TRACES_EXPORTER=none \
+  -e SUBSCRIPTIONS_GATEWAY=fake \
+  app bash -c '
   set -euo pipefail
   cd /workspace/implementation/app
   composer dump-autoload -o
+  php artisan config:clear
   ./vendor/bin/pest "$@"
 ' _ "$@"

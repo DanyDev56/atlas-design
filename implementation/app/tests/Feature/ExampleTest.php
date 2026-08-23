@@ -33,4 +33,14 @@ class ExampleTest extends TestCase
             URL::forceScheme(null);
         }
     }
+
+    public function test_the_backoffice_shell_is_served_with_noindex_metadata(): void
+    {
+        $response = $this->get('/backoffice/login');
+
+        $response->assertOk()
+            ->assertSee('<title>Back-office — Atlas</title>', false)
+            ->assertSee('<meta name="robots" content="noindex,nofollow,noarchive">', false)
+            ->assertSee('<div id="root"></div>', false);
+    }
 }

@@ -126,7 +126,9 @@ Le futur plan de contrôle interne est spécifié dans le
 [`Blueprint du back-office`](../evolution/blueprint/backoffice.md), son
 [`catalogue de métriques`](../evolution/blueprint/backoffice-metrics.md) et son
 [`plan d'implémentation`](../evolution/blueprint/backoffice-implementation-plan.md).
-`ADR-004` doit être accepté avant toute route ou migration opérateur.
+Le socle local, son provisioning et sa révocation sont décrits dans le
+[`runbook d'accès au back-office`](runbooks/backoffice-access.md). `ADR-004` est
+accepté, mais l'accès externe reste bloqué jusqu'à la livraison du MFA.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

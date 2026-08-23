@@ -90,3 +90,18 @@ arch('subscriptions domain does not depend on other business domains')
         'Atlas\Modules\Advisor',
         'Atlas\Modules\Notifications',
     ]);
+
+arch('operations domain does not depend on Laravel or business domains')
+    ->expect('Atlas\Modules\Operations\Domain')
+    ->not->toUse([
+        'Illuminate',
+        'Atlas\Modules\Identity',
+        'Atlas\Modules\Workspace',
+        'Atlas\Modules\Crm',
+        'Atlas\Modules\Billing',
+        'Atlas\Modules\Analytics',
+        'Atlas\Modules\BusinessHealth',
+        'Atlas\Modules\Advisor',
+        'Atlas\Modules\Notifications',
+        'Atlas\Modules\Subscriptions',
+    ]);
