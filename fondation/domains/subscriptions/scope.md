@@ -76,7 +76,7 @@ commercial normalisé s'applique et quelles capacités en résultent.
 | Trial de 30 jours sur activation | Implémenté via outbox |
 | Entitlements Full/Restricted | Implémentés et gardes serveur branchées ; enforcement désactivé |
 | Accès expiré | Lectures, export et gestion d'abonnement conservés ; mutations gardées |
-| Grâce `PastDue` | Politique configurable et fail-closed ; durée commerciale non décidée |
+| Grâce `PastDue` | 14 jours depuis le premier échec, sans prolongation par les nouvelles tentatives |
 | Limite de membres | Owner, membres actifs et invitations valides contrôlés atomiquement quand l'enforcement est actif |
 | Lecture API propriétaire | Implémentée |
 | UI propriétaire essai, offre et prix candidat | Implémentée dans Gérer l'espace |
@@ -84,9 +84,9 @@ commercial normalisé s'applique et quelles capacités en résultent.
 | Cycle Subscription normalisé | Implémenté pour activation, renouvellement, échec et résiliation |
 | Inbox webhook factice signée | Implémentée, dédupliquée, ordonnée et rejouable ; désactivée par défaut |
 | Reprise des Workspaces actifs antérieurs | Commande idempotente avec `--dry-run` |
-| Prestataire réel et encaissement récurrent | Non implémentés |
+| Prestataire réel et encaissement récurrent | Adaptateur Stripe Billing implémenté ; credentials sandbox et production non configurés |
 | Restauration et resouscription | Implémentées avec historique des références prestataire |
-| BillingAccount, portail, résiliation utilisateur et dunning | Non implémentés |
+| Portail, résiliation utilisateur et dunning | Portail Stripe branché ; Smart Retries et emails Stripe à configurer en sandbox |
 
 L'existence technique du candidat ne valide ni son prix ni son ouverture
 commerciale.

@@ -88,6 +88,7 @@ final class PostgresSubscriptionRepository implements SubscriptionRepository
             'current_period_end' => $subscription->currentPeriodEnd()->format('Y-m-d H:i:sP'),
             'cancel_at_period_end' => $subscription->cancelAtPeriodEnd(),
             'canceled_at' => $subscription->canceledAt()?->format('Y-m-d H:i:sP'),
+            'past_due_since' => $subscription->pastDueSince()?->format('Y-m-d H:i:sP'),
             'last_provider_event_at' => $subscription->lastProviderEventAt()->format('Y-m-d H:i:sP'),
             'version' => $subscription->version(),
             'updated_at' => $now->format('Y-m-d H:i:sP'),

@@ -149,7 +149,13 @@ export interface CheckoutSessionResponse {
     checkout_session_id: string;
     checkout_url: string;
     provider: string;
-    mode: 'Preview';
+    mode: 'Preview' | 'Payment';
+}
+
+export interface BillingPortalSessionResponse {
+    portal_session_id: string;
+    portal_url: string;
+    provider: string;
 }
 
 export interface InvitationAcceptanceResponse {

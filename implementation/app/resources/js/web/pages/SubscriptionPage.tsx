@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { createSubscriptionCheckout, getSubscriptionOverview } from '@/api/subscriptions';
+import { createBillingPortalSession, createSubscriptionCheckout, getSubscriptionOverview } from '@/api/subscriptions';
 import { ErrorBanner, SuccessBanner } from '@/components/auth/AuthLayout';
 import { RequireAuth } from '@/components/layout/RequireAuth';
 import { Icon } from '@/components/ui/Icon';
@@ -25,6 +25,8 @@ const capabilityLabels: Record<string, string> = {
 };
 
 const checkoutPreviewMessage = 'Simulation terminée. Aucun paiement n’a été effectué et votre accès reste inchangé.';
+const checkoutPendingMessage = 'Paiement transmis à Stripe. Votre accès sera actualisé après confirmation sécurisée du paiement.';
+const checkoutCanceledMessage = 'Paiement annulé. Aucun abonnement n’a été créé.';
 
 function formatDate(value: string): string {
     return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
@@ -54,14 +56,24 @@ export function SubscriptionPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [previewMessage, setPreviewMessage] = useState<string | null>(() => (
-        checkoutResult === 'preview' ? checkoutPreviewMessage : null
-    ));
+    const [previewMessage, setPreviewMessage] = useState<string | null>(() => {
+        if (checkoutResult === 'preview') return checkoutPreviewMessage;
+        if (checkoutResult === 'pending') return checkoutPendingMessage;
+        if (checkoutResult === 'canceled') return checkoutCanceledMessage;
+        return null;
+    });
 
     useEffect(() => {
-        if (checkoutResult !== 'preview') return;
+        const message = checkoutResult === 'preview'
+            ? checkoutPreviewMessage
+            : checkoutResult === 'pending'
+                ? checkoutPendingMessage
+                : checkoutResult === 'canceled'
+                    ? checkoutCanceledMessage
+                    : null;
+        if (message === null) return;
 
-        setPreviewMessage(checkoutPreviewMessage);
+        setPreviewMessage(message);
         const timeout = window.setTimeout(() => {
             setPreviewMessage(null);
             navigate('/app/settings/subscription', { replace: true });
@@ -119,8 +131,22 @@ export function SubscriptionPage() {
         }
     }
 
+    async function onOpenPortal() {
+        setSubmitting(true);
+        setError(null);
+        try {
+            const portal = await createBillingPortalSession(token, workspaceId);
+            window.location.assign(portal.portal_url);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ouverture du portail de facturation impossible');
+            setSubmitting(false);
+        }
+    }
+
     const trialActive = overview?.trial?.status === 'Active';
-    const simulatedSubscription = overview?.subscription?.provider === 'fake' ? overview.subscription : null;
+    const currentSubscription = overview?.subscription ?? null;
+    const simulatedSubscription = currentSubscription?.provider === 'fake' ? currentSubscription : null;
+    const stripeSubscription = currentSubscription?.provider === 'stripe' ? currentSubscription : null;
     const trialDuration = overview?.trial
         ? Math.max(1, Math.ceil((Date.parse(overview.trial.ends_at) - Date.parse(overview.trial.started_at)) / 86_400_000))
         : 30;
@@ -158,14 +184,18 @@ export function SubscriptionPage() {
                             <div className="relative grid gap-8 md:grid-cols-[minmax(0,1fr)_15rem] md:items-end">
                                 <div>
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-white/80">
-                                        <span className={`size-1.5 rounded-full ${trialActive || simulatedSubscription?.status === 'Active' ? 'bg-[#58c8ac]' : 'bg-amber-300'}`} />
-                                        {simulatedSubscription
-                                            ? `Abonnement simulé · ${simulatedSubscription.status}`
+                                        <span className={`size-1.5 rounded-full ${trialActive || currentSubscription?.status === 'Active' ? 'bg-[#58c8ac]' : 'bg-amber-300'}`} />
+                                        {currentSubscription
+                                            ? `${simulatedSubscription ? 'Abonnement simulé' : 'Abonnement'} · ${currentSubscription.status}`
                                             : trialActive ? 'Essai en cours' : overview.access.level === 'Restricted' ? 'Accès restreint' : 'Initialisation'}
                                     </span>
                                     <h3 className="mt-5 text-2xl font-semibold tracking-[-0.025em] sm:text-[1.75rem]">
-                                        {simulatedSubscription
-                                            ? `${overview.catalog.plan.display_name} est actif en simulation`
+                                        {currentSubscription
+                                            ? currentSubscription.status === 'Active'
+                                                ? `${overview.catalog.plan.display_name} est actif${simulatedSubscription ? ' en simulation' : ''}`
+                                                : currentSubscription.status === 'PastDue'
+                                                    ? 'Un paiement nécessite votre attention'
+                                                    : 'Votre abonnement est résilié'
                                             : trialActive && overview.trial
                                             ? `${overview.trial.remaining_days} jour${overview.trial.remaining_days > 1 ? 's' : ''} pour découvrir Atlas`
                                             : overview.access.level === 'Restricted'
@@ -173,8 +203,12 @@ export function SubscriptionPage() {
                                                 : 'Votre accès commercial est en préparation'}
                                     </h3>
                                     <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                                        {simulatedSubscription
-                                            ? `La période simulée se termine le ${formatDate(simulatedSubscription.current_period_end)}. Elle ne correspond à aucun encaissement réel.`
+                                        {currentSubscription
+                                            ? simulatedSubscription
+                                                ? `La période simulée se termine le ${formatDate(currentSubscription.current_period_end)}. Elle ne correspond à aucun encaissement réel.`
+                                                : currentSubscription.status === 'PastDue'
+                                                    ? 'Mettez à jour votre moyen de paiement depuis le portail sécurisé pour éviter une restriction de l’accès.'
+                                                    : `La période courante se termine le ${formatDate(currentSubscription.current_period_end)}.`
                                             : overview.trial
                                             ? `Votre essai se termine le ${formatDate(overview.trial.ends_at)}. Aucun prélèvement automatique n’est programmé.`
                                             : 'Les données de votre espace restent disponibles. Aucun paiement ni aucune restriction ne sont appliqués pendant cette phase.'}
@@ -182,11 +216,11 @@ export function SubscriptionPage() {
                                 </div>
                                 <div className="rounded-2xl border border-white/[0.08] bg-white/[0.06] p-4">
                                     <div className="flex items-center justify-between gap-3 text-xs text-white/55">
-                                        <span>{simulatedSubscription ? 'Période simulée' : 'Progression de l’essai'}</span>
-                                        <span>{simulatedSubscription ? `jusqu’au ${formatDate(simulatedSubscription.current_period_end)}` : overview.trial ? `${overview.trial.remaining_days} j restants` : 'À initialiser'}</span>
+                                        <span>{currentSubscription ? (simulatedSubscription ? 'Période simulée' : 'Période facturée') : 'Progression de l’essai'}</span>
+                                        <span>{currentSubscription ? `jusqu’au ${formatDate(currentSubscription.current_period_end)}` : overview.trial ? `${overview.trial.remaining_days} j restants` : 'À initialiser'}</span>
                                     </div>
                                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                                        <div className="h-full rounded-full bg-[#58c8ac]" style={{ width: `${simulatedSubscription ? 100 : trialProgress}%` }} />
+                                        <div className="h-full rounded-full bg-[#58c8ac]" style={{ width: `${currentSubscription ? 100 : trialProgress}%` }} />
                                     </div>
                                     <p className="mt-3 text-xs leading-5 text-white/45">
                                         Niveau d’accès : {overview.access.level === 'Full' ? 'complet' : overview.access.level === 'Restricted' ? 'lecture et export' : 'en préparation'}
@@ -247,19 +281,35 @@ export function SubscriptionPage() {
                                     ))}
                                 </ul>
 
-                                <button
-                                    type="button"
-                                    disabled={!overview.commercialization.checkout_enabled || submitting || !selectedPrice}
-                                    onClick={() => void onCheckout()}
-                                    className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-atlas-accent px-5 py-3 text-sm font-semibold text-white hover:bg-[#066557] disabled:cursor-not-allowed disabled:opacity-45"
-                                >
-                                    {submitting ? 'Ouverture…' : overview.commercialization.checkout_enabled
-                                        ? overview.commercialization.gateway === 'fake' ? 'Simuler ce choix' : 'Choisir cette offre'
-                                        : 'Souscription bientôt disponible'}
-                                    {!submitting && overview.commercialization.checkout_enabled && <Icon name="arrow-right" className="size-4" />}
-                                </button>
+                                {stripeSubscription ? (
+                                    <button
+                                        type="button"
+                                        disabled={submitting}
+                                        onClick={() => void onOpenPortal()}
+                                        className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-atlas-accent px-5 py-3 text-sm font-semibold text-white hover:bg-[#066557] disabled:cursor-not-allowed disabled:opacity-45"
+                                    >
+                                        {submitting ? 'Ouverture…' : 'Gérer mon abonnement'}
+                                        {!submitting && <Icon name="arrow-right" className="size-4" />}
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        disabled={!overview.commercialization.checkout_enabled || submitting || !selectedPrice || currentSubscription !== null}
+                                        onClick={() => void onCheckout()}
+                                        className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-atlas-accent px-5 py-3 text-sm font-semibold text-white hover:bg-[#066557] disabled:cursor-not-allowed disabled:opacity-45"
+                                    >
+                                        {submitting ? 'Ouverture…' : currentSubscription
+                                            ? 'Abonnement déjà actif'
+                                            : overview.commercialization.checkout_enabled
+                                                ? overview.commercialization.gateway === 'fake' ? 'Simuler ce choix' : 'Choisir cette offre'
+                                                : 'Souscription bientôt disponible'}
+                                        {!submitting && overview.commercialization.checkout_enabled && currentSubscription === null && <Icon name="arrow-right" className="size-4" />}
+                                    </button>
+                                )}
                                 <p className="mt-3 text-center text-xs leading-5 text-atlas-ink-muted">
-                                    {overview.commercialization.checkout_enabled
+                                    {stripeSubscription
+                                        ? 'Le portail Stripe permet de modifier le paiement, consulter les factures ou résilier.'
+                                        : overview.commercialization.checkout_enabled
                                         ? overview.commercialization.gateway === 'fake'
                                             ? 'Mode développement : cette action simule le parcours sans paiement.'
                                             : 'Vous pourrez vérifier le récapitulatif avant tout paiement.'

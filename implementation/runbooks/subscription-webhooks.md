@@ -22,7 +22,7 @@ Conserver les flags désactivés dans `.env.example`. Dans le `.env` local :
 SUBSCRIPTIONS_GATEWAY=fake
 SUBSCRIPTIONS_WEBHOOKS_ENABLED=true
 SUBSCRIPTIONS_FAKE_WEBHOOK_SECRET=une-valeur-locale-aleatoire-de-32-caracteres
-SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS=
+SUBSCRIPTIONS_PAST_DUE_GRACE_DAYS=14
 SUBSCRIPTIONS_ENFORCEMENT_ENABLED=false
 ```
 
@@ -135,6 +135,7 @@ conflit `SubscriptionLimitExceeded`.
 - `SUBSCRIPTIONS_ENFORCEMENT_ENABLED` reste à `false` ;
 - aucune donnée de paiement ni promesse commerciale n'est créée.
 
-Avant toute intégration réelle, ajouter l'adaptateur officiel du prestataire,
-la rotation des secrets, les alertes sur `Deferred`/`Failed`, la réconciliation,
-le portail client, le dunning et les validations Legal/Finance.
+La recette Stripe Billing est décrite dans
+[`stripe-billing.md`](stripe-billing.md). Avant la production, restent requis la
+rotation des secrets, les alertes sur `Deferred`/`Failed`, la réconciliation et
+les validations Legal/Finance.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Subscriptions;
 
 use App\Http\Controllers\Controller;
+use Atlas\Modules\Subscriptions\Application\CreateBillingPortalSessionHandler;
 use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
 use Atlas\Modules\Subscriptions\Application\SubscriptionOverviewQueryHandler;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ final class SubscriptionController extends Controller
     public function __construct(
         private readonly SubscriptionOverviewQueryHandler $overview,
         private readonly CreateCheckoutSessionHandler $checkout,
+        private readonly CreateBillingPortalSessionHandler $portal,
     ) {}
 
     public function show(Request $request, string $workspaceId): JsonResponse
@@ -46,6 +48,14 @@ final class SubscriptionController extends Controller
         ), 201);
     }
 
+    public function portal(Request $request, string $workspaceId): JsonResponse
+    {
+        return $this->respond(fn (): array => $this->portal->handle(
+            actorUserId: $this->actorId($request),
+            workspaceId: $workspaceId,
+        ), 201);
+    }
+
     private function actorId(Request $request): string
     {
         return (string) $request->attributes->get('authenticated_user_id');
@@ -60,6 +70,9 @@ final class SubscriptionController extends Controller
             $status = match ($exception->getMessage()) {
                 'Unauthorized.' => 403,
                 'Checkout unavailable.' => 409,
+                'Billing portal unavailable.' => 409,
+                'Subscription already exists.' => 409,
+                'Stripe billing unavailable.' => 503,
                 'Idempotency conflict.' => 409,
                 default => 422,
             };

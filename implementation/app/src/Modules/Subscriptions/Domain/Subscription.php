@@ -24,6 +24,7 @@ final class Subscription
         private \DateTimeImmutable $currentPeriodEnd,
         private bool $cancelAtPeriodEnd,
         private ?\DateTimeImmutable $canceledAt,
+        private ?\DateTimeImmutable $pastDueSince,
         private \DateTimeImmutable $lastProviderEventAt,
         private int $version,
     ) {}
@@ -49,6 +50,7 @@ final class Subscription
             currentPeriodEnd: $event->currentPeriodEnd,
             cancelAtPeriodEnd: $event->cancelAtPeriodEnd,
             canceledAt: null,
+            pastDueSince: null,
             lastProviderEventAt: $event->occurredAt,
             version: 1,
         );
@@ -69,6 +71,7 @@ final class Subscription
             currentPeriodEnd: new \DateTimeImmutable((string) $row['current_period_end']),
             cancelAtPeriodEnd: (bool) $row['cancel_at_period_end'],
             canceledAt: isset($row['canceled_at']) ? new \DateTimeImmutable((string) $row['canceled_at']) : null,
+            pastDueSince: isset($row['past_due_since']) ? new \DateTimeImmutable((string) $row['past_due_since']) : null,
             lastProviderEventAt: new \DateTimeImmutable((string) $row['last_provider_event_at']),
             version: (int) $row['version'],
         );
@@ -88,6 +91,7 @@ final class Subscription
             return false;
         }
 
+        $previousStatus = $this->status;
         $this->status = match ($event->type) {
             RecurringBillingEventType::Activated, RecurringBillingEventType::Renewed => self::STATUS_ACTIVE,
             RecurringBillingEventType::PaymentFailed => self::STATUS_PAST_DUE,
@@ -97,6 +101,9 @@ final class Subscription
         $this->currentPeriodEnd = $event->currentPeriodEnd;
         $this->cancelAtPeriodEnd = $event->cancelAtPeriodEnd || $event->type === RecurringBillingEventType::Canceled;
         $this->canceledAt = $event->type === RecurringBillingEventType::Canceled ? $event->occurredAt : null;
+        $this->pastDueSince = $event->type === RecurringBillingEventType::PaymentFailed
+            ? ($previousStatus === self::STATUS_PAST_DUE ? $this->pastDueSince : $event->occurredAt)
+            : null;
         $this->lastProviderEventAt = $event->occurredAt;
         $this->version++;
 
@@ -124,6 +131,7 @@ final class Subscription
         $this->currentPeriodEnd = $event->currentPeriodEnd;
         $this->cancelAtPeriodEnd = $event->cancelAtPeriodEnd;
         $this->canceledAt = null;
+        $this->pastDueSince = null;
         $this->lastProviderEventAt = $event->occurredAt;
         $this->version++;
     }
@@ -186,6 +194,11 @@ final class Subscription
     public function lastProviderEventAt(): \DateTimeImmutable
     {
         return $this->lastProviderEventAt;
+    }
+
+    public function pastDueSince(): ?\DateTimeImmutable
+    {
+        return $this->pastDueSince;
     }
 
     public function version(): int

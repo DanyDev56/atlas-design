@@ -19,7 +19,11 @@ final readonly class SubscriptionEntitlementPolicy
             return $subscription->currentPeriodEnd();
         }
 
-        $graceEnd = $subscription->lastProviderEventAt()->modify(sprintf('+%d days', $this->pastDueGraceDays));
+        $pastDueSince = $subscription->pastDueSince();
+        if ($pastDueSince === null) {
+            throw new \LogicException('Past-due subscription is missing its failure date.');
+        }
+        $graceEnd = $pastDueSince->modify(sprintf('+%d days', $this->pastDueGraceDays));
 
         return $graceEnd > $subscription->currentPeriodEnd()
             ? $graceEnd

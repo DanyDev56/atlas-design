@@ -258,10 +258,11 @@ Le comportement cible doit être défini et livré avant commercialisation :
 - restauration idempotente après souscription ;
 - messages distincts pour essai terminé, paiement échoué et accès révoqué.
 
-Les durées de grâce et de conservation restent à valider avec Legal, Security et
-Support. Elles ne sont pas fixées par ce document. Techniquement, l'enforcement
-refuse de démarrer sans durée de grâce explicitement configurée ; une valeur
-vide ne vaut donc jamais consentement implicite à une coupure immédiate.
+La grâce après un premier échec de renouvellement est fixée à **14 jours**. Les
+tentatives suivantes ne redémarrent pas cette période. La conservation reste à
+valider avec Legal, Security et Support. Techniquement, l'enforcement refuse de
+démarrer sans durée explicitement configurée ; une valeur vide ne vaut donc
+jamais consentement implicite à une coupure immédiate.
 
 ---
 
@@ -519,8 +520,10 @@ possédera au fil des incréments :
 
 Les incréments techniques respectent cette frontière sans activer de
 prélèvement ni de restriction d'accès. Le cycle normalisé peut être exercé avec
-un prestataire factice et des webhooks HMAC en développement ; cette simulation
-ne constitue pas une preuve de paiement ni une intégration commerciale.
+un prestataire factice et des webhooks HMAC en développement. Un adaptateur
+Stripe Billing fondé sur le SDK officiel est également disponible pour la
+sandbox, mais aucun credential, Price Stripe ou encaissement de production
+n'est activé par défaut.
 
 ### État actuel
 
@@ -531,15 +534,15 @@ ne constitue pas une preuve de paiement ni une intégration commerciale.
 | Contexte propriétaire | `Subscriptions`, décision `ADR-003` acceptée |
 | Catalogue de plans | `Atlas Solo@1` candidat persisté, non public |
 | Essai et entitlements | Trial de 30 jours, projection Full/Restricted et gardes serveur implémentés ; enforcement désactivé |
-| Politique d'accès | Lecture, export et abonnement préservés ; mutations gardées ; grâce `PastDue` obligatoire avant activation |
+| Politique d'accès | Lecture, export et abonnement préservés ; mutations gardées ; grâce `PastDue` de 14 jours |
 | Limite d'équipe candidate | `members_total=3` projeté ; invitations en attente incluses dans le contrôle, enforcement désactivé |
-| Checkout | Gateway factice déterministe derrière feature flag ; aucun encaissement |
+| Checkout | Gateways factice et Stripe Checkout derrière feature flag ; aucun credential distribué |
 | Cycle récurrent normalisé | Activation, renouvellement, échec et résiliation implémentés avec inbox idempotente |
 | Webhooks de développement | Prestataire factice, signature HMAC, ordre, déduplication et rejeu implémentés ; désactivés par défaut |
-| Prestataire et paiement réels | Non implémentés |
-| Portail de facturation Atlas | Non implémenté |
+| Prestataire et paiement réels | Stripe Billing retenu et adaptateur sandbox implémenté ; recette réelle restante |
+| Portail de facturation Atlas | Redirection sécurisée vers Stripe Customer Portal implémentée |
 | Restauration et resouscription | Cycle factice et historique des références prestataire implémentés |
-| Dunning et durée de grâce commerciale | Non décidés |
+| Dunning et durée de grâce commerciale | Grâce de 14 jours décidée ; Smart Retries et emails Stripe à configurer |
 | Page tarifaire publique contractuelle | Non publiée |
 
 La présence de cette stratégie tarifaire n'autorise donc pas encore une mise en
@@ -556,14 +559,16 @@ La vente d'`Atlas Solo` exige :
    **faite avec `ADR-003`** ;
 3. catalogue de plans versionné et entitlements appliqués côté serveur —
    **socle et gardes faits, activation restant soumise au gate** ;
-4. checkout et webhooks idempotents d'un prestataire de paiement — **contrat et
-   simulation faits, prestataire réel restant** ;
+4. checkout et webhooks idempotents d'un prestataire de paiement — **adaptateur
+   Stripe Billing fait, recette sandbox puis production restante** ;
 5. aucun stockage local de données de carte ;
 6. cycle essai, souscription, renouvellement, résiliation et restauration testé
-   — **socle factice fait, prestataire réel restant** ;
-7. traitement explicite des paiements échoués et de la période de grâce ;
+   — **socle factice couvert, recette Stripe restante** ;
+7. traitement explicite des paiements échoués et de la période de grâce —
+   **grâce de 14 jours implémentée, recette dunning restante** ;
 8. factures d'abonnement et affichage HT/TTC validés avec Legal et Finance ;
-9. portail client pour moyen de paiement, factures et résiliation ;
+9. portail client pour moyen de paiement, factures et résiliation — **adaptateur
+   Stripe Customer Portal implémenté, configuration sandbox restante** ;
 10. export, fermeture et rétention cohérents avec les politiques de données ;
 11. observabilité, alertes et runbook de support ;
 12. page tarifaire sans promesse dépassant les capacités livrées ;
@@ -588,9 +593,7 @@ Les effectifs, seuils et preuves attendues sont définis dans le
 - prix catalogue final dans la plage 19–29 € HT/mois ;
 - durée et conditions exactes de l'early access Founding ;
 - nombre final de Members inclus dans `Atlas Solo` ;
-- durée de grâce après échec de paiement ;
 - politique d'accès et d'export après fin d'essai ;
-- prestataire de paiement ;
 - traitement TVA et facturation selon les pays servis ;
 - date d'ouverture d'une découverte `Atlas Équipe`.
 

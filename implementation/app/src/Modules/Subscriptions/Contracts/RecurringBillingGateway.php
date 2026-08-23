@@ -13,4 +13,10 @@ interface RecurringBillingGateway
         string $successUrl,
         string $cancelUrl,
     ): CheckoutSession;
+
+    public function createPortalSession(
+        string $workspaceId,
+        string $providerSubscriptionReference,
+        string $returnUrl,
+    ): PortalSession;
 }

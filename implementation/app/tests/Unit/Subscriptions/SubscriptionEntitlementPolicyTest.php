@@ -42,6 +42,21 @@ final class SubscriptionEntitlementPolicyTest extends TestCase
         self::assertSame('2026-10-01T10:00:00+00:00', $policy->validUntil($subscription)->format(DATE_ATOM));
     }
 
+    public function test_repeated_failures_do_not_restart_the_grace_period(): void
+    {
+        $subscription = Subscription::activate(
+            new SubscriptionId('subscription-1'),
+            'plan-1',
+            $this->event(RecurringBillingEventType::Activated, '2026-08-23T10:00:00+00:00'),
+        );
+        $policy = new SubscriptionEntitlementPolicy(14);
+
+        $subscription->apply($this->event(RecurringBillingEventType::PaymentFailed, '2026-09-24T10:00:00+00:00'));
+        $subscription->apply($this->event(RecurringBillingEventType::PaymentFailed, '2026-09-30T10:00:00+00:00'));
+
+        self::assertSame('2026-10-08T10:00:00+00:00', $policy->validUntil($subscription)->format(DATE_ATOM));
+    }
+
     private function event(RecurringBillingEventType $type, string $occurredAt): VerifiedRecurringBillingEvent
     {
         return new VerifiedRecurringBillingEvent(

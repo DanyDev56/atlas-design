@@ -24,14 +24,16 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 Cette surface permet de démontrer la valeur et de mener les entretiens de
 pricing. Le backend contient désormais le catalogue candidat `Atlas Solo@1`, le
-Trial de 30 jours, une projection d'Entitlements et un gateway factice. L'UI
+Trial de 30 jours, une projection d'Entitlements, un gateway factice et un
+adaptateur Stripe Billing désactivé par défaut. L'UI
 propriétaire expose l'essai, le périmètre et les prix candidats dans
 `/app/settings/subscription`, ainsi qu'une simulation de checkout activable en
 développement. Un cycle d'abonnement factice peut aussi être alimenté par des
 webhooks HMAC pour vérifier activation, renouvellement, échec, résiliation,
 ordre et rejeu. L'UI distingue explicitement cet état simulé d'un encaissement.
-Elle n'expose encore ni offre contractuelle, abonnement réel ou portail de
-résiliation. Les gardes serveur, le bandeau d'accès restreint et le compteur de
+En mode Stripe configuré, elle redirige vers Checkout puis le Customer Portal,
+sans considérer le retour navigateur comme une preuve de paiement. Elle
+n'expose encore aucune offre contractuelle. Les gardes serveur, le bandeau d'accès restreint et le compteur de
 places dans la gestion des membres sont livrés, mais l'enforcement reste
 désactivé. Aucun prix ne doit être présenté comme
 commercialisable avant passage du

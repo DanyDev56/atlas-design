@@ -1,5 +1,6 @@
 import { apiRequest } from '@/api/client';
 import type {
+    BillingPortalSessionResponse,
     CheckoutSessionResponse,
     SubscriptionBillingInterval,
     SubscriptionOverviewResponse,
@@ -10,6 +11,18 @@ export async function getSubscriptionOverview(
     workspaceId: string,
 ): Promise<SubscriptionOverviewResponse> {
     return apiRequest('GET', `/workspaces/${workspaceId}/subscription`, undefined, { token });
+}
+
+export async function createBillingPortalSession(
+    token: string,
+    workspaceId: string,
+): Promise<BillingPortalSessionResponse> {
+    return apiRequest(
+        'POST',
+        `/workspaces/${workspaceId}/subscription/portal`,
+        {},
+        { token },
+    );
 }
 
 export async function createSubscriptionCheckout(

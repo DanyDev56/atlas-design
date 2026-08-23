@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atlas\Modules\Subscriptions\Infrastructure\Payment;
 
 use Atlas\Modules\Subscriptions\Contracts\CheckoutSession;
+use Atlas\Modules\Subscriptions\Contracts\PortalSession;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
 
 final class FakeRecurringBillingGateway implements RecurringBillingGateway
@@ -31,6 +32,18 @@ final class FakeRecurringBillingGateway implements RecurringBillingGateway
                 'checkout' => 'preview',
                 'session_id' => $sessionId,
             ], '', '&', PHP_QUERY_RFC3986),
+            provider: 'fake',
+        );
+    }
+
+    public function createPortalSession(
+        string $workspaceId,
+        string $providerSubscriptionReference,
+        string $returnUrl,
+    ): PortalSession {
+        return new PortalSession(
+            id: 'fake_portal_'.substr(hash('sha256', $workspaceId.'|'.$providerSubscriptionReference), 0, 24),
+            url: $returnUrl,
             provider: 'fake',
         );
     }

@@ -21,10 +21,11 @@ final class RecurringBillingWebhookController extends Controller
         }
 
         try {
+            $signatureHeader = $provider === 'stripe' ? 'Stripe-Signature' : 'X-Atlas-Signature';
             $result = $handler->handle(
                 provider: $provider,
                 payload: $request->getContent(),
-                signature: trim((string) $request->header('X-Atlas-Signature', '')),
+                signature: trim((string) $request->header($signatureHeader, '')),
             );
 
             return response()->json($result, $result['duplicate'] ? 200 : 202);
@@ -33,6 +34,7 @@ final class RecurringBillingWebhookController extends Controller
                 'Invalid webhook signature.' => 401,
                 'Webhook provider unavailable.' => 404,
                 'Webhook verifier unavailable.' => 503,
+                'Stripe billing unavailable.' => 503,
                 'Webhook event id conflict.' => 409,
                 default => 422,
             };

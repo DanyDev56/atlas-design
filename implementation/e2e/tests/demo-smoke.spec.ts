@@ -71,7 +71,7 @@ test('le propriétaire comprend son essai et le tarif candidat sans ambiguïté 
     await expect(page.getByText('Tarif en validation', { exact: true })).toBeVisible();
     await expect(page.getByText(/Aucun prélèvement automatique n’est programmé/)).toBeVisible();
     await expect(page.getByText(/240,00\s€ par an/)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Simuler ce choix|Souscription bientôt disponible/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Simuler ce choix|Souscription bientôt disponible|Abonnement déjà actif|Gérer mon abonnement/ })).toBeVisible();
 
     const simulationButton = page.getByRole('button', { name: 'Simuler ce choix' });
     if (await simulationButton.isVisible()) {

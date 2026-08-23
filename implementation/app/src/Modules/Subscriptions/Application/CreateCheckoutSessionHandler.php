@@ -7,6 +7,8 @@ namespace Atlas\Modules\Subscriptions\Application;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
 use Atlas\Modules\Subscriptions\Domain\BillingInterval;
 use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Domain\Subscription;
+use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\PostgresSubscriptionsIdempotencyStore;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 
@@ -15,6 +17,7 @@ final class CreateCheckoutSessionHandler
     public function __construct(
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PlanCatalogRepository $catalog,
+        private readonly SubscriptionRepository $subscriptions,
         private readonly RecurringBillingGateway $gateway,
         private readonly PostgresSubscriptionsIdempotencyStore $idempotency,
     ) {}
@@ -30,6 +33,10 @@ final class CreateCheckoutSessionHandler
 
         if (! config('subscriptions.checkout_enabled', false)) {
             throw new \DomainException('Checkout unavailable.');
+        }
+        $subscription = $this->subscriptions->findByWorkspaceId($workspaceId);
+        if ($subscription !== null && $subscription->status() !== Subscription::STATUS_CANCELED) {
+            throw new \DomainException('Subscription already exists.');
         }
 
         $scope = 'subscriptions.checkout.'.$workspaceId;
@@ -66,7 +73,7 @@ final class CreateCheckoutSessionHandler
             'checkout_session_id' => $session->id,
             'checkout_url' => $session->url,
             'provider' => $session->provider,
-            'mode' => 'Preview',
+            'mode' => $session->provider === 'fake' ? 'Preview' : 'Payment',
         ];
         $this->idempotency->store($scope, $idempotencyKey, $fingerprint, $response);
 

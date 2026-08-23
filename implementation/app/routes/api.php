@@ -92,6 +92,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
 
             Route::get('/subscription', [SubscriptionController::class, 'show']);
             Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout']);
+            Route::post('/subscription/portal', [SubscriptionController::class, 'portal']);
 
             Route::get('/clients', [ClientController::class, 'index']);
             Route::post('/clients', [ClientController::class, 'store'])
