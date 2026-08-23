@@ -12,6 +12,7 @@ La fondation contient les éléments structurants et durables d’Atlas.
 Elle constitue la source de vérité pour :
 
 - la vision ;
+- la stratégie produit et la stratégie tarifaire ;
 - les principes produit ;
 - la terminologie ;
 - les règles métier ;

@@ -3,13 +3,14 @@ id: ROADMAP-001
 title: Atlas MVP Scope
 status: In Review
 owner: Product
-version: 1.1.0
-last_updated: 2026-08-06
+version: 1.2.0
+last_updated: 2026-08-23
 
 references:
   - mvp-acceptance.md
   - ../blueprint/README.md
   - ../../fondation/product/product-strategy.md
+  - ../../fondation/product/pricing-strategy.md
   - ../../fondation/domain-map/dependencies.md
 ---
 
@@ -138,12 +139,19 @@ context, ne possède aucune vérité métier et ne recalcule aucun indicateur.
 - multi-workspaces ;
 - marketplace ;
 - IA générative autonome ;
-- prévisions financières avancées.
+- prévisions financières avancées ;
+- catalogue de plans, essai commercial, abonnement et paiement récurrent
+  d'Atlas.
 
 `Automation`, `Projects`, les intégrations produit tierces et l'API publique
 externe restent hors MVP. Les adaptateurs techniques nécessaires à la remise
 d'e-mails et au rendu des documents ne sont pas considérés comme des
 intégrations produit.
+
+La boucle fonctionnelle doit permettre de tester la disposition à payer, mais
+sa présence ne vaut pas commercialisation. Le packaging proposé et le gate
+commercial distinct sont définis dans la
+[stratégie tarifaire](../../fondation/product/pricing-strategy.md).
 
 ---
 

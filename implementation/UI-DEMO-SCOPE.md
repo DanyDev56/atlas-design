@@ -3,13 +3,14 @@ title: Palier 4 — UI démo / early access
 status: Completed
 owner: Product + Engineering
 date: 2026-08-07
-last_updated: 2026-08-22
+last_updated: 2026-08-23
 references:
   - ../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../evolution/blueprint/navigation.md
   - ../evolution/blueprint/dashboard.md
   - ../evolution/blueprint/user-journeys.md
   - ../evolution/blueprint/historical-import.md
+  - ../fondation/product/pricing-strategy.md
   - runbooks/beta-release-checklist.md
 ---
 
@@ -19,6 +20,12 @@ Interface **React 19 + Vite + TypeScript** consommant l'API existante (`/api`).
 Objectif : une UI présentable aux futurs utilisateurs — pas l'application complète.
 
 Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app`**.
+
+Cette surface permet de démontrer la valeur et de mener les entretiens de
+pricing. Elle ne contient pas encore le catalogue `Atlas Solo`, l'essai, les
+entitlements, le checkout, l'abonnement ou la résiliation. Aucun prix ne doit y
+être présenté comme commercialisable avant passage du
+[gate tarifaire](../fondation/product/pricing-strategy.md#gate-avant-commercialisation-payante).
 
 ---
 

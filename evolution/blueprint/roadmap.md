@@ -3,8 +3,8 @@ id: BPT-012
 title: Product Delivery Roadmap
 status: In Review
 owner: Product
-version: 1.3.0
-last_updated: 2026-08-06
+version: 1.4.0
+last_updated: 2026-08-23
 
 references:
   - README.md
@@ -14,6 +14,7 @@ references:
   - ../../fondation/decisions/ADR-001-mvp-application-topology.md
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/mvp-threat-model.md
+  - ../../fondation/product/pricing-strategy.md
 ---
 
 # Roadmap de livraison
@@ -61,9 +62,21 @@ Recommendation et notification éligible/non éligible.
 - sécurité, accessibilité et performance ;
 - migrations, sauvegarde, restauration et reconstruction ;
 - observabilité, alertes, runbooks et support ;
-- beta fermée, mesure des outcomes et corrections.
+- beta fermée, mesure des outcomes et corrections ;
+- validation du packaging `Atlas Solo`, de la disposition à payer et de
+  l'économie unitaire, sans encaissement tant que le gate commercial n'est pas
+  satisfait.
 
 Gate : Definition of Done MVP satisfaite et risques résiduels acceptés.
+
+### Gate commercial distinct
+
+La disponibilité technique du MVP n'autorise pas à elle seule sa vente. Le gate
+commercial exige la validation du prix, un contexte propriétaire pour
+Subscription et Entitlement, un checkout sécurisé, un cycle d'essai complet,
+la résiliation, les factures d'abonnement, le support et les mesures de marge.
+La checklist exhaustive appartient à la
+[stratégie tarifaire](../../fondation/product/pricing-strategy.md).
 
 ## Palier 4 — Extension validée
 
@@ -73,7 +86,9 @@ Prioriser à partir des usages observés, sans ordre prédéfini :
 - Automation bornée ;
 - premier connecteur produit ;
 - API publique externe ;
-- capacités Analytics avancées.
+- capacités Analytics avancées ;
+- découverte d'une éventuelle offre `Atlas Équipe`, uniquement après preuve de
+  valeur collaborative.
 
 Chaque extension exige sa propre découverte, ses frontières de domaine et une
 preuve qu'elle améliore une décision utilisateur.

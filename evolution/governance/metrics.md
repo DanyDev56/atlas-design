@@ -47,3 +47,27 @@ CSAT.
 Taux de rétention.
 
 Temps jusqu'à la première valeur.
+
+---
+
+## Activation et pricing
+
+Les métriques tarifaires sont interprétées par cohorte et par prix réellement
+présenté. Une intention déclarée ne vaut pas une décision d'achat.
+
+- taux inscription → Workspace activé ;
+- temps jusqu'à la première valeur ;
+- taux essai démarré → essai activé ;
+- taux essai activé → abonnement payant ;
+- revenu moyen par Workspace actif ;
+- répartition mensuel / annuel ;
+- taux de remise effectif ;
+- churn volontaire et involontaire ;
+- raisons structurées de non-conversion et de résiliation ;
+- marge contributive par cohorte ;
+- délai de récupération du coût d'acquisition ;
+- charge de support par Workspace actif.
+
+Les métriques d'inscription, d'activation et de conversion restent distinctes.
+Une conversion obtenue par une promotion exceptionnelle ne valide ni le prix
+catalogue ni la rétention.

@@ -3,8 +3,8 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.5.0
-last_updated: 2026-08-06
+version: 1.6.0
+last_updated: 2026-08-23
 
 references:
   - quality-gates.md
@@ -18,6 +18,7 @@ references:
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/README.md
   - ../../fondation/security/mvp-threat-model.md
+  - ../../fondation/product/pricing-strategy.md
 ---
 
 # Matrice de consolidation
@@ -32,6 +33,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Vision | Anti-goals | Oui | Oui | Oui | Oui | Stable |
 | Vision | Constitution | Oui | Oui | Oui | Oui | Stable |
 | Product | Product Strategy | Oui | Non | À vérifier | Partiel | In Review |
+| Product | Pricing Strategy | Oui | Oui | Oui | Partiel | Draft |
 | Product | Primary Persona | Oui | Non | À vérifier | Oui | In Review |
 | Product | Secondary Persona | Non | Non | Non | Non | Draft |
 | Product | Anti-personas | Oui | Non | À vérifier | Oui | In Review |
@@ -64,6 +66,7 @@ La consolidation des bounded contexts et du Blueprint permet de commencer le
 palier 0 d'implémentation. Le passage à `Stable` reste bloqué par :
 
 - la validation produit des parcours et états UX ;
+- la validation de la disposition à payer et du packaging `Atlas Solo` ;
 - la validation Security du modèle de menace transversal ;
 - l'acceptation d'`ADR-002` après le spike de compatibilité et de frontières — **faite** ;
 - l'acceptation formelle des quality gates par Engineering et Security.
@@ -76,3 +79,7 @@ Workspace simplement parce qu'aucune nouvelle activité n'y a été enregistrée
 
 `Automation` reste volontairement absent : son cadrage ne constitue pas un
 prérequis du MVP.
+
+La stratégie tarifaire reste `Draft` tant que le prix n'a pas été confronté à
+des décisions réelles et que le contexte propriétaire de Subscription et
+Entitlement n'a pas fait l'objet d'une décision structurante.

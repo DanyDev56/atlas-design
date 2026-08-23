@@ -3,8 +3,8 @@ id: WSP-SCOPE
 title: Workspace Scope
 status: In Review
 owner: Product
-version: 1.0.0
-last_updated: 2026-08-05
+version: 1.0.1
+last_updated: 2026-08-23
 
 references:
   - README.md
@@ -12,6 +12,7 @@ references:
   - model.md
   - integrations.md
   - future.md
+  - ../../product/pricing-strategy.md
 ---
 
 # Périmètre
@@ -70,7 +71,7 @@ les règles d'un document métier ni les données historisées par un autre doma
 | User, Membership, Role, Permission, Invitation, Session | `Identity` |
 | Client, Contact, Opportunity | `CRM` |
 | Quote, Invoice, Payment, taxes, numérotation, échéances | `Billing` |
-| abonnement, plan et consommation commerciale d'Atlas | contexte commercial de plateforme à définir |
+| abonnement, plan et consommation commerciale d'Atlas | contexte commercial de plateforme à définir dans une décision dédiée ; voir la [stratégie tarifaire](../../product/pricing-strategy.md) |
 | recommandations | `Advisor` |
 | indicateurs et projections | `Analytics` / `Business Health` |
 

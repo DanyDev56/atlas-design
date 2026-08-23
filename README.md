@@ -39,15 +39,16 @@ d'implémentation définitifs.
 4. [Principes produit](fondation/vision/principles.md)
 5. [Anti-objectifs](fondation/vision/anti-goals.md)
 6. [Stratégie produit](fondation/product/product-strategy.md)
-7. [Persona principal](fondation/product/personnas/persona-primary.md)
-8. [Périmètre du MVP](evolution/roadmap/mvp-scope.md)
-9. [Acceptation de bout en bout du MVP](evolution/roadmap/mvp-acceptance.md)
-10. [Product Blueprint](evolution/blueprint/README.md)
-11. [Fixtures de référence du MVP](evolution/reference-fixtures/README.md)
-12. [Product Language](fondation/language/README.md)
-13. [Domain Map](fondation/domain-map/README.md)
-14. [Architecture Decision Records](fondation/decisions/README.md)
-15. [Security Foundation](fondation/security/README.md)
+7. [Stratégie tarifaire](fondation/product/pricing-strategy.md)
+8. [Persona principal](fondation/product/personnas/persona-primary.md)
+9. [Périmètre du MVP](evolution/roadmap/mvp-scope.md)
+10. [Acceptation de bout en bout du MVP](evolution/roadmap/mvp-acceptance.md)
+11. [Product Blueprint](evolution/blueprint/README.md)
+12. [Fixtures de référence du MVP](evolution/reference-fixtures/README.md)
+13. [Product Language](fondation/language/README.md)
+14. [Domain Map](fondation/domain-map/README.md)
+15. [Architecture Decision Records](fondation/decisions/README.md)
+16. [Security Foundation](fondation/security/README.md)
 
 ---
 
@@ -58,7 +59,7 @@ d'implémentation définitifs.
 [`fondation/`](fondation/README.md) contient les règles structurantes et durables :
 
 - vision et principes ;
-- stratégie produit et utilisateurs cibles ;
+- stratégie produit, pricing et utilisateurs cibles ;
 - langage officiel ;
 - domaines et invariants ;
 - décisions structurantes ;
