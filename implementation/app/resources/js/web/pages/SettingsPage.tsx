@@ -61,6 +61,9 @@ export function SettingsPage() {
     const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
     const [billingSuccess, setBillingSuccess] = useState<string | null>(null);
     const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
+    const pendingInvitations = invitations.filter((invitation) => (
+        invitation.status === 'Pending' && Date.parse(invitation.expires_at) > Date.now()
+    ));
 
     useEffect(() => {
         let cancelled = false;
@@ -358,11 +361,11 @@ export function SettingsPage() {
                                 )}
                             </form>
 
-                            {invitations.length > 0 && (
+                            {pendingInvitations.length > 0 && (
                                 <div className="mt-6">
-                                    <h4 className="text-sm font-semibold text-atlas-ink">Invitations</h4>
+                                    <h4 className="text-sm font-semibold text-atlas-ink">Invitations en attente</h4>
                                     <ul className="mt-2 divide-y divide-atlas-border">
-                                        {invitations.map((invitation) => (
+                                        {pendingInvitations.map((invitation) => (
                                             <li key={invitation.invitation_id} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
                                                 <div>
                                                     <p className="text-sm font-medium text-atlas-ink">{invitation.recipient_email}</p>
@@ -374,16 +377,14 @@ export function SettingsPage() {
                                                     <p className="text-xs font-semibold uppercase tracking-wide text-atlas-ink-muted">
                                                         {invitation.role} · {invitation.status}
                                                     </p>
-                                                    {invitation.status === 'Pending' && (
-                                                        <button
-                                                            type="button"
-                                                            disabled={revokingInvitationId === invitation.invitation_id}
-                                                            onClick={() => void onRevokeInvitation(invitation.invitation_id)}
-                                                            className="text-xs font-semibold text-red-700 hover:underline disabled:opacity-50"
-                                                        >
-                                                            {revokingInvitationId === invitation.invitation_id ? 'Révocation…' : 'Révoquer'}
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        disabled={revokingInvitationId === invitation.invitation_id}
+                                                        onClick={() => void onRevokeInvitation(invitation.invitation_id)}
+                                                        className="text-xs font-semibold text-red-700 hover:underline disabled:opacity-50"
+                                                    >
+                                                        {revokingInvitationId === invitation.invitation_id ? 'Révocation…' : 'Révoquer'}
+                                                    </button>
                                                 </div>
                                             </li>
                                         ))}

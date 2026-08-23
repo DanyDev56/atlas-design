@@ -74,6 +74,51 @@ test('les paramètres restent accessibles depuis la carte workspace', async ({ p
     await expect(page.getByRole('heading', { name: 'Paramètres' })).toBeVisible();
 });
 
+test('les paramètres affichent uniquement les invitations encore actives', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Le filtrage est identique sur les deux viewports.');
+
+    await page.route('**/api/workspaces/*/invitations', async (route) => {
+        await route.fulfill({
+            status: 200,
+            json: {
+                invitations: [
+                    {
+                        invitation_id: '11111111-1111-4111-8111-111111111111',
+                        recipient_email: 'pending-invite@example.test',
+                        role: 'member',
+                        status: 'Pending',
+                        delivery_status: 'Accepted',
+                        expires_at: '2099-01-01T00:00:00Z',
+                    },
+                    {
+                        invitation_id: '22222222-2222-4222-8222-222222222222',
+                        recipient_email: 'accepted-invite@example.test',
+                        role: 'member',
+                        status: 'Accepted',
+                        delivery_status: 'Accepted',
+                        expires_at: '2099-01-01T00:00:00Z',
+                    },
+                    {
+                        invitation_id: '33333333-3333-4333-8333-333333333333',
+                        recipient_email: 'expired-invite@example.test',
+                        role: 'member',
+                        status: 'Pending',
+                        delivery_status: 'Accepted',
+                        expires_at: '2020-01-01T00:00:00Z',
+                    },
+                ],
+            },
+        });
+    });
+
+    await navigateToSettings(page);
+
+    await expect(page.getByRole('heading', { name: 'Invitations en attente' })).toBeVisible();
+    await expect(page.getByText('pending-invite@example.test', { exact: true })).toBeVisible();
+    await expect(page.getByText('accepted-invite@example.test', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('expired-invite@example.test', { exact: true })).toHaveCount(0);
+});
+
 test('la navigation conserve le nom du workspace sans le recharger', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Le comportement réseau est identique sur les deux viewports.');
 
