@@ -107,6 +107,8 @@ make up-observability  # Jaeger + OTLP collector
 ```
 
 UI démo Palier 4 : [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
+Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
+[`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 Compte présentation : `make demo-seed` puis connexion `demo@atlas.test`. La
 commande crée ou met à niveau un scénario rejouable couvrant les principaux
 états CRM, devis, factures, Santé, Advisor et Notifications.

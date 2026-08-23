@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\RevokeSessionController;
 use App\Http\Controllers\Api\SessionContextController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
 use App\Http\Controllers\Api\Subscriptions\SubscriptionController;
+use App\Http\Controllers\Api\Subscriptions\RecurringBillingWebhookController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use App\Http\Controllers\Api\Workspace\WorkspaceController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
@@ -51,6 +52,7 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
     Route::middleware('throttle:public')->group(function (): void {
         Route::get('/public/workspaces/{workspaceId}/quotes/{quoteId}', PublicQuoteController::class);
         Route::post('/public/workspaces/{workspaceId}/quotes/{quoteId}/accept', PublicQuoteAcceptController::class);
+        Route::post('/subscriptions/webhooks/{provider}', RecurringBillingWebhookController::class);
     });
 
     Route::middleware(DevelopmentOnlyMiddleware::class)->group(function (): void {

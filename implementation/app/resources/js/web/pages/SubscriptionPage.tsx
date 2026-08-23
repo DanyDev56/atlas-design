@@ -120,6 +120,7 @@ export function SubscriptionPage() {
     }
 
     const trialActive = overview?.trial?.status === 'Active';
+    const simulatedSubscription = overview?.subscription?.provider === 'fake' ? overview.subscription : null;
     const trialDuration = overview?.trial
         ? Math.max(1, Math.ceil((Date.parse(overview.trial.ends_at) - Date.parse(overview.trial.started_at)) / 86_400_000))
         : 30;
@@ -157,29 +158,35 @@ export function SubscriptionPage() {
                             <div className="relative grid gap-8 md:grid-cols-[minmax(0,1fr)_15rem] md:items-end">
                                 <div>
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-white/80">
-                                        <span className={`size-1.5 rounded-full ${trialActive ? 'bg-[#58c8ac]' : 'bg-amber-300'}`} />
-                                        {trialActive ? 'Essai en cours' : overview.access.level === 'Restricted' ? 'Accès restreint' : 'Initialisation'}
+                                        <span className={`size-1.5 rounded-full ${trialActive || simulatedSubscription?.status === 'Active' ? 'bg-[#58c8ac]' : 'bg-amber-300'}`} />
+                                        {simulatedSubscription
+                                            ? `Abonnement simulé · ${simulatedSubscription.status}`
+                                            : trialActive ? 'Essai en cours' : overview.access.level === 'Restricted' ? 'Accès restreint' : 'Initialisation'}
                                     </span>
                                     <h3 className="mt-5 text-2xl font-semibold tracking-[-0.025em] sm:text-[1.75rem]">
-                                        {trialActive && overview.trial
+                                        {simulatedSubscription
+                                            ? `${overview.catalog.plan.display_name} est actif en simulation`
+                                            : trialActive && overview.trial
                                             ? `${overview.trial.remaining_days} jour${overview.trial.remaining_days > 1 ? 's' : ''} pour découvrir Atlas`
                                             : overview.access.level === 'Restricted'
                                                 ? 'Votre période d’essai est terminée'
                                                 : 'Votre accès commercial est en préparation'}
                                     </h3>
                                     <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                                        {overview.trial
+                                        {simulatedSubscription
+                                            ? `La période simulée se termine le ${formatDate(simulatedSubscription.current_period_end)}. Elle ne correspond à aucun encaissement réel.`
+                                            : overview.trial
                                             ? `Votre essai se termine le ${formatDate(overview.trial.ends_at)}. Aucun prélèvement automatique n’est programmé.`
                                             : 'Les données de votre espace restent disponibles. Aucun paiement ni aucune restriction ne sont appliqués pendant cette phase.'}
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-white/[0.08] bg-white/[0.06] p-4">
                                     <div className="flex items-center justify-between gap-3 text-xs text-white/55">
-                                        <span>Progression de l’essai</span>
-                                        <span>{overview.trial ? `${overview.trial.remaining_days} j restants` : 'À initialiser'}</span>
+                                        <span>{simulatedSubscription ? 'Période simulée' : 'Progression de l’essai'}</span>
+                                        <span>{simulatedSubscription ? `jusqu’au ${formatDate(simulatedSubscription.current_period_end)}` : overview.trial ? `${overview.trial.remaining_days} j restants` : 'À initialiser'}</span>
                                     </div>
                                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                                        <div className="h-full rounded-full bg-[#58c8ac]" style={{ width: `${trialProgress}%` }} />
+                                        <div className="h-full rounded-full bg-[#58c8ac]" style={{ width: `${simulatedSubscription ? 100 : trialProgress}%` }} />
                                     </div>
                                     <p className="mt-3 text-xs leading-5 text-white/45">
                                         Niveau d’accès : {overview.access.level === 'Full' ? 'complet' : overview.access.level === 'Restricted' ? 'lecture et export' : 'en préparation'}

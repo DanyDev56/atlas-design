@@ -515,8 +515,10 @@ possédera au fil des incréments :
 - consommation uniquement lorsqu'elle devient une métrique de prix explicite ;
 - événements de souscription, renouvellement, échec et résiliation.
 
-Le premier incrément respecte cette frontière sans activer de prélèvement ni de
-restriction d'accès.
+Les incréments techniques respectent cette frontière sans activer de
+prélèvement ni de restriction d'accès. Le cycle normalisé peut être exercé avec
+un prestataire factice et des webhooks HMAC en développement ; cette simulation
+ne constitue pas une preuve de paiement ni une intégration commerciale.
 
 ### État actuel
 
@@ -528,7 +530,9 @@ restriction d'accès.
 | Catalogue de plans | `Atlas Solo@1` candidat persisté, non public |
 | Essai et entitlements | Trial de 30 jours et projection Full/Restricted implémentés ; enforcement désactivé |
 | Checkout | Gateway factice déterministe derrière feature flag ; aucun encaissement |
-| Paiement récurrent et webhooks | Non implémentés |
+| Cycle récurrent normalisé | Activation, renouvellement, échec et résiliation implémentés avec inbox idempotente |
+| Webhooks de développement | Prestataire factice, signature HMAC, ordre, déduplication et rejeu implémentés ; désactivés par défaut |
+| Prestataire et paiement réels | Non implémentés |
 | Portail de facturation Atlas | Non implémenté |
 | Dunning et période de grâce | Non implémentés |
 | Page tarifaire publique contractuelle | Non publiée |
@@ -547,7 +551,8 @@ La vente d'`Atlas Solo` exige :
    **faite avec `ADR-003`** ;
 3. catalogue de plans versionné — **socle fait** — et entitlements appliqués
    côté serveur — **enforcement restant** ;
-4. checkout et webhooks idempotents d'un prestataire de paiement ;
+4. checkout et webhooks idempotents d'un prestataire de paiement — **contrat et
+   simulation faits, prestataire réel restant** ;
 5. aucun stockage local de données de carte ;
 6. cycle essai, souscription, renouvellement, résiliation et restauration testé ;
 7. traitement explicite des paiements échoués et de la période de grâce ;
@@ -556,7 +561,8 @@ La vente d'`Atlas Solo` exige :
 10. export, fermeture et rétention cohérents avec les politiques de données ;
 11. observabilité, alertes et runbook de support ;
 12. page tarifaire sans promesse dépassant les capacités livrées ;
-13. tests de sécurité, d'isolation Workspace et de rejeu des webhooks ;
+13. tests de sécurité, d'isolation Workspace et de rejeu des webhooks — **socle
+    testé sur le prestataire factice, recette du prestataire réel restante** ;
 14. mesure de conversion, churn et marge disponible dès le lancement.
 
 La maturité documentaire suit deux étapes distinctes :

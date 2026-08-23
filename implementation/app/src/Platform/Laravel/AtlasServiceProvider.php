@@ -139,14 +139,20 @@ use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
 use Atlas\Modules\Subscriptions\Application\StartTrialForWorkspaceHandler;
 use Atlas\Modules\Subscriptions\Application\SubscriptionOverviewQueryHandler;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookInbox;
+use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookVerifier;
 use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementReader;
 use Atlas\Modules\Subscriptions\Domain\EntitlementRepository;
 use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Domain\TrialRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingWebhookVerifier;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresEntitlementRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresPlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresSubscriptionRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresTrialRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresWebhookInbox;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresWorkspaceEntitlementReader;
 use Atlas\Modules\Subscriptions\Infrastructure\PostgresSubscriptionsIdempotencyStore;
 use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
@@ -185,7 +191,9 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(WorkspaceRepository::class, PostgresWorkspaceRepository::class);
         $this->app->singleton(PlanCatalogRepository::class, PostgresPlanCatalogRepository::class);
         $this->app->singleton(TrialRepository::class, PostgresTrialRepository::class);
+        $this->app->singleton(SubscriptionRepository::class, PostgresSubscriptionRepository::class);
         $this->app->singleton(EntitlementRepository::class, PostgresEntitlementRepository::class);
+        $this->app->singleton(RecurringBillingWebhookInbox::class, PostgresWebhookInbox::class);
         $this->app->singleton(WorkspaceEntitlementReader::class, PostgresWorkspaceEntitlementReader::class);
         $this->app->singleton(RecurringBillingGateway::class, function (): RecurringBillingGateway {
             if (config('subscriptions.gateway', 'fake') !== 'fake') {
@@ -193,6 +201,13 @@ final class AtlasServiceProvider extends ServiceProvider
             }
 
             return new FakeRecurringBillingGateway;
+        });
+        $this->app->singleton(RecurringBillingWebhookVerifier::class, function (): RecurringBillingWebhookVerifier {
+            if (config('subscriptions.gateway', 'fake') !== 'fake') {
+                throw new \LogicException('Configured subscriptions webhook verifier is not implemented.');
+            }
+
+            return new FakeRecurringBillingWebhookVerifier;
         });
         $this->app->singleton(TransactionalEmailSender::class, LaravelSmtpEmailSender::class);
         $this->app->singleton(PostgresEmailDeliveryRepository::class);

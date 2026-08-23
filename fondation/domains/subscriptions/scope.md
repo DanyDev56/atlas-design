@@ -44,7 +44,9 @@ commercial normalisé s'applique et quelles capacités en résultent.
 - expose la lecture du catalogue candidat et de l'état commercial du Workspace ;
 - expose `WorkspaceEntitlementReader` pour une décision locale par capacité ;
 - émet `subscriptions.trial_started` ;
-- encapsule le checkout derrière `RecurringBillingGateway`.
+- encapsule le checkout derrière `RecurringBillingGateway` ;
+- normalise les événements récurrents activé, renouvelé, paiement échoué et
+  résilié après vérification de leur signature.
 
 ## Invariants initiaux
 
@@ -55,6 +57,10 @@ commercial normalisé s'applique et quelles capacités en résultent.
 - un Trial expiré conserve uniquement lecture, export et gestion d'abonnement ;
 - checkout et enforcement sont désactivés par défaut ;
 - un retour de checkout ne prouve jamais un paiement ;
+- seul un événement signé du prestataire peut modifier une Subscription ;
+- un événement externe est traité au plus une fois par couple prestataire/id ;
+- un événement plus ancien que le dernier événement appliqué ne régresse jamais
+  l'état courant ;
 - aucun stockage privé d'un autre contexte n'est lu par le domaine.
 
 ## État d'implémentation
@@ -67,8 +73,10 @@ commercial normalisé s'applique et quelles capacités en résultent.
 | Lecture API propriétaire | Implémentée |
 | UI propriétaire essai, offre et prix candidat | Implémentée dans Gérer l'espace |
 | Gateway factice | Implémenté derrière feature flag, simulation sans paiement |
+| Cycle Subscription normalisé | Implémenté pour activation, renouvellement, échec et résiliation |
+| Inbox webhook factice signée | Implémentée, dédupliquée, ordonnée et rejouable ; désactivée par défaut |
 | Reprise des Workspaces actifs antérieurs | Commande idempotente avec `--dry-run` |
-| Abonnement récurrent et webhooks réels | Non implémentés |
+| Prestataire réel et encaissement récurrent | Non implémentés |
 | BillingAccount, portail, résiliation et dunning | Non implémentés |
 
 L'existence technique du candidat ne valide ni son prix ni son ouverture

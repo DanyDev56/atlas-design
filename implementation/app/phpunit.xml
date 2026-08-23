@@ -44,6 +44,8 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="SUBSCRIPTIONS_CHECKOUT_ENABLED" value="false" force="true"/>
+        <env name="SUBSCRIPTIONS_WEBHOOKS_ENABLED" value="false" force="true"/>
+        <env name="SUBSCRIPTIONS_FAKE_WEBHOOK_SECRET" value="atlas-test-webhook-secret" force="true"/>
         <env name="SUBSCRIPTIONS_ENFORCEMENT_ENABLED" value="false" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

@@ -6,6 +6,7 @@ namespace Atlas\Modules\Subscriptions\Application;
 
 use Atlas\Modules\Subscriptions\Domain\EntitlementRepository;
 use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Domain\TrialRepository;
 use Atlas\Platform\Security\WorkspaceAuthorizer;
 
@@ -15,6 +16,7 @@ final class SubscriptionOverviewQueryHandler
         private readonly WorkspaceAuthorizer $authorizer,
         private readonly PlanCatalogRepository $catalog,
         private readonly TrialRepository $trials,
+        private readonly SubscriptionRepository $subscriptions,
         private readonly EntitlementRepository $entitlements,
     ) {}
 
@@ -33,6 +35,7 @@ final class SubscriptionOverviewQueryHandler
 
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $trial = $this->trials->findByWorkspaceId($workspaceId);
+        $subscription = $this->subscriptions->findByWorkspaceId($workspaceId);
         $entitlement = $this->entitlements->findByWorkspaceId($workspaceId);
 
         return [
@@ -63,7 +66,16 @@ final class SubscriptionOverviewQueryHandler
                 'ends_at' => $trial->endsAt()->format(DATE_ATOM),
                 'remaining_days' => $trial->remainingDaysAt($now),
             ],
-            'subscription' => null,
+            'subscription' => $subscription === null ? null : [
+                'id' => $subscription->id()->value,
+                'status' => $subscription->status(),
+                'plan_price_id' => $subscription->planPriceId(),
+                'provider' => $subscription->provider(),
+                'current_period_start' => $subscription->currentPeriodStart()->format(DATE_ATOM),
+                'current_period_end' => $subscription->currentPeriodEnd()->format(DATE_ATOM),
+                'cancel_at_period_end' => $subscription->cancelAtPeriodEnd(),
+                'canceled_at' => $subscription->canceledAt()?->format(DATE_ATOM),
+            ],
             'access' => $entitlement === null ? [
                 'level' => 'Provisioning',
                 'source' => 'None',

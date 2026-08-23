@@ -114,7 +114,16 @@ export interface SubscriptionOverviewResponse {
         ends_at: string;
         remaining_days: number;
     } | null;
-    subscription: null;
+    subscription: {
+        id: string;
+        status: 'Active' | 'PastDue' | 'Canceled';
+        plan_price_id: string;
+        provider: string;
+        current_period_start: string;
+        current_period_end: string;
+        cancel_at_period_end: boolean;
+        canceled_at: string | null;
+    } | null;
     access: {
         level: 'Full' | 'Restricted' | 'Provisioning';
         source: string;
