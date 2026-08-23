@@ -64,6 +64,17 @@ Par défaut, les processus démarrent avec `APP_ENV=staging` et
 démarrer sans `RUNTIME_APP_KEY`. Cette clé est une configuration d'exécution :
 elle ne doit jamais être ajoutée au dépôt ni à l'image.
 
+Le serveur HTTP utilise `artisan serve --no-reload` afin que son processus PHP
+conserve toutes les variables injectées par l'orchestrateur. Le rechargement du
+fichier `.env` n'est pas nécessaire dans une image runtime immuable.
+
+Les routes et jetons de développement restent explicitement désactivés dans ce
+profil. `RUNTIME_TRUST_PROXIES=true` ne doit être défini que lorsque l'origine
+est isolée derrière le reverse proxy retenu. Si ce proxy ne transmet pas un
+schéma HTTPS exploitable, `RUNTIME_FORCE_HTTPS=true` force les URL générées par
+Laravel en HTTPS ; cette option exige une origine publique réellement servie en
+HTTPS.
+
 Un test strictement local peut surcharger l'environnement :
 
 ```bash

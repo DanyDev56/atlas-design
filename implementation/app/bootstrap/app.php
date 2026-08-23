@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ForceHttpsScheme;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,7 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('atlas:billing:mark-overdue')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        if (filter_var(env('ATLAS_TRUST_PROXIES', false), FILTER_VALIDATE_BOOL)) {
+            $middleware->trustProxies(at: '*');
+        }
+
+        $middleware->append(ForceHttpsScheme::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

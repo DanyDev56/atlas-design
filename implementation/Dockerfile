@@ -109,4 +109,4 @@ EXPOSE 8000
 STOPSIGNAL SIGTERM
 
 ENTRYPOINT ["atlas-runtime-entrypoint"]
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["php", "artisan", "serve", "--no-reload", "--host=0.0.0.0", "--port=8000"]

@@ -90,6 +90,9 @@ Plan détaillé :
 
 ```bash
 make up          # Démarrer les services
+make share       # Partager temporairement Atlas par un Quick Tunnel HTTPS
+make stop-share  # Arrêter le tunnel depuis un autre terminal
+make logs-share  # Suivre les logs cloudflared
 make up-stripe   # Démarrer Atlas avec le listener webhook Stripe sandbox
 make logs-stripe # Suivre les événements transférés par Stripe CLI
 make stop-stripe # Arrêter uniquement le listener Stripe
@@ -112,6 +115,8 @@ make up-observability  # Jaeger + OTLP collector
 Landing Early Access publique : `/` — présentation du produit, conditions
 d'exploration et conversion vers l'inscription. UI démo Palier 4 :
 [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
+La démonstration extérieure sans déploiement est décrite dans le
+[`runbook Quick Tunnel`](runbooks/quick-tunnel-demo.md).
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

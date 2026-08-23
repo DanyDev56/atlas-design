@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    'http' => [
+        'force_https' => (bool) env('ATLAS_FORCE_HTTPS', false),
+    ],
     'development' => [
         'routes_enabled' => (bool) env(
             'ATLAS_DEVELOPMENT_ROUTES',

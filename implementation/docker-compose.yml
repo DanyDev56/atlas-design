@@ -1,6 +1,11 @@
 x-app-environment: &app-environment
-  APP_ENV: local
-  APP_DEBUG: "true"
+  APP_ENV: ${ATLAS_SHARE_APP_ENV:-local}
+  APP_DEBUG: ${ATLAS_SHARE_APP_DEBUG:-true}
+  APP_URL: ${ATLAS_PUBLIC_URL:-http://localhost:8000}
+  ATLAS_DEVELOPMENT_ROUTES: ${ATLAS_SHARE_DEVELOPMENT_ROUTES:-true}
+  ATLAS_DEBUG_VERIFICATION_TOKENS: ${ATLAS_SHARE_DEBUG_VERIFICATION_TOKENS:-false}
+  ATLAS_TRUST_PROXIES: ${ATLAS_SHARE_TRUST_PROXIES:-false}
+  ATLAS_FORCE_HTTPS: ${ATLAS_SHARE_FORCE_HTTPS:-false}
   DB_CONNECTION: pgsql
   DB_HOST: postgres
   DB_PORT: 5432
@@ -17,7 +22,7 @@ x-app-environment: &app-environment
   MAIL_PORT: 1025
   MAIL_FROM_ADDRESS: no-reply@atlas.local
   MAIL_FROM_NAME: Atlas
-  MAIL_LINKS_URL: http://localhost:8000
+  MAIL_LINKS_URL: ${ATLAS_PUBLIC_URL:-http://localhost:8000}
   MAIL_MESSAGE_ID_DOMAIN: atlas.local
 
 x-runtime-environment: &runtime-environment
@@ -26,6 +31,10 @@ x-runtime-environment: &runtime-environment
   APP_DEBUG: ${RUNTIME_APP_DEBUG:-false}
   APP_KEY: ${RUNTIME_APP_KEY:-}
   APP_URL: ${RUNTIME_APP_URL:-http://localhost:8080}
+  ATLAS_DEVELOPMENT_ROUTES: "false"
+  ATLAS_DEBUG_VERIFICATION_TOKENS: "false"
+  ATLAS_TRUST_PROXIES: ${RUNTIME_TRUST_PROXIES:-false}
+  ATLAS_FORCE_HTTPS: ${RUNTIME_FORCE_HTTPS:-false}
   MAIL_MAILER: ${RUNTIME_MAIL_MAILER:-log}
   MAIL_HOST: ${RUNTIME_MAIL_HOST:-mailpit}
   MAIL_PORT: ${RUNTIME_MAIL_PORT:-1025}
@@ -79,7 +88,7 @@ services:
       POSTGRES_USER: atlas
       POSTGRES_PASSWORD: atlas_dev
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/01-schemas.sql:ro
@@ -94,8 +103,8 @@ services:
   app:
     <<: *development-base
     ports:
-      - "8000:8000"
-      - "5173:5173"
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:5173:5173"
     command: sleep infinity
 
   outbox-worker:
@@ -124,6 +133,21 @@ services:
       - --forward-to
       - http://app:8000/api/subscriptions/webhooks/stripe
 
+  quick-tunnel:
+    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    profiles: [share]
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    depends_on:
+      app:
+        condition: service_started
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --url
+      - http://app:8000
+
   e2e:
     image: mcr.microsoft.com/playwright:v1.62.1-noble
     profiles: [e2e]
@@ -150,7 +174,7 @@ services:
       OTEL_SERVICE_NAME: atlas-api
     ports:
       - "8080:8000"
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: php artisan serve --no-reload --host=0.0.0.0 --port=8000
     healthcheck:
       test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/up') === false ? 1 : 0);"]
       interval: 5s

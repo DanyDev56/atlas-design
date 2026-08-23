@@ -1,4 +1,4 @@
-.PHONY: up up-stripe check-stripe-env logs-stripe stop-stripe runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test test-backend e2e check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
+.PHONY: up share stop-share logs-share up-stripe check-stripe-env logs-stripe stop-stripe runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test test-backend e2e check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
@@ -8,6 +8,15 @@ COMPOSE_STRIPE = $(DOCKER) compose --env-file implementation/app/.env -f impleme
 
 up:
 	$(COMPOSE) up -d --build
+
+share:
+	bash ./implementation/scripts/share-quick-tunnel.sh
+
+stop-share:
+	$(COMPOSE) --profile share stop quick-tunnel
+
+logs-share:
+	$(COMPOSE) --profile share logs -f quick-tunnel
 
 check-stripe-env:
 	@grep -Eq '^SUBSCRIPTIONS_STRIPE_SECRET_KEY=sk_test_.+' implementation/app/.env || { echo "SUBSCRIPTIONS_STRIPE_SECRET_KEY must contain a Stripe test key in implementation/app/.env."; exit 78; }
