@@ -58,8 +58,8 @@ final class CreateCheckoutSessionHandler
             workspaceId: $workspaceId,
             planPriceId: $price->id,
             idempotencyKey: $idempotencyKey,
-            successUrl: $baseUrl.'/app/settings',
-            cancelUrl: $baseUrl.'/app/settings',
+            successUrl: $baseUrl.'/app/settings/subscription',
+            cancelUrl: $baseUrl.'/app/settings/subscription',
         );
 
         $response = [

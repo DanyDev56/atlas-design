@@ -82,6 +82,60 @@ export interface WorkspaceInvitationsResponse {
     invitations: WorkspaceInvitation[];
 }
 
+export type SubscriptionBillingInterval = 'Monthly' | 'Annual';
+
+export interface SubscriptionPrice {
+    id: string;
+    billing_interval: SubscriptionBillingInterval;
+    currency: string;
+    amount_minor: number;
+    status: string;
+}
+
+export interface SubscriptionOverviewResponse {
+    workspace_id: string;
+    catalog: {
+        status: string;
+        public: boolean;
+        plan: {
+            id: string;
+            code: string;
+            version: number;
+            display_name: string;
+            prices: SubscriptionPrice[];
+            capabilities: string[];
+            limits: Record<string, number>;
+        };
+    };
+    trial: {
+        id: string;
+        status: string;
+        started_at: string;
+        ends_at: string;
+        remaining_days: number;
+    } | null;
+    subscription: null;
+    access: {
+        level: 'Full' | 'Restricted' | 'Provisioning';
+        source: string;
+        valid_until: string | null;
+        capabilities: string[];
+        limits: Record<string, number>;
+    };
+    commercialization: {
+        enforcement_enabled: boolean;
+        checkout_enabled: boolean;
+        gateway: string;
+    };
+}
+
+export interface CheckoutSessionResponse {
+    checkout_session_id: string;
+    checkout_url: string;
+    provider: string;
+    mode: 'Preview';
+}
+
 export interface InvitationAcceptanceResponse {
     invitation_id: string;
     workspace_id: string;

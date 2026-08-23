@@ -17,15 +17,15 @@ final class FakeRecurringBillingGatewayTest extends TestCase
             'workspace-1',
             'price-1',
             'request-1',
-            'http://atlas.test/app/settings',
-            'http://atlas.test/app/settings',
+            'http://atlas.test/app/settings/subscription',
+            'http://atlas.test/app/settings/subscription',
         );
         $second = $gateway->createCheckoutSession(
             'workspace-1',
             'price-1',
             'request-1',
-            'http://atlas.test/app/settings',
-            'http://atlas.test/app/settings',
+            'http://atlas.test/app/settings/subscription',
+            'http://atlas.test/app/settings/subscription',
         );
 
         self::assertSame($first->id, $second->id);

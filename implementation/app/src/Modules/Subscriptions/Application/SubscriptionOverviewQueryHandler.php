@@ -45,6 +45,8 @@ final class SubscriptionOverviewQueryHandler
                     'code' => $plan->code,
                     'version' => $plan->version,
                     'display_name' => $plan->displayName,
+                    'capabilities' => $plan->capabilities,
+                    'limits' => $plan->limits,
                     'prices' => array_map(static fn ($price): array => [
                         'id' => $price->id,
                         'billing_interval' => $price->interval->value,

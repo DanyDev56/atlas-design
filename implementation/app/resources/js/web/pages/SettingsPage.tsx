@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import {
     createWorkspaceInvitation,
     getWorkspaceBillingIdentity,
@@ -18,6 +18,7 @@ import { RequireAuth } from '@/components/layout/RequireAuth';
 import type { AppShellOutletContext } from '@/components/layout/AppShell';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Icon } from '@/components/ui/Icon';
 import { useAuth } from '@/hooks/useAuth';
 import type {
     WorkspaceBillingIdentityResponse,
@@ -63,6 +64,9 @@ export function SettingsPage() {
     const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
     const pendingInvitations = invitations.filter((invitation) => (
         invitation.status === 'Pending' && Date.parse(invitation.expires_at) > Date.now()
+    ));
+    const isOwner = members.some((member) => (
+        member.user_id === session!.userId && member.role.toLocaleLowerCase('en-US') === 'owner'
     ));
 
     useEffect(() => {
@@ -230,7 +234,7 @@ export function SettingsPage() {
                 <PageHeader
                     eyebrow="Votre espace"
                     title="Paramètres"
-                    description="Gérez le profil de l’activité, l’identité de facturation, vos préférences et les membres de l’espace."
+                    description="Gérez l’abonnement, le profil de l’activité, l’identité de facturation, vos préférences et les membres de l’espace."
                 />
 
                 {loading && <div className="mt-8"><PageSkeleton rows={4} /></div>}
@@ -240,6 +244,12 @@ export function SettingsPage() {
                     <div className="grid items-start gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
                         <aside className="sticky top-24 hidden rounded-2xl border border-atlas-border bg-white/70 p-2 shadow-sm lg:block">
                             <nav aria-label="Sections des paramètres" className="space-y-1 text-sm font-medium">
+                                {isOwner && (
+                                    <Link to="/app/settings/subscription" className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-atlas-ink-muted hover:bg-atlas-accent-soft hover:text-atlas-accent">
+                                        <Icon name="billing" className="size-4" />
+                                        Abonnement
+                                    </Link>
+                                )}
                                 {[
                                     ['#workspace-profile', 'Profil de l’activité'],
                                     ['#billing-identity', 'Facturation'],
@@ -253,6 +263,23 @@ export function SettingsPage() {
                             </nav>
                         </aside>
                         <div className="min-w-0 space-y-8">
+                        {isOwner && (
+                            <Link
+                                to="/app/settings/subscription"
+                                className="group flex items-center justify-between gap-5 rounded-2xl border border-atlas-border bg-atlas-sidebar p-5 text-white shadow-sm sm:p-6"
+                            >
+                                <div className="flex min-w-0 items-center gap-4">
+                                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/[0.08] text-[#58c8ac]">
+                                        <Icon name="billing" className="size-5" />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold">Gérer l’abonnement</p>
+                                        <p className="mt-1 text-sm leading-5 text-white/55">Consultez l’essai, l’offre Atlas Solo et les tarifs en validation.</p>
+                                    </div>
+                                </div>
+                                <Icon name="chevron-right" className="size-5 shrink-0 text-white/45 transition-transform group-hover:translate-x-0.5" />
+                            </Link>
+                        )}
                         <form id="workspace-profile" onSubmit={onSaveProfile} className="scroll-mt-28 rounded-2xl border border-atlas-border bg-atlas-card p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-atlas-ink">Profil de l’activité</h3>
                             <SuccessBanner message={profileSuccess} />

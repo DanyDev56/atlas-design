@@ -24,10 +24,12 @@ Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app
 
 Cette surface permet de démontrer la valeur et de mener les entretiens de
 pricing. Le backend contient désormais le catalogue candidat `Atlas Solo@1`, le
-Trial de 30 jours, une projection d'Entitlements et un gateway factice désactivé.
-L'UI n'expose encore ni offre contractuelle, ni checkout, abonnement réel ou
-résiliation, et aucun enforcement n'est actif. Aucun prix ne doit y être
-présenté comme commercialisable avant passage du
+Trial de 30 jours, une projection d'Entitlements et un gateway factice. L'UI
+propriétaire expose l'essai, le périmètre et les prix candidats dans
+`/app/settings/subscription`, ainsi qu'une simulation de checkout activable en
+développement. Elle n'expose encore ni offre contractuelle, abonnement réel ou
+résiliation, et aucun enforcement n'est actif. Aucun prix ne doit être présenté
+comme commercialisable avant passage du
 [gate tarifaire](../fondation/product/pricing-strategy.md#gate-avant-commercialisation-payante).
 
 ---
@@ -41,6 +43,7 @@ présenté comme commercialisable avant passage du
 | **2** | CRM slice + devis | ✓ | Parcours J2 en UI |
 | **3** | Polish démo (empty states, seed, responsive) | ✓ local | Recette humaine validée |
 | **4** | Enrichissement CRM + Import clients/Billing + rebuild Analytics | ✓ BPT-013 | Package historique clients/Billing puis génération Analytics isolée |
+| **5** | Abonnement candidat + simulation checkout | ✓ local | Prix présenté comme hypothèse, aucun paiement ni enforcement |
 
 ---
 

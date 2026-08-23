@@ -65,7 +65,9 @@ commercial normalisé s'applique et quelles capacités en résultent.
 | Trial de 30 jours sur activation | Implémenté via outbox |
 | Entitlements Full/Restricted | Implémentés, enforcement désactivé |
 | Lecture API propriétaire | Implémentée |
-| Gateway factice | Implémenté derrière feature flag |
+| UI propriétaire essai, offre et prix candidat | Implémentée dans Gérer l'espace |
+| Gateway factice | Implémenté derrière feature flag, simulation sans paiement |
+| Reprise des Workspaces actifs antérieurs | Commande idempotente avec `--dry-run` |
 | Abonnement récurrent et webhooks réels | Non implémentés |
 | BillingAccount, portail, résiliation et dunning | Non implémentés |
 

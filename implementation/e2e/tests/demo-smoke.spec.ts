@@ -61,6 +61,27 @@ test('les paramètres exposent le profil et les membres du workspace', async ({ 
     await expect(page.getByText('owner', { exact: false })).toBeVisible();
 });
 
+test('le propriétaire comprend son essai et le tarif candidat sans ambiguïté de paiement', async ({ page }) => {
+    await navigateToSettings(page);
+    await page.locator('a[href="/app/settings/subscription"]:visible').last().click();
+
+    await expect(page).toHaveURL(/\/app\/settings\/subscription$/);
+    await expect(page.getByRole('heading', { name: 'Abonnement', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Atlas Solo', exact: true })).toBeVisible();
+    await expect(page.getByText('Tarif en validation', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Aucun prélèvement automatique n’est programmé/)).toBeVisible();
+    await expect(page.getByText(/240,00\s€ par an/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Simuler ce choix|Souscription bientôt disponible/ })).toBeVisible();
+
+    const simulationButton = page.getByRole('button', { name: 'Simuler ce choix' });
+    if (await simulationButton.isVisible()) {
+        await simulationButton.click();
+        await expect(page).toHaveURL(/checkout=preview/);
+        await expect(page.getByText(/Simulation terminée. Aucun paiement n’a été effectué/)).toBeVisible();
+        await expect(page).toHaveURL(/\/app\/settings\/subscription(?:\?.*)?$/);
+    }
+});
+
 test('les paramètres restent accessibles depuis la carte workspace', async ({ page }) => {
     const mobileMenu = page.getByRole('button', { name: 'Ouvrir le menu' });
     if (await mobileMenu.isVisible()) await mobileMenu.click();

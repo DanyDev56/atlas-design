@@ -22,6 +22,7 @@ import { QuoteDetailPage } from '@/pages/QuoteDetailPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { SubscriptionPage } from '@/pages/SubscriptionPage';
 
 export function AppRouter() {
     return (
@@ -47,6 +48,7 @@ export function AppRouter() {
                 <Route path="health" element={<BusinessHealthPage />} />
                 <Route path="advisor" element={<AdvisorPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="settings/subscription" element={<SubscriptionPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />

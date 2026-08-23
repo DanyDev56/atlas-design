@@ -27,6 +27,8 @@ final class SubscriptionFoundationTest extends IntegrationTestCase
             ->assertJsonPath('catalog.status', 'Candidate')
             ->assertJsonPath('catalog.public', false)
             ->assertJsonPath('catalog.plan.code', 'atlas_solo')
+            ->assertJsonPath('catalog.plan.limits.members_total', 3)
+            ->assertJsonCount(7, 'catalog.plan.capabilities')
             ->assertJsonPath('catalog.plan.prices.0.amount_minor', 2400)
             ->assertJsonPath('catalog.plan.prices.1.amount_minor', 24000)
             ->assertJsonPath('trial.status', 'Active')
@@ -55,6 +57,27 @@ final class SubscriptionFoundationTest extends IntegrationTestCase
         self::assertSame($first->id()->value, $second->id()->value);
         self::assertSame($first->endsAt()->format(DATE_ATOM), $second->endsAt()->format(DATE_ATOM));
         self::assertSame(1, DB::table('subscriptions.trials')->where('workspace_id', $owner['workspace_id'])->count());
+        self::assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'subscriptions.trial_started')->count());
+    }
+
+    public function test_existing_active_workspaces_can_receive_a_fresh_trial_through_the_backfill_command(): void
+    {
+        $owner = $this->onboardOwner($this, 'subscription-backfill@test.local');
+
+        $this->artisan('atlas:subscriptions:backfill-trials', ['--dry-run' => true])
+            ->expectsOutput('1 active workspace(s) eligible for a fresh trial.')
+            ->assertSuccessful();
+        self::assertSame(0, DB::table('subscriptions.trials')->count());
+
+        $this->artisan('atlas:subscriptions:backfill-trials')
+            ->expectsOutput('Started 1 workspace trial(s).')
+            ->assertSuccessful();
+        $this->artisan('atlas:subscriptions:backfill-trials')
+            ->expectsOutput('Started 0 workspace trial(s).')
+            ->assertSuccessful();
+
+        self::assertSame(1, DB::table('subscriptions.trials')->where('workspace_id', $owner['workspace_id'])->count());
+        self::assertSame(1, DB::table('subscriptions.entitlements')->where('workspace_id', $owner['workspace_id'])->count());
         self::assertSame(1, DB::table('platform.outbox_messages')->where('event_type', 'subscriptions.trial_started')->count());
     }
 
