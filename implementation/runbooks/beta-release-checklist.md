@@ -1,78 +1,279 @@
 ---
 title: Checklist — Release beta fermée
+status: In Review
 owner: Engineering + Product
-last_updated: 2026-08-07
+last_updated: 2026-08-23
 references:
   - ../PALIER-3-CLOSURE.md
   - ../SEC-TEST-MATRIX.md
+  - runtime-roles.md
+  - quick-tunnel-demo.md
+  - email-delivery.md
+  - stripe-billing.md
   - backup-restore.md
   - observability.md
   - outbox-incident.md
   - data-retention-beta.md
+  - ../../fondation/product/pricing-strategy.md
+  - ../../evolution/governance/pricing-validation.md
 ---
 
-# Checklist release beta
+# Checklist release beta fermée
 
-Gate avant ouverture d'une **beta fermée**. Cocher et dater chaque item.
+Cette checklist est le gate avant l'accueil d'utilisateurs externes et de
+données réelles dans une beta fermée. Une case n'est cochée que si sa preuve a
+été observée dans l'environnement candidat ; une capacité validée localement ne
+vaut pas preuve de déploiement.
 
-## Périmètre beta interne
+Le Quick Tunnel permet une démonstration supervisée avec des données fictives.
+Il ne constitue ni le staging durable, ni l'environnement de beta externe.
 
-| Élément | Décision |
+## Décision actuelle
+
+| Surface | État | Décision |
+|---|---|---|
+| Beta interne | Acceptée le 7 août 2026 | équipe Atlas et proches, environnement local |
+| Démonstrations supervisées | Prêtes | Quick Tunnel éphémère, données fictives, Mailpit local |
+| Beta fermée externe | **No-Go** | environnement OCI, SMTP réel, sauvegarde hors site et support à prouver |
+| Encaissement réel | **No-Go** | pricing encore `Draft`, registre sans observation et enforcement désactivé |
+
+Le passage de la beta externe à `Go` n'autorise pas l'encaissement. Stripe doit
+rester désactivé ou strictement en mode test tant que le gate commercial de la
+[stratégie tarifaire](../../fondation/product/pricing-strategy.md) n'est pas
+satisfait.
+
+## Périmètre candidat
+
+| Élément | Décision à figer avant ouverture |
 |---|---|
-| Utilisateurs | Beta fermée **interne** — équipe Atlas + proches |
-| Support | `beta@atlas-design.fr` *(placeholder — à confirmer avant ouverture externe)* |
-| Environnement démo J1–J3 | Local validé (`make serve` + `/app`, `make demo-seed`) ; playground = outil dev |
-| Tag release rollback | `beta-0.1.0` |
+| Cohorte initiale | 5 utilisateurs du persona principal, nommément autorisés |
+| Accès | invitation ou inscription contrôlée, pas d'ouverture publique libre |
+| Données | données professionnelles réelles uniquement sur l'environnement durable |
+| Offre | essai Atlas Solo complet, 30 jours, sans carte bancaire |
+| Paiement | désactivé ; Stripe test réservé à une recette explicitement annoncée |
+| Support | adresse et délai de réponse à confirmer avant invitation |
+| Release | tag, commit et digest OCI immuable à renseigner |
+| Durée | fenêtre de beta et date de revue à renseigner |
 
-## CI / qualité
+## 1. Release Candidate et qualité
 
-- [x] `make test` vert (83+ tests)
-- [x] CI GitHub `documentation` + `spike` + `oci` verts sur `main`
-- [x] `scripts/check-mvp-reference-fixtures.sh` vert
-- [x] Workflow `release-rehearsal` exécuté (SEC-TEST-023) — vert sur `main` (`501bf1c`, workflow_dispatch)
+- [x] Parcours MVP, import historique, emails transactionnels, abonnement
+  candidat et landing Early Access implémentés.
+- [x] Suite backend, typecheck, build Vite et recettes Playwright disponibles.
+- [x] Quality gates documentaires et fixtures de référence exécutables.
+- [x] Image runtime multi-stage disponible pour les rôles API, worker et
+  scheduler, sans dépendances de développement.
+- [x] Recette Stripe sandbox complète documentée au 23 août 2026.
+- [ ] Geler le périmètre fonctionnel de la Release Candidate.
+- [ ] Exécuter `make test`, `make check-docs`, `make runtime-smoke` et la matrice
+  de sécurité sur le commit candidat, puis conserver les résultats.
+- [ ] Renseigner le tag de release, le commit, le digest OCI, le SBOM et la
+  provenance dans le compte-rendu de release.
+- [ ] Vérifier que le bundle runtime ne contient ni identifiants de démo, ni
+  secret, ni route ou jeton de développement.
 
-## Sécurité (subset beta)
+## 2. Environnement OCI durable
 
-- [x] SEC-TEST-004 session revoke validé
-- [x] SEC-TEST-006 rate limit auth + public quote
-- [x] SEC-TEST-007 membership revocation mid-session
-- [x] SEC-TEST-013 idempotence documentée (`docs/idempotency.md`)
-- [x] Routes dev/spike fermées par défaut (`BetaSurfaceHardeningTest`)
-- [ ] Jeton de vérification debug désactivé et remise email réelle avant beta externe
-- [x] Risques SEC-T résiduels High/Critical acceptés formellement (Product+Security)
+- [ ] Publier l'image runtime dans le registre retenu et l'adresser par digest.
+- [ ] Déployer exactement ce digest pour l'API, le worker et le scheduler.
+- [ ] Fournir PostgreSQL persistant avec chiffrement, accès réseau borné et
+  politique de maintenance définie.
+- [ ] Injecter `APP_KEY`, les accès PostgreSQL, SMTP et observabilité depuis un
+  gestionnaire de secrets ; vérifier leur rotation sans les journaliser.
+- [ ] Configurer un domaine beta durable avec HTTPS valide et redirection HTTP
+  vers HTTPS.
+- [ ] Configurer correctement les proxies de confiance ; n'activer
+  `RUNTIME_FORCE_HTTPS=true` que derrière l'origine HTTPS attendue.
+- [ ] Exécuter les migrations par un job ponctuel avant la bascule applicative.
+- [ ] Vérifier `/up`, l'API, le worker continu et le scheduler horaire/quotidien
+  après déploiement.
+- [ ] Répéter un rollback vers le digest précédent et documenter la stratégie
+  de compatibilité de base de données ou de forward-fix.
+- [ ] Conserver les preuves de migration, smoke test et rollback.
 
-## Exploitation
+## 3. Sécurité de la beta externe
 
-- [x] `make backup` testé ; rétention dumps documentée
-- [x] Décision backup hors site (SEC-GAP-006) — **acceptation risque beta** : dumps locaux uniquement, rotation 30 j
-- [x] `OUTBOX_BACKLOG_ALERT_WEBHOOK_URL` configuré en staging (si alerting externe) — N/A beta, logs only
-- [x] Runbooks relus : backup, observabilité, outbox incident
+### Preuves engineering acquises
 
-## Observabilité (manuel)
+- [x] Révocation de session (`SEC-TEST-004`).
+- [x] Rate limits sur l'authentification et les preuves publiques
+  (`SEC-TEST-006`).
+- [x] Révocation de membership prise en compte en cours de session
+  (`SEC-TEST-007`).
+- [x] Idempotence documentée et testée (`SEC-TEST-013`).
+- [x] Isolation SQL/module et gestion d'échec de l'outbox couvertes par les
+  tests du sous-ensemble beta.
+- [x] Routes dev/spike et jetons debug fermés par défaut hors développement.
 
-- [x] Spans `atlas-app` visibles dans Jaeger (requête API + outbox)
-- [x] Logs JSON corrélés sans secret (`correlation_id`, pas de token/mot de passe)
-- [x] `LOG_STACK=json_stderr` en environnement beta
+### Preuves à produire sur la cible
 
-## Product / conformité
+- [ ] Confirmer `APP_ENV=staging`, `APP_DEBUG=false`, routes dev désactivées et
+  jetons de vérification/récupération non exposés.
+- [ ] Vérifier l'isolation Workspace sur clients, opportunités, devis,
+  factures, membres, Analytics et abonnement avec deux comptes beta dédiés.
+- [ ] Exécuter le scan de dépendances PHP/JavaScript, le scan de l'image OCI et
+  le secret scan sur le commit candidat ; aucune vulnérabilité critique ouverte.
+- [ ] Revoir les risques résiduels avec Product et Security ; documenter tout
+  risque accepté, son owner et sa date de réexamen.
+- [ ] Vérifier que logs, traces, alertes et pages d'erreur ne contiennent ni
+  jeton, ni mot de passe, ni adresse destinataire en clair.
+- [ ] Tester expiration, rejeu et mauvais Workspace des preuves publiques
+  d'invitation, de devis, de vérification et de récupération.
+- [ ] Tester la révocation d'un membre pendant une session réelle sur la cible.
 
-- [x] Draft rétention beta validé (SEC-GAP-004) — `atlas:retention:purge` + schedule quotidien
-- [x] Liste utilisateurs beta + support définis — beta interne ; support `beta@atlas-design.fr`
-- [x] Playground / parcours J1–J3 démontrés — local (`make serve`, `/app`)
+## 4. Emails transactionnels réels
 
-## Rollback
+- [x] Adaptateur SMTP partagé et worker outbox implémentés pour Identity,
+  Billing et Notifications.
+- [x] Vérification d'adresse, récupération, invitation, devis, facture, relance
+  et priorité Advisor couvertes en développement avec Mailpit.
+- [x] Preuve technique de livraison, backoff, dead-letter et effacement des
+  données de routage implémentés.
+- [ ] Choisir et contractualiser le fournisseur SMTP de beta.
+- [ ] Configurer le domaine d'envoi, SPF, DKIM et DMARC, ainsi que l'adresse
+  `From` réellement surveillée.
+- [ ] Injecter les secrets SMTP et définir `RUNTIME_MAIL_LINKS_URL` sur le
+  domaine HTTPS de beta ; Mailpit et `MAIL_MAILER=log` sont interdits.
+- [ ] Tester depuis une boîte externe la vérification, la récupération,
+  l'invitation, le devis, la facture et la relance avec leurs liens/PDF.
+- [ ] Vérifier qu'une révocation avant dispatch empêche bien l'email Advisor.
+- [ ] Vérifier les statuts `Accepted`, `Retrying` et `Failed`, puis répéter la
+  procédure de reprise d'une dead-letter.
+- [ ] Définir le traitement support des rejets, plaintes et adresses invalides.
 
-- [x] Procédure restore documentée et testée (`make verify-restore`)
-- [x] Tag ou commit de release identifié pour rollback image OCI — `beta-0.1.0`
+## 5. Sauvegarde, restauration et rétention
 
----
+- [x] Sauvegarde, restauration et canary disponibles localement
+  (`SEC-TEST-023`).
+- [x] Purge des sessions, outbox et clés d'idempotence planifiée et documentée.
+- [ ] Valider formellement la politique de rétention pour des utilisateurs
+  externes et indiquer comment exercer export, correction et suppression.
+- [ ] Stocker les sauvegardes de beta hors du serveur applicatif, chiffrées et
+  avec une rotation définie.
+- [ ] Restaurer une sauvegarde de la cible dans un environnement isolé et
+  mesurer le RPO/RTO observé.
+- [ ] Vérifier que la restauration inclut les tables Identity, Workspace, CRM,
+  Billing, Analytics, Notifications, email et Subscriptions.
+- [ ] Documenter l'owner et la procédure d'autorisation d'une restauration.
 
-**Sign-off**
+## 6. Observabilité et exploitation
 
-Beta interne : Product et Security portés par la même personne.
+- [x] Logs JSON corrélés, traces HTTP/outbox et runbooks d'incident disponibles.
+- [x] Monitoring du backlog, retries et dead-letters de l'outbox implémenté.
+- [ ] Collecter durablement logs et traces des trois rôles sans donnée sensible.
+- [ ] Configurer une alerte réellement reçue pour indisponibilité HTTP, erreurs
+  applicatives, backlog/dead-letter, échec scheduler et saturation PostgreSQL.
+- [ ] Vérifier la corrélation d'une requête depuis l'API jusqu'à l'outbox et au
+  registre de livraison email.
+- [ ] Définir l'astreinte légère : owner, canal, horaires, délai de prise en
+  compte et message utilisateur en cas d'incident.
+- [ ] Tester les runbooks sauvegarde, outbox, email et rollback avec la personne
+  qui assurera le support.
+- [ ] Définir une fenêtre de maintenance et une procédure de communication à la
+  cohorte.
 
-| Rôle        | Nom    | Date       |
-| ----------- | ------ | ---------- |
+## 7. Produit, support et conformité
+
+- [x] Landing Early Access, inscription, onboarding, invitation et parcours
+  métier démontrables sur desktop et mobile.
+- [x] Essai de 30 jours sans carte et catalogue Atlas Solo versionné dans le
+  produit ; enforcement désactivé par défaut.
+- [x] Protocole de validation pricing et registre pseudonymisé disponibles.
+- [ ] Confirmer l'adresse de support, le responsable et le délai de réponse
+  annoncé ; remplacer `beta@atlas-design.fr` si elle n'est pas opérationnelle.
+- [ ] Établir la liste des cinq participants, leur canal de recrutement et leur
+  consentement aux conditions de beta.
+- [ ] Publier les conditions d'utilisation beta, la politique de
+  confidentialité et les informations de responsable de traitement adaptées au
+  territoire retenu.
+- [ ] Décrire clairement la nature beta, les limites de service, l'absence de
+  SLA et le sort des données à la fin de l'expérimentation.
+- [ ] Vérifier le parcours de sortie : export disponible ou assistance manuelle
+  documentée, fermeture du compte et durée résiduelle de sauvegarde.
+- [ ] Définir les événements et métriques d'activation sans ajouter de tracking
+  non consenti.
+- [ ] Préparer le script d'entretien et répartir les cellules `P19`, `P24` et
+  `P29` sans exposer successivement plusieurs prix au même participant.
+- [ ] Enregistrer chaque observation avec un identifiant pseudonyme dans le
+  registre pricing ; conserver les notes nominatives hors du dépôt.
+
+## 8. Stripe et gate commercial
+
+- [x] Checkout, Customer Portal, webhooks signés, renouvellement, échec,
+  Smart Retries, grâce de 14 jours, restauration, résiliation et rejeu validés
+  en sandbox.
+- [x] Un retour navigateur ne modifie jamais les droits ; seul un webhook signé
+  constitue une preuve fournisseur.
+- [x] `SUBSCRIPTIONS_ENFORCEMENT_ENABLED=false` reste le défaut.
+- [ ] Confirmer pour la beta externe que Checkout est masqué/désactivé, ou
+  explicitement identifié comme test sans valeur contractuelle.
+- [ ] Ne charger aucune clé `sk_live_`, Price live ou moyen de paiement réel dans
+  l'environnement de beta tant que le gate commercial est fermé.
+- [ ] Avant tout paiement réel : valider prix, TVA, facture d'abonnement,
+  mentions légales, résiliation, réconciliation et support conformément au
+  [runbook Stripe](stripe-billing.md).
+- [ ] Avant enforcement : obtenir la décision Product datée et les preuves
+  exigées par le protocole pricing.
+
+## 9. Recette de bout en bout sur la cible
+
+- [ ] Créer un compte externe, vérifier son email puis créer son Workspace.
+- [ ] Inviter un membre externe avec la bonne adresse, accepter puis révoquer le
+  membership et vérifier la perte immédiate d'accès.
+- [ ] Importer un petit historique contrôlé et vérifier la reconstruction
+  Analytics, Business Health et Advisor.
+- [ ] Créer un client et une opportunité, qualifier, envoyer puis accepter un
+  devis depuis une seconde session navigateur.
+- [ ] Créer et émettre la facture, recevoir le PDF, enregistrer un paiement
+  partiel et envoyer une relance.
+- [ ] Vérifier notifications, préférences, compteur non lu et email Advisor
+  éligible/non éligible.
+- [ ] Tester les parcours sur un navigateur desktop et mobile sans accès au
+  réseau local de développement.
+- [ ] Redémarrer API, worker et scheduler sans perte de message ni double envoi
+  observé.
+- [ ] Exécuter sauvegarde, restauration canary, migration et rollback avec les
+  artefacts de la Release Candidate.
+- [ ] Archiver les résultats, incidents et écarts ; tout défaut critique ou
+  risque d'isolation non résolu impose `No-Go`.
+
+## Go / No-Go
+
+Le passage à `Go` exige :
+
+1. toutes les cases des sections 1 à 7 et 9 cochées ou un écart explicitement
+   accepté, daté et borné ;
+2. aucun défaut critique de sécurité, d'isolation, de sauvegarde ou d'email ;
+3. Stripe live et l'enforcement toujours désactivés ;
+4. une cohorte, un support, un owner d'incident et une date de revue connus ;
+5. le même digest OCI validé, déployé et réversible.
+
+La décision est inscrite sans réécrire les preuves historiques :
+
+| Champ | Valeur |
+|---|---|
+| Décision | `No-Go` |
+| Motif actuel | environnement OCI externe et opérations non encore prouvés |
+| Release candidate | à renseigner |
+| Environnement | à renseigner |
+| Cohorte | à renseigner |
+| Date de revue | à renseigner |
+
+## Sign-off
+
+### Beta interne — historique accepté
+
+| Rôle | Nom | Date |
+|---|---|---|
 | Engineering | Daniel | 2026-08-07 |
-| Product     | Daniel | 2026-08-07 |
-| Security    | Daniel | 2026-08-07 |
+| Product | Daniel | 2026-08-07 |
+| Security | Daniel | 2026-08-07 |
+
+### Beta externe — à signer
+
+| Rôle | Nom | Date | Décision |
+|---|---|---|---|
+| Engineering | — | — | — |
+| Product | — | — | — |
+| Security | — | — | — |
+| Support / Operations | — | — | — |
