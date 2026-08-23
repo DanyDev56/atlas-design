@@ -109,7 +109,9 @@ make retention-purge # Purge rétention beta (SEC-GAP-004)
 make up-observability  # Jaeger + OTLP collector
 ```
 
-UI démo Palier 4 : [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
+Landing Early Access publique : `/` — présentation du produit, conditions
+d'exploration et conversion vers l'inscription. UI démo Palier 4 :
+[`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

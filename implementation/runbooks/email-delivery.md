@@ -74,6 +74,10 @@ RUNTIME_MAIL_LINKS_URL=https://app.example.com
 RUNTIME_MAIL_MESSAGE_ID_DOMAIN=example.com
 ```
 
+`RUNTIME_MAIL_LINKS_URL` doit pointer vers l'origine publique d'Atlas. Elle sert
+aux actions sécurisées et au lien « Découvrir Atlas » du pied de page de chaque
+email transactionnel.
+
 Ne jamais utiliser Mailpit comme relais de production.
 
 ## Preuve et idempotence

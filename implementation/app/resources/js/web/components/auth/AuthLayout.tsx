@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { Brand } from '@/components/ui/Brand';
 import { Icon } from '@/components/ui/Icon';
 
@@ -7,12 +8,22 @@ export function AuthLayout({
     title,
     subtitle,
     wide = false,
+    landingLinkLabel = 'Découvrir Atlas',
 }: {
     children: ReactNode;
     title: string;
     subtitle: string;
     wide?: boolean;
+    landingLinkLabel?: string | null;
 }) {
+    const brand = landingLinkLabel === null ? (
+        <Brand />
+    ) : (
+        <Link to="/" aria-label={`${landingLinkLabel}, retour au site Atlas`} className="inline-flex">
+            <Brand />
+        </Link>
+    );
+
     return (
         <div className="relative flex min-h-screen overflow-hidden bg-atlas-surface">
             <div className="relative hidden w-[46%] flex-col justify-between overflow-hidden bg-atlas-sidebar p-10 text-white lg:flex xl:p-14">
@@ -21,7 +32,13 @@ export function AuthLayout({
                 <div className="pointer-events-none absolute bottom-[-14rem] left-[-10rem] size-[30rem] rounded-full bg-atlas-accent/20 blur-3xl" />
 
                 <div className="relative z-10">
-                    <Brand inverse />
+                    {landingLinkLabel === null ? (
+                        <Brand inverse />
+                    ) : (
+                        <Link to="/" aria-label={`${landingLinkLabel}, retour au site Atlas`} className="inline-flex">
+                            <Brand inverse />
+                        </Link>
+                    )}
                     <h1 className="mt-20 max-w-lg text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] xl:text-[3.35rem]">
                         Pilotez votre activité avec confiance.
                     </h1>
@@ -53,7 +70,7 @@ export function AuthLayout({
                 <div className="pointer-events-none absolute right-[-8rem] top-[-8rem] size-80 rounded-full bg-atlas-accent/5 blur-3xl" />
                 <div className={`relative mx-auto w-full ${wide ? 'max-w-2xl' : 'max-w-[29rem]'}`}>
                     <div className="mb-10 lg:hidden">
-                        <Brand />
+                        {brand}
                     </div>
                     <div className="rounded-[1.75rem] border border-white/80 bg-white/88 p-6 shadow-[0_24px_70px_rgb(16_28_26/0.09)] backdrop-blur sm:p-9">
                         <p className="atlas-kicker">Espace sécurisé</p>
@@ -61,9 +78,17 @@ export function AuthLayout({
                         <p className="mt-2.5 text-sm leading-6 text-atlas-ink-muted">{subtitle}</p>
                         <div className="mt-8">{children}</div>
                     </div>
-                    <p className="mt-5 text-center text-[11px] text-atlas-ink-muted/75">
-                        Atlas protège vos données et ne présente jamais d’indicateur inventé.
-                    </p>
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[11px] text-atlas-ink-muted/75">
+                        <span>Atlas protège vos données et ne présente jamais d’indicateur inventé.</span>
+                        {landingLinkLabel !== null && (
+                            <>
+                                <span aria-hidden="true">·</span>
+                                <Link to="/" className="font-semibold text-atlas-accent hover:underline">
+                                    {landingLinkLabel}
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

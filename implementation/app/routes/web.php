@@ -4,9 +4,7 @@ use App\Http\Controllers\AppWebController;
 use App\Http\Controllers\PlaygroundController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', AppWebController::class);
 
 Route::get('/playground', PlaygroundController::class);
 

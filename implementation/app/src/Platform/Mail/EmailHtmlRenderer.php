@@ -6,10 +6,13 @@ namespace Atlas\Platform\Mail;
 
 final class EmailHtmlRenderer
 {
+    public function __construct(private readonly string $siteUrl) {}
+
     public function render(string $title, string $body, ?string $actionLabel = null, ?string $actionUrl = null): string
     {
         $safeTitle = htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $safeBody = nl2br(htmlspecialchars($body, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        $safeSiteUrl = htmlspecialchars(rtrim($this->siteUrl, '/'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $action = '';
 
         if ($actionLabel !== null && $actionUrl !== null) {
@@ -30,7 +33,7 @@ final class EmailHtmlRenderer
                 <h1 style="font-size:24px;margin:0 0 18px">{$safeTitle}</h1>
                 <div style="font-size:16px;line-height:1.6">{$safeBody}</div>
                 {$action}
-                <p style="margin:28px 0 0;font-size:12px;color:#667085">Cet email transactionnel a été envoyé par Atlas.</p>
+                <p style="margin:28px 0 0;font-size:12px;color:#667085">Cet email transactionnel a été envoyé par Atlas. <a href="{$safeSiteUrl}" style="color:#315c4d;font-weight:600">Découvrir Atlas</a></p>
               </div>
             </div>
             </body></html>

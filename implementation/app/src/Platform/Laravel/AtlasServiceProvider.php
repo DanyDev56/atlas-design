@@ -239,7 +239,12 @@ final class AtlasServiceProvider extends ServiceProvider
         });
         $this->app->singleton(TransactionalEmailSender::class, LaravelSmtpEmailSender::class);
         $this->app->singleton(PostgresEmailDeliveryRepository::class);
-        $this->app->singleton(EmailHtmlRenderer::class);
+        $this->app->singleton(
+            EmailHtmlRenderer::class,
+            fn (): EmailHtmlRenderer => new EmailHtmlRenderer(
+                (string) config('mail.links_url', config('app.url')),
+            ),
+        );
 
         $this->app->singleton(SpikeEventCounterConsumer::class);
         $this->app->singleton(OutboxProcessor::class, function ($app): OutboxProcessor {

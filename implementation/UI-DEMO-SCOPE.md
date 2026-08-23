@@ -22,6 +22,15 @@ Objectif : une UI présentable aux futurs utilisateurs — pas l'application com
 
 Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app`**.
 
+La racine publique **`/`** expose désormais la landing **Early Access** :
+positionnement, boucle de pilotage, capacités réellement livrées, aperçu produit,
+30 jours sans carte, FAQ et conversion vers l'inscription. Elle n'affiche pas le
+tarif candidat comme commercialisé tant que la gate pricing reste ouverte et
+rappelle qu'aucun prélèvement automatique n'est programmé.
+Les écrans publics d'authentification et d'invitation permettent d'y revenir ;
+le parcours d'acceptation d'un devis conserve un lien secondaire « Propulsé par
+Atlas » afin de ne pas concurrencer la décision du client.
+
 Cette surface permet de démontrer la valeur et de mener les entretiens de
 pricing. Le backend contient désormais le catalogue candidat `Atlas Solo@1`, le
 Trial de 30 jours, une projection d'Entitlements, un gateway factice et un

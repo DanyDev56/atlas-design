@@ -75,6 +75,7 @@ export function PublicQuoteAcceptPage() {
             title={accepted ? 'Devis accepté' : 'Votre devis'}
             subtitle="Consultez son contenu avant de confirmer votre décision. Aucun compte Atlas n’est nécessaire."
             wide
+            landingLinkLabel="Propulsé par Atlas"
         >
             {missingParams && (
                 <div

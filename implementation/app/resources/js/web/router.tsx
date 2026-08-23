@@ -10,8 +10,9 @@ import { ClientDetailPage } from '@/pages/ClientDetailPage';
 import { ClientHistoryImportPage } from '@/pages/ClientHistoryImportPage';
 import { CrmClientsPage } from '@/pages/CrmClientsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage';
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
+import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage';
+import { LandingPage } from '@/pages/LandingPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
@@ -27,6 +28,7 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 export function AppRouter() {
     return (
         <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/register" element={<RegisterPage />} />
             <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />
@@ -51,7 +53,8 @@ export function AppRouter() {
                 <Route path="settings/subscription" element={<SubscriptionPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
             </Route>
-            <Route path="*" element={<Navigate to="/app" replace />} />
+            <Route path="/app/*" element={<Navigate to="/app" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 }

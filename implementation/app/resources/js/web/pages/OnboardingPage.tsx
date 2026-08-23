@@ -26,7 +26,7 @@ export function OnboardingPage() {
 
     if (isResolvingWorkspace) {
         return (
-            <AuthLayout title="Chargement" subtitle="Récupération de votre workspace…">
+            <AuthLayout title="Chargement" subtitle="Récupération de votre workspace…" landingLinkLabel={null}>
                 <div className="h-24 animate-pulse rounded-xl bg-atlas-surface" />
             </AuthLayout>
         );
@@ -50,6 +50,7 @@ export function OnboardingPage() {
         <AuthLayout
             title="Configurez votre activité"
             subtitle="Une dernière étape avant d’accéder à votre tableau de bord."
+            landingLinkLabel={null}
         >
             <div className="mb-6 flex items-center gap-3" aria-label="Étape 2 sur 2">
                 <span className="h-1.5 flex-1 rounded-full bg-atlas-accent" />
