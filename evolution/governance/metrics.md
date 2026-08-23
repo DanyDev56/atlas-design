@@ -87,5 +87,14 @@ Chaque publication indique la fenêtre, la taille de cohorte, le prix catalogue,
 la remise effective et les exclusions. Les comptes encore non observables à
 J90 ne sont ni comptés comme retenus ni comme perdus.
 
+Pour la beta fermée, l'activation est mesurée à partir des états métier déjà
+nécessaires au service, et non à partir de pages vues ou de clics : adresse
+vérifiée, Workspace prêt, données métier disponibles, première valeur puis
+réutilisation lors d'un jour distinct. Les définitions, dates de revue et règles
+de minimisation sont fixées dans le
+[`beta-research-plan.md`](../../implementation/runbooks/beta-research-plan.md).
+Cette phase n'autorise ni SDK de tracking tiers, ni session replay, ni profilage
+publicitaire.
+
 Le protocole et le registre qui alimentent ces mesures sont décrits dans
 [`pricing-validation.md`](pricing-validation.md).

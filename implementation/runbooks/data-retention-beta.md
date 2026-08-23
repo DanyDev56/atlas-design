@@ -2,7 +2,7 @@
 title: Rétention données beta (SEC-GAP-004)
 owner: Product + Security
 status: validated-beta
-last_updated: 2026-08-07
+last_updated: 2026-08-23
 references:
   - ../SEC-TEST-MATRIX.md
   - ../../fondation/security/mvp-threat-model.md
@@ -45,16 +45,24 @@ Logs structurés : message `Retention purge completed` avec compteurs par catég
 ## Support client
 
 - Canal beta : **email** `beta@atlas-design.fr` *(placeholder)*.
-- Périmètre utilisateurs : **beta fermée interne** (équipe Atlas + proches).
-- Export des données workspace : **hors scope beta** (documenter comme gap).
-- Droit à l'effacement : procédure manuelle via runbook backup-restore + suppression compte (à rédiger).
+- Périmètre validé historiquement : **beta fermée interne** (équipe Atlas + proches).
+- Cible externe : cinq professionnels nommément invités, uniquement après le
+  `Go` de la checklist de release.
+- Export des données Workspace : assistance manuelle documentée, sans
+  libre-service annoncé.
+- Droit à l'effacement : parcours support documenté, mais suppression Workspace
+  atomique encore à implémenter et tester avant données externes.
+- Procédure : [`beta-support-offboarding.md`](beta-support-offboarding.md).
 
 ## Décisions ouvertes
 
 1. ~~Durée exacte sessions révoquées vs expirées.~~ **30 j unifié** (expiration ou révocation).
-2. ~~Hébergement backups hors site (SEC-GAP-006).~~ **Beta : risque accepté** — dumps locaux uniquement, rotation 30 j ; hors site reporté post-beta.
+2. ~~Hébergement backups hors site (SEC-GAP-006).~~ **Beta interne : risque
+   accepté** — dumps locaux uniquement, rotation 30 j. Cette acceptation ne
+   couvre pas la beta externe : une sauvegarde chiffrée hors site y est requise.
 3. ~~Automatisation purge vs job manuel mensuel.~~ **Automatisé** — `atlas:retention:purge`, schedule quotidien.
 
 ## Prochaine étape
 
-Post-beta : purge `platform.inbox_receipts`, export données workspace, procédure effacement compte.
+Avant beta externe : valider export assisté et suppression Workspace atomique.
+Post-beta : purge `platform.inbox_receipts` et export en libre-service.

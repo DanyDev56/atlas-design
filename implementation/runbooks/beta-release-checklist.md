@@ -14,6 +14,11 @@ references:
   - observability.md
   - outbox-incident.md
   - data-retention-beta.md
+  - beta-program.md
+  - beta-support-offboarding.md
+  - beta-research-plan.md
+  - beta-terms.fr.md
+  - privacy-notice.fr.md
   - ../../fondation/product/pricing-strategy.md
   - ../../evolution/governance/pricing-validation.md
 ---
@@ -179,23 +184,36 @@ satisfait.
 - [x] Essai de 30 jours sans carte et catalogue Atlas Solo versionné dans le
   produit ; enforcement désactivé par défaut.
 - [x] Protocole de validation pricing et registre pseudonymisé disponibles.
+- [x] Programme participant, limites de la beta, parcours d'information et
+  matrice de preuves formalisés dans le [programme beta](beta-program.md).
+- [x] Niveaux de support, objectifs de réponse, traitement des demandes de
+  droits et parcours de sortie documentés dans le
+  [runbook support](beta-support-offboarding.md).
+- [x] Entonnoir d'activation basé sur les états métier, revues de cohorte,
+  minimisation et script d'entretien définis sans tracking tiers dans le
+  [plan de recherche](beta-research-plan.md).
+- [x] Projets de [conditions beta](beta-terms.fr.md) et de
+  [notice de confidentialité](privacy-notice.fr.md) préparés avec leurs champs
+  bloquants explicitement identifiés.
+- [x] La communication publique ne promet plus d'export en libre-service : la
+  récupération assistée et sa limite technique sont annoncées honnêtement.
 - [ ] Confirmer l'adresse de support, le responsable et le délai de réponse
   annoncé ; remplacer `beta@atlas-design.fr` si elle n'est pas opérationnelle.
-- [ ] Établir la liste des cinq participants, leur canal de recrutement et leur
-  consentement aux conditions de beta.
-- [ ] Publier les conditions d'utilisation beta, la politique de
-  confidentialité et les informations de responsable de traitement adaptées au
-  territoire retenu.
-- [ ] Décrire clairement la nature beta, les limites de service, l'absence de
-  SLA et le sort des données à la fin de l'expérimentation.
-- [ ] Vérifier le parcours de sortie : export disponible ou assistance manuelle
-  documentée, fermeture du compte et durée résiduelle de sauvegarde.
-- [ ] Définir les événements et métriques d'activation sans ajouter de tracking
-  non consenti.
-- [ ] Préparer le script d'entretien et répartir les cellules `P19`, `P24` et
-  `P29` sans exposer successivement plusieurs prix au même participant.
-- [ ] Enregistrer chaque observation avec un identifiant pseudonyme dans le
-  registre pricing ; conserver les notes nominatives hors du dépôt.
+- [ ] Confirmer l'identité de l'opérateur, le territoire, les sous-traitants,
+  les transferts, les durées support/recherche et le contact données.
+- [ ] Finaliser le registre des traitements, la mise en balance des intérêts
+  légitimes, les contrats fournisseurs et le registre interne des violations.
+- [ ] Faire valider juridiquement, versionner et publier les conditions et la
+  notice sous des URL stables ; conserver la preuve de la version acceptée.
+- [ ] Établir hors du dépôt la liste des cinq participants, leur canal de
+  recrutement et leur accord explicite aux versions publiées.
+- [ ] Tester la production et la remise d'un export assisté sur un Workspace
+  fictif, puis livrer une suppression atomique et auditable avant données réelles.
+- [ ] Exécuter les revues d'activation J2/J7/J14/J21/J30 et conserver les
+  résultats pseudonymisés avec leurs dénominateurs.
+- [ ] Mener les entretiens avec une seule cellule `P19`, `P24` ou `P29` par
+  participant et enregistrer chaque décision dans le registre pricing ; les
+  notes nominatives restent hors du dépôt.
 
 ## 8. Stripe et gate commercial
 

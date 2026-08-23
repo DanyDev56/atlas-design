@@ -20,7 +20,7 @@ const capabilityLabels: Record<string, string> = {
     'documents.send': 'Envoyer devis, factures et relances',
     'analytics.evaluate': 'Actualiser les analyses et la santé de l’activité',
     'members.invite': 'Inviter les membres de votre équipe',
-    'data.export': 'Exporter les données de votre espace',
+    'data.export': 'Récupérer les données de votre espace avec le support',
     'subscription.manage': 'Gérer l’abonnement de l’espace',
 };
 
@@ -223,7 +223,7 @@ export function SubscriptionPage() {
                                         <div className="h-full rounded-full bg-[#58c8ac]" style={{ width: `${currentSubscription ? 100 : trialProgress}%` }} />
                                     </div>
                                     <p className="mt-3 text-xs leading-5 text-white/45">
-                                        Niveau d’accès : {overview.access.level === 'Full' ? 'complet' : overview.access.level === 'Restricted' ? 'lecture et export' : 'en préparation'}
+                                        Niveau d’accès : {overview.access.level === 'Full' ? 'complet' : overview.access.level === 'Restricted' ? 'lecture et récupération assistée' : 'en préparation'}
                                     </p>
                                 </div>
                             </div>

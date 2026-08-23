@@ -103,7 +103,7 @@ const questions = [
     },
     {
         question: 'Puis-je récupérer mes données ?',
-        answer: 'Oui. La stratégie produit prévoit un accès sûr, l’export des données et une fermeture de compte compréhensible. Atlas ne monétise pas la rétention artificielle de vos informations.',
+        answer: 'Oui. Pendant l’accès anticipé, le support organise une récupération assistée de votre espace et sa fermeture sur demande. L’export en libre-service n’est pas encore disponible, et Atlas ne vous le présente pas comme une fonctionnalité déjà livrée.',
     },
     {
         question: 'Le tarif est-il déjà définitif ?',
@@ -533,7 +533,7 @@ export function LandingPage() {
                 </div>
                 <div className="mx-auto mt-8 flex max-w-[82rem] flex-col gap-2 border-t border-atlas-border pt-6 text-[11px] text-atlas-ink-muted/75 sm:flex-row sm:items-center sm:justify-between">
                     <p>© 2026 Atlas. Produit en accès anticipé.</p>
-                    <p>Données exportables · Décisions explicables · Utilisateur aux commandes</p>
+                    <p>Données récupérables avec assistance · Décisions explicables · Utilisateur aux commandes</p>
                 </div>
             </footer>
         </div>

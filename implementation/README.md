@@ -117,6 +117,11 @@ d'exploration et conversion vers l'inscription. UI démo Palier 4 :
 [`UI-DEMO-SCOPE.md`](UI-DEMO-SCOPE.md) — application React sur `/app`.
 La démonstration extérieure sans déploiement est décrite dans le
 [`runbook Quick Tunnel`](runbooks/quick-tunnel-demo.md).
+La préparation d'une cohorte externe, le support, la sortie, la mesure et les
+projets de textes sont centralisés dans le
+[`programme beta fermée`](runbooks/beta-program.md) ; sa décision d'ouverture
+reste pilotée par la
+[`checklist de release`](runbooks/beta-release-checklist.md).
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans
