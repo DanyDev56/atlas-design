@@ -71,3 +71,21 @@ présenté. Une intention déclarée ne vaut pas une décision d'achat.
 Les métriques d'inscription, d'activation et de conversion restent distinctes.
 Une conversion obtenue par une promotion exceptionnelle ne valide ni le prix
 catalogue ni la rétention.
+
+### Définitions de calcul
+
+| Indicateur | Numérateur | Dénominateur |
+|---|---|---|
+| Activation d'essai | Workspaces ayant franchi la définition d'activation | Workspaces dont l'essai a démarré dans la cohorte |
+| Conversion activé → payant | Workspaces ayant autorisé un premier paiement | Workspaces activés arrivés à une décision d'achat |
+| Rétention à 90 jours | Workspaces encore payants à J90 | Workspaces payants observables jusqu'à J90 |
+| Churn logo volontaire | Workspaces résiliés volontairement dans la période | Workspaces payants au début de période |
+| ARPA mensuel | revenu d'abonnement net des remises, hors taxes | Workspaces payants moyens de la période |
+| Marge contributive | revenu net moins coûts directs attribuables | revenu net hors taxes |
+
+Chaque publication indique la fenêtre, la taille de cohorte, le prix catalogue,
+la remise effective et les exclusions. Les comptes encore non observables à
+J90 ne sont ni comptés comme retenus ni comme perdus.
+
+Le protocole et le registre qui alimentent ces mesures sont décrits dans
+[`pricing-validation.md`](pricing-validation.md).

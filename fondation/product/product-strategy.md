@@ -6,6 +6,7 @@ last_updated: 2026-08-23
 
 references:
   - pricing-strategy.md
+  - ../../evolution/governance/pricing-validation.md
   - personnas/persona-primary.md
   - personnas/anti-personas.md
 ---
@@ -67,3 +68,6 @@ Les montants, le packaging, les expériences de disposition à payer et les gate
 avant commercialisation sont définis dans la
 [stratégie tarifaire](pricing-strategy.md). Tant que ce document reste `Draft`,
 les prix décrits sont des hypothèses de validation et non une promesse publique.
+Les décisions observées sont conservées séparément dans le
+[registre de validation](../../evolution/governance/pricing-validation.md), afin
+que la stratégie ne puisse pas déclarer sa propre hypothèse validée.

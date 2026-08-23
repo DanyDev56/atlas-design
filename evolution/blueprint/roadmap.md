@@ -3,7 +3,7 @@ id: BPT-012
 title: Product Delivery Roadmap
 status: In Review
 owner: Product
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-08-23
 
 references:
@@ -15,6 +15,7 @@ references:
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
   - ../../fondation/security/mvp-threat-model.md
   - ../../fondation/product/pricing-strategy.md
+  - ../governance/pricing-validation.md
 ---
 
 # Roadmap de livraison
@@ -76,7 +77,9 @@ commercial exige la validation du prix, un contexte propriétaire pour
 Subscription et Entitlement, un checkout sécurisé, un cycle d'essai complet,
 la résiliation, les factures d'abonnement, le support et les mesures de marge.
 La checklist exhaustive appartient à la
-[stratégie tarifaire](../../fondation/product/pricing-strategy.md).
+[stratégie tarifaire](../../fondation/product/pricing-strategy.md), et les
+preuves de disposition à payer à son
+[registre de validation](../governance/pricing-validation.md).
 
 ## Palier 4 — Extension validée
 

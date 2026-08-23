@@ -72,7 +72,7 @@ d'implémentation définitifs.
 
 - MVP et roadmap ;
 - blueprint courant ;
-- métriques ;
+- métriques et validation du pricing ;
 - gouvernance et quality gates.
 
 ---

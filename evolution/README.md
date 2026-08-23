@@ -2,7 +2,7 @@
 title: Atlas Evolution
 status: Living Document
 owner: Product
-last_updated: 2026-07-30
+last_updated: 2026-08-23
 ---
 
 # Atlas Evolution
@@ -15,6 +15,7 @@ Il couvre notamment :
 - les expérimentations ;
 - les recherches ;
 - les métriques ;
+- la validation du pricing et son registre de preuves ;
 - les priorités ;
 - le Blueprint courant ;
 - les fixtures de référence exécutables ;

@@ -30,3 +30,8 @@ caché ne peut être utilisé pour améliorer artificiellement la conversion.
 La stratégie, les hypothèses et les critères de passage à un tarif public sont
 définis dans
 [`pricing-strategy.md`](../../fondation/product/pricing-strategy.md).
+Le recrutement, les cellules de prix, la taxonomie des décisions et les preuves
+sont consignés dans le
+[`pricing-validation.md`](pricing-validation.md). Une synthèse sans effectifs,
+prix présenté et distribution des refus n'est pas recevable pour une décision
+de pricing.

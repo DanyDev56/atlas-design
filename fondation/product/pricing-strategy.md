@@ -3,7 +3,7 @@ id: PRODUCT-PRICING-001
 title: Stratégie tarifaire Atlas
 status: Draft
 owner: Product
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-23
 
 references:
@@ -14,6 +14,7 @@ references:
   - ../../evolution/roadmap/mvp-acceptance.md
   - ../../evolution/governance/experimentation.md
   - ../../evolution/governance/metrics.md
+  - ../../evolution/governance/pricing-validation.md
   - ../../evolution/blueprint/roadmap.md
   - ../domains/workspace/scope.md
 ---
@@ -28,7 +29,12 @@ d'implémenter immédiatement un système d'abonnement.
 
 Les montants marqués **hypothèse** doivent être validés auprès d'utilisateurs du
 persona principal. Le passage de `Draft` à `In Review` exige les preuves
-définies dans la section « Validation ».
+définies dans la section « Validation » et enregistrées dans le
+[protocole de validation](../../evolution/governance/pricing-validation.md).
+
+Ce document est la source de vérité sur l'intention de packaging et les règles
+de décision. Le catalogue commercial versionné deviendra la source de vérité
+exécutable uniquement après la gate de commercialisation.
 
 ---
 
@@ -54,6 +60,38 @@ indépendants. Pour le persona réalisant 70 000 à 120 000 € de chiffre d'aff
 annuel, l'offre mensuelle représente environ 0,24 % à 0,41 % de son chiffre
 d'affaires annuel. Ce ratio sert uniquement à vérifier l'ordre de grandeur ; il
 ne prouve pas la disposition à payer.
+
+### Niveau de certitude des décisions
+
+| Élément | Niveau actuel | Condition de consolidation |
+|---|---|---|
+| Positionnement payant centré sur la décision | Direction produit | cohérence continue avec la stratégie produit |
+| Offre unique sans plan gratuit permanent | Candidat V1 | compréhension et conversion observées |
+| Workspace comme unité de prix | Candidat V1 | absence d'objection récurrente et marge soutenable |
+| 24 € HT/mois et 240 € HT/an | Hypothèse | scorecard pricing et décisions réelles |
+| 30 jours sans carte bancaire | Hypothèse | activation et décision d'achat avant J30 |
+| 1 Owner et 2 Members inclus | Hypothèse de packaging | usages collaboratifs et coûts observés |
+| Atlas Équipe | Exploration future | découverte spécifique du persona secondaire |
+
+Une documentation complète ne transforme pas une hypothèse en fait. La
+maturité commerciale dépend des preuves et des gates, pas du nombre de sections
+écrites.
+
+### Principes tarifaires invariants
+
+- le prix est présenté avant consentement avec sa devise, sa période, les taxes
+  applicables et les conditions de renouvellement ;
+- Atlas monétise la valeur de pilotage, pas la rétention artificielle des
+  données ni une limitation punitive des objets métier ;
+- Business Health et Advisor restent inclus dans l'offre principale ;
+- aucune facturation ni conversion automatique d'essai sans consentement
+  explicite ;
+- les règles sont identiques pour deux clients placés dans la même situation
+  commerciale, hors remises documentées et bornées ;
+- l'utilisateur peut résilier, exporter et fermer son compte par un parcours
+  compréhensible ;
+- toute promesse tarifaire publique doit correspondre à une capacité réellement
+  livrée et supportée.
 
 ---
 
@@ -248,6 +286,74 @@ Ces limites pénaliseraient précisément les comportements que le produit cherc
 à améliorer. Des protections techniques anti-abus peuvent exister, mais elles
 ne doivent pas devenir silencieusement une tarification à l'usage.
 
+### Usage professionnel normal
+
+La mention « sans quota métier » ne signifie pas qu'Atlas devient un service
+d'envoi en masse ou de stockage généraliste. L'usage normal couvre les actions
+transactionnelles rattachées à l'activité du Workspace : devis, factures,
+relances, notifications et documents produits par les parcours Atlas.
+
+- les campagnes marketing et fichiers de prospection en masse sont hors scope ;
+- les limites de débit protègent la sécurité et la délivrabilité, pas la marge
+  par une facturation cachée ;
+- un blocage anti-abus est explicable, journalisé et contestable ;
+- si un coût variable devient structurel, Product revoit publiquement la
+  métrique de prix au lieu d'introduire une limite silencieuse.
+
+---
+
+## Politique commerciale cible
+
+Ces règles décrivent le comportement attendu de la V1 payante. Elles restent
+soumises à validation Legal et Finance pour le territoire effectivement servi.
+
+### Affichage et taxes
+
+- devise catalogue initiale : euro ;
+- prix professionnel de référence : hors taxes ;
+- montant HT, taxes applicables, total TTC, période et date du prochain
+  prélèvement affichés avant consentement ;
+- facture d'abonnement distincte des factures que l'utilisateur émet à ses
+  propres clients ;
+- aucune ouverture de pays sans règle documentée de taxation, facturation et
+  support.
+
+### Cycle de souscription
+
+- le mensuel est payé au début de chaque période mensuelle ;
+- l'annuel est payé d'avance pour douze mois ;
+- la date d'ancrage et le prochain renouvellement sont visibles dans le portail ;
+- un essai ne bascule vers le payant qu'après choix d'une période et consentement
+  explicite au prix affiché ;
+- le renouvellement conserve la version de prix contractualisée tant qu'aucune
+  évolution conforme aux règles ci-dessous n'a été notifiée.
+
+### Résiliation, réactivation et remboursement
+
+- la résiliation en libre-service prend effet à la fin de la période déjà payée,
+  sauf obligation légale ou geste commercial plus favorable ;
+- l'accès payant reste disponible jusqu'à cette date ;
+- une réactivation après la fin d'accès démarre une nouvelle période au
+  catalogue applicable, sans mutation rétroactive des données ;
+- aucune politique générale de remboursement n'est promise avant validation
+  Legal ; les erreurs de prélèvement et indisponibilités imputables à Atlas
+  suivent un traitement explicite et traçable ;
+- les droits d'export, de fermeture et de conservation ne dépendent pas d'un
+  parcours volontairement difficile.
+
+### Évolution des prix
+
+- chaque évolution crée une nouvelle version de catalogue datée ;
+- aucune hausse rétroactive sur une période déjà payée ;
+- les abonnés concernés sont informés avant le renouvellement selon un délai
+  validé juridiquement ;
+- la communication précise l'ancien prix, le nouveau prix, la date d'effet et
+  le moyen de résilier ;
+- un maintien d'ancien tarif est borné par une population, une durée et une
+  règle de sortie ; il ne devient pas une promesse implicite à vie ;
+- les cohortes historiques restent identifiables pour analyser rétention et
+  marge sans mélanger les prix.
+
 ---
 
 ## Offre équipe future
@@ -332,6 +438,12 @@ Ce tarif n'est ni un plan permanent ni une promesse de prix à vie.
 
 ## Validation de la disposition à payer
 
+Le protocole, la taxonomie des décisions, les seuils et le registre de preuves
+sont maintenus dans
+[`pricing-validation.md`](../../evolution/governance/pricing-validation.md).
+Les pourcentages exploratoires ne sont jamais interprétés sans leurs effectifs,
+leur cellule de prix et les biais de recrutement.
+
 ### Hypothèses
 
 | ID | Hypothèse | Preuve attendue |
@@ -352,6 +464,11 @@ Ce tarif n'est ni un plan permanent ni une promesse de prix à vie.
 5. suivre une cohorte d'essai jusqu'à l'activation et la conversion ;
 6. documenter les objections par valeur, confiance, périmètre et prix ;
 7. réviser le packaging avant de réduire le prix.
+
+Le candidat retenu est le prix le plus élevé qui franchit la scorecard de
+compréhension et de décisions réelles, tout en respectant la marge cible. Cette
+règle évite de sélectionner automatiquement le prix le plus bas ou de retenir
+le prix le plus haut sur la base d'intentions déclarées.
 
 ### Signaux suivis
 
@@ -431,6 +548,16 @@ La vente d'`Atlas Solo` exige :
 12. page tarifaire sans promesse dépassant les capacités livrées ;
 13. tests de sécurité, d'isolation Workspace et de rejeu des webhooks ;
 14. mesure de conversion, churn et marge disponible dès le lancement.
+
+La maturité documentaire suit deux étapes distinctes :
+
+- `Draft` → `In Review` après exécution complète du protocole exploratoire et
+  recommandation Product documentée ;
+- `In Review` → `Stable` après observation d'une cohorte payante pendant au
+  moins 90 jours et franchissement des seuils opérationnels.
+
+Les effectifs, seuils et preuves attendues sont définis dans le
+[registre de validation](../../evolution/governance/pricing-validation.md).
 
 ---
 
