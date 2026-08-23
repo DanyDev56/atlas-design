@@ -73,3 +73,20 @@ arch('notifications domain does not depend on identity or workspace domains')
     ->not->toUse('Atlas\Modules\Identity')
     ->and('Atlas\Modules\Notifications\Domain')
     ->not->toUse('Atlas\Modules\Workspace');
+
+arch('subscriptions domain does not depend on Laravel')
+    ->expect('Atlas\Modules\Subscriptions\Domain')
+    ->not->toUse('Illuminate');
+
+arch('subscriptions domain does not depend on other business domains')
+    ->expect('Atlas\Modules\Subscriptions\Domain')
+    ->not->toUse([
+        'Atlas\Modules\Identity',
+        'Atlas\Modules\Workspace',
+        'Atlas\Modules\Crm',
+        'Atlas\Modules\Billing',
+        'Atlas\Modules\Analytics',
+        'Atlas\Modules\BusinessHealth',
+        'Atlas\Modules\Advisor',
+        'Atlas\Modules\Notifications',
+    ]);

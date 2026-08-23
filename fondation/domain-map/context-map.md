@@ -121,3 +121,19 @@ Consomme l'AdvisorOverview stabilisé, une audience Identity autorisée et le
 contexte public Workspace. Ne lit ni CRM, Billing, Analytics ou Business Health,
 ne transporte pas les communications sensibles Identity ou les documents
 Billing, et n'exécute aucune RecommendationAction.
+
+---
+
+## Subscriptions
+
+Responsable :
+
+- catalogue et prix Atlas versionnés ;
+- essai commercial et abonnement récurrent ;
+- compte payeur Atlas et références du prestataire ;
+- droits d'accès calculés par Workspace.
+
+Consomme `WorkspaceActivated` sans posséder Workspace. Expose une décision
+d'Entitlement aux frontières applicatives et conserve Billing, Identity et
+Workspace hors de son modèle. Ne possède jamais les factures ou paiements que
+l'utilisateur gère pour ses propres clients.

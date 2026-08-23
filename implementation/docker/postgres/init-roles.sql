@@ -10,11 +10,16 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'atlas_platform') THEN
         CREATE ROLE atlas_platform LOGIN PASSWORD 'atlas_platform_dev';
     END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'atlas_subscriptions') THEN
+        CREATE ROLE atlas_subscriptions LOGIN PASSWORD 'atlas_subscriptions_dev';
+    END IF;
 END
 $$;
 
 REVOKE ALL ON SCHEMA platform FROM atlas_workspace;
 REVOKE ALL ON SCHEMA workspace FROM atlas_platform;
+REVOKE ALL ON SCHEMA billing FROM atlas_subscriptions;
 
 GRANT USAGE ON SCHEMA workspace TO atlas_workspace;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA workspace TO atlas_workspace;
@@ -23,3 +28,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA workspace GRANT SELECT, INSERT, UPDATE, DELET
 GRANT USAGE ON SCHEMA platform TO atlas_platform;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA platform TO atlas_platform;
 ALTER DEFAULT PRIVILEGES IN SCHEMA platform GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO atlas_platform;
+
+GRANT USAGE ON SCHEMA subscriptions TO atlas_subscriptions;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA subscriptions TO atlas_subscriptions;
+ALTER DEFAULT PRIVILEGES IN SCHEMA subscriptions GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO atlas_subscriptions;

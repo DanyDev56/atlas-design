@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\AccountRecoveryController;
 use App\Http\Controllers\Api\AcceptWorkspaceInvitationController;
+use App\Http\Controllers\Api\AccountRecoveryController;
 use App\Http\Controllers\Api\Advisor\AdvisorController;
 use App\Http\Controllers\Api\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\Billing\BillingHistoryImportController;
@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
 use App\Http\Controllers\Api\SessionContextController;
 use App\Http\Controllers\Api\SpikeCreateWorkspaceController;
+use App\Http\Controllers\Api\Subscriptions\SubscriptionController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use App\Http\Controllers\Api\Workspace\WorkspaceController;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
@@ -79,6 +80,9 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::post('/invitations/{invitationId}/revoke', [WorkspaceController::class, 'revokeInvitation']);
 
             Route::post('/memberships/{membershipId}/remove', RemoveMembershipController::class);
+
+            Route::get('/subscription', [SubscriptionController::class, 'show']);
+            Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout']);
 
             Route::get('/clients', [ClientController::class, 'index']);
             Route::post('/clients', [ClientController::class, 'store']);

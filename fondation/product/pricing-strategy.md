@@ -3,7 +3,7 @@ id: PRODUCT-PRICING-001
 title: Stratégie tarifaire Atlas
 status: Draft
 owner: Product
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-23
 
 references:
@@ -17,6 +17,8 @@ references:
   - ../../evolution/governance/pricing-validation.md
   - ../../evolution/blueprint/roadmap.md
   - ../domains/workspace/scope.md
+  - ../domains/subscriptions/scope.md
+  - ../decisions/ADR-003-subscriptions-context-ownership.md
 ---
 
 # Stratégie tarifaire Atlas
@@ -25,7 +27,9 @@ references:
 
 Ce document définit l'alignement tarifaire à tester pour l'early access et la
 V1. Il ne constitue ni un tarif public déjà commercialisé, ni une autorisation
-d'implémenter immédiatement un système d'abonnement.
+d'activer l'encaissement réel ou l'application des limites avant le passage des
+gates de validation. Le socle technique d'abonnement peut être implémenté et
+testé derrière des feature flags désactivés par défaut.
 
 Les montants marqués **hypothèse** doivent être validés auprès d'utilisateurs du
 persona principal. Le passage de `Draft` à `In Review` exige les preuves
@@ -498,7 +502,9 @@ L'abonnement commercial à Atlas n'appartient :
 - ni à `Workspace`, qui porte l'identité et le cycle de vie de l'activité ;
 - ni à `Identity`, qui gère utilisateurs, memberships et autorisations.
 
-Un futur contexte commercial de plateforme devra posséder au minimum :
+Le contexte `Subscriptions`, accepté par
+[`ADR-003`](../decisions/ADR-003-subscriptions-context-ownership.md), possède ou
+possédera au fil des incréments :
 
 - `Plan` et version de catalogue ;
 - `Subscription` et son cycle de vie ;
@@ -509,8 +515,8 @@ Un futur contexte commercial de plateforme devra posséder au minimum :
 - consommation uniquement lorsqu'elle devient une métrique de prix explicite ;
 - événements de souscription, renouvellement, échec et résiliation.
 
-Le nom définitif et les frontières de ce contexte exigent une décision
-architecturale avant implémentation.
+Le premier incrément respecte cette frontière sans activer de prélèvement ni de
+restriction d'accès.
 
 ### État actuel
 
@@ -518,9 +524,11 @@ architecturale avant implémentation.
 |---|---|
 | Boucle fonctionnelle Atlas | Implémentée dans le MVP |
 | E-mails transactionnels | Environnement et outbox disponibles |
-| Catalogue de plans | Non implémenté |
-| Essai et entitlements | Non implémentés |
-| Checkout et paiement récurrent | Non implémentés |
+| Contexte propriétaire | `Subscriptions`, décision `ADR-003` acceptée |
+| Catalogue de plans | `Atlas Solo@1` candidat persisté, non public |
+| Essai et entitlements | Trial de 30 jours et projection Full/Restricted implémentés ; enforcement désactivé |
+| Checkout | Gateway factice déterministe derrière feature flag ; aucun encaissement |
+| Paiement récurrent et webhooks | Non implémentés |
 | Portail de facturation Atlas | Non implémenté |
 | Dunning et période de grâce | Non implémentés |
 | Page tarifaire publique contractuelle | Non publiée |
@@ -535,8 +543,10 @@ vente.
 La vente d'`Atlas Solo` exige :
 
 1. validation Product du prix et du packaging à partir de décisions réelles ;
-2. décision sur le contexte propriétaire de Subscription et Entitlement ;
-3. catalogue de plans versionné et entitlements appliqués côté serveur ;
+2. décision sur le contexte propriétaire de Subscription et Entitlement —
+   **faite avec `ADR-003`** ;
+3. catalogue de plans versionné — **socle fait** — et entitlements appliqués
+   côté serveur — **enforcement restant** ;
 4. checkout et webhooks idempotents d'un prestataire de paiement ;
 5. aucun stockage local de données de carte ;
 6. cycle essai, souscription, renouvellement, résiliation et restauration testé ;

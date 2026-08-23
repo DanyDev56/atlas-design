@@ -32,6 +32,8 @@ final class BootstrapIdentityForWorkspaceHandler
         'workspace.preferences.change',
         'workspace.billing-identity.read',
         'workspace.billing-identity.update',
+        'subscriptions.read',
+        'subscriptions.manage',
         'crm.clients.read',
         'crm.clients.create',
         'crm.clients.update-profile',

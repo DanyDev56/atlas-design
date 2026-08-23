@@ -50,6 +50,22 @@ consommer tous les domaines précédents.
 
 ---
 
+## Accès commercial transversal
+
+```text
+Workspace --WorkspaceActivated--> Subscriptions
+Subscriptions --EntitlementDecision--> frontières applicatives
+```
+
+- Subscriptions démarre un Trial depuis un fait Workspace déjà commis ;
+- les controllers, compositions et effets externes peuvent consulter son
+  contrat public avant une mutation ;
+- aucun domaine ne lit les tables Subscriptions ;
+- une décision d'Entitlement n'accorde jamais une permission Identity et ne
+  remplace pas l'autorisation métier du domaine cible.
+
+---
+
 ## Dépendances interdites
 
 - Notifications modifiant CRM ;
@@ -63,6 +79,9 @@ consommer tous les domaines précédents.
 - Workspace modifiant un Membership ou un Role ;
 - Identity modifiant le profil ou le cycle de vie d'un Workspace ;
 - Billing réécrivant une identité de facturation Workspace ;
+- Billing possédant ou émettant une facture d'abonnement Atlas ;
+- Subscriptions modifiant un Membership, un Workspace ou une facture client ;
+- un domaine déduisant l'accès directement d'un statut du prestataire ;
 - tout contexte accédant au stockage privé d'un autre.
 
 ---

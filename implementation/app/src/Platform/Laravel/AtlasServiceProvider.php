@@ -20,6 +20,7 @@ use Atlas\Composition\Notifications\OutboxNotificationsEmailConsumer;
 use Atlas\Composition\Notifications\OutboxNotificationsProcessConsumer;
 use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
+use Atlas\Composition\Subscriptions\StartWorkspaceTrialConsumer;
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
 use Atlas\Modules\Advisor\Application\RecommendationDecisionHandler;
@@ -134,6 +135,20 @@ use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationP
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationTopicCursorRepository;
 use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyStore;
+use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
+use Atlas\Modules\Subscriptions\Application\StartTrialForWorkspaceHandler;
+use Atlas\Modules\Subscriptions\Application\SubscriptionOverviewQueryHandler;
+use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Contracts\WorkspaceEntitlementReader;
+use Atlas\Modules\Subscriptions\Domain\EntitlementRepository;
+use Atlas\Modules\Subscriptions\Domain\PlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Domain\TrialRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresEntitlementRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresPlanCatalogRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresTrialRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresWorkspaceEntitlementReader;
+use Atlas\Modules\Subscriptions\Infrastructure\PostgresSubscriptionsIdempotencyStore;
 use Atlas\Modules\Workspace\Application\ActivateWorkspaceHandler;
 use Atlas\Modules\Workspace\Application\ChangeWorkspacePreferencesHandler;
 use Atlas\Modules\Workspace\Application\CreateWorkspaceHandler;
@@ -168,6 +183,17 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(OutboxWriter::class, PostgresOutboxWriter::class);
         $this->app->singleton(InboxStore::class, PostgresInboxStore::class);
         $this->app->singleton(WorkspaceRepository::class, PostgresWorkspaceRepository::class);
+        $this->app->singleton(PlanCatalogRepository::class, PostgresPlanCatalogRepository::class);
+        $this->app->singleton(TrialRepository::class, PostgresTrialRepository::class);
+        $this->app->singleton(EntitlementRepository::class, PostgresEntitlementRepository::class);
+        $this->app->singleton(WorkspaceEntitlementReader::class, PostgresWorkspaceEntitlementReader::class);
+        $this->app->singleton(RecurringBillingGateway::class, function (): RecurringBillingGateway {
+            if (config('subscriptions.gateway', 'fake') !== 'fake') {
+                throw new \LogicException('Configured subscriptions gateway is not implemented.');
+            }
+
+            return new FakeRecurringBillingGateway;
+        });
         $this->app->singleton(TransactionalEmailSender::class, LaravelSmtpEmailSender::class);
         $this->app->singleton(PostgresEmailDeliveryRepository::class);
         $this->app->singleton(EmailHtmlRenderer::class);
@@ -189,6 +215,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(OutboxIdentityEmailConsumer::class),
                     $app->make(OutboxBillingEmailConsumer::class),
                     $app->make(OutboxNotificationsEmailConsumer::class),
+                    $app->make(StartWorkspaceTrialConsumer::class),
                 ],
                 $app->make(OutboxBacklogMonitor::class),
                 maxAttempts: (int) config('platform.outbox.max_attempts', 5),
@@ -200,6 +227,15 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(OutboxBacklogMonitor::class);
         $this->app->singleton(OutboxDeadLetterManager::class);
         $this->app->singleton(RetentionPurger::class);
+        $this->app->singleton(PostgresPlanCatalogRepository::class);
+        $this->app->singleton(PostgresTrialRepository::class);
+        $this->app->singleton(PostgresEntitlementRepository::class);
+        $this->app->singleton(PostgresWorkspaceEntitlementReader::class);
+        $this->app->singleton(PostgresSubscriptionsIdempotencyStore::class);
+        $this->app->singleton(StartTrialForWorkspaceHandler::class);
+        $this->app->singleton(SubscriptionOverviewQueryHandler::class);
+        $this->app->singleton(CreateCheckoutSessionHandler::class);
+        $this->app->singleton(StartWorkspaceTrialConsumer::class);
 
         $this->app->singleton(PostgresUserRepository::class);
         $this->app->singleton(PostgresSessionRepository::class);

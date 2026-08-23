@@ -213,7 +213,7 @@ Ces seuils sont des garde-fous internes pour une petite cohorte. Ils doivent
 
 | Date | Décision | Statut | Preuves | Owner | Prochaine revue |
 |---|---|---|---|---|---|
-| 2026-08-23 | Ouvrir la validation sur une offre unique et les cellules 19/24/29 € HT | Candidat | stratégie tarifaire `0.2.0` | Product | après 15 entretiens |
+| 2026-08-23 | Ouvrir la validation sur une offre unique et les cellules 19/24/29 € HT | Candidat | stratégie tarifaire `0.3.0` et catalogue interne `Atlas Solo@1` | Product | après 15 entretiens |
 
 Une décision remplacée reste dans ce journal avec son statut `Superseded`. Les
 preuves ne sont jamais réécrites pour faire correspondre l'historique à la

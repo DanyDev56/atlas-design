@@ -123,3 +123,21 @@ Possède :
 Notifications possède la décision de diffusion, le message et sa remise. Il ne
 possède jamais Recommendation, audience, adresse e-mail, Workspace ou action du
 domaine cible.
+
+---
+
+## Subscriptions
+
+Possède :
+
+- Plan
+- PlanPrice
+- Trial
+- Subscription
+- BillingAccount Atlas
+- Entitlement
+- ProviderEventReference
+
+Subscriptions conserve un identifiant Workspace opaque. Il ne possède ni
+Membership, ni WorkspaceProfile, ni les Invoice et Payment du domaine Billing,
+ni aucune donnée de carte.

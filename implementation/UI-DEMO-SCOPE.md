@@ -11,6 +11,7 @@ references:
   - ../evolution/blueprint/user-journeys.md
   - ../evolution/blueprint/historical-import.md
   - ../fondation/product/pricing-strategy.md
+  - ../fondation/decisions/ADR-003-subscriptions-context-ownership.md
   - runbooks/beta-release-checklist.md
 ---
 
@@ -22,9 +23,11 @@ Objectif : une UI présentable aux futurs utilisateurs — pas l'application com
 Le Playground (`/playground`) reste l'outil dev ; l'app produit vit sous **`/app`**.
 
 Cette surface permet de démontrer la valeur et de mener les entretiens de
-pricing. Elle ne contient pas encore le catalogue `Atlas Solo`, l'essai, les
-entitlements, le checkout, l'abonnement ou la résiliation. Aucun prix ne doit y
-être présenté comme commercialisable avant passage du
+pricing. Le backend contient désormais le catalogue candidat `Atlas Solo@1`, le
+Trial de 30 jours, une projection d'Entitlements et un gateway factice désactivé.
+L'UI n'expose encore ni offre contractuelle, ni checkout, abonnement réel ou
+résiliation, et aucun enforcement n'est actif. Aucun prix ne doit y être
+présenté comme commercialisable avant passage du
 [gate tarifaire](../fondation/product/pricing-strategy.md#gate-avant-commercialisation-payante).
 
 ---

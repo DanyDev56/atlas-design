@@ -12,7 +12,8 @@ Bootstrap orchestrator
         │
         ▼
 WorkspaceActivated
-        │
+        ├──► TrialStarted (Subscriptions)
+        │          └──► Entitlement Full jusqu'à la fin d'essai
         ▼
 WorkspaceAccessStateChanged
         ├──► Identity authorization

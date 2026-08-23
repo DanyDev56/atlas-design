@@ -3,7 +3,7 @@ id: BPT-012
 title: Product Delivery Roadmap
 status: In Review
 owner: Product
-version: 1.5.0
+version: 1.6.0
 last_updated: 2026-08-23
 
 references:
@@ -16,6 +16,7 @@ references:
   - ../../fondation/security/mvp-threat-model.md
   - ../../fondation/product/pricing-strategy.md
   - ../governance/pricing-validation.md
+  - ../../fondation/decisions/ADR-003-subscriptions-context-ownership.md
 ---
 
 # Roadmap de livraison
@@ -73,8 +74,8 @@ Gate : Definition of Done MVP satisfaite et risques résiduels acceptés.
 ### Gate commercial distinct
 
 La disponibilité technique du MVP n'autorise pas à elle seule sa vente. Le gate
-commercial exige la validation du prix, un contexte propriétaire pour
-Subscription et Entitlement, un checkout sécurisé, un cycle d'essai complet,
+commercial exige la validation du prix, le contexte `Subscriptions` désormais
+accepté par `ADR-003`, un checkout sécurisé, un cycle d'essai complet,
 la résiliation, les factures d'abonnement, le support et les mesures de marge.
 La checklist exhaustive appartient à la
 [stratégie tarifaire](../../fondation/product/pricing-strategy.md), et les

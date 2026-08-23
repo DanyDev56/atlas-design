@@ -3,7 +3,7 @@ id: GOV-001
 title: Documentation Consolidation Matrix
 status: In Review
 owner: Product
-version: 1.7.0
+version: 1.8.0
 last_updated: 2026-08-23
 
 references:
@@ -20,6 +20,8 @@ references:
   - ../../fondation/security/mvp-threat-model.md
   - ../../fondation/product/pricing-strategy.md
   - pricing-validation.md
+  - ../../fondation/decisions/ADR-003-subscriptions-context-ownership.md
+  - ../../fondation/domains/subscriptions/scope.md
 ---
 
 # Matrice de consolidation
@@ -48,6 +50,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Domains | Identity | Oui | Oui | Oui | Oui | In Review |
 | Domains | Workspace | Oui | Oui | Oui | Oui | In Review |
 | Domains | Notifications | Oui | Oui | Oui | Oui | In Review |
+| Domains | Subscriptions | Oui | Partiel | Oui | Partiel | Draft |
 | Domains | Automation | Non | Non | Non | Non | Draft |
 | Language | Glossary | Oui | Oui | À vérifier | Partiel | In Review |
 | Domain Map | Context Map | Oui | Non | Oui | Oui | In Review |
@@ -58,6 +61,7 @@ Cette matrice suit l’état de consolidation de la documentation Atlas.
 | Delivery | MVP Reference Fixtures | Oui | Oui | Oui | Oui | In Review |
 | Decisions | ADR catalogue | Oui | Oui | Oui | Oui | Living Document |
 | Decisions | MVP Implementation Stack | Oui | Oui | Oui | Oui | Accepted |
+| Decisions | Subscriptions Context Ownership | Oui | Oui | Oui | Oui | Accepted |
 | Security | MVP Threat Model | Oui | Oui | Oui | Oui | In Review |
 
 ---
@@ -87,5 +91,6 @@ La stratégie tarifaire est consolidée sur le plan documentaire : proposition,
 invariants, politique commerciale, économie unitaire et gates sont explicites.
 Elle reste néanmoins `Draft` tant que le
 [registre de validation](pricing-validation.md) ne contient pas les décisions
-réelles requises et que le contexte propriétaire de Subscription et
-Entitlement n'a pas fait l'objet d'une décision structurante.
+réelles requises. La propriété de Subscription et Entitlement est maintenant
+résolue par `ADR-003` ; catalogue candidat, Trial et projection d'Entitlements
+sont implémentés sans enforcement ni paiement réel.
