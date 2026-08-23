@@ -1,12 +1,26 @@
-.PHONY: up runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test test-backend e2e check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
+.PHONY: up up-stripe check-stripe-env logs-stripe stop-stripe runtime-build runtime-smoke check-runtime-key up-runtime stop-runtime logs-runtime up-observability down down-clean shell bootstrap test test-backend e2e check-docs logs serve backup restore verify-restore retention-purge web-install web-dev web-check demo-seed demo-seed-empty
 
 # Sur certaines installations, Docker nécessite sudo (socket root-only).
 # Override : DOCKER=docker make test
 DOCKER ?= docker
 COMPOSE = $(DOCKER) compose -f implementation/docker-compose.yml
+COMPOSE_STRIPE = $(DOCKER) compose --env-file implementation/app/.env -f implementation/docker-compose.yml
 
 up:
 	$(COMPOSE) up -d --build
+
+check-stripe-env:
+	@grep -Eq '^SUBSCRIPTIONS_STRIPE_SECRET_KEY=sk_test_.+' implementation/app/.env || { echo "SUBSCRIPTIONS_STRIPE_SECRET_KEY must contain a Stripe test key in implementation/app/.env."; exit 78; }
+	@grep -Eq '^SUBSCRIPTIONS_STRIPE_WEBHOOK_SECRET=whsec_.+' implementation/app/.env || { echo "SUBSCRIPTIONS_STRIPE_WEBHOOK_SECRET must contain the Stripe CLI signing secret in implementation/app/.env."; exit 78; }
+
+up-stripe: check-stripe-env
+	$(COMPOSE_STRIPE) --profile stripe up -d stripe-listener
+
+logs-stripe:
+	$(COMPOSE_STRIPE) --profile stripe logs -f stripe-listener
+
+stop-stripe:
+	$(COMPOSE_STRIPE) --profile stripe stop stripe-listener
 
 runtime-build:
 	$(COMPOSE) --profile runtime build api

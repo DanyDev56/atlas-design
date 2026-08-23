@@ -73,17 +73,35 @@ Souscrire exclusivement aux événements suivants :
 - `invoice.paid` ;
 - `invoice.payment_failed`.
 
-En local, Stripe CLI peut transférer les événements :
+En local, le profil Docker Compose `stripe` exécute l'image officielle Stripe
+CLI épinglée et transfère les événements vers le service `app`. La clé test est
+injectée depuis `app/.env` par la commande Make sans être placée dans les
+arguments du processus :
+
+```bash
+make up-stripe
+make logs-stripe
+```
+
+Le service `stripe-listener` redémarre automatiquement tant que la stack Docker
+reste active. `make stop-stripe` l'arrête sans toucher à Atlas, PostgreSQL ou
+Mailpit. Un `docker compose down` arrête toute la stack ; relancer ensuite
+`make up-stripe` pour réactiver les webhooks locaux.
+
+Au premier branchement, reporter le secret `whsec_...` fourni par Stripe CLI
+dans le `.env`, puis vider le cache de configuration. Ce secret reste stable
+entre les redémarrages du listener pour un même compte Stripe. Ne jamais le
+réutiliser pour l'endpoint créé dans le Dashboard : chaque endpoint possède son
+propre secret.
+
+La commande historique au premier plan reste utilisable pour diagnostiquer le
+réseau hors Docker :
 
 ```bash
 stripe listen \
   --events customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed \
   --forward-to http://localhost:8000/api/subscriptions/webhooks/stripe
 ```
-
-Reporter le secret `whsec_...` affiché par la CLI dans le `.env`, puis vider le
-cache de configuration. Ne jamais réutiliser ce secret pour l'endpoint créé
-dans le Dashboard : chaque endpoint possède son propre secret.
 
 ## Recette Checkout et portail
 

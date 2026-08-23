@@ -90,6 +90,9 @@ Plan détaillé :
 
 ```bash
 make up          # Démarrer les services
+make up-stripe   # Démarrer Atlas avec le listener webhook Stripe sandbox
+make logs-stripe # Suivre les événements transférés par Stripe CLI
+make stop-stripe # Arrêter uniquement le listener Stripe
 make runtime-build # Construire l'artefact OCI immuable
 make runtime-smoke # Tester l'artefact (RUNTIME_APP_KEY requis)
 make up-runtime  # Démarrer les rôles API + worker + scheduler

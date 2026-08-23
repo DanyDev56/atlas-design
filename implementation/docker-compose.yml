@@ -106,6 +106,24 @@ services:
       do sleep 2; done;
       exec php artisan atlas:outbox:work --batch=100 --sleep=2'
 
+  stripe-listener:
+    image: stripe/stripe-cli:v1.50.4@sha256:af3692b018d5bc8df3fc0fe0fdacfac0f5b37cc875a6dfdb3d83d3db8d0442b8
+    profiles: [stripe]
+    init: true
+    restart: unless-stopped
+    environment:
+      STRIPE_API_KEY: ${SUBSCRIPTIONS_STRIPE_SECRET_KEY:-}
+    depends_on:
+      app:
+        condition: service_started
+    command:
+      - listen
+      - --skip-update
+      - --events
+      - customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed
+      - --forward-to
+      - http://app:8000/api/subscriptions/webhooks/stripe
+
   e2e:
     image: mcr.microsoft.com/playwright:v1.62.1-noble
     profiles: [e2e]
