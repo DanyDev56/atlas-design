@@ -28,6 +28,10 @@ final class RegisterUserHandler
     /** @return array{user_id: string, status: string, verification_token?: string} */
     public function handle(string $email, string $displayName, string $password, string $requestId): array
     {
+        if (hash_equals(trim($displayName), $password)) {
+            throw new \DomainException('Le nom affiché doit être différent du mot de passe.');
+        }
+
         $scope = 'identity.register_user';
         $fingerprint = hash('sha256', json_encode([$email, $displayName], JSON_THROW_ON_ERROR));
         $cached = $this->idempotency->find($scope, $requestId);

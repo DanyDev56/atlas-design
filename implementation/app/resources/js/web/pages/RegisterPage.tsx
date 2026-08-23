@@ -34,6 +34,12 @@ export function RegisterPage() {
     async function onSubmit(event: FormEvent) {
         event.preventDefault();
         setError(null);
+
+        if (displayName.trim() === password) {
+            setError('Le nom affiché doit être différent du mot de passe.');
+            return;
+        }
+
         setLoading(true);
         try {
             const authenticated = await registerAccount(email, displayName, password);
@@ -88,6 +94,7 @@ export function RegisterPage() {
                 <FormField label="Email">
                     <input
                         type="email"
+                        name="email"
                         required
                         autoComplete="email"
                         className={inputClassName}
@@ -98,8 +105,10 @@ export function RegisterPage() {
                 <FormField label="Nom affiché">
                     <input
                         type="text"
+                        name="display_name"
                         required
                         minLength={2}
+                        autoComplete="name"
                         className={inputClassName}
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
@@ -108,6 +117,7 @@ export function RegisterPage() {
                 <FormField label="Mot de passe">
                     <input
                         type="password"
+                        name="password"
                         required
                         minLength={8}
                         autoComplete="new-password"

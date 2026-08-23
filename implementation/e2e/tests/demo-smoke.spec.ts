@@ -638,8 +638,12 @@ test('un invité sans compte revient à l’invitation après son inscription', 
     });
 
     await page.getByLabel('Email').fill('nouvel-invite@atlas.test');
-    await page.getByLabel('Nom affiché').fill('Nouvel invité');
+    await page.getByLabel('Nom affiché').fill('Invitation2026!');
     await page.getByLabel('Mot de passe').fill('Invitation2026!');
+    await page.getByRole('button', { name: 'Créer mon compte' }).click();
+    await expect(page.getByRole('alert')).toContainText('Le nom affiché doit être différent du mot de passe.');
+
+    await page.getByLabel('Nom affiché').fill('Nouvel invité');
     await page.getByRole('button', { name: 'Créer mon compte' }).click();
 
     await expect(page.getByRole('heading', { name: 'Compte créé' })).toBeVisible();
