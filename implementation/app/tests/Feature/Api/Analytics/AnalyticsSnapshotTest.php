@@ -152,5 +152,21 @@ final class AnalyticsSnapshotTest extends IntegrationTestCase
                 ->where('event_type', 'analytics.snapshot_published')
                 ->exists()
         );
+
+        $this->postJson("/api/workspaces/{$owner['workspace_id']}/opportunities", [
+            'client_id' => $clientId,
+            'title' => 'Unprocessed opportunity',
+            'estimated_amount_cents' => 75000,
+            'currency' => 'EUR',
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertCreated();
+
+        $this->postJson("/api/workspaces/{$owner['workspace_id']}/analytics/snapshots/publish", [], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertUnprocessable()
+            ->assertJsonPath('messages.0', 'Source data processing incomplete.');
     }
 }

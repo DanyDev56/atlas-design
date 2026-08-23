@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atlas\Modules\Analytics\Infrastructure\Persistence;
 
+use Atlas\Modules\Analytics\Domain\SourceFactEventTypes;
 use Atlas\Platform\Support\UuidGenerator;
 use Illuminate\Support\Facades\DB;
 
@@ -83,5 +84,14 @@ final class PostgresAnalyticsFactRepository
             ->first();
 
         return $row !== null ? (array) $row : null;
+    }
+
+    public function hasUnprocessedSourceEvents(string $workspaceId): bool
+    {
+        return DB::table('platform.outbox_messages')
+            ->whereIn('event_type', SourceFactEventTypes::all())
+            ->where('payload->workspace_id', $workspaceId)
+            ->whereNull('dispatched_at')
+            ->exists();
     }
 }

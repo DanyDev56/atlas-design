@@ -67,7 +67,7 @@ const unavailableReasons: Record<string, string> = {
     NoData: 'Données absentes',
     SampleBelowMinimum: 'Échantillon encore trop faible',
     InconsistentReceivables: 'Données d’encaissement incohérentes',
-    StaleSnapshot: 'Données trop anciennes',
+    StaleSnapshot: 'Projection des données en retard',
 };
 
 const assessmentPollAttempts = 8;
@@ -130,7 +130,11 @@ function formatSnapshotError(error: unknown): string {
         }
 
         if (error.body.messages?.includes('Stale data.')) {
-            return 'Les données source sont trop anciennes. Attendez leur traitement par le worker avant de réessayer.';
+            return 'La projection des données est en retard. Attendez son traitement par le worker avant de réessayer.';
+        }
+
+        if (error.body.messages?.includes('Source data processing incomplete.')) {
+            return 'Des modifications CRM ou Facturation sont encore en cours de traitement. Attendez quelques instants avant de réessayer.';
         }
 
         if (error.status === 403) {
@@ -277,6 +281,14 @@ function BusinessHealthContent() {
 
         try {
             const publication = await publishAnalyticsSnapshot(token, workspaceId);
+
+            if (publication.freshness_status === 'Lagging') {
+                setPendingSnapshotId(null);
+                setRefreshMessage('Aucune donnée plus récente n’est disponible. La dernière analyse valide reste affichée.');
+
+                return;
+            }
+
             setRefreshMessage('Snapshot publié. Le worker prépare la nouvelle évaluation…');
 
             const current = await findPublishedAssessment(publication.analytics_snapshot_id);

@@ -112,8 +112,10 @@ catalogue 1.0, leur fraîcheur et leur complétude, puis publie les snapshots
 requis par Business Health.
 
 Gate de sortie : une reconstruction à partir des mêmes faits produit les mêmes
-observations et le même snapshot ; duplication, retard, `NoData` et source
-manquante sont couverts.
+observations et le même snapshot ; duplication, retard réel de traitement,
+`NoData` et source manquante sont couverts. L'absence de nouvel événement ne
+constitue pas un retard : les états et fenêtres temporelles sont recalculés à
+l'`AsOf` du snapshot.
 
 ### Incrément 5 — Business Health
 
@@ -197,7 +199,7 @@ Le jeu exécutable
 4. paiement partiel ;
 5. facture soldée ;
 6. client dominant ;
-7. données trop anciennes ;
+7. projection réellement en retard malgré des événements attendus ;
 8. données suffisantes sans Recommendation ;
 9. Recommendation `High` éligible à l'email ;
 10. destinataire révoqué avant dispatch.

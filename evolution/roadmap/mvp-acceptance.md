@@ -184,6 +184,10 @@ décide, une notification personnelle.
 - un fait dupliqué ne produit ni double observation ni double notification ;
 - un fait tardif est intégré selon la politique de période et peut produire un
   nouveau snapshot, sans réécrire l'historique publié ;
+- l'absence de nouvel événement ne dégrade pas la fraîcheur lorsque la
+  projection a traité tout son backlog connu ;
+- une facture impayée devenue en retard et toute autre donnée d'état dépendante
+  du temps sont recalculées à l'`AsOf` sans exiger un nouvel événement métier ;
 - un snapshot incomplet peut conduire à `InsufficientData` ; ce résultat reste
   consultable et expliqué ;
 - un import incomplet ou non validé ne peut jamais produire un snapshot déclaré
@@ -200,7 +204,9 @@ décide, une notification personnelle.
   et une priorité `High` ou `Critical` selon la politique Notifications ;
 - l'audience et le contexte Workspace sont revalidés avant tout effet externe ;
 - le Dashboard montre la fraîcheur propre à chaque vue et reste utilisable si
-  un read model secondaire est temporairement indisponible.
+  un read model secondaire est temporairement indisponible ;
+- une publication refusée pendant un retard réel de traitement conserve la
+  dernière évaluation valide au lieu de la remplacer par une couverture nulle.
 
 ---
 

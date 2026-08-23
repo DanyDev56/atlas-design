@@ -84,11 +84,24 @@ devise est `EUR` et `AsOf` vaut `2026-06-30T00:00:00Z` dans le jeu 1.0.
 | RecommendationPolicyVersion | `1.0.0` |
 | NotificationPolicyVersion | `1.1.0` |
 
-Les fixtures utilisent un retard source de trente minutes pour les snapshots
-`Current`. `FIX-007` utilise deux heures : le snapshot reste publiable, mais son
-état `Lagging` impose `InsufficientData` à Business Health. Un retard supérieur
-à vingt-quatre heures empêcherait la publication Analytics et relève d'un test
-de refus distinct, pas d'une évaluation métier.
+`source_lag_seconds` mesure un retard de traitement prouvé : backlog non
+consommé, projection bloquée, reconstruction incomplète ou événements
+explicitement attendus mais non traités. Il ne mesure jamais l'âge du dernier
+événement métier. Un Workspace sans nouvelle activité reste `Current` lorsque
+tous ses événements connus sont traités.
+
+Les fixtures utilisent un retard de traitement de trente minutes pour les
+snapshots `Current`. `FIX-007` simule une projection réellement en retard de
+deux heures : le snapshot reste publiable, mais son état `Lagging` impose
+`InsufficientData` à Business Health. Un retard de traitement supérieur à
+vingt-quatre heures empêcherait la publication Analytics et relève d'un test de
+refus distinct, pas d'une évaluation métier.
+
+Les faits d'état sont réévalués à l'`AsOf` du snapshot. Une facture émise et
+impayée peut donc devenir en retard par le seul passage du temps ; les encours,
+le pipeline et les devis en attente restent pertinents sans nouvel événement.
+Les métriques glissantes sont, elles aussi, recalculées sur leur fenêtre à
+l'`AsOf`.
 
 ## Catalogue des cas
 
@@ -100,7 +113,7 @@ de refus distinct, pas d'une évaluation métier.
 | `FIX-004` | paiement partiel | score 24 `AtRisk`, deux Recommendations `Critical` |
 | `FIX-005` | facture soldée | score 74 `Stable`, concentration critique |
 | `FIX-006` | client dominant | score 82 `Strong`, Recommendation de concentration classée 89 |
-| `FIX-007` | données trop anciennes | snapshot `Lagging`, évaluation insuffisante |
+| `FIX-007` | projection réellement en retard | snapshot `Lagging`, évaluation insuffisante |
 | `FIX-008` | données suffisantes sans Recommendation | score 100 `Strong`, overview Advisor vide |
 | `FIX-009` | Recommendation `High` éligible à l'email | fallback classé 71, InApp et Email accepté |
 | `FIX-010` | destinataire révoqué avant dispatch | Notification résolue, Email annulé, aucun appel fournisseur |

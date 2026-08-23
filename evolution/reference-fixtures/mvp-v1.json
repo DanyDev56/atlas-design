@@ -494,8 +494,8 @@
     {
       "fixture_id": "FIX-007",
       "scenario_key": "stale-data",
-      "title": "Données trop anciennes",
-      "purpose": "Refuser une décision dérivée lorsque les métriques sont calculables mais trop anciennes.",
+      "title": "Projection réellement en retard",
+      "purpose": "Refuser une décision dérivée lorsque les métriques sont calculables mais que leur traitement est réellement en retard.",
       "source_fact_summary": {
         "pipeline": {"current_amount_minor": 1200000, "baseline_amount_minor": 1000000},
         "pending_quotes": {"current_amount_minor": 300000, "baseline_amount_minor": 200000},

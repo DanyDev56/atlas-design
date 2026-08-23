@@ -14,6 +14,7 @@ final class PostgresCurrentBusinessHealthRepository
         string $assessmentId,
         \DateTimeImmutable $asOf,
         \DateTimeImmutable $sourcePublishedAt,
+        bool $sourceIsCurrent,
     ): void {
         $existing = DB::table('business_health.current_assessments')
             ->where('workspace_id', $workspaceId)
@@ -29,6 +30,12 @@ final class PostgresCurrentBusinessHealthRepository
                 'source_published_at' => $sourcePublishedAt->format('Y-m-d H:i:sP'),
             ]);
 
+            return;
+        }
+
+        // A lagging snapshot remains part of the assessment history, but it must
+        // not hide the last evaluation produced from current source data.
+        if (! $sourceIsCurrent) {
             return;
         }
 

@@ -79,6 +79,10 @@ relit les manifests et ne bascule sa génération qu'après validation complète
 
 - CRM et Billing possèdent les décisions commerciales et financières ;
 - Analytics transforme leurs faits versionnés en mesures, sans les modifier ;
+- la fraîcheur Analytics mesure l'avancement du traitement des événements
+  connus, pas l'ancienneté de la dernière activité ;
+- les états et fenêtres dépendants du temps sont recalculés à l'`AsOf`, même en
+  l'absence de nouvel événement métier ;
 - Business Health interprète un snapshot exact, sans recalculer ses métriques ;
 - Advisor propose une action, sans l'exécuter ;
 - Advisor reconstruit l'overview après toute évaluation appliquée ou mutation
@@ -90,7 +94,9 @@ relit les manifests et ne bascule sa génération qu'après validation complète
 
 La chaîne est asynchrone après les transactions locales. Une interface affiche
 donc la dernière version prouvée et sa fraîcheur, jamais une cohérence immédiate
-fictive.
+fictive. Tant qu'un événement source attendu n'est pas traité, aucune nouvelle
+vue complète n'est publiée et la dernière évaluation valide reste courante. Un
+Workspace calme dont le backlog est vide reste, lui, une source courante.
 
 ---
 

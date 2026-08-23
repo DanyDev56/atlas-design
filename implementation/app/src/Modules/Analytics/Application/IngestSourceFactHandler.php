@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Atlas\Modules\Analytics\Application;
 
 use Atlas\Modules\Analytics\Domain\AnalyticsFactRecorded;
+use Atlas\Modules\Analytics\Domain\SourceFactEventTypes;
 use Atlas\Modules\Analytics\Infrastructure\Persistence\PostgresAnalyticsFactRepository;
-use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetCreditNoteAnalyticsFactHandler;
+use Atlas\Modules\Billing\Application\GetInvoiceAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetPaymentAnalyticsFactHandler;
 use Atlas\Modules\Billing\Application\GetQuoteAnalyticsFactHandler;
 use Atlas\Modules\Crm\Application\GetOpportunityAnalyticsFactHandler;
@@ -18,21 +19,6 @@ use Illuminate\Support\Facades\DB;
 
 final class IngestSourceFactHandler
 {
-    private const SUPPORTED = [
-        'crm.opportunity_created',
-        'crm.opportunity_qualified',
-        'crm.opportunity_updated',
-        'crm.opportunity_lost',
-        'crm.opportunity_won',
-        'billing.quote_sent',
-        'billing.quote_accepted',
-        'billing.invoice_issued',
-        'billing.invoice_overdue',
-        'billing.payment_recorded',
-        'billing.credit_note_issued',
-        'billing.invoice_balance_changed',
-    ];
-
     public function __construct(
         private readonly PostgresAnalyticsFactRepository $facts,
         private readonly GetOpportunityAnalyticsFactHandler $opportunityFacts,
@@ -46,7 +32,7 @@ final class IngestSourceFactHandler
     /** @return array<string, mixed>|null */
     public function handle(OutgoingMessage $message): ?array
     {
-        if (! in_array($message->eventType, self::SUPPORTED, true)) {
+        if (! in_array($message->eventType, SourceFactEventTypes::all(), true)) {
             return null;
         }
 

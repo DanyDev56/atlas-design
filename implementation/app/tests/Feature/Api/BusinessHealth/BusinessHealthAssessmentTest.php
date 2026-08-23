@@ -63,12 +63,38 @@ final class BusinessHealthAssessmentTest extends IntegrationTestCase
 
         $quoteId = $quote->json('quote_id');
 
-        $this->postJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/send", [
+        $sent = $this->postJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/send", [
             'expected_revision' => 1,
         ], [
             'Authorization' => 'Bearer '.$owner['token'],
             'Idempotency-Key' => (string) Str::uuid(),
         ])->assertOk();
+
+        $this->postJson("/api/public/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/accept", [
+            'public_token' => $sent->json('public_accept_token'),
+            'expected_revision' => 2,
+        ], [
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertOk();
+
+        $invoice = $this->postJson("/api/workspaces/{$owner['workspace_id']}/quotes/{$quoteId}/invoices", [], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertCreated();
+
+        $invoiceId = $invoice->json('invoice_id');
+
+        $this->postJson("/api/workspaces/{$owner['workspace_id']}/invoices/{$invoiceId}/issue", [
+            'expected_revision' => 1,
+        ], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertOk();
+
+        // Simulate the passage of time without emitting a new billing event.
+        DB::table('billing.invoices')
+            ->where('id', $invoiceId)
+            ->update(['due_date' => now()->subDay()->toIso8601String()]);
 
         app(OutboxProcessor::class)->processPending();
 
@@ -113,5 +139,37 @@ final class BusinessHealthAssessmentTest extends IntegrationTestCase
             'Authorization' => 'Bearer '.$owner['token'],
         ])->assertOk()
             ->assertJsonPath('business_health_assessment_id', $assessmentId);
+
+        DB::table('analytics.watermarks')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->update(['complete_through' => now()->subHours(2)->toIso8601String()]);
+
+        $quietWorkspacePublication = $this->postJson("/api/workspaces/{$owner['workspace_id']}/analytics/snapshots/publish", [], [
+            'Authorization' => 'Bearer '.$owner['token'],
+            'Idempotency-Key' => (string) Str::uuid(),
+        ])->assertCreated()
+            ->assertJsonPath('freshness_status', 'Current');
+
+        app(OutboxProcessor::class)->processPending();
+
+        $this->assertTrue(
+            DB::table('business_health.assessments')
+                ->where('workspace_id', $owner['workspace_id'])
+                ->where('analytics_snapshot_id', $quietWorkspacePublication->json('analytics_snapshot_id'))
+                ->exists()
+        );
+
+        $sourceSummary = json_decode((string) DB::table('business_health.assessments')
+            ->where('workspace_id', $owner['workspace_id'])
+            ->where('analytics_snapshot_id', $quietWorkspacePublication->json('analytics_snapshot_id'))
+            ->value('source_fact_summary'), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(50000, $sourceSummary['receivables']['current']['overdue_amount_minor']);
+        $this->assertSame(1, $sourceSummary['receivables']['current']['overdue_count']);
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/business-health/current", [
+            'Authorization' => 'Bearer '.$owner['token'],
+        ])->assertOk()
+            ->assertJsonPath('analytics_snapshot_id', $quietWorkspacePublication->json('analytics_snapshot_id'));
     }
 }

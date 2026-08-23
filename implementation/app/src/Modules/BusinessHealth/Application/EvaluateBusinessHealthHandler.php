@@ -110,6 +110,7 @@ final class EvaluateBusinessHealthHandler
                 assessmentId: $assessmentId,
                 asOf: $asOf,
                 sourcePublishedAt: $sourcePublishedAt,
+                sourceIsCurrent: $freshness === HealthPolicy::FRESHNESS_CURRENT,
             );
 
             $primaryAttentionKey = $evaluation['primary_attention']['factor_key'] ?? null;

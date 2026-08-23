@@ -211,7 +211,7 @@ export interface AnalyticsSnapshotPublication {
     analytics_snapshot_id: string;
     profile_key: string;
     profile_version: string;
-    freshness_status: string;
+    freshness_status: 'Current' | 'Lagging';
     completeness_status: string;
     as_of: string;
 }

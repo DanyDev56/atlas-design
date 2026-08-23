@@ -70,7 +70,9 @@ palier 0 d'implémentation. Le passage à `Stable` reste bloqué par :
 
 Le profil `BusinessHealthBaselineV1@1.0.0` et ses seuils de fraîcheur sont
 maintenant contractuels et vérifiés par les fixtures. Il ne bloque plus
-l'implémentation du contrat de publication Analytics.
+l'implémentation du contrat de publication Analytics. Ces seuils portent sur le
+retard de traitement d'événements attendus ; ils ne rendent jamais obsolète un
+Workspace simplement parce qu'aucune nouvelle activité n'y a été enregistrée.
 
 `Automation` reste volontairement absent : son cadrage ne constitue pas un
 prérequis du MVP.

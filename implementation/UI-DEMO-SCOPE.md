@@ -204,6 +204,15 @@ Règle : **jamais inventer** score, priorité ou compteur — afficher l'état A
 - Actualisation explicite depuis Santé : publication déléguée au contrat
   Analytics, attente bornée de l’évaluation produite par le worker et état
   différé si la projection est encore en cours
+- La fraîcheur Analytics décrit l’avancement réel du traitement, jamais le
+  temps écoulé depuis la dernière activité métier : un Workspace sans nouvel
+  événement reste courant lorsque tous ses événements connus sont traités
+- Les états dépendants du temps — facture devenue en retard, encours, devis en
+  attente, pipeline et fenêtres glissantes — sont recalculés à la date du
+  snapshot même en l’absence de nouvel événement
+- Une projection incomplète bloque temporairement la publication et conserve la
+  dernière évaluation valide ; un snapshot `Lagging` historisé ne remplace pas
+  cette vue courante
 - Absence de score, données manquantes et risques observés expliqués sans
   transformer une preuve indisponible en note nulle
 - Destination Advisor accessible depuis la navigation et le dashboard, avec

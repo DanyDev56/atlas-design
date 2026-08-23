@@ -80,6 +80,20 @@ DashboardWidget
 `NoData`. La composition ne choisit pas un instant global artificiel : chaque
 zone affiche la fraîcheur de sa propre source.
 
+### Sémantique de la fraîcheur Analytics
+
+La fraîcheur mesure la capacité de la projection à prouver qu'elle a traité les
+événements connus. Elle ne mesure pas le temps écoulé depuis la dernière saisie
+CRM ou Billing. L'inactivité d'un Workspace n'est donc pas une dégradation.
+
+À chaque publication, Analytics réévalue les faits dépendants du temps à
+l'`AsOf` du snapshot : une facture impayée peut devenir en retard sans nouvel
+événement, un encours reste ouvert et les observations sortent naturellement de
+leurs fenêtres glissantes. Un backlog non consommé ou une reconstruction
+incomplète bloque la publication de la nouvelle vue. Le Dashboard conserve
+alors la dernière vue valide et rend explicitement son état, sans transformer
+les preuves existantes en `NoData` ou en couverture nulle.
+
 ---
 
 ## Autorisation et isolation
@@ -107,7 +121,7 @@ peut être fusionnée dans la vue courante.
 | Business Health `InsufficientData` | Expliquer les données manquantes et proposer les actions de collecte possédées par CRM/Billing. |
 | Business Health `Limited` | Afficher score, couverture, facteurs absents et limites sans formulation de certitude globale. |
 | Import en cours | Afficher progression et reprise ; ne pas présenter une génération Analytics intermédiaire comme complète. |
-| Analytics en reconstruction | Conserver la dernière vue valide marquée obsolète, ou afficher `Unavailable` si aucune vue sûre n'existe. |
+| Analytics en reconstruction ou événements non traités | Conserver la dernière vue valide et signaler le traitement en cours, ou afficher `Unavailable` si aucune vue sûre n'existe. |
 | Billing indisponible | Masquer les montants, conserver les autres zones et proposer un retry borné. |
 | Notifications indisponible | Ne pas inventer un compteur zéro ; afficher l'inbox comme temporairement indisponible. |
 | Workspace restreint | Abandonner les lectures ordinaires et afficher uniquement l'état d'accès autorisé. |

@@ -67,16 +67,13 @@ final class PublishAnalyticsSnapshotHandler
                 throw new \DomainException('Insufficient data.');
             }
 
-            $crmLag = $now->getTimestamp() - (new \DateTimeImmutable($crmWatermark['complete_through']))->getTimestamp();
-            $billingLag = $now->getTimestamp() - (new \DateTimeImmutable($billingWatermark['complete_through']))->getTimestamp();
-            $snapshotLag = max($crmLag, $billingLag);
-            $freshness = $snapshotLag <= 3600
-                ? MetricKeys::FRESHNESS_CURRENT
-                : MetricKeys::FRESHNESS_LAGGING;
-
-            if ($snapshotLag > 86400) {
-                throw new \DomainException('Stale data.');
+            if ($this->facts->hasUnprocessedSourceEvents($workspaceId)) {
+                throw new \DomainException('Source data processing incomplete.');
             }
+
+            // The source domains are authoritative. A quiet workspace is still
+            // current: time-sensitive facts are recalculated against $now below.
+            $freshness = MetricKeys::FRESHNESS_CURRENT;
 
             $metrics = $this->calculator->calculateAll($workspaceId, $now);
             $watermarks = [
