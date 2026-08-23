@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 const email = process.env.ATLAS_DEMO_EMAIL ?? 'demo@atlas.test';
 const password = process.env.ATLAS_DEMO_PASSWORD ?? 'DemoAtlas2026!';
@@ -30,6 +30,31 @@ async function navigateToSettings(page: Page) {
     if (await mobileMenu.isVisible()) await mobileMenu.click();
 
     await page.getByRole('link', { name: 'Gérer l’espace', exact: true }).click();
+}
+
+async function expectMobileDetailLayout(
+    card: Locator,
+    information: Locator,
+    actions: Locator,
+    fullWidthControl?: Locator,
+) {
+    const [cardBox, informationBox, actionsBox] = await Promise.all([
+        card.boundingBox(),
+        information.boundingBox(),
+        actions.boundingBox(),
+    ]);
+
+    expect(cardBox).not.toBeNull();
+    expect(informationBox).not.toBeNull();
+    expect(actionsBox).not.toBeNull();
+    expect(Math.abs(informationBox!.x - actionsBox!.x)).toBeLessThanOrEqual(1);
+    expect(actionsBox!.width).toBeGreaterThanOrEqual(cardBox!.width - 44);
+
+    if (fullWidthControl) {
+        const controlBox = await fullWidthControl.boundingBox();
+        expect(controlBox).not.toBeNull();
+        expect(controlBox!.width).toBeGreaterThanOrEqual(actionsBox!.width - 1);
+    }
 }
 
 test.describe('scénario démo complet', () => {
@@ -577,6 +602,37 @@ test('les cartes de facturation occupent toute la largeur sur mobile', async ({ 
         expect(identityBox!.width).toBeGreaterThan(cardBox!.width - 48);
         expect(actionsBox!.width).toBeGreaterThan(cardBox!.width - 48);
     }
+});
+
+test('les actions des fiches restent alignées et pleine largeur sur mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Cette vérification cible la disposition mobile.');
+
+    await navigateFromShell(page, 'CRM');
+    await page.getByRole('link').filter({ hasText: 'Les Ateliers du Marais' }).click();
+
+    const clientHeading = page.getByRole('heading', { name: 'Les Ateliers du Marais' });
+    const clientActions = page.getByRole('button', { name: 'Archiver le client' }).locator('..');
+    await expectMobileDetailLayout(
+        clientHeading.locator('xpath=../..'),
+        clientHeading.locator('..'),
+        clientActions,
+    );
+
+    await page.goto('/app/billing');
+    await page.getByRole('region', { name: 'Factures' })
+        .getByRole('link')
+        .filter({ hasText: 'Collectif Cobalt' })
+        .click();
+
+    const invoiceHeading = page.getByRole('heading', { name: 'Collectif Cobalt' });
+    const pdfButton = page.getByRole('button', { name: 'Télécharger le PDF' });
+    const invoiceActions = pdfButton.locator('..');
+    await expectMobileDetailLayout(
+        invoiceHeading.locator('xpath=../..'),
+        invoiceHeading.locator('..'),
+        invoiceActions,
+        pdfButton,
+    );
 });
 
 test('la confirmation de remise d’un email est temporaire', async ({ page }, testInfo) => {

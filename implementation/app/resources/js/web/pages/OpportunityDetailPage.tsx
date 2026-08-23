@@ -284,10 +284,10 @@ export function OpportunityDetailPage() {
 
                 {opportunity && client && !loading && (
                     <>
-                        <div className="mt-5 flex flex-wrap items-start justify-between gap-4 rounded-[1.5rem] border border-atlas-border bg-white/85 p-5 shadow-sm sm:p-6">
-                            <div>
+                        <div className="mt-5 flex flex-col gap-5 rounded-[1.5rem] border border-atlas-border bg-white/85 p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:p-6">
+                            <div className="min-w-0 sm:flex-1">
                                 <p className="atlas-kicker">Opportunité commerciale</p>
-                                <h2 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-atlas-ink sm:text-4xl">
+                                <h2 className="mt-2 break-words text-3xl font-semibold tracking-[-0.035em] text-atlas-ink sm:text-4xl">
                                     {opportunity.title}
                                 </h2>
                                 <p className="mt-2 text-sm text-atlas-ink-muted">
@@ -306,13 +306,13 @@ export function OpportunityDetailPage() {
                                     </p>
                                 )}
                             </div>
-                            <div className="flex flex-col items-end gap-3">
+                            <div className="flex w-full flex-col items-start gap-3 border-t border-atlas-border pt-4 sm:w-auto sm:shrink-0 sm:items-end sm:border-t-0 sm:pt-0">
                                 <StatusBadge status={opportunity.status} />
                                 {['Open', 'Qualified'].includes(opportunity.status)
                                     && !showEditForm
                                     && !showLossForm
                                     && !showWinConfirm && (
-                                    <div className="flex flex-col items-end gap-2">
+                                    <div className="flex flex-col items-start gap-2 sm:items-end">
                                         <button
                                             type="button"
                                             onClick={openEditForm}
