@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\Notifications;
 
+use Atlas\Modules\Notifications\Domain\NotificationPolicy;
+use Atlas\Modules\Notifications\Infrastructure\Persistence\PostgresNotificationRepository;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,6 +15,50 @@ use Tests\Support\AuthenticatesWorkspaceOwner;
 final class NotificationInboxTest extends IntegrationTestCase
 {
     use AuthenticatesWorkspaceOwner;
+
+    public function test_unread_count_includes_resolved_notifications_that_are_still_unread(): void
+    {
+        $owner = $this->onboardOwner($this, 'notification-count@test');
+        $notifications = app(PostgresNotificationRepository::class);
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
+        $resolvedNotificationId = $notifications->create(
+            workspaceId: $owner['workspace_id'],
+            recipientUserId: $owner['user_id'],
+            recommendationId: null,
+            priority: 'High',
+            content: ['recommendation_key' => 'advisor.collect-overdue-invoices'],
+            channels: [NotificationPolicy::CHANNEL_IN_APP],
+            createdAt: $now->modify('-1 minute'),
+            displayUntil: null,
+        );
+        $notifications->resolveActiveForRecipient($owner['workspace_id'], $owner['user_id']);
+        $notifications->create(
+            workspaceId: $owner['workspace_id'],
+            recipientUserId: $owner['user_id'],
+            recommendationId: null,
+            priority: 'High',
+            content: ['recommendation_key' => 'advisor.collect-overdue-invoices'],
+            channels: [NotificationPolicy::CHANNEL_IN_APP],
+            createdAt: $now,
+            displayUntil: null,
+        );
+
+        $headers = ['Authorization' => 'Bearer '.$owner['token']];
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/notifications/unread-count", $headers)
+            ->assertOk()
+            ->assertJsonPath('unread_count', 2);
+
+        $this->postJson(
+            "/api/workspaces/{$owner['workspace_id']}/notifications/{$resolvedNotificationId}/mark-read",
+            ['expected_revision' => 1],
+            $headers,
+        )->assertOk();
+
+        $this->getJson("/api/workspaces/{$owner['workspace_id']}/notifications/unread-count", $headers)
+            ->assertOk()
+            ->assertJsonPath('unread_count', 1);
+    }
 
     public function test_advisor_overview_change_creates_in_app_notification(): void
     {

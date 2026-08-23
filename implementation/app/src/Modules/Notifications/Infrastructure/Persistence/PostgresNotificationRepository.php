@@ -83,7 +83,6 @@ final class PostgresNotificationRepository
         return (int) DB::table('notifications.notifications')
             ->where('workspace_id', $workspaceId)
             ->where('recipient_user_id', $recipientUserId)
-            ->where('status', NotificationPolicy::STATUS_ACTIVE)
             ->where('read_state', NotificationPolicy::READ_UNREAD)
             ->whereJsonContains('selected_channels', NotificationPolicy::CHANNEL_IN_APP)
             ->count();
