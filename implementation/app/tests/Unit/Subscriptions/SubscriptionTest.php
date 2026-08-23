@@ -80,8 +80,54 @@ final class SubscriptionTest extends TestCase
         self::assertSame(5, $subscription->version());
     }
 
+    public function test_unpaid_period_updates_do_not_extend_the_last_paid_period_or_clear_past_due(): void
+    {
+        $subscription = Subscription::activate(
+            new SubscriptionId('subscription-1'),
+            'plan-1',
+            $this->event(RecurringBillingEventType::Activated, '2026-08-23T10:00:00+00:00'),
+        );
+
+        $subscription->apply($this->eventWithPeriod(
+            RecurringBillingEventType::Updated,
+            '2026-09-23T10:00:00+00:00',
+            '2026-09-23T00:00:00+00:00',
+            '2026-10-23T00:00:00+00:00',
+        ));
+        $subscription->apply($this->eventWithPeriod(
+            RecurringBillingEventType::PaymentFailed,
+            '2026-09-23T10:01:00+00:00',
+            '2026-09-23T00:00:00+00:00',
+            '2026-10-23T00:00:00+00:00',
+        ));
+        $subscription->apply($this->eventWithPeriod(
+            RecurringBillingEventType::Updated,
+            '2026-09-23T10:02:00+00:00',
+            '2026-09-23T00:00:00+00:00',
+            '2026-10-23T00:00:00+00:00',
+        ));
+
+        self::assertSame('PastDue', $subscription->status());
+        self::assertSame('2026-09-23T00:00:00+00:00', $subscription->currentPeriodEnd()->format(DATE_ATOM));
+        self::assertSame('2026-09-23T10:01:00+00:00', $subscription->pastDueSince()?->format(DATE_ATOM));
+    }
+
     private function event(RecurringBillingEventType $type, string $occurredAt): VerifiedRecurringBillingEvent
     {
+        return $this->eventWithPeriod(
+            $type,
+            $occurredAt,
+            '2026-08-23T00:00:00+00:00',
+            '2026-09-23T00:00:00+00:00',
+        );
+    }
+
+    private function eventWithPeriod(
+        RecurringBillingEventType $type,
+        string $occurredAt,
+        string $currentPeriodStart,
+        string $currentPeriodEnd,
+    ): VerifiedRecurringBillingEvent {
         return new VerifiedRecurringBillingEvent(
             provider: 'fake',
             providerEventId: 'event-'.$type->name.'-'.$occurredAt,
@@ -90,8 +136,8 @@ final class SubscriptionTest extends TestCase
             providerSubscriptionReference: 'fake-subscription-1',
             planPriceId: 'price-1',
             occurredAt: new \DateTimeImmutable($occurredAt),
-            currentPeriodStart: new \DateTimeImmutable('2026-08-23T00:00:00+00:00'),
-            currentPeriodEnd: new \DateTimeImmutable('2026-09-23T00:00:00+00:00'),
+            currentPeriodStart: new \DateTimeImmutable($currentPeriodStart),
+            currentPeriodEnd: new \DateTimeImmutable($currentPeriodEnd),
             cancelAtPeriodEnd: false,
         );
     }

@@ -8,6 +8,7 @@ enum RecurringBillingEventType: string
 {
     case Activated = 'subscription.activated';
     case Renewed = 'subscription.renewed';
+    case Updated = 'subscription.updated';
     case PaymentFailed = 'subscription.payment_failed';
     case Canceled = 'subscription.canceled';
 }

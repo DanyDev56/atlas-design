@@ -52,6 +52,16 @@ final class StripeRecurringBillingWebhookVerifierTest extends TestCase
         self::assertSame('sub_atlas', $normalized->providerSubscriptionReference);
     }
 
+    public function test_active_subscription_update_is_not_treated_as_a_paid_renewal(): void
+    {
+        $normalized = $this->verifier()->decodeTrusted(
+            'stripe',
+            json_encode($this->event('customer.subscription.updated'), JSON_THROW_ON_ERROR),
+        );
+
+        self::assertSame(RecurringBillingEventType::Updated, $normalized->type);
+    }
+
     public function test_subscription_price_must_match_the_configured_stripe_price(): void
     {
         $event = $this->event('customer.subscription.updated');

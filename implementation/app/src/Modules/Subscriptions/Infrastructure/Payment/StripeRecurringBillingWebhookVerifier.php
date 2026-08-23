@@ -142,7 +142,7 @@ final readonly class StripeRecurringBillingWebhookVerifier implements RecurringB
         return match ((string) ($subscription['status'] ?? '')) {
             'active', 'trialing' => $eventType === 'customer.subscription.created'
                 ? RecurringBillingEventType::Activated
-                : RecurringBillingEventType::Renewed,
+                : RecurringBillingEventType::Updated,
             'past_due', 'unpaid', 'incomplete' => RecurringBillingEventType::PaymentFailed,
             'canceled', 'incomplete_expired', 'paused' => RecurringBillingEventType::Canceled,
             default => throw new \DomainException('Stripe subscription status unsupported.'),

@@ -1,6 +1,6 @@
 ---
 title: Runbook — Stripe Billing
-status: Draft
+status: implemented
 owner: Engineering
 last_updated: 2026-08-23
 references:
@@ -73,6 +73,20 @@ Souscrire exclusivement aux événements suivants :
 - `invoice.paid` ;
 - `invoice.payment_failed`.
 
+La projection distingue strictement un changement d'abonnement d'un paiement :
+
+- `invoice.paid` est la seule preuve de renouvellement payé et peut avancer la
+  période acquittée ;
+- `customer.subscription.updated` avec un statut `active` met à jour les
+  attributs de gestion, notamment `cancel_at_period_end`, mais ne prolonge pas
+  les droits ;
+- `invoice.payment_failed` et un statut Stripe `past_due` conservent la dernière
+  période payée et fixent le premier échec sans le repousser lors des relances.
+
+Cette distinction est indispensable : au renouvellement, Stripe peut publier
+un `customer.subscription.updated` avant la tentative de paiement de la
+nouvelle facture.
+
 En local, le profil Docker Compose `stripe` exécute l'image officielle Stripe
 CLI épinglée et transfère les événements vers le service `app`. La clé test est
 injectée depuis `app/.env` par la commande Make sans être placée dans les
@@ -135,6 +149,59 @@ Recette attendue :
 3. un `invoice.paid` restaure immédiatement `Active` ;
 4. sans paiement, l'accès devient restreint à l'expiration ;
 5. lecture, export et gestion d'abonnement restent disponibles.
+
+Les Test Clocks pilotent le calendrier de facturation Stripe, mais le champ
+`event.created` reçu par Atlas reste l'heure d'émission effective du webhook.
+La recette sandbox valide donc les renouvellements, échecs, Smart Retries et
+restaurations avec Test Clocks ; les bornes exactes de la grâce de 14 jours et
+la non-prolongation au second échec sont en complément des oracles automatisés
+`SubscriptionEntitlementPolicyTest` et `SubscriptionEnforcementTest`.
+
+## Recette sandbox complète
+
+Dernière exécution : **23 août 2026**, avec des Workspaces et des Customers
+Stripe test dédiés, sans modifier l'abonnement du compte de démonstration.
+
+| Scénario | Attendu | Résultat observé |
+|---|---|---|
+| Checkout mensuel | session `cs_test_`, Price mensuel | conforme |
+| Checkout annuel | session `cs_test_`, Price annuel | conforme |
+| Activation | `Active`, entitlement `Subscription` | conforme |
+| Customer Portal | session `bps_` sur `billing.stripe.com` | conforme |
+| Renouvellement payé | période payée avancée par `invoice.paid` | conforme |
+| Premier échec | facture `open`, Subscription `PastDue` | conforme |
+| Smart Retry | second débit, `past_due_since` inchangé | conforme |
+| Rétablissement | facture payée, retour immédiat à `Active` | conforme |
+| Annulation programmée | `Active` et `cancel_at_period_end=true` | conforme |
+| Annulation immédiate | `Canceled` projeté par webhook | conforme |
+| Réabonnement | nouvelle référence active, ancienne retirée | conforme |
+| Rejeu webhook | versions et nombre de tentatives inchangés | conforme |
+
+Procédure reproductible :
+
+1. démarrer Atlas, Mailpit et le listener avec `make up-stripe` ;
+2. créer un Workspace vierge et lancer successivement un Checkout mensuel puis
+   annuel sur deux Workspaces distincts ;
+3. créer un Customer sous Test Clock avec `pm_card_visa`, puis une Subscription
+   portant les metadata `workspace_id` et `plan_price_id` ;
+4. vérifier dans Atlas `Active`, la période, la source d'accès et le portail ;
+5. rattacher `pm_card_chargeCustomerFail`, conserver l'identifiant `pm_...`
+   réellement retourné et le définir comme moyen de paiement par défaut ;
+6. avancer l'horloge jusqu'à la finalisation de facture puis à la tentative de
+   paiement, et vérifier `PastDue` ;
+7. avancer jusqu'à une Smart Retry et vérifier que `past_due_since` ne change
+   pas ;
+8. rattacher une nouvelle `pm_card_visa`, payer la facture ouverte et vérifier
+   le retour à `Active` ;
+9. programmer puis exécuter une annulation, créer une nouvelle Subscription et
+   vérifier l'historique des références fournisseur ;
+10. rejouer un événement traité avec
+    `php artisan atlas:subscriptions:replay-webhook stripe evt_...` et vérifier
+    que les versions de Subscription et d'Entitlement restent identiques.
+
+Ne jamais réutiliser ces moyens de paiement de test ni les Test Clocks en mode
+live. Les identifiants `sk_test_` et `whsec_` restent exclusivement dans le
+`.env` local non versionné.
 
 ## Gate de production
 

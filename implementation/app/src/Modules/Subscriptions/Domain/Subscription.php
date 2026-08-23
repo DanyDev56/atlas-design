@@ -94,16 +94,23 @@ final class Subscription
         $previousStatus = $this->status;
         $this->status = match ($event->type) {
             RecurringBillingEventType::Activated, RecurringBillingEventType::Renewed => self::STATUS_ACTIVE,
+            RecurringBillingEventType::Updated => $previousStatus,
             RecurringBillingEventType::PaymentFailed => self::STATUS_PAST_DUE,
             RecurringBillingEventType::Canceled => self::STATUS_CANCELED,
         };
-        $this->currentPeriodStart = $event->currentPeriodStart;
-        $this->currentPeriodEnd = $event->currentPeriodEnd;
+        if (! in_array($event->type, [RecurringBillingEventType::Updated, RecurringBillingEventType::PaymentFailed], true)) {
+            $this->currentPeriodStart = $event->currentPeriodStart;
+            $this->currentPeriodEnd = $event->currentPeriodEnd;
+        }
         $this->cancelAtPeriodEnd = $event->cancelAtPeriodEnd || $event->type === RecurringBillingEventType::Canceled;
         $this->canceledAt = $event->type === RecurringBillingEventType::Canceled ? $event->occurredAt : null;
-        $this->pastDueSince = $event->type === RecurringBillingEventType::PaymentFailed
-            ? ($previousStatus === self::STATUS_PAST_DUE ? $this->pastDueSince : $event->occurredAt)
-            : null;
+        $this->pastDueSince = match ($event->type) {
+            RecurringBillingEventType::PaymentFailed => $previousStatus === self::STATUS_PAST_DUE
+                ? $this->pastDueSince
+                : $event->occurredAt,
+            RecurringBillingEventType::Updated => $this->pastDueSince,
+            default => null,
+        };
         $this->lastProviderEventAt = $event->occurredAt;
         $this->version++;
 

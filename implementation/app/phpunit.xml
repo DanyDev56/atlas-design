@@ -43,6 +43,7 @@
         <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SUBSCRIPTIONS_GATEWAY" value="fake" force="true"/>
         <env name="SUBSCRIPTIONS_CHECKOUT_ENABLED" value="false" force="true"/>
         <env name="SUBSCRIPTIONS_WEBHOOKS_ENABLED" value="false" force="true"/>
         <env name="SUBSCRIPTIONS_FAKE_WEBHOOK_SECRET" value="atlas-test-webhook-secret" force="true"/>
