@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Operator\OperatorBetaController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
 use App\Http\Controllers\Api\Operator\OperatorOverviewController;
+use App\Http\Controllers\Api\Operator\OperatorOutboxRetryController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\Operator\OperatorSessionManagementController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
@@ -83,6 +84,20 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/overview/outbox', [OperatorOverviewController::class, 'outbox'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_READ);
+            Route::post('/outbox/{eventId}/retry-preview', [OperatorOutboxRetryController::class, 'preview'])
+                ->whereUuid('eventId')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_RETRY,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::patch('/outbox/{eventId}/retry', [OperatorOutboxRetryController::class, 'update'])
+                ->whereUuid('eventId')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_RETRY,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
             Route::get('/overview/emails', [OperatorOverviewController::class, 'emails'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EMAIL_READ);
             Route::get('/overview/subscriptions', [OperatorOverviewController::class, 'subscriptions'])

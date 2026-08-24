@@ -3,7 +3,7 @@ id: RUN-021
 title: Back-office Operations and Subscriptions
 status: In Review
 owner: Engineering and Operations
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-24
 
 references:
@@ -31,6 +31,12 @@ corrélation dans cet environnement.
 La page exige `operations.subscriptions.read`. Le runtime et la continuité sont
 inclus dans `operations.dashboard.read`, car ils ne révèlent pas davantage que
 les cartes de la vue générale. Toute lecture API est réautorisée et auditée.
+
+`/backoffice/outbox` permet également la reprise ciblée d'une dead-letter avec
+`operations.outbox.retry`, lorsque les mutations sont explicitement activées et
+que le step-up est récent. Le parcours est détaillé dans
+[`backoffice-access.md`](backoffice-access.md) ; il remet le message en file mais
+ne l'exécute jamais dans la requête HTTP.
 
 ## Séparation Sandbox et Live
 
@@ -135,6 +141,20 @@ Une panne empêchant aussi l'écriture PostgreSQL ne peut naturellement pas êtr
 enregistrée dans ce registre ; elle doit être couverte par l'alerte externe du
 job. Le back-office montrera alors une donnée périmée, pas un faux succès.
 
+## Reprise Outbox
+
+Avant toute reprise, corriger la cause et vérifier si l'effet externe a pu être
+appliqué malgré l'échec enregistré. Depuis le registre, filtrer les
+dead-letters, préparer l'événement exact, choisir un motif contrôlé et lire les
+effets avant confirmation. Le payload et l'erreur brute ne sont jamais exposés.
+
+La confirmation est idempotente et verrouillée : une prévisualisation périmée,
+une autorité retirée ou une seconde clé concurrente ne peut pas remettre le même
+message deux fois. Après succès, surveiller le worker, le compteur Outbox et
+l'effet attendu. Si le message revient en dead-letter, ne pas boucler sur le
+bouton : couper les actions si nécessaire et suivre
+[`outbox-incident.md`](outbox-incident.md).
+
 ## Recette minimale
 
 ```bash
@@ -142,6 +162,7 @@ job. Le back-office montrera alors une donnée périmée, pas un faux succès.
   tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php \
   tests/Integration/Operations/OperationsAlertsTest.php \
+  tests/Integration/Operations/OperatorOutboxRetryTest.php \
   tests/Integration/Messaging/OutboxWorkerCommandTest.php \
   tests/Feature/Api/Subscriptions/RecurringBillingWebhookTest.php
 

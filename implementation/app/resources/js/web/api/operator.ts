@@ -116,6 +116,25 @@ export interface OperatorOutboxItem {
     failed_at: string | null;
 }
 
+export interface OperatorOutboxRetryPreview {
+    event_id: string;
+    event_type: string;
+    current: { status: 'DeadLetter'; attempts: number; failed_at: string };
+    proposed: { status: 'Pending'; attempts: 0; availability: 'Immediate' };
+    reason_code: string;
+    preview_fingerprint: string;
+    effects: string[];
+}
+
+export interface OperatorOutboxRetryResult {
+    event_id: string;
+    event_type: string;
+    status: 'Pending';
+    attempts: 0;
+    scheduled_at: string;
+    replayed: boolean;
+}
+
 export interface OperatorEmailItem {
     event_id: string;
     event_type: string;
@@ -423,6 +442,29 @@ export async function fetchOperatorOutbox(
 ): Promise<OperatorPage<OperatorOutboxItem>> {
     const query = new URLSearchParams({ status, page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorOutboxItem>>('GET', `/operator/overview/outbox?${query}`, undefined, { token });
+}
+
+export async function previewOperatorOutboxRetry(
+    token: string,
+    eventId: string,
+    reasonCode: string,
+): Promise<OperatorOutboxRetryPreview> {
+    return apiRequest<OperatorOutboxRetryPreview>('POST', `/operator/outbox/${eventId}/retry-preview`, {
+        reason_code: reasonCode,
+    }, { token });
+}
+
+export async function retryOperatorOutboxMessage(
+    token: string,
+    eventId: string,
+    reasonCode: string,
+    previewFingerprint: string,
+    idempotencyKey: string,
+): Promise<OperatorOutboxRetryResult> {
+    return apiRequest<OperatorOutboxRetryResult>('PATCH', `/operator/outbox/${eventId}/retry`, {
+        reason_code: reasonCode,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
 }
 
 export async function fetchOperatorEmails(

@@ -1,8 +1,8 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ApiClientError } from '@/api/client';
 import { fetchManagedOperatorSessions, previewOperatorSessionRevocation, revokeManagedOperatorSession, type OperatorManagedSessionItem, type OperatorPage, type OperatorSessionRevocationPreview } from '@/api/operator';
-import { Brand } from '@/components/ui/Brand';
+import { OperatorFrame } from '@/components/operator/OperatorFrame';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useOperatorAuth } from '@/hooks/useOperatorAuth';
 
@@ -59,13 +59,11 @@ function sessionStatusLabel(status: OperatorManagedSessionItem['status']): strin
 }
 
 export function OperatorShellPage() {
-    const { session, logout, stepUp } = useOperatorAuth();
-    const navigate = useNavigate();
+    const { session, stepUp } = useOperatorAuth();
     const location = useLocation();
     const securityView = location.pathname === '/backoffice/security';
     const canReadSessions = session?.permissions.includes('operations.sessions.read') ?? false;
     const canRevokeSessions = session?.permissions.includes('operations.sessions.revoke') ?? false;
-    const [loggingOut, setLoggingOut] = useState(false);
     const [stepUpOpen, setStepUpOpen] = useState(false);
     const [stepUpLoading, setStepUpLoading] = useState(false);
     const [stepUpError, setStepUpError] = useState<string | null>(null);
@@ -159,15 +157,6 @@ export function OperatorShellPage() {
         }
     }
 
-    async function onLogout() {
-        setLoggingOut(true);
-        try {
-            await logout();
-        } finally {
-            navigate('/backoffice/login', { replace: true });
-        }
-    }
-
     async function onStepUp(event: FormEvent) {
         event.preventDefault();
         setStepUpLoading(true);
@@ -189,30 +178,7 @@ export function OperatorShellPage() {
     }
 
     return (
-        <div className="min-h-screen bg-atlas-surface text-atlas-ink">
-            <header className="border-b border-atlas-border bg-atlas-sidebar text-white">
-                <div className="mx-auto flex min-h-20 max-w-[90rem] items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
-                    <div className="flex items-center gap-5">
-                        <Link to="/backoffice" aria-label="Retour à la vue d’ensemble"><Brand inverse /></Link>
-                        <span className="hidden h-6 w-px bg-white/15 sm:block" />
-                        <span className="hidden text-xs font-semibold uppercase tracking-[.18em] text-white/50 sm:block">Back-office</span>
-                        <Link to="/backoffice" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex">Vue d’ensemble</Link>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="hidden text-sm text-white/60 sm:inline">{session?.displayName}</span>
-                        <button
-                            type="button"
-                            disabled={loggingOut}
-                            onClick={() => void onLogout()}
-                            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/15 px-3.5 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
-                        >
-                            <Icon name="logout" className="size-4" />
-                            Déconnexion
-                        </button>
-                    </div>
-                </div>
-            </header>
-
+        <OperatorFrame>
             <main className="mx-auto max-w-[90rem] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div>
@@ -495,6 +461,6 @@ export function OperatorShellPage() {
                     </div>
                 </section>}
             </main>
-        </div>
+        </OperatorFrame>
     );
 }

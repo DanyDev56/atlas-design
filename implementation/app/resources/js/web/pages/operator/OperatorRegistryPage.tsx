@@ -4,8 +4,11 @@ import { ApiClientError } from '@/api/client';
 import {
     fetchOperatorEmails,
     fetchOperatorOutbox,
+    previewOperatorOutboxRetry,
+    retryOperatorOutboxMessage,
     type OperatorEmailItem,
     type OperatorOutboxItem,
+    type OperatorOutboxRetryPreview,
     type OperatorPage,
 } from '@/api/operator';
 import { OperatorFrame } from '@/components/operator/OperatorFrame';
@@ -54,6 +57,18 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
     const [result, setResult] = useState<OperatorPage<RegistryItem> | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [retryTarget, setRetryTarget] = useState<OperatorOutboxItem | null>(null);
+    const [retryReason, setRetryReason] = useState('outbox.cause-corrected');
+    const [retryPreview, setRetryPreview] = useState<OperatorOutboxRetryPreview | null>(null);
+    const [retryKey, setRetryKey] = useState<string | null>(null);
+    const [retryBusy, setRetryBusy] = useState(false);
+    const [retryError, setRetryError] = useState<string | null>(null);
+    const [retryMessage, setRetryMessage] = useState<string | null>(null);
+
+    const hasRetryPermission = session?.permissions.includes('operations.outbox.retry') ?? false;
+    const retryActionsEnabled = Boolean(session?.actionsEnabled && !session.readOnly);
+    const stepUpActive = Boolean(session?.stepUpExpiresAt && Date.parse(session.stepUpExpiresAt) > Date.now());
+    const canRetry = hasRetryPermission && retryActionsEnabled && stepUpActive;
 
     const load = useCallback(async () => {
         if (!session?.token) return;
@@ -78,6 +93,69 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
         return () => { document.title = previousTitle; };
     }, [definition.title, load]);
 
+    useEffect(() => {
+        setRetryTarget(null);
+        setRetryPreview(null);
+        setRetryKey(null);
+        setRetryError(null);
+        setRetryMessage(null);
+    }, [kind, page, status]);
+
+    const selectRetryTarget = (item: RegistryItem) => {
+        if (kind !== 'outbox' || item.status !== 'DeadLetter' || !canRetry) return;
+        setRetryTarget(item as OperatorOutboxItem);
+        setRetryPreview(null);
+        setRetryKey(null);
+        setRetryError(null);
+        setRetryMessage(null);
+    };
+
+    const prepareRetry = async () => {
+        if (!session?.token || !retryTarget) return;
+        setRetryBusy(true);
+        setRetryError(null);
+        setRetryMessage(null);
+        try {
+            const preview = await previewOperatorOutboxRetry(session.token, retryTarget.event_id, retryReason);
+            setRetryPreview(preview);
+            setRetryKey(crypto.randomUUID());
+        } catch (caught) {
+            setRetryPreview(null);
+            setRetryKey(null);
+            setRetryError(caught instanceof ApiClientError ? caught.message : 'La prévisualisation a échoué.');
+        } finally {
+            setRetryBusy(false);
+        }
+    };
+
+    const confirmRetry = async () => {
+        if (!session?.token || !retryTarget || !retryPreview) return;
+        const idempotencyKey = retryKey ?? crypto.randomUUID();
+        setRetryKey(idempotencyKey);
+        setRetryBusy(true);
+        setRetryError(null);
+        try {
+            const outcome = await retryOperatorOutboxMessage(
+                session.token,
+                retryTarget.event_id,
+                retryReason,
+                retryPreview.preview_fingerprint,
+                idempotencyKey,
+            );
+            setRetryMessage(outcome.replayed
+                ? 'La confirmation précédente a été retrouvée : aucun second rejeu n’a été créé.'
+                : 'Le message a été remis en attente. Le worker Outbox le traitera au prochain cycle.');
+            setRetryTarget(null);
+            setRetryPreview(null);
+            setRetryKey(null);
+            await load();
+        } catch (caught) {
+            setRetryError(caught instanceof ApiClientError ? caught.message : 'La confirmation est incertaine. Réessayez sans modifier la proposition.');
+        } finally {
+            setRetryBusy(false);
+        }
+    };
+
     return (
         <OperatorFrame>
             <main className="mx-auto max-w-[90rem] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
@@ -90,6 +168,46 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
                         </select>
                     </label>
                 </div>
+
+                {kind === 'outbox' && retryMessage && <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{retryMessage}</div>}
+                {kind === 'outbox' && hasRetryPermission && !retryActionsEnabled && <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Les reprises sont verrouillées par la configuration du back-office.</div>}
+                {kind === 'outbox' && hasRetryPermission && retryActionsEnabled && !stepUpActive && <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Renouvelez l’authentification renforcée depuis l’en-tête avant de préparer une reprise.</div>}
+
+                {kind === 'outbox' && retryTarget && (
+                    <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm" aria-labelledby="outbox-retry-title">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <p className="atlas-kicker">Action sensible bornée</p>
+                                <h2 id="outbox-retry-title" className="mt-2 text-xl font-semibold">Préparer la reprise</h2>
+                                <p className="mt-2 text-sm text-atlas-ink-muted">{retryTarget.event_type} · <span className="font-mono text-xs">{retryTarget.event_id}</span></p>
+                            </div>
+                            <button type="button" className="text-sm font-semibold text-atlas-ink-muted underline" onClick={() => { setRetryTarget(null); setRetryPreview(null); setRetryKey(null); setRetryError(null); }}>Annuler</button>
+                        </div>
+                        <label className="mt-5 block text-sm font-semibold">Motif vérifié
+                            <select
+                                value={retryReason}
+                                onChange={(event) => { setRetryReason(event.target.value); setRetryPreview(null); setRetryKey(null); setRetryError(null); }}
+                                className="mt-2 block min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3.5 sm:max-w-md"
+                            >
+                                <option value="outbox.cause-corrected">Cause technique corrigée</option>
+                                <option value="outbox.configuration-restored">Configuration restaurée</option>
+                                <option value="outbox.provider-recovered">Prestataire de nouveau disponible</option>
+                                <option value="outbox.false-positive-reviewed">Dead-letter vérifiée sans anomalie persistante</option>
+                            </select>
+                        </label>
+                        {!retryPreview && <button type="button" disabled={retryBusy} onClick={() => void prepareRetry()} className="mt-5 min-h-11 rounded-xl bg-atlas-ink px-4 font-semibold text-white disabled:opacity-50">{retryBusy ? 'Vérification…' : 'Prévisualiser la reprise'}</button>}
+                        {retryPreview && (
+                            <div className="mt-5 rounded-xl border border-atlas-border bg-white p-4">
+                                <p className="font-semibold">Dead-letter → En attente</p>
+                                <p className="mt-1 text-sm text-atlas-ink-muted">Tentatives : {retryPreview.current.attempts} → 0 · disponibilité immédiate</p>
+                                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-atlas-ink-muted">{retryPreview.effects.map((effect) => <li key={effect}>{effect}</li>)}</ul>
+                                <p className="mt-3 text-sm font-medium text-amber-800">Confirmez uniquement après avoir corrigé ou écarté la cause. Une remise externe dont l’issue était incertaine peut produire un doublon chez le destinataire.</p>
+                                <button type="button" disabled={retryBusy} onClick={() => void confirmRetry()} className="mt-4 min-h-11 rounded-xl bg-atlas-ink px-4 font-semibold text-white disabled:opacity-50">{retryBusy ? 'Confirmation…' : 'Confirmer la remise en attente'}</button>
+                            </div>
+                        )}
+                        {retryError && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{retryError}</div>}
+                    </section>
+                )}
 
                 {error && <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error} <button type="button" className="ml-2 font-semibold underline" onClick={() => void load()}>Réessayer</button></div>}
                 <section className="mt-8 overflow-hidden rounded-2xl border border-atlas-border bg-white shadow-sm">
@@ -109,6 +227,9 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
                                         <div className="col-span-2"><dt className="text-xs text-atlas-ink-muted">Contexte</dt><dd className="mt-1">{'template_key' in item ? (item.template_key ?? 'Template non enregistré') : `Disponible ${formatDate(item.available_at)}`}</dd></div>
                                     </dl>
                                     <p className="mt-4 break-all font-mono text-[10px] text-atlas-ink-muted">{item.event_id}</p>
+                                    {kind === 'outbox' && item.status === 'DeadLetter' && (
+                                        <button type="button" disabled={!canRetry || retryBusy} onClick={() => selectRetryTarget(item)} className="mt-4 min-h-10 rounded-xl border border-atlas-border px-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40">Préparer la reprise</button>
+                                    )}
                                 </article>
                             ))}
                         </div>
@@ -116,7 +237,7 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
                     {result && result.items.length > 0 && (
                         <div className="hidden overflow-x-auto md:block">
                             <table className="w-full min-w-[760px] text-left text-sm">
-                                <thead className="bg-atlas-surface text-xs uppercase tracking-[.08em] text-atlas-ink-muted"><tr><th className="px-5 py-3 font-semibold">Événement</th><th className="px-5 py-3 font-semibold">État</th><th className="px-5 py-3 font-semibold">Tentatives</th><th className="px-5 py-3 font-semibold">Contexte</th><th className="px-5 py-3 font-semibold">Créé le</th></tr></thead>
+                                <thead className="bg-atlas-surface text-xs uppercase tracking-[.08em] text-atlas-ink-muted"><tr><th className="px-5 py-3 font-semibold">Événement</th><th className="px-5 py-3 font-semibold">État</th><th className="px-5 py-3 font-semibold">Tentatives</th><th className="px-5 py-3 font-semibold">Contexte</th><th className="px-5 py-3 font-semibold">Créé le</th>{kind === 'outbox' && <th className="px-5 py-3 font-semibold">Action</th>}</tr></thead>
                                 <tbody className="divide-y divide-atlas-border">
                                     {result.items.map((item) => (
                                         <tr key={item.event_id}>
@@ -125,6 +246,7 @@ export function OperatorRegistryPage({ kind }: { kind: RegistryKind }) {
                                             <td className="px-5 py-4 tabular-nums">{item.attempts}</td>
                                             <td className="px-5 py-4 text-atlas-ink-muted">{'template_key' in item ? (item.template_key ?? 'Template non enregistré') : `Disponible ${formatDate(item.available_at)}`}</td>
                                             <td className="px-5 py-4 text-atlas-ink-muted">{formatDate(item.created_at)}</td>
+                                            {kind === 'outbox' && <td className="px-5 py-4">{item.status === 'DeadLetter' && <button type="button" disabled={!canRetry || retryBusy} onClick={() => selectRetryTarget(item)} className="min-h-10 whitespace-nowrap rounded-xl border border-atlas-border px-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40">Préparer</button>}</td>}
                                         </tr>
                                     ))}
                                 </tbody>

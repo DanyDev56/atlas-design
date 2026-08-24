@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.8.0
+version: 0.9.0
 last_updated: 2026-08-24
 
 references:
@@ -37,9 +37,10 @@ adresses destinataires, contenus ou identifiants fournisseur. Les cartes
 Support et Demandes de données reflètent désormais leurs projections durables ;
 une source attendue en erreur devient `Unavailable`, jamais zéro.
 
-Le mode sûr reste la lecture seule. Deux mutations web bornées sont livrées : la
+Le mode sûr reste la lecture seule. Trois mutations web bornées sont livrées : la
 gestion non destructive d'un dossier Support et la révocation d'un jeton de
-session Operator identifié. Elles exigent deux flags explicites, leur permission
+session Operator identifié, puis la remise en file d'une dead-letter Outbox
+explicitement sélectionnée. Elles exigent deux flags explicites, leur permission
 dédiée et un step-up récent. L'activation Support est détaillée dans
 [`support-compliance-operations.md`](support-compliance-operations.md).
 
@@ -101,7 +102,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.outbox.retry,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -127,6 +128,11 @@ permission seule ne contourne jamais ces verrous.
 `/backoffice/security`. `operations.sessions.revoke` permet uniquement de
 préparer et confirmer la révocation d'une autre session Operator active. Elle
 ne révoque ni le grant, ni le facteur MFA, ni une session Workspace.
+
+`operations.outbox.retry` complète `operations.outbox.read` sans révéler le
+payload ni l'erreur brute. Elle autorise uniquement la remise en attente d'un
+message actuellement en dead-letter ; le worker reste seul responsable de son
+traitement.
 
 ## Enrôler ou renouveler la MFA
 
@@ -206,6 +212,35 @@ En incident global ou si l'identité opérateur elle-même est compromise, ne pa
 utiliser cette action unitaire : couper `BACKOFFICE_ACTIONS_ENABLED`, purger la
 configuration, puis utiliser la commande de révocation complète ci-dessous.
 
+## Reprendre une dead-letter ciblée
+
+Ouvrir `/backoffice/outbox`, filtrer sur « Dead-letter », puis sélectionner
+« Préparer ». La confirmation exige :
+
+- `operations.outbox.read` pour consulter le registre ;
+- `operations.outbox.retry` pour préparer et confirmer ;
+- les deux flags d'action actifs et un step-up encore valide ;
+- un motif structuré attestant que la cause a été corrigée ou écartée ;
+- la prévisualisation exacte et une clé d'idempotence stable.
+
+La requête web n'exécute jamais le message. Elle remet atomiquement la ligne en
+`Pending`, réinitialise `attempts`, `last_error` et `failed_at`, puis laisse le
+worker Outbox la prendre au cycle suivant. Les consommateurs déjà validés dans
+`platform.inbox_receipts` ne sont pas rejoués. En revanche, une remise externe
+dont le succès était incertain avant l'échec peut produire un doublon chez le
+destinataire : vérifier le fournisseur avant de confirmer.
+
+Une dead-letter modifiée depuis la prévisualisation, déjà reprise ou distribuée
+est refusée. Le serveur recoupe aussi la session, le grant, la permission et le
+step-up dans la transaction. La remise en file, sa preuve d'idempotence et
+l'audit de succès sont atomiques ; si l'audit échoue, la dead-letter reste
+inchangée. Couper `BACKOFFICE_ACTIONS_ENABLED` arrête immédiatement les nouvelles
+prévisualisations et confirmations sans désactiver la lecture.
+
+La commande `atlas:outbox:retry` reste le chemin runbook hors UI. Elle doit être
+réservée à un incident contrôlé, car elle ne porte pas le contexte opérateur ni
+la prévisualisation web.
+
 ## Révoquer immédiatement
 
 ```bash
@@ -244,6 +279,7 @@ avant un nouvel enrôlement.
   tests/Integration/Operations/SupportComplianceTest.php \
   tests/Integration/Operations/SupportCaseManagementTest.php \
   tests/Integration/Operations/OperatorSessionManagementTest.php \
+  tests/Integration/Operations/OperatorOutboxRetryTest.php \
   tests/Integration/Retention/RetentionPurgerTest.php
 
 make web-check

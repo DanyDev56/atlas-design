@@ -147,7 +147,9 @@ satisfait.
   l'invitation, le devis, la facture et la relance avec leurs liens/PDF.
 - [ ] Vérifier qu'une révocation avant dispatch empêche bien l'email Advisor.
 - [ ] Vérifier les statuts `Accepted`, `Retrying` et `Failed`, puis répéter la
-  procédure de reprise d'une dead-letter.
+  procédure de reprise d'une dead-letter depuis le back-office. Le parcours
+  local, ses permissions, son idempotence et son rollback d'audit sont couverts
+  automatiquement ; la vérification sur la cible reste à réaliser.
 - [ ] Définir le traitement support des rejets, plaintes et adresses invalides.
 
 ## 5. Sauvegarde, restauration et rétention

@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-08-24
 
 references:
@@ -264,7 +264,7 @@ juridiquement approuvées restent également à livrer.
 
 ### État au 24 août 2026
 
-Les deux premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
+Les trois premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
 opérateur portant `operations.support.manage` peut modifier uniquement le statut
 et l'assignation d'un dossier Support après un step-up récent et une
 prévisualisation exacte. Le serveur recoupe la révision et l'autorité dans la
@@ -278,11 +278,21 @@ modifie ni le grant, ni la MFA, ni les sessions Workspace ; l'autorité de
 l'opérateur agissant est recoupée dans la transaction et la rétention des
 sessions/idempotency keys reste bornée.
 
+Avec `operations.outbox.read` et `operations.outbox.retry`, une dead-letter
+explicitement sélectionnée peut maintenant être prévisualisée puis remise en
+attente. La requête ne traite pas le message : elle délègue la mutation au
+gestionnaire Outbox et le worker reprend ensuite son cycle normal. L'état caché
+du message participe à l'empreinte de prévisualisation, les reçus Inbox évitent
+de rejouer les consommateurs déjà confirmés, et une panne d'audit annule aussi
+la remise en file.
+
 `BACKOFFICE_READ_ONLY=true` et `BACKOFFICE_ACTIONS_ENABLED=false` restent les
 valeurs sûres par défaut. Aucun email, contenu de demande, export, donnée
-Workspace ou workflow Conformité n'est modifié par ces actions. Le retry d'une
-dead-letter et toutes les opérations destructives restent à livrer séparément
-et ne sont pas autorisés implicitement par ce socle.
+Workspace ou workflow Conformité n'est modifié par les deux premières actions.
+La reprise Outbox modifie uniquement l'état technique du message choisi ; elle
+n'autorise aucune autre mutation. La réconciliation fournisseur ciblée devient
+la prochaine action à livrer. Toutes les opérations destructives restent
+séparées et ne sont pas autorisées implicitement par ce socle.
 
 ## Incrément 7 — Recette et ouverture
 
