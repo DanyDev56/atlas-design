@@ -240,8 +240,10 @@ satisfait.
   notice sous des URL stables ; conserver la preuve de la version acceptée.
 - [ ] Établir hors du dépôt la liste des cinq participants, leur canal de
   recrutement et leur accord explicite aux versions publiées.
-- [ ] Tester la production et la remise d'un export assisté sur un Workspace
-  fictif, puis livrer une suppression atomique et auditable avant données réelles.
+- [x] Production et remise d'un export assisté testées sur un Workspace fictif :
+  double contrôle, worker Outbox, chiffrement, empreinte, TTL, téléchargement
+  `no-store`, idempotence et audit.
+- [ ] Livrer une suppression Workspace atomique et auditable avant données réelles.
 - [ ] Exécuter les revues d'activation J2/J7/J14/J21/J30 et conserver les
   résultats pseudonymisés avec leurs dénominateurs.
 - [ ] Mener les entretiens avec une seule cellule `P19`, `P24` ou `P29` par

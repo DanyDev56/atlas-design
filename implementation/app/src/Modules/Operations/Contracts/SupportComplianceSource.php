@@ -18,7 +18,7 @@ interface SupportComplianceSource
     /** @return array{items: list<array<string, int|string|bool|null>>, total: int, page: int, per_page: int, total_pages: int} */
     public function supportPage(string $status, string $severity, int $page, int $perPage): array;
 
-    /** @return array{items: list<array<string, int|string|bool|null>>, total: int, page: int, per_page: int, total_pages: int} */
+    /** @return array{items: list<array<string, mixed>>, total: int, page: int, per_page: int, total_pages: int} */
     public function dataRequestPage(string $status, string $type, int $page, int $perPage): array;
 
     /** @return array{items: list<array<string, int|string|null>>, total: int, page: int, per_page: int, total_pages: int, consent_counts: array<string, int>} */

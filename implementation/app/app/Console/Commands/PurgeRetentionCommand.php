@@ -11,7 +11,7 @@ final class PurgeRetentionCommand extends Command
 {
     protected $signature = 'atlas:retention:purge {--dry-run : Report counts without deleting}';
 
-    protected $description = 'Purge expired sessions, old dispatched outbox messages, and stale idempotency keys';
+    protected $description = 'Purge expired sessions and data exports, old dispatched outbox messages, and stale idempotency keys';
 
     public function handle(RetentionPurger $purger): int
     {
@@ -22,6 +22,7 @@ final class PurgeRetentionCommand extends Command
         $this->info("{$mode} {$result->sessions} session(s).");
         $this->info("{$mode} {$result->outboxDispatched} dispatched outbox message(s).");
         $this->info("{$mode} {$result->idempotencyKeys} idempotency key(s).");
+        $this->info("{$mode} {$result->dataExportArtifacts} expired data export artifact(s).");
 
         return self::SUCCESS;
     }

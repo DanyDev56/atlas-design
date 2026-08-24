@@ -10,11 +10,12 @@ final readonly class RetentionPurgeResult
         public int $sessions,
         public int $outboxDispatched,
         public int $idempotencyKeys,
+        public int $dataExportArtifacts,
         public bool $dryRun,
     ) {}
 
     public function total(): int
     {
-        return $this->sessions + $this->outboxDispatched + $this->idempotencyKeys;
+        return $this->sessions + $this->outboxDispatched + $this->idempotencyKeys + $this->dataExportArtifacts;
     }
 }

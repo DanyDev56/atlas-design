@@ -42,8 +42,8 @@ action opérateur, ni exposition externe sans authentification forte.
 | 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
 | 4 — exploitation et abonnements | Socle lecture seule avancé | abonnements/webhooks séparés, heartbeats, backup/canary, HTTP RED durable et états d'alerte anti-rafale raccordés ; exercice externe et métriques PostgreSQL détaillées restent ouverts |
-| 5 — support et conformité | Socle lecture seule livré | dossiers support, demandes de données, versions et preuves immuables, consentements séparés et vues pseudonymisées ; export/suppression et durées légales restent ouverts |
-| 6 — actions bornées | Quatre premières actions livrées localement | gestion Support, révocation de session, reprise Outbox et réconciliation Stripe ciblées : permissions dédiées, step-up, prévisualisation, motif structuré, version, idempotence, transaction et audit ; flags sûrs par défaut |
+| 5 — support et conformité | Socle et export assisté livrés | dossiers support, demandes de données, versions et preuves immuables, consentements séparés, vues pseudonymisées et export Workspace à double contrôle ; suppression et durées légales restent ouvertes |
+| 6 — actions bornées | Cinq premières actions livrées localement | gestion Support, révocation de session, reprise Outbox, réconciliation Stripe et export approuvé : permissions dédiées, step-up, prévisualisation, motif structuré, version, idempotence, transaction et audit ; flags sûrs par défaut |
 | 7 — recette et ouverture | Non démarré | aucune ouverture externe du back-office ni action destructive autorisée |
 
 ## Incrément 0 — Décisions et modèle de menace
@@ -232,9 +232,9 @@ ouvrés, commandes administratives motivées, APIs indépendamment autorisées e
 écran `/backoffice/support`. Les identités et références de preuve brutes ne
 sont pas exposées par l'API.
 
-La gate reste partielle : la recette couvre l'enregistrement et le suivi d'une
-demande d'accès, mais pas encore la production/remise d'un export, la correction
-effective ni la fermeture. Les tableaux fournisseurs/rétention et les durées
+La gate reste partielle : la recette couvre désormais l'enregistrement, la
+double approbation, la production chiffrée et la remise bornée d'un export
+Workspace fictif, mais pas encore la correction effective ni la fermeture. Les tableaux fournisseurs/rétention et les durées
 juridiquement approuvées restent également à livrer.
 
 ## Incrément 6 — Actions opérateur bornées
@@ -264,7 +264,7 @@ juridiquement approuvées restent également à livrer.
 
 ### État au 24 août 2026
 
-Les quatre premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
+Les cinq premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
 opérateur portant `operations.support.manage` peut modifier uniquement le statut
 et l'assignation d'un dossier Support après un step-up récent et une
 prévisualisation exacte. Le serveur recoupe la révision et l'autorité dans la
@@ -287,13 +287,19 @@ de rejouer les consommateurs déjà confirmés, et une panne d'audit annule auss
 la remise en file.
 
 `BACKOFFICE_READ_ONLY=true` et `BACKOFFICE_ACTIONS_ENABLED=false` restent les
-valeurs sûres par défaut. Aucun email, contenu de demande, export, donnée
-Workspace ou workflow Conformité n'est modifié par ces actions.
+valeurs sûres par défaut. Aucun email ou contenu libre de demande n'est exposé
+par ces actions. L'export approuvé est le seul workflow Conformité qui lise les
+données Workspace, exclusivement dans le worker après double contrôle.
 La reprise Outbox modifie uniquement l'état technique du message choisi ; elle
 n'autorise aucune autre mutation. La réconciliation fournisseur compare un
 abonnement exact à Stripe puis délègue au domaine Subscriptions le réalignement
 local et le recalcul des droits, sans mutation distante. Toutes les opérations destructives restent
 séparées et ne sont pas autorisées implicitement par ce socle.
+L'export assisté exige une demande `Access` ou `Portability` vérifiée, interdit
+l'auto-approbation, produit via Outbox un JSON `WorkspaceDataV1` chiffré et
+borné, vérifie son empreinte au téléchargement puis détruit son ciphertext à
+l'expiration. Il n'émet ni email ni lien public et exclut secrets, références
+Stripe, audit Operator, payloads techniques et binaires PDF.
 
 ## Incrément 7 — Recette et ouverture
 

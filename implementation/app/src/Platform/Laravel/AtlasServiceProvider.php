@@ -22,6 +22,8 @@ use Atlas\Composition\Onboarding\BootstrapFirstWorkspaceHandler;
 use Atlas\Composition\Onboarding\Infrastructure\PostgresBootstrapWorkflowRepository;
 use Atlas\Composition\Operations\CreateOperatorSessionHandler;
 use Atlas\Composition\Operations\ElevateOperatorSessionHandler;
+use Atlas\Composition\Operations\OutboxWorkspaceDataExportConsumer;
+use Atlas\Composition\Operations\WorkspaceDataExportBuilder;
 use Atlas\Composition\Subscriptions\StartWorkspaceTrialConsumer;
 use Atlas\Modules\Advisor\Application\AdvisorQueryHandler;
 use Atlas\Modules\Advisor\Application\EvaluateRecommendationsHandler;
@@ -142,6 +144,8 @@ use Atlas\Modules\Operations\Application\BetaCohortQueryHandler;
 use Atlas\Modules\Operations\Application\DisableOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\EnrollOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\EvaluateOperationsAlertsHandler;
+use Atlas\Modules\Operations\Application\GenerateApprovedDataExportHandler;
+use Atlas\Modules\Operations\Application\ManageApprovedDataExportHandler;
 use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\OperationsOverviewQueryHandler;
 use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
@@ -301,6 +305,7 @@ final class AtlasServiceProvider extends ServiceProvider
                     $app->make(OutboxBillingEmailConsumer::class),
                     $app->make(OutboxNotificationsEmailConsumer::class),
                     $app->make(StartWorkspaceTrialConsumer::class),
+                    $app->make(OutboxWorkspaceDataExportConsumer::class),
                 ],
                 $app->make(OutboxBacklogMonitor::class),
                 maxAttempts: (int) config('platform.outbox.max_attempts', 5),
@@ -337,6 +342,10 @@ final class AtlasServiceProvider extends ServiceProvider
         $this->app->singleton(PostgresOperatorSessionRepository::class);
         $this->app->singleton(PostgresOperatorAuditRepository::class);
         $this->app->singleton(PostgresOperatorMfaRepository::class);
+        $this->app->singleton(WorkspaceDataExportBuilder::class);
+        $this->app->singleton(GenerateApprovedDataExportHandler::class);
+        $this->app->singleton(ManageApprovedDataExportHandler::class);
+        $this->app->singleton(OutboxWorkspaceDataExportConsumer::class);
         $this->app->singleton(BetaCohortSource::class, PostgresBetaCohortSource::class);
         $this->app->singleton(BetaCohortQueryHandler::class, fn ($app): BetaCohortQueryHandler => new BetaCohortQueryHandler(
             $app->make(BetaCohortSource::class),

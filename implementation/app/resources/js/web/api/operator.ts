@@ -1,4 +1,4 @@
-import { apiRequest } from '@/api/client';
+import { ApiClientError, apiRequest } from '@/api/client';
 
 export interface OperatorLoginResponse {
     session_id: string;
@@ -296,6 +296,37 @@ export interface OperatorDataRequestItem {
     decision_code: string | null;
     delivery_expires_at: string | null;
     created_at: string;
+    export: null | {
+        reference: string;
+        scope: 'WorkspaceDataV1';
+        status: 'AwaitingApproval' | 'Generating' | 'Ready' | 'Delivered' | 'Expired' | 'Failed';
+        requested_at: string;
+        ready_at: string | null;
+        expires_at: string | null;
+        byte_size: number | null;
+    };
+}
+
+export interface OperatorDataExportPreview {
+    reference?: string;
+    data_request_reference: string;
+    scope: 'WorkspaceDataV1';
+    current_status: string;
+    proposed_status: 'AwaitingApproval' | 'Generating';
+    revision?: number;
+    requires_distinct_approver?: boolean;
+    preview_fingerprint: string;
+    effects: string[];
+}
+
+export interface OperatorDataExportResult {
+    reference: string;
+    data_request_reference?: string;
+    status: 'AwaitingApproval' | 'Generating';
+    revision: number;
+    requested_at?: string;
+    approved_at?: string;
+    replayed: boolean;
 }
 
 export interface OperatorPolicyItem {
@@ -613,6 +644,49 @@ export async function fetchOperatorDataRequests(
 export async function fetchOperatorCompliance(token: string, page: number): Promise<OperatorPolicyPage> {
     const query = new URLSearchParams({ page: String(page), per_page: '20' });
     return apiRequest<OperatorPolicyPage>('GET', `/operator/overview/compliance?${query}`, undefined, { token });
+}
+
+export async function previewOperatorDataExportRequest(token: string, dataRequestReference: string, reasonCode: string): Promise<OperatorDataExportPreview> {
+    return apiRequest<OperatorDataExportPreview>('POST', `/operator/data-requests/${dataRequestReference}/exports/request-preview`, { reason_code: reasonCode }, { token });
+}
+
+export async function requestOperatorDataExport(token: string, dataRequestReference: string, reasonCode: string, previewFingerprint: string, idempotencyKey: string): Promise<OperatorDataExportResult> {
+    return apiRequest<OperatorDataExportResult>('POST', `/operator/data-requests/${dataRequestReference}/exports`, {
+        reason_code: reasonCode,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
+}
+
+export async function previewOperatorDataExportApproval(token: string, exportReference: string, reasonCode: string): Promise<OperatorDataExportPreview> {
+    return apiRequest<OperatorDataExportPreview>('POST', `/operator/data-exports/${exportReference}/approval-preview`, { reason_code: reasonCode }, { token });
+}
+
+export async function approveOperatorDataExport(token: string, exportReference: string, reasonCode: string, previewFingerprint: string, idempotencyKey: string): Promise<OperatorDataExportResult> {
+    return apiRequest<OperatorDataExportResult>('PATCH', `/operator/data-exports/${exportReference}/approval`, {
+        reason_code: reasonCode,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
+}
+
+export async function downloadOperatorDataExport(token: string, exportReference: string, reasonCode: string, idempotencyKey: string): Promise<{ blob: Blob; filename: string }> {
+    const response = await fetch(`/api/operator/data-exports/${exportReference}/download`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            'Idempotency-Key': idempotencyKey,
+        },
+        body: JSON.stringify({ reason_code: reasonCode }),
+    });
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({ error: 'ParseError', messages: ['Réponse invalide du serveur.'] }));
+        throw new ApiClientError(body.messages?.[0] ?? body.error ?? `HTTP ${response.status}`, response.status, body);
+    }
+    const disposition = response.headers.get('Content-Disposition') ?? '';
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? `atlas-export-${exportReference.toLowerCase()}.json`;
+
+    return { blob: await response.blob(), filename };
 }
 
 export async function fetchBetaCohortOverview(token: string): Promise<BetaCohortOverview> {

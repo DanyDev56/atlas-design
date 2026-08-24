@@ -29,4 +29,8 @@ return [
         'runtime_stale_seconds' => (int) env('OPERATIONS_RUNTIME_STALE_SECONDS', 180),
         'backup_stale_seconds' => (int) env('OPERATIONS_BACKUP_STALE_SECONDS', 90000),
     ],
+    'exports' => [
+        'ttl_hours' => (int) env('BACKOFFICE_EXPORT_TTL_HOURS', 24),
+        'max_bytes' => (int) env('BACKOFFICE_EXPORT_MAX_BYTES', 5242880),
+    ],
 ];

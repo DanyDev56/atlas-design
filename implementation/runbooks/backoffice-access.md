@@ -102,7 +102,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.outbox.retry,operations.email.read,operations.subscriptions.read,operations.subscriptions.reconcile,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.outbox.retry,operations.email.read,operations.subscriptions.read,operations.subscriptions.reconcile,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke,operations.exports.request,operations.exports.approve,operations.exports.download" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -126,6 +126,13 @@ leurs limites non destructives sont détaillées dans
 `operations.support.manage` n'a d'effet que lorsque
 `BACKOFFICE_READ_ONLY=false` et `BACKOFFICE_ACTIONS_ENABLED=true` ; accorder la
 permission seule ne contourne jamais ces verrous.
+
+Les permissions `operations.exports.request`, `operations.exports.approve` et
+`operations.exports.download` sont volontairement séparées. Un même grant peut
+les contenir pour l'exploitation, mais le serveur refuse toujours qu'une même
+identité Operator demande puis approuve un export. Le détail du chiffrement, de
+l'expiration et de la recette à deux comptes se trouve dans
+[`support-compliance-operations.md`](support-compliance-operations.md).
 
 `operations.sessions.read` ouvre le registre pseudonymisé sur
 `/backoffice/security`. `operations.sessions.revoke` permet uniquement de

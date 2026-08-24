@@ -117,9 +117,14 @@ final class PostgresSupportComplianceSource implements SupportComplianceSource
     {
         $query = DB::table('operations.data_requests as request')
             ->join('operations.support_cases as support', 'support.id', '=', 'request.support_case_id')
+            ->leftJoin('operations.data_exports as export', 'export.data_request_id', '=', 'request.id')
+            ->leftJoin('operations.data_export_artifacts as artifact', 'artifact.data_export_id', '=', 'export.id')
             ->select([
                 'request.reference', 'support.reference as support_reference', 'request.workspace_id', 'request.requester_user_id', 'request.request_type', 'request.status',
                 'request.identity_verified_at', 'request.ownership_verified_at', 'request.due_at', 'request.decision_code', 'request.delivery_expires_at', 'request.created_at',
+                'export.reference as export_reference', 'export.scope as export_scope', 'export.status as export_status',
+                'export.requested_at as export_requested_at', 'export.ready_at as export_ready_at', 'export.expires_at as export_expires_at',
+                'artifact.byte_size as export_byte_size',
             ]);
         if ($status !== 'All') {
             $query->where('request.status', $status);
@@ -143,6 +148,15 @@ final class PostgresSupportComplianceSource implements SupportComplianceSource
             'decision_code' => $row->decision_code !== null ? (string) $row->decision_code : null,
             'delivery_expires_at' => $row->delivery_expires_at !== null ? (string) $row->delivery_expires_at : null,
             'created_at' => (string) $row->created_at,
+            'export' => $row->export_reference === null ? null : [
+                'reference' => (string) $row->export_reference,
+                'scope' => (string) $row->export_scope,
+                'status' => (string) $row->export_status,
+                'requested_at' => (string) $row->export_requested_at,
+                'ready_at' => $row->export_ready_at !== null ? (string) $row->export_ready_at : null,
+                'expires_at' => $row->export_expires_at !== null ? (string) $row->export_expires_at : null,
+                'byte_size' => $row->export_byte_size !== null ? (int) $row->export_byte_size : null,
+            ],
         ])->all();
 
         return $this->page($items, $total, $page, $perPage);

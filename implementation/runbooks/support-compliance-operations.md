@@ -3,7 +3,7 @@ id: RUN-022
 title: Support and Compliance Operations
 status: In Review
 owner: Support, Operations and Legal
-version: 0.2.0
+version: 0.3.0
 last_updated: 2026-08-24
 
 references:
@@ -33,10 +33,13 @@ références HMAC locales `WS-*` et `USR-*`.
 
 La lecture reste le comportement par défaut. Une première action web bornée
 permet, lorsqu'elle est explicitement activée, de changer le statut d'un dossier
-Support et de l'assigner à l'opérateur courant ou de le désassigner. Elle ne
-produit ni email, ni export, ni correction, ni restriction, ni suppression de
-donnée ou fermeture de Workspace. Ces opérations restent bloquées jusqu'à leur
-workflow dédié avec approbation adaptée à leur impact.
+Support et de l'assigner à l'opérateur courant ou de le désassigner.
+
+Les demandes `Access` et `Portability` qualifiées disposent désormais d'un
+workflow d'export assisté séparé : demande, approbation par une autre identité
+Operator, génération asynchrone, artefact chiffré et téléchargement expirant.
+Il ne produit aucun email et ne ferme, ne corrige, ne restreint ni ne supprime
+le Workspace.
 
 ## Autorisations
 
@@ -46,6 +49,9 @@ workflow dédié avec approbation adaptée à leur impact.
 | `operations.compliance.read` | demandes de données, politiques, preuves et consentements |
 | `operations.support.manage` | prévisualiser et confirmer un changement borné de statut ou d'assignation Support |
 | `operations.compliance.manage` | autorité attendue pour administrer les registres ; aucun bouton web livré |
+| `operations.exports.request` | préparer un export sur une demande de données vérifiée |
+| `operations.exports.approve` | approuver la demande créée par un autre opérateur et lancer la génération |
+| `operations.exports.download` | télécharger l'artefact prêt avant son expiration pour sa remise contrôlée |
 
 ## Activer la gestion bornée des dossiers
 
@@ -135,6 +141,58 @@ La cible interne vaut 5 jours ouvrés pour accès, rectification, effacement et
 portabilité, 2 jours pour restriction et opposition. Le périmètre et les délais
 légaux restent soumis à la notice validée.
 
+## Export assisté à double contrôle
+
+Le bouton « Demander l'export » n'est proposé que si la demande est de type
+`Access` ou `Portability`, au statut `Qualified`, avec identité et ownership
+vérifiés, et sans export existant.
+
+Après prévisualisation et confirmation idempotente, l'export passe à
+`AwaitingApproval`. L'identité Operator ayant fait la demande ne peut pas
+approuver sa propre demande, même si son grant contient les deux permissions.
+L'approbateur doit disposer d'un step-up courant et relire le périmètre. Sa
+confirmation place `operations.data_export.generation_requested` dans l'Outbox :
+la requête HTTP ne lit pas les données métier et ne fabrique aucun fichier.
+
+Le worker compose ensuite `WorkspaceDataV1` à partir du profil de l'espace, des
+membres, du CRM, des activités, devis, factures, règlements, avoirs et de l'état
+d'abonnement sans référence fournisseur. Sont exclus les mots de passe,
+sessions, jetons, clés d'idempotence, payloads Outbox, références Stripe, audit
+Operator, binaires PDF et projections recalculables.
+
+Le JSON est limité à `BACKOFFICE_EXPORT_MAX_BYTES` — 5 Mio par défaut —,
+chiffré avec la clé applicative, associé à une empreinte SHA-256 et conservé en
+base sans chemin public. Un dépassement déterministe place l'export en `Failed`.
+Une fois `Ready`, un opérateur portant `operations.exports.download` peut le
+télécharger pour sa remise. Le serveur déchiffre l'artefact seulement après
+réautorisation, recalcule son empreinte et répond avec `Cache-Control: no-store`.
+
+Le téléchargement est idempotent et audité. L'artefact expire après
+`BACKOFFICE_EXPORT_TTL_HOURS`, soit 24 heures par défaut. Aucun lien public ou
+email n'est créé. Le job quotidien `atlas:retention:purge` détruit le ciphertext
+expiré et conserve seulement l'état et l'historique probatoire. L'opérateur doit donc vérifier le destinataire et utiliser le
+canal de remise validé avant de cliquer ; `Delivered` matérialise cette remise
+assistée dans Atlas, pas une preuve de lecture par le participant.
+
+Deux comptes Operator distincts sont nécessaires pour la recette :
+
+```bash
+docker compose -f implementation/docker-compose.yml exec app php artisan \
+  atlas:operator:grant demandeur@atlas.test \
+  --permissions="operations.backoffice.access,operations.compliance.read,operations.exports.request" \
+  --reason="Recette demande export"
+
+docker compose -f implementation/docker-compose.yml exec app php artisan \
+  atlas:operator:grant approbateur@atlas.test \
+  --permissions="operations.backoffice.access,operations.compliance.read,operations.exports.approve,operations.exports.download" \
+  --reason="Recette approbation export"
+```
+
+En cas de blocage `Generating`, diagnostiquer l'Outbox et le worker sans recréer
+la demande. Pour un artefact expiré ou `Failed`, ne pas contourner le workflow
+par une lecture SQL : consigner l'incident et utiliser le canal d'administration
+approuvé en attendant un parcours de régénération borné.
+
 ## Versionner les textes et leurs preuves
 
 Le contenu juridique reste dans son support publié. Operations n'enregistre
@@ -196,7 +254,7 @@ Le registre ne remplace pas :
 
 - le test de la boîte `beta@atlas-design.fr` et la désignation des responsables ;
 - l'approbation juridique des textes et du registre des traitements ;
-- la recette d'export assisté et la suppression Workspace atomique ;
+- la suppression Workspace atomique ;
 - une authentification back-office externe résistante au phishing.
 
 ## Recette minimale
@@ -219,6 +277,7 @@ refusée hors des environnements `local` et `testing`.
   tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
   tests/Integration/Operations/SupportComplianceTest.php \
   tests/Integration/Operations/SupportCaseManagementTest.php \
+  tests/Integration/Operations/OperatorDataExportTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php
 
 make web-check
@@ -230,3 +289,6 @@ brouillon est refusée, que les registres probatoires refusent update/delete et
 qu'aucune identité brute n'est renvoyée par l'API. Pour l'action bornée, vérifier
 indépendamment les deux flags, la permission, le step-up, le conflit de révision,
 le rejeu idempotent et la révocation concurrente.
+Pour l'export, vérifier en plus l'interdiction d'auto-approbation, la génération
+par le worker, le chiffrement au repos, l'absence de secrets et références
+fournisseur, l'empreinte, l'expiration et le téléchargement `no-store`.

@@ -26,13 +26,14 @@ use App\Http\Controllers\Api\ElevateSessionController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Notifications\NotificationController;
 use App\Http\Controllers\Api\Operator\OperatorBetaController;
+use App\Http\Controllers\Api\Operator\OperatorDataExportController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
-use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorOutboxRetryController;
+use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\Operator\OperatorSessionManagementController;
-use App\Http\Controllers\Api\Operator\OperatorSubscriptionReconciliationController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
+use App\Http\Controllers\Api\Operator\OperatorSubscriptionReconciliationController;
 use App\Http\Controllers\Api\Operator\OperatorSupportActionController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
@@ -143,6 +144,41 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
                 ]);
             Route::get('/overview/data-requests', [OperatorOverviewController::class, 'dataRequests'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::COMPLIANCE_READ);
+            Route::post('/data-requests/{reference}/exports/request-preview', [OperatorDataExportController::class, 'requestPreview'])
+                ->where('reference', 'DR-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EXPORTS_REQUEST,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::post('/data-requests/{reference}/exports', [OperatorDataExportController::class, 'requestExport'])
+                ->where('reference', 'DR-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EXPORTS_REQUEST,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::post('/data-exports/{reference}/approval-preview', [OperatorDataExportController::class, 'approvalPreview'])
+                ->where('reference', 'EXP-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EXPORTS_APPROVE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::patch('/data-exports/{reference}/approval', [OperatorDataExportController::class, 'approve'])
+                ->where('reference', 'EXP-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EXPORTS_APPROVE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::post('/data-exports/{reference}/download', [OperatorDataExportController::class, 'download'])
+                ->where('reference', 'EXP-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EXPORTS_DOWNLOAD,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
             Route::get('/overview/compliance', [OperatorOverviewController::class, 'compliance'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::COMPLIANCE_READ);
             Route::get('/overview/maintenance', [OperatorOverviewController::class, 'maintenance'])
