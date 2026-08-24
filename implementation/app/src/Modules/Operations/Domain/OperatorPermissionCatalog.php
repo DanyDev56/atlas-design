@@ -54,6 +54,8 @@ final class OperatorPermissionCatalog
 
     public const SUBSCRIPTIONS_READ = 'operations.subscriptions.read';
 
+    public const SUBSCRIPTIONS_RECONCILE = 'operations.subscriptions.reconcile';
+
     public const AUDIT_READ = 'operations.audit.read';
 
     public const INCIDENTS_MANAGE = 'operations.incidents.manage';
@@ -86,6 +88,7 @@ final class OperatorPermissionCatalog
             self::OUTBOX_RETRY,
             self::EMAIL_READ,
             self::SUBSCRIPTIONS_READ,
+            self::SUBSCRIPTIONS_RECONCILE,
             self::AUDIT_READ,
             self::INCIDENTS_MANAGE,
         ];

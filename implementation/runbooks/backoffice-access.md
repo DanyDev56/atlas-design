@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.9.0
+version: 0.10.0
 last_updated: 2026-08-24
 
 references:
@@ -37,10 +37,10 @@ adresses destinataires, contenus ou identifiants fournisseur. Les cartes
 Support et Demandes de données reflètent désormais leurs projections durables ;
 une source attendue en erreur devient `Unavailable`, jamais zéro.
 
-Le mode sûr reste la lecture seule. Trois mutations web bornées sont livrées : la
-gestion non destructive d'un dossier Support et la révocation d'un jeton de
-session Operator identifié, puis la remise en file d'une dead-letter Outbox
-explicitement sélectionnée. Elles exigent deux flags explicites, leur permission
+Le mode sûr reste la lecture seule. Quatre mutations web bornées sont livrées : la
+gestion non destructive d'un dossier Support, la révocation d'un jeton de
+session Operator identifié, la remise en file d'une dead-letter Outbox puis la
+réconciliation Stripe d'un abonnement explicitement sélectionné. Elles exigent deux flags explicites, leur permission
 dédiée et un step-up récent. L'activation Support est détaillée dans
 [`support-compliance-operations.md`](support-compliance-operations.md).
 
@@ -102,7 +102,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.outbox.retry,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.outbox.retry,operations.email.read,operations.subscriptions.read,operations.subscriptions.reconcile,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -115,6 +115,9 @@ refusés. Chaque refus et chaque consultation autorisée sont audités.
 environnement. Les écrans runtime et continuité restent couverts par
 `operations.dashboard.read`. Leur exploitation est détaillée dans
 [`backoffice-operations.md`](backoffice-operations.md).
+`operations.subscriptions.reconcile` ajoute uniquement la comparaison et la
+correction locale d'un abonnement Stripe ciblé ; elle ne modifie jamais Stripe
+et reste sans effet tant que les flags d'action et le step-up ne sont pas actifs.
 
 `operations.support.read` et `operations.compliance.read` ouvrent les registres
 pseudonymisés correspondants sur `/backoffice/support`. Leur qualification et

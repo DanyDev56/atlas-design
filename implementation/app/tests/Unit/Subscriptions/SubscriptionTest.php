@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Subscriptions;
 
 use Atlas\Modules\Subscriptions\Domain\RecurringBillingEventType;
+use Atlas\Modules\Subscriptions\Domain\ProviderSubscriptionState;
 use Atlas\Modules\Subscriptions\Domain\Subscription;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionId;
 use Atlas\Modules\Subscriptions\Domain\VerifiedRecurringBillingEvent;
@@ -110,6 +111,21 @@ final class SubscriptionTest extends TestCase
         self::assertSame('PastDue', $subscription->status());
         self::assertSame('2026-09-23T00:00:00+00:00', $subscription->currentPeriodEnd()->format(DATE_ATOM));
         self::assertSame('2026-09-23T10:01:00+00:00', $subscription->pastDueSince()?->format(DATE_ATOM));
+    }
+
+    public function test_reconciliation_applies_provider_state_and_starts_past_due_grace_once(): void
+    {
+        $subscription = Subscription::activate(new SubscriptionId('subscription-1'), 'plan-1', $this->event(RecurringBillingEventType::Activated, '2026-08-23T10:00:00+00:00'));
+        $subscription->reconcile(new ProviderSubscriptionState(
+            provider: 'fake', workspaceId: 'workspace-1', providerSubscriptionReference: 'fake-subscription-1', planPriceId: 'price-1',
+            status: Subscription::STATUS_PAST_DUE, currentPeriodStart: new \DateTimeImmutable('2026-09-23T00:00:00+00:00'),
+            currentPeriodEnd: new \DateTimeImmutable('2026-10-23T00:00:00+00:00'), cancelAtPeriodEnd: false,
+            canceledAt: null, observedAt: new \DateTimeImmutable('2026-09-24T10:00:00+00:00'),
+        ));
+
+        self::assertSame(Subscription::STATUS_PAST_DUE, $subscription->status());
+        self::assertSame('2026-09-24T10:00:00+00:00', $subscription->pastDueSince()?->format(DATE_ATOM));
+        self::assertSame(2, $subscription->version());
     }
 
     private function event(RecurringBillingEventType $type, string $occurredAt): VerifiedRecurringBillingEvent

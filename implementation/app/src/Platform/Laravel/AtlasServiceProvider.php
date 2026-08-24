@@ -164,6 +164,7 @@ use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
 use Atlas\Modules\Subscriptions\Application\StartTrialForWorkspaceHandler;
 use Atlas\Modules\Subscriptions\Application\SubscriptionOverviewQueryHandler;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Contracts\RecurringBillingReconciliationGateway;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookInbox;
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookVerifier;
 use Atlas\Modules\Subscriptions\Contracts\StripeBillingClient;
@@ -175,9 +176,11 @@ use Atlas\Modules\Subscriptions\Domain\SubscriptionEntitlementPolicy;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
 use Atlas\Modules\Subscriptions\Domain\TrialRepository;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingReconciliationGateway;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\FakeRecurringBillingWebhookVerifier;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\OfficialStripeBillingClient;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\StripeRecurringBillingGateway;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\StripeRecurringBillingReconciliationGateway;
 use Atlas\Modules\Subscriptions\Infrastructure\Payment\StripeRecurringBillingWebhookVerifier;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\ConfiguredWorkspaceEntitlementEnforcer;
 use Atlas\Modules\Subscriptions\Infrastructure\Persistence\PostgresEntitlementRepository;
@@ -248,6 +251,16 @@ final class AtlasServiceProvider extends ServiceProvider
                     config('subscriptions.stripe.price_ids', []),
                 ),
                 default => throw new \LogicException('Configured subscriptions gateway is not implemented.'),
+            };
+        });
+        $this->app->singleton(RecurringBillingReconciliationGateway::class, function ($app): RecurringBillingReconciliationGateway {
+            return match (config('subscriptions.gateway', 'fake')) {
+                'fake' => new FakeRecurringBillingReconciliationGateway,
+                'stripe' => new StripeRecurringBillingReconciliationGateway(
+                    $app->make(StripeBillingClient::class),
+                    config('subscriptions.stripe.price_ids', []),
+                ),
+                default => throw new \LogicException('Configured subscriptions reconciliation gateway is not implemented.'),
             };
         });
         $this->app->singleton(RecurringBillingWebhookVerifier::class, function ($app): RecurringBillingWebhookVerifier {

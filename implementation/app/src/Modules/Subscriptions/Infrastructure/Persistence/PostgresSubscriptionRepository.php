@@ -22,6 +22,13 @@ final class PostgresSubscriptionRepository implements SubscriptionRepository
         return $row === null ? null : Subscription::reconstitute((array) $row);
     }
 
+    public function findById(string $subscriptionId): ?Subscription
+    {
+        $row = DB::table('subscriptions.recurring_subscriptions')->where('id', $subscriptionId)->first();
+
+        return $row === null ? null : Subscription::reconstitute((array) $row);
+    }
+
     public function lockWorkspace(string $workspaceId): void
     {
         DB::select('SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))', ['subscription-workspace', $workspaceId]);
@@ -31,6 +38,16 @@ final class PostgresSubscriptionRepository implements SubscriptionRepository
     {
         $row = DB::table('subscriptions.recurring_subscriptions')
             ->where('workspace_id', $workspaceId)
+            ->lockForUpdate()
+            ->first();
+
+        return $row === null ? null : Subscription::reconstitute((array) $row);
+    }
+
+    public function findByIdForUpdate(string $subscriptionId): ?Subscription
+    {
+        $row = DB::table('subscriptions.recurring_subscriptions')
+            ->where('id', $subscriptionId)
             ->lockForUpdate()
             ->first();
 

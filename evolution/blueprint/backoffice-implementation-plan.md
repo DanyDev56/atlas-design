@@ -43,7 +43,7 @@ action opérateur, ni exposition externe sans authentification forte.
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
 | 4 — exploitation et abonnements | Socle lecture seule avancé | abonnements/webhooks séparés, heartbeats, backup/canary, HTTP RED durable et états d'alerte anti-rafale raccordés ; exercice externe et métriques PostgreSQL détaillées restent ouverts |
 | 5 — support et conformité | Socle lecture seule livré | dossiers support, demandes de données, versions et preuves immuables, consentements séparés et vues pseudonymisées ; export/suppression et durées légales restent ouverts |
-| 6 — actions bornées | Deux premières actions livrées localement | gestion non destructive d'un dossier Support et révocation ciblée d'une session Operator : permissions dédiées, step-up, prévisualisation, motif structuré, révision, idempotence, transaction et audit ; flags sûrs par défaut |
+| 6 — actions bornées | Quatre premières actions livrées localement | gestion Support, révocation de session, reprise Outbox et réconciliation Stripe ciblées : permissions dédiées, step-up, prévisualisation, motif structuré, version, idempotence, transaction et audit ; flags sûrs par défaut |
 | 7 — recette et ouverture | Non démarré | aucune ouverture externe du back-office ni action destructive autorisée |
 
 ## Incrément 0 — Décisions et modèle de menace
@@ -264,7 +264,7 @@ juridiquement approuvées restent également à livrer.
 
 ### État au 24 août 2026
 
-Les trois premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
+Les quatre premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
 opérateur portant `operations.support.manage` peut modifier uniquement le statut
 et l'assignation d'un dossier Support après un step-up récent et une
 prévisualisation exacte. Le serveur recoupe la révision et l'autorité dans la
@@ -288,10 +288,11 @@ la remise en file.
 
 `BACKOFFICE_READ_ONLY=true` et `BACKOFFICE_ACTIONS_ENABLED=false` restent les
 valeurs sûres par défaut. Aucun email, contenu de demande, export, donnée
-Workspace ou workflow Conformité n'est modifié par les deux premières actions.
+Workspace ou workflow Conformité n'est modifié par ces actions.
 La reprise Outbox modifie uniquement l'état technique du message choisi ; elle
-n'autorise aucune autre mutation. La réconciliation fournisseur ciblée devient
-la prochaine action à livrer. Toutes les opérations destructives restent
+n'autorise aucune autre mutation. La réconciliation fournisseur compare un
+abonnement exact à Stripe puis délègue au domaine Subscriptions le réalignement
+local et le recalcul des droits, sans mutation distante. Toutes les opérations destructives restent
 séparées et ne sont pas autorisées implicitement par ce socle.
 
 ## Incrément 7 — Recette et ouverture

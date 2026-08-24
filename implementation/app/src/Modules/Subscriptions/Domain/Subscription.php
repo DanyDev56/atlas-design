@@ -143,6 +143,35 @@ final class Subscription
         $this->version++;
     }
 
+    public function reconcile(ProviderSubscriptionState $state): void
+    {
+        if ($state->provider !== $this->provider
+            || $state->providerSubscriptionReference !== $this->providerReference
+            || $state->workspaceId !== $this->workspaceId
+            || $state->planPriceId !== $this->planPriceId) {
+            throw new \DomainException('Subscription reconciliation target mismatch.');
+        }
+        if ($state->observedAt <= $this->lastProviderEventAt) {
+            throw new \DomainException('Subscription reconciliation observation is stale.');
+        }
+
+        $previousStatus = $this->status;
+        $this->status = $state->status;
+        $this->currentPeriodStart = $state->currentPeriodStart;
+        $this->currentPeriodEnd = $state->currentPeriodEnd;
+        $this->cancelAtPeriodEnd = $state->cancelAtPeriodEnd || $state->status === self::STATUS_CANCELED;
+        $this->canceledAt = $state->status === self::STATUS_CANCELED
+            ? $state->canceledAt
+            : null;
+        $this->pastDueSince = $state->status === self::STATUS_PAST_DUE
+            ? ($previousStatus === self::STATUS_PAST_DUE && $this->pastDueSince !== null
+                ? $this->pastDueSince
+                : $state->observedAt)
+            : null;
+        $this->lastProviderEventAt = $state->observedAt;
+        $this->version++;
+    }
+
     public function id(): SubscriptionId
     {
         return $this->id;

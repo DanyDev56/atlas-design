@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorOutboxRetryController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\Operator\OperatorSessionManagementController;
+use App\Http\Controllers\Api\Operator\OperatorSubscriptionReconciliationController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
 use App\Http\Controllers\Api\Operator\OperatorSupportActionController;
 use App\Http\Controllers\Api\RegisterUserController;
@@ -102,6 +103,20 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EMAIL_READ);
             Route::get('/overview/subscriptions', [OperatorOverviewController::class, 'subscriptions'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
+            Route::post('/subscriptions/{reference}/reconciliation-preview', [OperatorSubscriptionReconciliationController::class, 'preview'])
+                ->where('reference', 'SUB-[A-F0-9]{10}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_RECONCILE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::patch('/subscriptions/{reference}/reconciliation', [OperatorSubscriptionReconciliationController::class, 'update'])
+                ->where('reference', 'SUB-[A-F0-9]{10}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_RECONCILE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
             Route::get('/overview/subscription-webhooks', [OperatorOverviewController::class, 'webhooks'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
             Route::get('/overview/runtime', [OperatorOverviewController::class, 'runtime'])

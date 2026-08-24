@@ -287,6 +287,7 @@ final class PostgresOperationsOverviewSource implements OperationsOverviewSource
             ->join('subscriptions.plans as plan', 'plan.id', '=', 'subscription.plan_id')
             ->join('subscriptions.plan_prices as price', 'price.id', '=', 'subscription.plan_price_id')
             ->select([
+                'subscription.id',
                 'subscription.workspace_id',
                 'subscription.status',
                 'subscription.billing_environment',
@@ -295,6 +296,7 @@ final class PostgresOperationsOverviewSource implements OperationsOverviewSource
                 'subscription.cancel_at_period_end',
                 'subscription.past_due_since',
                 'subscription.last_provider_event_at',
+                'subscription.version',
                 'plan.code as plan_code',
                 'price.billing_interval',
             ]);
@@ -320,6 +322,7 @@ final class PostgresOperationsOverviewSource implements OperationsOverviewSource
             'cancel_at_period_end' => (bool) $row->cancel_at_period_end,
             'past_due_since' => $row->past_due_since !== null ? (string) $row->past_due_since : null,
             'last_provider_event_at' => (string) $row->last_provider_event_at,
+            'version' => (int) $row->version,
         ])->all();
 
         return $this->page($items, $total, $page, $perPage);

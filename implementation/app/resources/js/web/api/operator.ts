@@ -160,6 +160,33 @@ export interface OperatorSubscriptionItem {
     cancel_at_period_end: boolean;
     past_due_since: string | null;
     last_provider_event_at: string;
+    version: number;
+}
+
+export interface OperatorSubscriptionReconciliationChange {
+    field: string;
+    current: string | boolean | null;
+    provider: string | boolean | null;
+}
+
+export interface OperatorSubscriptionReconciliationPreview {
+    reference: string;
+    version: number;
+    aligned: boolean;
+    changes: OperatorSubscriptionReconciliationChange[];
+    provider_observed_at: string;
+    reason_code: string;
+    preview_fingerprint: string;
+    effects: string[];
+}
+
+export interface OperatorSubscriptionReconciliationResult {
+    reference: string;
+    status: 'Active' | 'PastDue' | 'Canceled';
+    version: number;
+    reconciled_at: string;
+    changes: OperatorSubscriptionReconciliationChange[];
+    replayed: boolean;
 }
 
 export interface OperatorSubscriptionWebhookItem {
@@ -494,6 +521,33 @@ export async function fetchOperatorSubscriptionWebhooks(
 ): Promise<OperatorPage<OperatorSubscriptionWebhookItem>> {
     const query = new URLSearchParams({ status, environment, page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorSubscriptionWebhookItem>>('GET', `/operator/overview/subscription-webhooks?${query}`, undefined, { token });
+}
+
+export async function previewOperatorSubscriptionReconciliation(
+    token: string,
+    reference: string,
+    expectedVersion: number,
+    reasonCode: string,
+): Promise<OperatorSubscriptionReconciliationPreview> {
+    return apiRequest<OperatorSubscriptionReconciliationPreview>('POST', `/operator/subscriptions/${reference}/reconciliation-preview`, {
+        expected_version: expectedVersion,
+        reason_code: reasonCode,
+    }, { token });
+}
+
+export async function reconcileOperatorSubscription(
+    token: string,
+    reference: string,
+    expectedVersion: number,
+    reasonCode: string,
+    previewFingerprint: string,
+    idempotencyKey: string,
+): Promise<OperatorSubscriptionReconciliationResult> {
+    return apiRequest<OperatorSubscriptionReconciliationResult>('PATCH', `/operator/subscriptions/${reference}/reconciliation`, {
+        expected_version: expectedVersion,
+        reason_code: reasonCode,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
 }
 
 export async function fetchOperatorRuntime(token: string): Promise<OperatorRuntimeSnapshot> {

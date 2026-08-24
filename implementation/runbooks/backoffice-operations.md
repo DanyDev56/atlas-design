@@ -3,7 +3,7 @@ id: RUN-021
 title: Back-office Operations and Subscriptions
 status: In Review
 owner: Engineering and Operations
-version: 0.3.0
+version: 0.4.0
 last_updated: 2026-08-24
 
 references:
@@ -32,6 +32,12 @@ La page exige `operations.subscriptions.read`. Le runtime et la continuité sont
 inclus dans `operations.dashboard.read`, car ils ne révèlent pas davantage que
 les cartes de la vue générale. Toute lecture API est réautorisée et auditée.
 
+La réconciliation ciblée exige en plus
+`operations.subscriptions.reconcile`, le mode écriture explicitement ouvert et
+un step-up récent. « Comparer » lit l'abonnement exact chez Stripe, vérifie son
+Workspace, son plan et son environnement, puis affiche uniquement les champs
+normalisés divergents. La prévisualisation ne modifie rien.
+
 `/backoffice/outbox` permet également la reprise ciblée d'une dead-letter avec
 `operations.outbox.retry`, lorsque les mutations sont explicitement activées et
 que le step-up est récent. Le parcours est détaillé dans
@@ -47,10 +53,13 @@ moment de l'ingestion :
 - clé Stripe `sk_live_*` : `Live` ;
 - toute configuration non reconnue : `Unknown`.
 
-Les lignes antérieures à la migration restent `Unknown`. Elles ne sont jamais
-reclassées automatiquement à partir de la configuration courante. L'interface
-affiche cet état et propose un filtre explicite ; elle ne fusionne pas
-silencieusement les résultats live et sandbox.
+Les lignes antérieures à la migration restent initialement `Unknown`. Elles ne
+sont jamais reclassées à partir de la seule configuration courante. Une
+comparaison ciblée peut proposer leur environnement uniquement après une lecture
+réussie de l'abonnement exact chez Stripe ; la classification n'est persistée
+qu'après la confirmation explicite de l'opérateur. L'interface affiche cet état
+et propose un filtre explicite ; elle ne fusionne pas silencieusement les
+résultats live et sandbox.
 
 ## Heartbeats
 
@@ -155,6 +164,32 @@ l'effet attendu. Si le message revient en dead-letter, ne pas boucler sur le
 bouton : couper les actions si nécessaire et suivre
 [`outbox-incident.md`](outbox-incident.md).
 
+## Réconciliation Stripe ciblée
+
+Utiliser cette action après un webhook manquant, différé ou définitivement en
+échec, jamais comme synchronisation périodique. Depuis
+`/backoffice/subscriptions`, sélectionner « Comparer » sur l'abonnement exact :
+
+1. vérifier l'environnement affiché (`Sandbox` ou `Live`) ;
+2. lire chaque différence Atlas → Stripe ;
+3. confirmer seulement si Stripe est bien la source attendue ;
+4. contrôler ensuite l'état et les droits de l'espace ;
+5. conserver le webhook et l'audit comme preuves de diagnostic.
+
+La confirmation ne mute jamais Stripe. Elle recopie dans le domaine
+Subscriptions l'état, la période et l'intention de résiliation normalisés, puis
+recalcule l'entitlement. Le numéro de version, l'empreinte de l'aperçu,
+l'autorité opérateur et la clé d'idempotence sont recoupés. Une clé Stripe de
+test ne peut donc pas corriger une ligne Live. Une ligne `Unknown` n'est classée
+`Sandbox` ou `Live` qu'au sein de cette confirmation ciblée, après vérification
+de l'identité distante. Une réponse Stripe dont le Workspace, le plan ou le
+prix ne correspondent pas est bloquée.
+
+Si Stripe est indisponible, si le statut n'est pas supporté ou si l'identité ne
+correspond pas, ne pas forcer en base. Diagnostiquer le webhook et la
+configuration ; couper `BACKOFFICE_ACTIONS_ENABLED` si plusieurs écarts
+inattendus apparaissent.
+
 ## Recette minimale
 
 ```bash
@@ -163,6 +198,7 @@ bouton : couper les actions si nécessaire et suivre
   tests/Integration/Operations/OperatorOverviewTest.php \
   tests/Integration/Operations/OperationsAlertsTest.php \
   tests/Integration/Operations/OperatorOutboxRetryTest.php \
+  tests/Integration/Operations/OperatorSubscriptionReconciliationTest.php \
   tests/Integration/Messaging/OutboxWorkerCommandTest.php \
   tests/Feature/Api/Subscriptions/RecurringBillingWebhookTest.php
 
@@ -178,6 +214,5 @@ réellement arrêté.
 ## Reste à livrer pour fermer l'incrément 4
 
 - historique PostgreSQL détaillé et backend de métriques adapté au scale ;
-- réconciliation fournisseur ciblée, d'abord en lecture seule ;
 - exercice reçu de chaque famille d'alerte sur l'environnement candidat ;
 - preuve de sauvegarde hors site et canary sur la cible OCI.

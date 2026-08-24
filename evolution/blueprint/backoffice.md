@@ -94,6 +94,7 @@ alertée et revue après usage.
 | `operations.outbox.retry` | rejouer un message explicitement identifié |
 | `operations.email.read` | lire états de livraison sans adresse brute |
 | `operations.subscriptions.read` | lire essais, abonnements et synchronisation fournisseur |
+| `operations.subscriptions.reconcile` | comparer puis réaligner un abonnement Atlas ciblé depuis l'état fournisseur vérifié |
 | `operations.audit.read` | consulter l'audit privilégié |
 | `operations.incidents.manage` | déclarer, qualifier et clôturer un incident |
 
