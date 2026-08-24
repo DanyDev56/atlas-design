@@ -216,6 +216,10 @@ satisfait.
 - [x] Première action Support non destructive disponible sous deux flags sûrs
   par défaut, permission dédiée, step-up, prévisualisation, révision,
   idempotence et audit ; aucune action Conformité ou Workspace n'est ouverte.
+- [x] Registre pseudonymisé des sessions Operator et révocation ciblée livrés
+  avec permission séparée, interdiction d'auto-révocation, step-up,
+  prévisualisation, idempotence, audit et purge bornée ; les sessions Workspace
+  restent inchangées.
 - [x] Entonnoir d'activation basé sur les états métier, revues de cohorte,
   minimisation et script d'entretien définis sans tracking tiers dans le
   [plan de recherche](beta-research-plan.md).

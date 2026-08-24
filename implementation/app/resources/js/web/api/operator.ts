@@ -30,6 +30,37 @@ export interface OperatorStepUpResponse {
     step_up_expires_at: string;
 }
 
+export interface OperatorManagedSessionItem {
+    reference: string;
+    operator_reference: string;
+    status: 'Active' | 'Expired' | 'Revoked';
+    current: boolean;
+    authentication_strength: string;
+    mfa_verified: boolean;
+    step_up_active: boolean;
+    created_at: string;
+    expires_at: string;
+    revoked_at: string | null;
+    revision: number;
+}
+
+export interface OperatorSessionRevocationPreview {
+    reference: string;
+    current: { status: 'Active'; revision: number };
+    proposed: { status: 'Revoked'; revision: number };
+    reason_code: string;
+    preview_fingerprint: string;
+    effects: string[];
+}
+
+export interface OperatorSessionRevocationResult {
+    reference: string;
+    status: 'Revoked';
+    revision: number;
+    revoked_at: string;
+    replayed: boolean;
+}
+
 export type OperatorSourceStatus = 'Available' | 'NoData' | 'NotCollected' | 'Unavailable';
 export type OperatorCardTone = 'Neutral' | 'Warning' | 'Critical' | 'Muted';
 
@@ -343,6 +374,42 @@ export async function revokeOperatorSession(token: string): Promise<void> {
         {},
         { token, idempotency: true },
     );
+}
+
+export async function fetchManagedOperatorSessions(
+    token: string,
+    status: string,
+    page: number,
+): Promise<OperatorPage<OperatorManagedSessionItem>> {
+    const query = new URLSearchParams({ status, page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorManagedSessionItem>>('GET', `/operator/security/sessions?${query}`, undefined, { token });
+}
+
+export async function previewOperatorSessionRevocation(
+    token: string,
+    reference: string,
+    expectedRevision: number,
+    reasonCode: string,
+): Promise<OperatorSessionRevocationPreview> {
+    return apiRequest<OperatorSessionRevocationPreview>('POST', `/operator/security/sessions/${reference}/preview`, {
+        expected_revision: expectedRevision,
+        reason_code: reasonCode,
+    }, { token });
+}
+
+export async function revokeManagedOperatorSession(
+    token: string,
+    reference: string,
+    expectedRevision: number,
+    reasonCode: string,
+    previewFingerprint: string,
+    idempotencyKey: string,
+): Promise<OperatorSessionRevocationResult> {
+    return apiRequest<OperatorSessionRevocationResult>('PATCH', `/operator/security/sessions/${reference}`, {
+        expected_revision: expectedRevision,
+        reason_code: reasonCode,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
 }
 
 export async function fetchOperatorOverview(token: string): Promise<OperatorOverview> {

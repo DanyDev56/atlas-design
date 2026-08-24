@@ -53,6 +53,52 @@ final class RetentionPurgerTest extends IntegrationTestCase
         $this->assertSame(1, DB::table('identity.sessions')->where('token_hash', hash('sha256', 'active'))->count());
     }
 
+    public function test_purges_old_operator_sessions_and_action_idempotency(): void
+    {
+        $now = now();
+        $userId = UuidGenerator::generate();
+        $grantId = UuidGenerator::generate();
+        DB::table('operations.operator_grants')->insert([
+            'id' => $grantId,
+            'user_id' => $userId,
+            'permissions' => json_encode(['operations.backoffice.access'], JSON_THROW_ON_ERROR),
+            'status' => 'Active',
+            'expires_at' => null,
+            'version' => 1,
+            'created_at' => $now->copy()->subDays(40)->toIso8601String(),
+            'updated_at' => $now->toIso8601String(),
+            'revoked_at' => null,
+        ]);
+        DB::table('operations.operator_sessions')->insert([
+            'id' => UuidGenerator::generate(),
+            'reference' => 'SES-A1B2C3D4E5F6',
+            'user_id' => $userId,
+            'grant_id' => $grantId,
+            'token_hash' => hash('sha256', 'old-operator'),
+            'status' => 'Revoked',
+            'revision' => 2,
+            'authentication_strength' => 'Totp',
+            'mfa_verified_at' => $now->copy()->subDays(40)->toIso8601String(),
+            'step_up_at' => $now->copy()->subDays(40)->toIso8601String(),
+            'expires_at' => $now->copy()->subDays(31)->toIso8601String(),
+            'created_at' => $now->copy()->subDays(40)->toIso8601String(),
+            'revoked_at' => $now->copy()->subDays(31)->toIso8601String(),
+        ]);
+        DB::table('operations.operator_action_idempotency')->insert([
+            'id' => UuidGenerator::generate(),
+            'action_scope' => 'operator-session.revoke:SES-A1B2C3D4E5F6',
+            'idempotency_key' => 'old-action-key',
+            'request_fingerprint' => hash('sha256', 'old-action'),
+            'response' => json_encode(['status' => 'Revoked'], JSON_THROW_ON_ERROR),
+            'created_at' => $now->copy()->subDays(31)->toIso8601String(),
+        ]);
+
+        self::assertSame(1, app(RetentionPurger::class)->purgeSessions());
+        self::assertSame(1, app(RetentionPurger::class)->purgeIdempotencyKeys());
+        self::assertSame(0, DB::table('operations.operator_sessions')->count());
+        self::assertSame(0, DB::table('operations.operator_action_idempotency')->count());
+    }
+
     public function test_purges_old_dispatched_outbox_keeps_pending(): void
     {
         $now = now();

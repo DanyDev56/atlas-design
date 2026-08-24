@@ -24,6 +24,10 @@ final class OperatorPermissionCatalog
 
     public const SENSITIVE_DATA_REVEAL = 'operations.sensitive-data.reveal';
 
+    public const SESSIONS_READ = 'operations.sessions.read';
+
+    public const SESSIONS_REVOKE = 'operations.sessions.revoke';
+
     public const SUPPORT_READ = 'operations.support.read';
 
     public const SUPPORT_MANAGE = 'operations.support.manage';
@@ -67,6 +71,8 @@ final class OperatorPermissionCatalog
             self::WORKSPACES_READ_SUMMARY,
             self::USERS_READ_SUMMARY,
             self::SENSITIVE_DATA_REVEAL,
+            self::SESSIONS_READ,
+            self::SESSIONS_REVOKE,
             self::SUPPORT_READ,
             self::SUPPORT_MANAGE,
             self::COMPLIANCE_READ,

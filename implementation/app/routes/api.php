@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Operator\OperatorBetaController;
 use App\Http\Controllers\Api\Operator\OperatorLoginController;
 use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
+use App\Http\Controllers\Api\Operator\OperatorSessionManagementController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
 use App\Http\Controllers\Api\Operator\OperatorSupportActionController;
 use App\Http\Controllers\Api\RegisterUserController;
@@ -62,6 +63,22 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
             Route::get('/session/context', [OperatorSessionController::class, 'show']);
             Route::middleware('throttle:auth')->post('/auth/session/elevate', OperatorStepUpController::class);
             Route::post('/auth/session/revoke', [OperatorSessionController::class, 'revoke']);
+            Route::get('/security/sessions', [OperatorSessionManagementController::class, 'index'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SESSIONS_READ);
+            Route::post('/security/sessions/{reference}/preview', [OperatorSessionManagementController::class, 'preview'])
+                ->where('reference', 'SES-[A-F0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SESSIONS_REVOKE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::patch('/security/sessions/{reference}', [OperatorSessionManagementController::class, 'update'])
+                ->where('reference', 'SES-[A-F0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SESSIONS_REVOKE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
             Route::get('/overview', [OperatorOverviewController::class, 'show'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/overview/outbox', [OperatorOverviewController::class, 'outbox'])

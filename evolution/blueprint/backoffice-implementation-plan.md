@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.9.0
+version: 1.0.0
 last_updated: 2026-08-24
 
 references:
@@ -43,7 +43,7 @@ action opérateur, ni exposition externe sans authentification forte.
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
 | 4 — exploitation et abonnements | Socle lecture seule avancé | abonnements/webhooks séparés, heartbeats, backup/canary, HTTP RED durable et états d'alerte anti-rafale raccordés ; exercice externe et métriques PostgreSQL détaillées restent ouverts |
 | 5 — support et conformité | Socle lecture seule livré | dossiers support, demandes de données, versions et preuves immuables, consentements séparés et vues pseudonymisées ; export/suppression et durées légales restent ouverts |
-| 6 — actions bornées | Première action livrée localement | gestion non destructive d'un dossier Support : permission dédiée, step-up, prévisualisation, motif structuré, révision, idempotence, transaction et audit ; flags sûrs par défaut |
+| 6 — actions bornées | Deux premières actions livrées localement | gestion non destructive d'un dossier Support et révocation ciblée d'une session Operator : permissions dédiées, step-up, prévisualisation, motif structuré, révision, idempotence, transaction et audit ; flags sûrs par défaut |
 | 7 — recette et ouverture | Non démarré | aucune ouverture externe du back-office ni action destructive autorisée |
 
 ## Incrément 0 — Décisions et modèle de menace
@@ -264,19 +264,25 @@ juridiquement approuvées restent également à livrer.
 
 ### État au 24 août 2026
 
-La première action de l'ordre recommandé est livrée pour la recette locale. Un
+Les deux premières actions de l'ordre recommandé sont livrées pour la recette locale. Un
 opérateur portant `operations.support.manage` peut modifier uniquement le statut
 et l'assignation d'un dossier Support après un step-up récent et une
 prévisualisation exacte. Le serveur recoupe la révision et l'autorité dans la
 transaction, sérialise les clés d'idempotence et écrit l'historique Support et
 l'audit de succès atomiquement. Un rejeu identique est sans effet supplémentaire.
 
+Avec `operations.sessions.read` et `operations.sessions.revoke`, un opérateur
+peut également révoquer un autre jeton Operator actif depuis le registre
+pseudonymisé. Sa propre session passe par Déconnexion. La révocation ciblée ne
+modifie ni le grant, ni la MFA, ni les sessions Workspace ; l'autorité de
+l'opérateur agissant est recoupée dans la transaction et la rétention des
+sessions/idempotency keys reste bornée.
+
 `BACKOFFICE_READ_ONLY=true` et `BACKOFFICE_ACTIONS_ENABLED=false` restent les
 valeurs sûres par défaut. Aucun email, contenu de demande, export, donnée
-Workspace ou workflow Conformité n'est modifié par cette action. La révocation
-d'une session opérateur, le retry d'une dead-letter et toutes les opérations
-destructives restent à livrer séparément et ne sont pas autorisés implicitement
-par ce socle.
+Workspace ou workflow Conformité n'est modifié par ces actions. Le retry d'une
+dead-letter et toutes les opérations destructives restent à livrer séparément
+et ne sont pas autorisés implicitement par ce socle.
 
 ## Incrément 7 — Recette et ouverture
 

@@ -19,6 +19,7 @@ final class RetentionPurger
         'business_health.idempotency_keys',
         'advisor.idempotency_keys',
         'notifications.idempotency_keys',
+        'operations.operator_action_idempotency',
     ];
 
     public function purgeAll(bool $dryRun = false): RetentionPurgeResult
@@ -50,9 +51,10 @@ final class RetentionPurger
     public function purgeSessions(?int $days = null, bool $dryRun = false): int
     {
         $cutoff = $this->cutoff($days ?? $this->sessionsRetentionDays());
-        $query = $this->expiredSessionsQuery($cutoff);
+        $identity = $this->deleteOrCount($this->expiredSessionsQuery('identity.sessions', $cutoff), $dryRun);
+        $operator = $this->deleteOrCount($this->expiredSessionsQuery('operations.operator_sessions', $cutoff), $dryRun);
 
-        return $this->deleteOrCount($query, $dryRun);
+        return $identity + $operator;
     }
 
     public function purgeDispatchedOutbox(?int $days = null, bool $dryRun = false): int
@@ -78,9 +80,9 @@ final class RetentionPurger
         return $deleted;
     }
 
-    private function expiredSessionsQuery(string $cutoff): Builder
+    private function expiredSessionsQuery(string $table, string $cutoff): Builder
     {
-        return DB::table('identity.sessions')
+        return DB::table($table)
             ->where(function (Builder $query) use ($cutoff): void {
                 $query->where('expires_at', '<', $cutoff)
                     ->orWhere(function (Builder $revoked) use ($cutoff): void {

@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.7.0
+version: 0.8.0
 last_updated: 2026-08-24
 
 references:
@@ -37,10 +37,10 @@ adresses destinataires, contenus ou identifiants fournisseur. Les cartes
 Support et Demandes de données reflètent désormais leurs projections durables ;
 une source attendue en erreur devient `Unavailable`, jamais zéro.
 
-Le mode sûr reste la lecture seule. La seule mutation web livrée est la gestion
-non destructive du statut et de l'assignation d'un dossier Support ; elle exige
-deux flags explicites, `operations.support.manage` et un step-up récent. Son
-activation, sa recette et sa coupure sont décrites dans
+Le mode sûr reste la lecture seule. Deux mutations web bornées sont livrées : la
+gestion non destructive d'un dossier Support et la révocation d'un jeton de
+session Operator identifié. Elles exigent deux flags explicites, leur permission
+dédiée et un step-up récent. L'activation Support est détaillée dans
 [`support-compliance-operations.md`](support-compliance-operations.md).
 
 La MFA actuelle utilise TOTP. Le secret est chiffré avec la clé applicative, un
@@ -101,7 +101,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage,operations.sessions.read,operations.sessions.revoke" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -122,6 +122,11 @@ leurs limites non destructives sont détaillées dans
 `operations.support.manage` n'a d'effet que lorsque
 `BACKOFFICE_READ_ONLY=false` et `BACKOFFICE_ACTIONS_ENABLED=true` ; accorder la
 permission seule ne contourne jamais ces verrous.
+
+`operations.sessions.read` ouvre le registre pseudonymisé sur
+`/backoffice/security`. `operations.sessions.revoke` permet uniquement de
+préparer et confirmer la révocation d'une autre session Operator active. Elle
+ne révoque ni le grant, ni le facteur MFA, ni une session Workspace.
 
 ## Enrôler ou renouveler la MFA
 
@@ -166,6 +171,41 @@ BACKOFFICE_REQUIRE_MFA=false
 Ce mode est refusé automatiquement en staging et production. Un opérateur déjà
 enrôlé doit toujours fournir son code MFA, même lorsque ce mode local est actif.
 
+## Révoquer une session ciblée
+
+Pour la recette locale, conserver les deux verrous d'action dans cet état :
+
+```dotenv
+BACKOFFICE_READ_ONLY=false
+BACKOFFICE_ACTIONS_ENABLED=true
+```
+
+Après rechargement du contexte opérateur, ouvrir `/backoffice/security`. Le
+registre expose uniquement une référence `SES-*`, une référence opérateur
+opaque, l'état d'authentification et les dates utiles. Il ne renvoie ni token,
+UUID utilisateur, email, adresse IP ou user-agent. La session courante est
+signalée et ne peut pas être révoquée par cette action ; utiliser Déconnexion.
+
+La révocation d'une autre session exige :
+
+- `operations.sessions.read` pour voir le registre ;
+- `operations.sessions.revoke` pour agir ;
+- un step-up encore valide ;
+- une prévisualisation, un motif structuré, une révision attendue et une clé
+  d'idempotence stable.
+
+Un rejeu identique ne révoque rien une seconde fois. Une clé réutilisée avec un
+autre contenu, une révision périmée, une session cible déjà inactive ou une
+autorité concurrentement retirée est refusée. La mutation, sa preuve
+d'idempotence et l'audit de succès sont atomiques. Les sessions Operator
+révoquées ou expirées et les preuves d'idempotence sont purgées selon les
+durées `RETENTION_SESSIONS_DAYS` et `RETENTION_IDEMPOTENCY_DAYS`, 30 jours par
+défaut.
+
+En incident global ou si l'identité opérateur elle-même est compromise, ne pas
+utiliser cette action unitaire : couper `BACKOFFICE_ACTIONS_ENABLED`, purger la
+configuration, puis utiliser la commande de révocation complète ci-dessous.
+
 ## Révoquer immédiatement
 
 ```bash
@@ -202,15 +242,18 @@ avant un nouvel enrôlement.
   tests/Integration/Operations/OperationsAlertsTest.php \
   tests/Integration/Operations/OperatorBetaCohortTest.php \
   tests/Integration/Operations/SupportComplianceTest.php \
-  tests/Integration/Operations/SupportCaseManagementTest.php
+  tests/Integration/Operations/SupportCaseManagementTest.php \
+  tests/Integration/Operations/OperatorSessionManagementTest.php \
+  tests/Integration/Retention/RetentionPurgerTest.php
 
 make web-check
 ```
 
 Attendus : séparation d'audience, deny-by-default, révocation immédiate,
 absence du jeton et du secret MFA bruts en base, anti-rejeu TOTP, codes de
-récupération consommés une seule fois, step-up borné, audit présent et build
-frontend valide.
+récupération consommés une seule fois, step-up borné, séparation entre
+révocation ciblée, logout et révocation complète, audit présent, purge bornée et
+build frontend valide.
 
 ## Conditions avant une cible externe
 

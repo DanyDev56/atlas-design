@@ -42,6 +42,7 @@ final class OpenOperatorSessionHandler
 
             $this->sessions->create(
                 $sessionId,
+                PostgresOperatorSessionRepository::generateReference(),
                 $userId,
                 (string) $grant['id'],
                 PostgresOperatorSessionRepository::hashToken($plainToken),

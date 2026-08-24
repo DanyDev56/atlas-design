@@ -3,7 +3,7 @@ id: BPT-013
 title: Operator Back-office Blueprint
 status: In Review
 owner: Product, Engineering and Security
-version: 0.6.0
+version: 0.7.0
 last_updated: 2026-08-24
 
 references:
@@ -79,6 +79,8 @@ alertée et revue après usage.
 | `operations.workspaces.read-summary` | rechercher et lire un résumé Workspace |
 | `operations.users.read-summary` | rechercher et lire un résumé de compte |
 | `operations.sensitive-data.reveal` | révéler un champ masqué avec motif et audit |
+| `operations.sessions.read` | consulter les sessions Operator sous références pseudonymisées |
+| `operations.sessions.revoke` | révoquer un jeton Operator ciblé sans toucher aux sessions Workspace |
 | `operations.support.read` | lire les dossiers support autorisés |
 | `operations.support.manage` | qualifier et assigner un dossier Support par une action bornée ; ne ferme jamais un Workspace |
 | `operations.compliance.read` | lire consentements et demandes de droits |

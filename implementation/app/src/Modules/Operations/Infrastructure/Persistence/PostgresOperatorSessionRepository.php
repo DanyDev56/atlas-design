@@ -10,6 +10,7 @@ final class PostgresOperatorSessionRepository
 {
     public function create(
         string $id,
+        string $reference,
         string $userId,
         string $grantId,
         string $tokenHash,
@@ -21,6 +22,7 @@ final class PostgresOperatorSessionRepository
     ): void {
         DB::table('operations.operator_sessions')->insert([
             'id' => $id,
+            'reference' => $reference,
             'user_id' => $userId,
             'grant_id' => $grantId,
             'token_hash' => $tokenHash,
@@ -103,6 +105,7 @@ final class PostgresOperatorSessionRepository
             ->where('status', 'Active')
             ->update([
                 'status' => 'Revoked',
+                'revision' => DB::raw('revision + 1'),
                 'revoked_at' => $now->format('Y-m-d H:i:sP'),
             ]) > 0;
     }
@@ -114,6 +117,7 @@ final class PostgresOperatorSessionRepository
             ->where('status', 'Active')
             ->update([
                 'status' => 'Revoked',
+                'revision' => DB::raw('revision + 1'),
                 'revoked_at' => $now->format('Y-m-d H:i:sP'),
             ]);
     }
@@ -126,5 +130,10 @@ final class PostgresOperatorSessionRepository
     public static function generatePlainToken(): string
     {
         return bin2hex(random_bytes(32));
+    }
+
+    public static function generateReference(): string
+    {
+        return 'SES-'.strtoupper(bin2hex(random_bytes(6)));
     }
 }

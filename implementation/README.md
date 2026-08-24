@@ -130,7 +130,9 @@ Le socle local, son provisioning et sa révocation sont décrits dans le
 [`runbook d'accès au back-office`](runbooks/backoffice-access.md). `ADR-004` est
 accepté ; TOTP et le step-up sont livrés localement, mais l'accès externe reste
 bloqué jusqu'à une authentification résistante au phishing ou une acceptation
-de risque strictement bornée.
+de risque strictement bornée. Le registre pseudonymisé et la révocation ciblée
+des sessions Operator sont disponibles sur `/backoffice/security` sous flags,
+permissions et step-up explicites ; ils ne touchent jamais une session Workspace.
 Les registres runtime, continuité, abonnements et webhooks sont décrits dans le
 [`runbook d'exploitation du back-office`](runbooks/backoffice-operations.md).
 Les dossiers support, demandes de données, versions de textes et consentements
