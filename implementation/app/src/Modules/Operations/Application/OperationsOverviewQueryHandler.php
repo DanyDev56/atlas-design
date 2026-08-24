@@ -6,12 +6,14 @@ namespace Atlas\Modules\Operations\Application;
 
 use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
+use Atlas\Modules\Operations\Contracts\SupportComplianceSource;
 
 final class OperationsOverviewQueryHandler
 {
     public function __construct(
         private readonly OperationsOverviewSource $source,
         private readonly BetaCohortSource $betaSource,
+        private readonly SupportComplianceSource $supportComplianceSource,
         private readonly bool $readOnly,
         private readonly bool $actionsEnabled,
         private readonly int $betaBlockedAfterDays,
@@ -32,22 +34,8 @@ final class OperationsOverviewQueryHandler
             $this->runtimeCard($now),
             $this->maintenanceCard($now),
             $this->betaCard($now),
-            $this->notCollectedCard(
-                'support',
-                'Demandes support',
-                'Le workflow SupportCase n’est pas encore implémenté.',
-                'Operations support cases',
-                300,
-                900,
-            ),
-            $this->notCollectedCard(
-                'data-requests',
-                'Demandes de données',
-                'Le registre DataRequest sera livré avec l’incrément conformité.',
-                'Operations data requests',
-                300,
-                900,
-            ),
+            $this->supportCard($now),
+            $this->dataRequestCard($now),
         ];
 
         return [
@@ -95,6 +83,21 @@ final class OperationsOverviewQueryHandler
     public function alerts(string $state, int $page, int $perPage): array
     {
         return $this->source->alertPage($state, $page, $perPage);
+    }
+
+    public function support(string $status, string $severity, int $page, int $perPage): array
+    {
+        return $this->supportComplianceSource->supportPage($status, $severity, $page, $perPage);
+    }
+
+    public function dataRequests(string $status, string $type, int $page, int $perPage): array
+    {
+        return $this->supportComplianceSource->dataRequestPage($status, $type, $page, $perPage);
+    }
+
+    public function compliance(int $page, int $perPage): array
+    {
+        return $this->supportComplianceSource->policyPage($page, $perPage);
     }
 
     public function maintenance(string $kind, string $status, int $page, int $perPage): array
@@ -416,6 +419,70 @@ final class OperationsOverviewQueryHandler
             context: $participants === [] ? 'Aucun participant inscrit dans le registre.' : count($participants).' participant(s) dans la cohorte.',
             href: '/backoffice/beta',
             detailPermission: 'operations.beta.read',
+        );
+    }
+
+    private function supportCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->supportComplianceSource->supportSnapshot($now);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'support', 'Demandes support', 'Le registre Support n’a pas pu être lu.',
+                'operations.support_cases', 300, 900,
+                '/backoffice/support', 'operations.support.read',
+            );
+        }
+
+        return $this->availableCard(
+            key: 'support',
+            label: 'Demandes support',
+            description: 'Dossiers ouverts, urgents et au-delà de la cible interne.',
+            source: 'operations.support_cases',
+            now: $now,
+            targetSeconds: 300,
+            staleAfterSeconds: 900,
+            tone: $snapshot['urgent_count'] > 0 ? 'Critical' : ($snapshot['overdue_count'] > 0 ? 'Warning' : 'Neutral'),
+            values: [
+                ['key' => 'open', 'label' => 'Ouverts', 'value' => $snapshot['open_count']],
+                ['key' => 'urgent', 'label' => 'P0 / P1', 'value' => $snapshot['urgent_count']],
+                ['key' => 'overdue', 'label' => 'Hors cible', 'value' => $snapshot['overdue_count']],
+            ],
+            context: 'Identités et Workspaces pseudonymisés dans le registre.',
+            href: '/backoffice/support',
+            detailPermission: 'operations.support.read',
+        );
+    }
+
+    private function dataRequestCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->supportComplianceSource->dataRequestSnapshot($now);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'data-requests', 'Demandes de données', 'Le registre Conformité n’a pas pu être lu.',
+                'operations.data_requests', 300, 900,
+                '/backoffice/support', 'operations.compliance.read',
+            );
+        }
+
+        return $this->availableCard(
+            key: 'data-requests',
+            label: 'Demandes de données',
+            description: 'Demandes qualifiées, vérifications et échéances de traitement.',
+            source: 'operations.data_requests',
+            now: $now,
+            targetSeconds: 300,
+            staleAfterSeconds: 900,
+            tone: $snapshot['overdue_count'] > 0 ? 'Critical' : ($snapshot['verification_pending_count'] > 0 ? 'Warning' : 'Neutral'),
+            values: [
+                ['key' => 'open', 'label' => 'Ouvertes', 'value' => $snapshot['open_count']],
+                ['key' => 'verification', 'label' => 'À vérifier', 'value' => $snapshot['verification_pending_count']],
+                ['key' => 'overdue', 'label' => 'Hors cible', 'value' => $snapshot['overdue_count']],
+            ],
+            context: 'Aucun export, téléchargement ou effacement n’est déclenché depuis cette vue.',
+            href: '/backoffice/support',
+            detailPermission: 'operations.compliance.read',
         );
     }
 

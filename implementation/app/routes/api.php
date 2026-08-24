@@ -75,6 +75,12 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/overview/alerts', [OperatorOverviewController::class, 'alerts'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
+            Route::get('/overview/support', [OperatorOverviewController::class, 'support'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUPPORT_READ);
+            Route::get('/overview/data-requests', [OperatorOverviewController::class, 'dataRequests'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::COMPLIANCE_READ);
+            Route::get('/overview/compliance', [OperatorOverviewController::class, 'compliance'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::COMPLIANCE_READ);
             Route::get('/overview/maintenance', [OperatorOverviewController::class, 'maintenance'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/beta/overview', [OperatorBetaController::class, 'overview'])

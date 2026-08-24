@@ -133,6 +133,10 @@ bloqué jusqu'à une authentification résistante au phishing ou une acceptation
 de risque strictement bornée.
 Les registres runtime, continuité, abonnements et webhooks sont décrits dans le
 [`runbook d'exploitation du back-office`](runbooks/backoffice-operations.md).
+Les dossiers support, demandes de données, versions de textes et consentements
+facultatifs sont décrits dans le
+[`runbook Support et conformité`](runbooks/support-compliance-operations.md).
+Le scénario de démonstration correspondant est créé par `make backoffice-seed`.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

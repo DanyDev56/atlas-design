@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.7.0
+version: 0.8.0
 last_updated: 2026-08-24
 
 references:
@@ -42,7 +42,8 @@ action opérateur, ni exposition externe sans authentification forte.
 | 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
 | 4 — exploitation et abonnements | Socle lecture seule avancé | abonnements/webhooks séparés, heartbeats, backup/canary, HTTP RED durable et états d'alerte anti-rafale raccordés ; exercice externe et métriques PostgreSQL détaillées restent ouverts |
-| 5 à 7 | Non démarrés | aucune action opérateur web ni donnée transverse supplémentaire raccordée |
+| 5 — support et conformité | Socle lecture seule livré | dossiers support, demandes de données, versions et preuves immuables, consentements séparés et vues pseudonymisées ; export/suppression et durées légales restent ouverts |
+| 6 et 7 | Non démarrés | aucune action opérateur web ni donnée transverse sensible supplémentaire raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
 
@@ -221,6 +222,19 @@ PostgreSQL RED est un socle beta, pas encore un backend de métriques de scale.
 Une recette fictive couvre demande d'accès, correction, export et fermeture,
 sans transmettre une donnée d'un autre Workspace ni stocker une preuve dans les
 logs.
+
+### État au 24 août 2026
+
+Le socle de préparation est livré : registres PostgreSQL minimisés, historique
+et preuves append-only, vérification d'identité et d'ownership, objectifs
+ouvrés, commandes administratives motivées, APIs indépendamment autorisées et
+écran `/backoffice/support`. Les identités et références de preuve brutes ne
+sont pas exposées par l'API.
+
+La gate reste partielle : la recette couvre l'enregistrement et le suivi d'une
+demande d'accès, mais pas encore la production/remise d'un export, la correction
+effective ni la fermeture. Les tableaux fournisseurs/rétention et les durées
+juridiquement approuvées restent également à livrer.
 
 ## Incrément 6 — Actions opérateur bornées
 

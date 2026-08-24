@@ -182,6 +182,77 @@ final class OperatorOverviewController extends Controller
         return response()->json($result);
     }
 
+    public function support(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['sometimes', 'string', Rule::in(['All', 'Open', 'Acknowledged', 'InProgress', 'WaitingRequester', 'Resolved', 'Closed'])],
+            'severity' => ['sometimes', 'string', Rule::in(['All', 'P0', 'P1', 'P2', 'P3'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->support(
+                (string) ($validated['status'] ?? 'All'),
+                (string) ($validated['severity'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.support.list-read', OperatorPermissionCatalog::SUPPORT_READ);
+
+        return response()->json($result);
+    }
+
+    public function dataRequests(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['sometimes', 'string', Rule::in(['All', 'Received', 'IdentityPending', 'Qualified', 'InPreparation', 'AwaitingApproval', 'Delivered', 'Rejected', 'Closed'])],
+            'type' => ['sometimes', 'string', Rule::in(['All', 'Access', 'Rectification', 'Erasure', 'Restriction', 'Objection', 'Portability'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->dataRequests(
+                (string) ($validated['status'] ?? 'All'),
+                (string) ($validated['type'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.data-request.list-read', OperatorPermissionCatalog::COMPLIANCE_READ);
+
+        return response()->json($result);
+    }
+
+    public function compliance(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->compliance(
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.compliance.list-read', OperatorPermissionCatalog::COMPLIANCE_READ);
+
+        return response()->json($result);
+    }
+
     public function maintenance(Request $request): JsonResponse
     {
         $validated = $request->validate([

@@ -31,6 +31,7 @@ export function OperatorFrame({ children }: { children: ReactNode }) {
                             {session?.permissions.includes('operations.dashboard.read') && <Link to="/backoffice/runtime" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Exploitation</Link>}
                             {session?.permissions.includes('operations.beta.read') && <Link to="/backoffice/beta" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Cohorte beta</Link>}
                             {session?.permissions.includes('operations.subscriptions.read') && <Link to="/backoffice/subscriptions" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Abonnements</Link>}
+                            {(session?.permissions.includes('operations.support.read') || session?.permissions.includes('operations.compliance.read')) && <Link to="/backoffice/support" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Support</Link>}
                             <Link to="/backoffice/security" className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">Sécurité</Link>
                         </nav>
                     </div>

@@ -7,13 +7,14 @@ namespace Tests\Unit\Operations;
 use Atlas\Modules\Operations\Application\OperationsOverviewQueryHandler;
 use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
+use Atlas\Modules\Operations\Contracts\SupportComplianceSource;
 use PHPUnit\Framework\TestCase;
 
 final class OperationsOverviewQueryHandlerTest extends TestCase
 {
     public function test_it_preserves_real_zeroes_and_distinguishes_an_empty_http_window(): void
     {
-        $overview = (new OperationsOverviewQueryHandler($this->source(), $this->betaSource(), true, false, 7))->overview();
+        $overview = (new OperationsOverviewQueryHandler($this->source(), $this->betaSource(), $this->supportSource(), true, false, 7))->overview();
 
         self::assertTrue($overview['read_only']);
         self::assertFalse($overview['actions_enabled']);
@@ -25,6 +26,8 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
         self::assertSame([], $overview['cards'][3]['values']);
         self::assertSame('NoData', $overview['cards'][6]['status']);
         self::assertSame([], $overview['cards'][6]['values']);
+        self::assertSame('Available', $overview['cards'][7]['status']);
+        self::assertSame(0, $overview['cards'][7]['values'][0]['value']);
     }
 
     public function test_it_marks_a_failed_source_unavailable_instead_of_returning_zero(): void
@@ -32,7 +35,7 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
         $source = $this->source();
         $source->failOutbox = true;
 
-        $overview = (new OperationsOverviewQueryHandler($source, $this->betaSource(), true, false, 7))->overview();
+        $overview = (new OperationsOverviewQueryHandler($source, $this->betaSource(), $this->supportSource(), true, false, 7))->overview();
 
         self::assertSame('Unavailable', $overview['cards'][0]['status']);
         self::assertSame([], $overview['cards'][0]['values']);
@@ -150,6 +153,45 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
             public function diagnostic(string $betaCode): ?array
             {
                 return null;
+            }
+        };
+    }
+
+    private function supportSource(): SupportComplianceSource
+    {
+        return new class implements SupportComplianceSource
+        {
+            public function supportSnapshot(\DateTimeImmutable $now): array
+            {
+                return ['open_count' => 0, 'overdue_count' => 0, 'urgent_count' => 0];
+            }
+
+            public function dataRequestSnapshot(\DateTimeImmutable $now): array
+            {
+                return ['open_count' => 0, 'overdue_count' => 0, 'verification_pending_count' => 0];
+            }
+
+            public function complianceSnapshot(): array
+            {
+                return ['published_policy_count' => 0, 'policy_proof_count' => 0, 'active_consent_count' => 0];
+            }
+
+            public function supportPage(string $status, string $severity, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function dataRequestPage(string $status, string $type, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function policyPage(int $page, int $perPage): array
+            {
+                return [
+                    'items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1,
+                    'consent_counts' => ['Interview' => 0, 'Recording' => 0, 'PublicQuote' => 0],
+                ];
             }
         };
     }

@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.5.0
+version: 0.6.0
 last_updated: 2026-08-24
 
 references:
@@ -12,6 +12,7 @@ references:
   - ../../evolution/blueprint/backoffice-implementation-plan.md
   - beta-cohort-operations.md
   - backoffice-operations.md
+  - support-compliance-operations.md
   - ../SEC-TEST-MATRIX.md
 ---
 
@@ -30,12 +31,11 @@ accidentelle.
 La vue d'ensemble lit les registres techniques Outbox et Emails, la projection
 de cohorte beta, les abonnements/webhooks, les métriques HTTP RED agrégées, les
 heartbeats runtime, les états d'alerte et les résultats de
-sauvegarde/restauration. Elle expose
+sauvegarde/restauration, ainsi que les registres Support et Conformité. Elle expose
 des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
 adresses destinataires, contenus ou identifiants fournisseur. Les cartes
-Support et Conformité restent `NotCollected` tant que leur instrumentation
-durable n'existe pas ; une
-source attendue en erreur devient `Unavailable`, jamais zéro.
+Support et Demandes de données reflètent désormais leurs projections durables ;
+une source attendue en erreur devient `Unavailable`, jamais zéro.
 
 La MFA actuelle utilise TOTP. Le secret est chiffré avec la clé applicative, un
 code temporel ne peut pas être rejoué et huit codes de récupération à usage
@@ -95,7 +95,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -108,6 +108,11 @@ refusés. Chaque refus et chaque consultation autorisée sont audités.
 environnement. Les écrans runtime et continuité restent couverts par
 `operations.dashboard.read`. Leur exploitation est détaillée dans
 [`backoffice-operations.md`](backoffice-operations.md).
+
+`operations.support.read` et `operations.compliance.read` ouvrent les registres
+pseudonymisés correspondants sur `/backoffice/support`. Leur qualification et
+leurs limites non destructives sont détaillées dans
+[`support-compliance-operations.md`](support-compliance-operations.md).
 
 ## Enrôler ou renouveler la MFA
 
@@ -186,7 +191,8 @@ avant un nouvel enrôlement.
   tests/Integration/Operations/OperatorMfaTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php \
   tests/Integration/Operations/OperationsAlertsTest.php \
-  tests/Integration/Operations/OperatorBetaCohortTest.php
+  tests/Integration/Operations/OperatorBetaCohortTest.php \
+  tests/Integration/Operations/SupportComplianceTest.php
 
 make web-check
 ```

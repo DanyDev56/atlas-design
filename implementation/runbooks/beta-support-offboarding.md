@@ -2,7 +2,7 @@
 title: Support et sortie — Beta fermée
 status: In Review
 owner: Support + Operations
-last_updated: 2026-08-23
+last_updated: 2026-08-24
 references:
   - beta-program.md
   - beta-release-checklist.md
@@ -10,6 +10,7 @@ references:
   - backup-restore.md
   - observability.md
   - outbox-incident.md
+  - support-compliance-operations.md
 ---
 
 # Support et sortie de la beta
@@ -117,9 +118,12 @@ sert de référence à la procédure.
 
 ## Limite technique actuelle
 
-Atlas ne dispose pas encore d'une commande transactionnelle, testée et
-réexécutable pour exporter ou supprimer tout un Workspace. Une intervention SQL
-ad hoc ne constitue pas une procédure acceptable pour des données externes.
+Atlas dispose désormais d'un registre minimisé pour qualifier la demande,
+vérifier le demandeur et l'Owner requis, calculer l'échéance et suivre le dossier
+dans le back-office. Cette préparation ne déclenche aucune action. Atlas ne
+dispose pas encore d'une commande transactionnelle, testée et réexécutable pour
+exporter ou supprimer tout un Workspace. Une intervention SQL ad hoc ne
+constitue pas une procédure acceptable pour des données externes.
 
 Avant le `Go` beta externe :
 

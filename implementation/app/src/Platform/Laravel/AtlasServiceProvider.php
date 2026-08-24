@@ -148,6 +148,7 @@ use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\VerifyOperatorMfaHandler;
 use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
+use Atlas\Modules\Operations\Contracts\SupportComplianceSource;
 use Atlas\Modules\Operations\Domain\OperatorRecoveryCodes;
 use Atlas\Modules\Operations\Domain\TotpAuthenticator;
 use Atlas\Modules\Operations\Infrastructure\Alerts\OperationsAlertNotifier;
@@ -157,6 +158,7 @@ use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRep
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorGrantRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorMfaRepository;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorSessionRepository;
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresSupportComplianceSource;
 use Atlas\Modules\Subscriptions\Application\CreateBillingPortalSessionHandler;
 use Atlas\Modules\Subscriptions\Application\CreateCheckoutSessionHandler;
 use Atlas\Modules\Subscriptions\Application\StartTrialForWorkspaceHandler;
@@ -328,9 +330,11 @@ final class AtlasServiceProvider extends ServiceProvider
             (int) config('operations.beta.blocked_after_days', 7),
         ));
         $this->app->singleton(OperationsOverviewSource::class, PostgresOperationsOverviewSource::class);
+        $this->app->singleton(SupportComplianceSource::class, PostgresSupportComplianceSource::class);
         $this->app->singleton(OperationsOverviewQueryHandler::class, fn ($app): OperationsOverviewQueryHandler => new OperationsOverviewQueryHandler(
             $app->make(OperationsOverviewSource::class),
             $app->make(BetaCohortSource::class),
+            $app->make(SupportComplianceSource::class),
             (bool) config('operations.backoffice.read_only', true),
             (bool) config('operations.backoffice.actions_enabled', false),
             (int) config('operations.beta.blocked_after_days', 7),

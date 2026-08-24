@@ -3,7 +3,7 @@ id: BPT-014
 title: Back-office Metrics Catalogue
 status: In Review
 owner: Product, Engineering and Operations
-version: 0.5.0
+version: 0.6.0
 last_updated: 2026-08-24
 
 references:
@@ -196,10 +196,11 @@ avant une exploitation à plus grande échelle ou des percentiles fiables.
 | Emails | compteurs à la demande et registre opérateur paginé/filtré, sans destinataire ni contenu | délai de remise, rejets et alertes durables |
 | Stripe | dashboard fournisseur et état local | vue corrélée, séparation sandbox/live |
 | Activation beta | projection E0–E6 à la demande, entonnoir avec dénominateurs, cellules pricing et vues pseudonymisées | série historique et sign-off Product/Security sur la cohorte réelle |
-| Support/conformité | runbooks et documents | stockage, workflow et audit opérateur |
+| Support/conformité | registres minimisés, échéances, preuves append-only, consentements séparés et vues opérateur pseudonymisées | temps de première réponse/résolution, CSAT, workflow d'action et durées de rétention approuvées |
 
 Les cartes HTTP, runtime et sauvegarde sont désormais raccordées aux projections
 Operations. HTTP vaut `NoData` lorsque la fenêtre observée est réellement vide,
 et jamais zéro par défaut ; un heartbeat absent reste `NotCollected`. Support et
-demandes de données restent explicitement `NotCollected`. Une panne de lecture
-devient `Unavailable` pour toutes ces sources.
+demandes de données sont maintenant calculés depuis leurs registres durables et
+valent réellement zéro lorsque ceux-ci sont lisibles mais vides. Une panne de
+lecture devient `Unavailable` pour toutes ces sources.

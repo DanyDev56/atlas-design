@@ -210,6 +210,9 @@ satisfait.
 - [x] Niveaux de support, objectifs de réponse, traitement des demandes de
   droits et parcours de sortie documentés dans le
   [runbook support](beta-support-offboarding.md).
+- [x] Registres minimisés Support et Conformité, échéances, preuves append-only,
+  consentements séparés et écran opérateur pseudonymisé disponibles ; ils ne
+  déclenchent encore aucune action destructive.
 - [x] Entonnoir d'activation basé sur les états métier, revues de cohorte,
   minimisation et script d'entretien définis sans tracking tiers dans le
   [plan de recherche](beta-research-plan.md).

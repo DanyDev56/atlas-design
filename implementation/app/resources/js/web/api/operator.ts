@@ -162,6 +162,50 @@ export interface OperatorAlertItem {
     resolved_at: string | null;
 }
 
+export interface OperatorSupportCaseItem {
+    reference: string;
+    workspace_reference: string;
+    requester_reference: string;
+    category: 'Access' | 'Security' | 'Billing' | 'DataRequest' | 'Product' | 'Other';
+    severity: 'P0' | 'P1' | 'P2' | 'P3';
+    status: 'Open' | 'Acknowledged' | 'InProgress' | 'WaitingRequester' | 'Resolved' | 'Closed';
+    requester_verified: boolean;
+    ownership_verified: boolean;
+    summary_code: string;
+    response_due_at: string;
+    opened_at: string;
+    resolved_at: string | null;
+    event_count: number;
+}
+
+export interface OperatorDataRequestItem {
+    reference: string;
+    support_reference: string;
+    workspace_reference: string;
+    requester_reference: string;
+    request_type: 'Access' | 'Rectification' | 'Erasure' | 'Restriction' | 'Objection' | 'Portability';
+    status: 'Received' | 'IdentityPending' | 'Qualified' | 'InPreparation' | 'AwaitingApproval' | 'Delivered' | 'Rejected' | 'Closed';
+    identity_verified: boolean;
+    ownership_verified: boolean;
+    due_at: string;
+    decision_code: string | null;
+    delivery_expires_at: string | null;
+    created_at: string;
+}
+
+export interface OperatorPolicyItem {
+    document_kind: 'BetaTerms' | 'PrivacyNotice';
+    version: string;
+    lifecycle: 'Draft' | 'Published';
+    effective_at: string | null;
+    recorded_at: string;
+    proof_count: number;
+}
+
+export interface OperatorPolicyPage extends OperatorPage<OperatorPolicyItem> {
+    consent_counts: Record<'Interview' | 'Recording' | 'PublicQuote', number>;
+}
+
 export interface BetaFunnelStep {
     stage: string;
     reached: number;
@@ -332,6 +376,31 @@ export async function fetchOperatorHttpMetrics(token: string, window: number): P
 export async function fetchOperatorAlerts(token: string): Promise<OperatorPage<OperatorAlertItem>> {
     const query = new URLSearchParams({ state: 'All', page: '1', per_page: '20' });
     return apiRequest<OperatorPage<OperatorAlertItem>>('GET', `/operator/overview/alerts?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorSupport(
+    token: string,
+    status: string,
+    severity: string,
+    page: number,
+): Promise<OperatorPage<OperatorSupportCaseItem>> {
+    const query = new URLSearchParams({ status, severity, page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorSupportCaseItem>>('GET', `/operator/overview/support?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorDataRequests(
+    token: string,
+    status: string,
+    type: string,
+    page: number,
+): Promise<OperatorPage<OperatorDataRequestItem>> {
+    const query = new URLSearchParams({ status, type, page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorDataRequestItem>>('GET', `/operator/overview/data-requests?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorCompliance(token: string, page: number): Promise<OperatorPolicyPage> {
+    const query = new URLSearchParams({ page: String(page), per_page: '20' });
+    return apiRequest<OperatorPolicyPage>('GET', `/operator/overview/compliance?${query}`, undefined, { token });
 }
 
 export async function fetchBetaCohortOverview(token: string): Promise<BetaCohortOverview> {
