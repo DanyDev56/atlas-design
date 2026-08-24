@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperationsRuntimeRecorder;
 use Atlas\Platform\Messaging\Infrastructure\OutboxProcessor;
 use Illuminate\Console\Command;
 
@@ -18,7 +19,7 @@ final class WorkOutboxCommand extends Command
 
     private bool $shouldQuit = false;
 
-    public function handle(OutboxProcessor $processor): int
+    public function handle(OutboxProcessor $processor, PostgresOperationsRuntimeRecorder $runtime): int
     {
         $batch = (int) $this->option('batch');
         $sleepSeconds = (int) $this->option('sleep');
@@ -43,6 +44,7 @@ final class WorkOutboxCommand extends Command
         $this->info('Outbox worker started.');
 
         while (! $this->shouldQuit) {
+            $runtime->heartbeat('worker');
             $cycleCount = $processor->processPending($batch);
             $processed += $cycleCount;
             $cycles++;

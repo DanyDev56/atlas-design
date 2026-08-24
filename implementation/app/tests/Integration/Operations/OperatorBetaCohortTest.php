@@ -90,9 +90,9 @@ final class OperatorBetaCohortTest extends IntegrationTestCase
 
         $this->withToken($token)->getJson('/api/operator/overview')
             ->assertOk()
-            ->assertJsonPath('cards.5.key', 'beta')
-            ->assertJsonPath('cards.5.status', 'Available')
-            ->assertJsonPath('cards.5.values.0.value', 1);
+            ->assertJsonPath('cards.6.key', 'beta')
+            ->assertJsonPath('cards.6.status', 'Available')
+            ->assertJsonPath('cards.6.values.0.value', 1);
 
         $this->assertDatabaseHas('operations.operator_audit_entries', [
             'action' => 'operator.beta.diagnostic-read',

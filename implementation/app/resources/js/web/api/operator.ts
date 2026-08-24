@@ -95,6 +95,48 @@ export interface OperatorEmailItem {
     updated_at: string | null;
 }
 
+export type BillingEnvironment = 'Sandbox' | 'Live' | 'Unknown';
+
+export interface OperatorSubscriptionItem {
+    reference: string;
+    workspace_reference: string;
+    status: 'Active' | 'PastDue' | 'Canceled';
+    billing_environment: BillingEnvironment;
+    provider: string;
+    plan_code: string;
+    billing_interval: string;
+    current_period_end: string;
+    cancel_at_period_end: boolean;
+    past_due_since: string | null;
+    last_provider_event_at: string;
+}
+
+export interface OperatorSubscriptionWebhookItem {
+    reference: string;
+    event_type: string;
+    status: 'Received' | 'Processing' | 'Processed' | 'Ignored' | 'Deferred' | 'Failed';
+    billing_environment: BillingEnvironment;
+    provider: string;
+    attempts: number;
+    occurred_at: string;
+    received_at: string;
+    processed_at: string | null;
+}
+
+export interface OperatorRuntimeSnapshot {
+    database_available: boolean;
+    roles: Record<'api' | 'worker' | 'scheduler', { status: 'Current' | 'Stale' | 'NotCollected'; recorded_at: string | null; age_seconds: number | null }>;
+}
+
+export interface OperatorMaintenanceItem {
+    reference: string;
+    kind: 'Backup' | 'RestoreCanary';
+    status: 'Succeeded' | 'Failed';
+    size_bytes: number | null;
+    started_at: string;
+    completed_at: string;
+}
+
 export interface BetaFunnelStep {
     stage: string;
     reached: number;
@@ -226,6 +268,35 @@ export async function fetchOperatorEmails(
 ): Promise<OperatorPage<OperatorEmailItem>> {
     const query = new URLSearchParams({ status, page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorEmailItem>>('GET', `/operator/overview/emails?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorSubscriptions(
+    token: string,
+    status: string,
+    environment: string,
+    page: number,
+): Promise<OperatorPage<OperatorSubscriptionItem>> {
+    const query = new URLSearchParams({ status, environment, page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorSubscriptionItem>>('GET', `/operator/overview/subscriptions?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorSubscriptionWebhooks(
+    token: string,
+    status: string,
+    environment: string,
+    page: number,
+): Promise<OperatorPage<OperatorSubscriptionWebhookItem>> {
+    const query = new URLSearchParams({ status, environment, page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorSubscriptionWebhookItem>>('GET', `/operator/overview/subscription-webhooks?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorRuntime(token: string): Promise<OperatorRuntimeSnapshot> {
+    return apiRequest<OperatorRuntimeSnapshot>('GET', '/operator/overview/runtime', undefined, { token });
+}
+
+export async function fetchOperatorMaintenance(token: string, page: number): Promise<OperatorPage<OperatorMaintenanceItem>> {
+    const query = new URLSearchParams({ kind: 'All', status: 'All', page: String(page), per_page: '20' });
+    return apiRequest<OperatorPage<OperatorMaintenanceItem>>('GET', `/operator/overview/maintenance?${query}`, undefined, { token });
 }
 
 export async function fetchBetaCohortOverview(token: string): Promise<BetaCohortOverview> {

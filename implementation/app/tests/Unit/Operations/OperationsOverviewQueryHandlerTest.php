@@ -19,10 +19,12 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
         self::assertFalse($overview['actions_enabled']);
         self::assertSame('Available', $overview['cards'][0]['status']);
         self::assertSame(0, $overview['cards'][0]['values'][0]['value']);
-        self::assertSame('NotCollected', $overview['cards'][2]['status']);
-        self::assertSame([], $overview['cards'][2]['values']);
-        self::assertSame('NoData', $overview['cards'][5]['status']);
-        self::assertSame([], $overview['cards'][5]['values']);
+        self::assertSame('Available', $overview['cards'][2]['status']);
+        self::assertSame(0, $overview['cards'][2]['values'][2]['value']);
+        self::assertSame('NotCollected', $overview['cards'][3]['status']);
+        self::assertSame([], $overview['cards'][3]['values']);
+        self::assertSame('NoData', $overview['cards'][6]['status']);
+        self::assertSame([], $overview['cards'][6]['values']);
     }
 
     public function test_it_marks_a_failed_source_unavailable_instead_of_returning_zero(): void
@@ -57,12 +59,56 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
                 return ['accepted_count' => 0, 'retrying_count' => 0, 'failed_count' => 0];
             }
 
+            public function subscriptionSnapshot(\DateTimeImmutable $now): array
+            {
+                return [
+                    'active_trial_count' => 0,
+                    'expiring_trial_count' => 0,
+                    'active_subscription_count' => 0,
+                    'past_due_count' => 0,
+                    'failed_webhook_count' => 0,
+                    'environments' => ['Sandbox' => 0, 'Live' => 0, 'Unknown' => 0],
+                ];
+            }
+
+            public function runtimeSnapshot(\DateTimeImmutable $now): array
+            {
+                return [
+                    'database_available' => true,
+                    'roles' => [
+                        'api' => ['status' => 'Current', 'recorded_at' => $now->format(DATE_ATOM), 'age_seconds' => 0],
+                        'worker' => ['status' => 'NotCollected', 'recorded_at' => null, 'age_seconds' => null],
+                        'scheduler' => ['status' => 'NotCollected', 'recorded_at' => null, 'age_seconds' => null],
+                    ],
+                ];
+            }
+
+            public function maintenanceSnapshot(\DateTimeImmutable $now): array
+            {
+                return ['backup' => null, 'restore_canary' => null];
+            }
+
             public function outboxPage(string $status, int $page, int $perPage): array
             {
                 return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
             }
 
             public function emailPage(string $status, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function subscriptionPage(string $status, string $environment, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function webhookPage(string $status, string $environment, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function maintenancePage(string $kind, string $status, int $page, int $perPage): array
             {
                 return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
             }

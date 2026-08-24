@@ -131,6 +131,8 @@ Le socle local, son provisioning et sa révocation sont décrits dans le
 accepté ; TOTP et le step-up sont livrés localement, mais l'accès externe reste
 bloqué jusqu'à une authentification résistante au phishing ou une acceptation
 de risque strictement bornée.
+Les registres runtime, continuité, abonnements et webhooks sont décrits dans le
+[`runbook d'exploitation du back-office`](runbooks/backoffice-operations.md).
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).
 La configuration Checkout, Customer Portal et dunning Stripe est décrite dans

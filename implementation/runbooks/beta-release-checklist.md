@@ -18,6 +18,7 @@ references:
   - beta-support-offboarding.md
   - beta-research-plan.md
   - beta-cohort-operations.md
+  - backoffice-operations.md
   - beta-terms.fr.md
   - privacy-notice.fr.md
   - ../../fondation/product/pricing-strategy.md
@@ -168,13 +169,15 @@ satisfait.
 
 - [x] Logs JSON corrélés, traces HTTP/outbox et runbooks d'incident disponibles.
 - [x] Monitoring du backlog, retries et dead-letters de l'outbox implémenté.
+- [x] Back-office local raccordé aux heartbeats API/worker/scheduler, à la
+  sonde PostgreSQL, aux abonnements/webhooks séparés par environnement et aux
+  résultats de sauvegarde/restauration.
 - [x] Back-office opérateur, catalogue de métriques et ordre d'implémentation
   documentés avant tout code ; `ADR-004` est accepté.
 - [x] Livrer le socle local de l'incrément 1 : audience et session séparées,
   provisioning CLI, révocation immédiate, audit et shell en lecture seule.
 - [x] Raccorder le dashboard opérateur aux registres Outbox et Emails avec
-  provenance, permissions, pagination et états `NotCollected`/`Unavailable` ;
-  les autres sources restent explicitement non collectées.
+  provenance, permissions, pagination et états `NotCollected`/`Unavailable`.
 - [x] Raccorder la cohorte beta pseudonymisée : registre limité à cinq,
   dérivation E0–E6, entonnoir avec dénominateurs, jalons et décisions pricing
   append-only, sans identité ni contenu métier dans les vues Product.

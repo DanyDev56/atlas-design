@@ -64,6 +64,14 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::OUTBOX_READ);
             Route::get('/overview/emails', [OperatorOverviewController::class, 'emails'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::EMAIL_READ);
+            Route::get('/overview/subscriptions', [OperatorOverviewController::class, 'subscriptions'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
+            Route::get('/overview/subscription-webhooks', [OperatorOverviewController::class, 'webhooks'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
+            Route::get('/overview/runtime', [OperatorOverviewController::class, 'runtime'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
+            Route::get('/overview/maintenance', [OperatorOverviewController::class, 'maintenance'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/beta/overview', [OperatorBetaController::class, 'overview'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::METRICS_READ_PRODUCT);
             Route::get('/beta/participants', [OperatorBetaController::class, 'index'])

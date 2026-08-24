@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ForceHttpsScheme;
+use App\Http\Middleware\RecordApiRuntimeHeartbeat;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('atlas:retention:purge')->dailyAt('03:00');
         $schedule->command('atlas:billing:mark-overdue')->hourly();
+        $schedule->command('atlas:operations:heartbeat scheduler')->everyMinute();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         if (filter_var(env('ATLAS_TRUST_PROXIES', false), FILTER_VALIDATE_BOOL)) {
@@ -24,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
 
         $middleware->append(ForceHttpsScheme::class);
+        $middleware->append(RecordApiRuntimeHeartbeat::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

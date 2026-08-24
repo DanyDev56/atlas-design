@@ -10,6 +10,22 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 backup_file="${1:-}"
+started_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+run_reference="canary-$(date -u +"%Y%m%dT%H%M%SZ")"
+
+record_result() {
+  local status="$1"
+  "${compose[@]}" exec -T app php artisan atlas:operations:record-maintenance \
+    RestoreCanary "$status" "$run_reference" --started-at="$started_at" >/dev/null 2>&1 || true
+}
+
+on_exit() {
+  local exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    record_result Failed
+  fi
+}
+trap on_exit EXIT
 
 if [[ -z "$backup_file" ]]; then
   latest="$(ls -1t "$impl_dir/backups"/atlas-*.dump 2>/dev/null | head -1 || true)"
@@ -31,7 +47,7 @@ canary_backup="$(ls -1t "$impl_dir/backups"/atlas-*.dump | head -1)"
 printf '\n==> Post-restore checks\n'
 
 "${compose[@]}" exec -T postgres psql -U atlas -d atlas -v ON_ERROR_STOP=1 -c \
-  "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('identity','workspace','crm','billing','analytics','business_health','advisor','notifications','platform') ORDER BY 1;"
+  "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('identity','workspace','crm','billing','analytics','business_health','advisor','notifications','subscriptions','operations','platform') ORDER BY 1;"
 
 "${compose[@]}" exec -T app bash -c '
   set -euo pipefail
@@ -48,5 +64,8 @@ fi
 
 printf '\n==> Restoring pre-canary snapshot\n'
 "$impl_dir/scripts/restore-postgres.sh" "$canary_backup"
+
+record_result Succeeded
+trap - EXIT
 
 printf '\nSEC-TEST-023 canary passed.\n'

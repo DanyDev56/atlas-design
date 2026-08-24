@@ -28,6 +28,8 @@ import { RequireOperatorAuth } from '@/components/operator/RequireOperatorAuth';
 import { OperatorLoginPage } from '@/pages/operator/OperatorLoginPage';
 import { OperatorOverviewPage } from '@/pages/operator/OperatorOverviewPage';
 import { OperatorRegistryPage } from '@/pages/operator/OperatorRegistryPage';
+import { OperatorSubscriptionsPage } from '@/pages/operator/OperatorSubscriptionsPage';
+import { OperatorRuntimePage } from '@/pages/operator/OperatorRuntimePage';
 import { OperatorBetaCohortPage } from '@/pages/operator/OperatorBetaCohortPage';
 import { OperatorBetaParticipantPage } from '@/pages/operator/OperatorBetaParticipantPage';
 import { OperatorShellPage } from '@/pages/operator/OperatorShellPage';
@@ -40,6 +42,8 @@ export function AppRouter() {
             <Route path="/backoffice" element={<RequireOperatorAuth><OperatorOverviewPage /></RequireOperatorAuth>} />
             <Route path="/backoffice/outbox" element={<RequireOperatorAuth><OperatorRegistryPage kind="outbox" /></RequireOperatorAuth>} />
             <Route path="/backoffice/emails" element={<RequireOperatorAuth><OperatorRegistryPage kind="emails" /></RequireOperatorAuth>} />
+            <Route path="/backoffice/subscriptions" element={<RequireOperatorAuth><OperatorSubscriptionsPage /></RequireOperatorAuth>} />
+            <Route path="/backoffice/runtime" element={<RequireOperatorAuth><OperatorRuntimePage /></RequireOperatorAuth>} />
             <Route path="/backoffice/security" element={<RequireOperatorAuth><OperatorShellPage /></RequireOperatorAuth>} />
             <Route path="/backoffice/beta" element={<RequireOperatorAuth><OperatorBetaCohortPage /></RequireOperatorAuth>} />
             <Route path="/backoffice/beta/:betaCode" element={<RequireOperatorAuth><OperatorBetaParticipantPage /></RequireOperatorAuth>} />

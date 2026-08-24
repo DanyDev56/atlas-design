@@ -115,6 +115,14 @@ services:
       do sleep 2; done;
       exec php artisan atlas:outbox:work --batch=100 --sleep=2'
 
+  scheduler-worker:
+    <<: *development-base
+    restart: unless-stopped
+    command: >-
+      sh -c 'until test -f vendor/autoload.php && php artisan migrate:status --no-interaction >/dev/null 2>&1;
+      do sleep 2; done;
+      exec php artisan schedule:work'
+
   stripe-listener:
     image: stripe/stripe-cli:v1.50.4@sha256:af3692b018d5bc8df3fc0fe0fdacfac0f5b37cc875a6dfdb3d83d3db8d0442b8
     profiles: [stripe]

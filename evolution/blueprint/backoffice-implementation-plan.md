@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.5.0
+version: 0.6.0
 last_updated: 2026-08-24
 
 references:
@@ -41,7 +41,8 @@ action opérateur, ni exposition externe sans authentification forte.
 | 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, TOTP chiffré, récupération à usage unique, jetons hachés, révocation immédiate, audit et shell lecture seule |
 | 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
-| 4 à 7 | Non démarrés | aucune action opérateur web ni donnée transverse supplémentaire raccordée |
+| 4 — exploitation et abonnements | Socle lecture seule partiel | abonnements/webhooks séparés par environnement, heartbeats, sonde PostgreSQL et registre backup/canary raccordés ; HTTP RED et alertes externes restent ouverts |
+| 5 à 7 | Non démarrés | aucune action opérateur web ni donnée transverse supplémentaire raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
 
@@ -174,6 +175,24 @@ participants réels et la validation des durées de rétention des preuves.
 Une alerte de chaque famille est déclenchée puis reçue. Les vues corrèlent les
 références sans exposer secret, adresse complète, contenu de document ou donnée
 bancaire.
+
+### Preuves livrées
+
+- environnement `Sandbox`, `Live` ou `Unknown` persisté lors de l'ingestion des
+  abonnements et webhooks, sans reclassement historique implicite ;
+- listes paginées et filtrées avec références HMAC locales, sans UUID métier,
+  référence Stripe, payload, empreinte ni erreur brute ;
+- compteurs Trial, Active, PastDue et webhook en échec raccordés aux tables
+  propriétaires ;
+- heartbeats persistants API, worker et scheduler, avec `NotCollected` et
+  `Stale` distincts d'un rôle courant ;
+- sonde PostgreSQL exécutée à la lecture et résultats backup/canary enregistrés
+  par les scripts officiels ;
+- vues `/backoffice/subscriptions` et `/backoffice/runtime`, routes protégées et
+  consultations auditées.
+
+La gate reste partielle : les séries HTTP RED, l'historique de santé PostgreSQL,
+les alertes externes et leur exercice reçu sur cible ne sont pas encore livrés.
 
 ## Incrément 5 — Support et conformité
 

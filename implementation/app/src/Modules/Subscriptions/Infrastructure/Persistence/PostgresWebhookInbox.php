@@ -6,11 +6,16 @@ namespace Atlas\Modules\Subscriptions\Infrastructure\Persistence;
 
 use Atlas\Modules\Subscriptions\Contracts\RecurringBillingWebhookInbox;
 use Atlas\Modules\Subscriptions\Domain\VerifiedRecurringBillingEvent;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\ConfiguredBillingEnvironment;
 use Atlas\Platform\Support\UuidGenerator;
 use Illuminate\Support\Facades\DB;
 
 final class PostgresWebhookInbox implements RecurringBillingWebhookInbox
 {
+    public function __construct(
+        private readonly ConfiguredBillingEnvironment $environment,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array{status: string, inserted: bool}
@@ -20,6 +25,7 @@ final class PostgresWebhookInbox implements RecurringBillingWebhookInbox
         $inserted = DB::table('subscriptions.webhook_inbox')->insertOrIgnore([
             'id' => UuidGenerator::generate(),
             'provider' => $event->provider,
+            'billing_environment' => $this->environment->current(),
             'provider_event_id' => $event->providerEventId,
             'event_type' => $event->type->value,
             'provider_subscription_reference' => $event->providerSubscriptionReference,

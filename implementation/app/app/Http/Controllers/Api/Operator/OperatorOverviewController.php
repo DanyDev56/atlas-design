@@ -73,6 +73,94 @@ final class OperatorOverviewController extends Controller
         return response()->json($result);
     }
 
+    public function subscriptions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['sometimes', 'string', Rule::in(['All', 'Active', 'PastDue', 'Canceled'])],
+            'environment' => ['sometimes', 'string', Rule::in(['All', 'Sandbox', 'Live', 'Unknown'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->subscriptions(
+                (string) ($validated['status'] ?? 'All'),
+                (string) ($validated['environment'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.subscription.list-read', OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
+
+        return response()->json($result);
+    }
+
+    public function webhooks(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['sometimes', 'string', Rule::in(['All', 'Received', 'Processing', 'Processed', 'Ignored', 'Deferred', 'Failed'])],
+            'environment' => ['sometimes', 'string', Rule::in(['All', 'Sandbox', 'Live', 'Unknown'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->webhooks(
+                (string) ($validated['status'] ?? 'All'),
+                (string) ($validated['environment'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.subscription-webhook.list-read', OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
+
+        return response()->json($result);
+    }
+
+    public function runtime(Request $request): JsonResponse
+    {
+        try {
+            $result = $this->overview->runtime();
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.runtime.read', OperatorPermissionCatalog::DASHBOARD_READ);
+
+        return response()->json($result);
+    }
+
+    public function maintenance(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'kind' => ['sometimes', 'string', Rule::in(['All', 'Backup', 'RestoreCanary'])],
+            'status' => ['sometimes', 'string', Rule::in(['All', 'Succeeded', 'Failed'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->maintenance(
+                (string) ($validated['kind'] ?? 'All'),
+                (string) ($validated['status'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.maintenance.list-read', OperatorPermissionCatalog::DASHBOARD_READ);
+
+        return response()->json($result);
+    }
+
     private function recordRead(Request $request, string $action, string $permission): void
     {
         $userId = (string) $request->attributes->get('operator_user_id');

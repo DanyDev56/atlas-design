@@ -11,6 +11,7 @@ references:
   - ../../evolution/blueprint/backoffice.md
   - ../../evolution/blueprint/backoffice-implementation-plan.md
   - beta-cohort-operations.md
+  - backoffice-operations.md
   - ../SEC-TEST-MATRIX.md
 ---
 
@@ -26,11 +27,13 @@ connexion, MFA, step-up, consultation du contexte et révocation. Un trigger
 PostgreSQL rend le registre d'audit append-only, y compris face à une mutation
 accidentelle.
 
-La vue d'ensemble lit les registres techniques Outbox et Emails ainsi que la
-projection de cohorte beta. Elle expose
+La vue d'ensemble lit les registres techniques Outbox et Emails, la projection
+de cohorte beta, les abonnements/webhooks, les heartbeats runtime et les
+résultats de sauvegarde/restauration. Elle expose
 des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
-adresses destinataires, contenus ou identifiants fournisseur. Les autres cartes
-restent `NotCollected` tant que leur instrumentation durable n'existe pas ; une
+adresses destinataires, contenus ou identifiants fournisseur. Les cartes HTTP,
+Support et Conformité restent `NotCollected` tant que leur instrumentation
+durable n'existe pas ; une
 source attendue en erreur devient `Unavailable`, jamais zéro.
 
 La MFA actuelle utilise TOTP. Le secret est chiffré avec la clé applicative, un
@@ -91,7 +94,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.beta.read,operations.metrics.read-product" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -99,6 +102,11 @@ docker compose -f implementation/docker-compose.yml exec app php artisan \
 `operations.metrics.read-product` ouvre l'entonnoir agrégé. Sans ces grants de
 détail, les cartes restent visibles mais les liens et API correspondantes sont
 refusés. Chaque refus et chaque consultation autorisée sont audités.
+
+`operations.subscriptions.read` ouvre les abonnements et webhooks séparés par
+environnement. Les écrans runtime et continuité restent couverts par
+`operations.dashboard.read`. Leur exploitation est détaillée dans
+[`backoffice-operations.md`](backoffice-operations.md).
 
 ## Enrôler ou renouveler la MFA
 

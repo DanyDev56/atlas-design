@@ -24,6 +24,7 @@ final class OperationsOverviewQueryHandler
         $cards = [
             $this->outboxCard($now),
             $this->emailCard($now),
+            $this->subscriptionCard($now),
             $this->notCollectedCard(
                 'http',
                 'Disponibilité API',
@@ -32,22 +33,8 @@ final class OperationsOverviewQueryHandler
                 60,
                 300,
             ),
-            $this->notCollectedCard(
-                'runtime',
-                'Worker et scheduler',
-                'Aucun heartbeat persistant n’est encore collecté.',
-                'Operations heartbeat',
-                60,
-                300,
-            ),
-            $this->notCollectedCard(
-                'backup',
-                'Sauvegarde récente',
-                'Le résultat des sauvegardes n’est pas encore ingéré dans Operations.',
-                'Backup verification jobs',
-                86400,
-                90000,
-            ),
+            $this->runtimeCard($now),
+            $this->maintenanceCard($now),
             $this->betaCard($now),
             $this->notCollectedCard(
                 'support',
@@ -87,6 +74,26 @@ final class OperationsOverviewQueryHandler
     public function emails(string $status, int $page, int $perPage): array
     {
         return $this->source->emailPage($status, $page, $perPage);
+    }
+
+    public function subscriptions(string $status, string $environment, int $page, int $perPage): array
+    {
+        return $this->source->subscriptionPage($status, $environment, $page, $perPage);
+    }
+
+    public function webhooks(string $status, string $environment, int $page, int $perPage): array
+    {
+        return $this->source->webhookPage($status, $environment, $page, $perPage);
+    }
+
+    public function runtime(): array
+    {
+        return $this->source->runtimeSnapshot(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+    }
+
+    public function maintenance(string $kind, string $status, int $page, int $perPage): array
+    {
+        return $this->source->maintenancePage($kind, $status, $page, $perPage);
     }
 
     private function outboxCard(\DateTimeImmutable $now): array
@@ -173,6 +180,137 @@ final class OperationsOverviewQueryHandler
         );
     }
 
+    private function subscriptionCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->source->subscriptionSnapshot($now);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'subscriptions',
+                'Abonnements et webhooks',
+                'Les registres de facturation récurrente n’ont pas pu être lus.',
+                'subscriptions.trials + recurring_subscriptions + webhook_inbox',
+                300,
+                900,
+                '/backoffice/subscriptions',
+                'operations.subscriptions.read',
+            );
+        }
+
+        $incidents = $snapshot['past_due_count'] + $snapshot['failed_webhook_count'];
+        $environmentContext = implode(' · ', array_map(
+            static fn (string $environment, int $count): string => $environment.' : '.$count,
+            array_keys($snapshot['environments']),
+            array_values($snapshot['environments']),
+        ));
+
+        return $this->availableCard(
+            key: 'subscriptions',
+            label: 'Abonnements et webhooks',
+            description: 'Essais actifs, abonnements récurrents et incidents de synchronisation.',
+            source: 'subscriptions.trials + recurring_subscriptions + webhook_inbox',
+            now: $now,
+            targetSeconds: 300,
+            staleAfterSeconds: 900,
+            tone: $incidents > 0 ? 'Critical' : ($snapshot['expiring_trial_count'] > 0 ? 'Warning' : 'Neutral'),
+            values: [
+                ['key' => 'trials', 'label' => 'Essais actifs', 'value' => $snapshot['active_trial_count']],
+                ['key' => 'active', 'label' => 'Abonnements', 'value' => $snapshot['active_subscription_count']],
+                ['key' => 'incidents', 'label' => 'À traiter', 'value' => $incidents],
+            ],
+            context: $environmentContext,
+            href: '/backoffice/subscriptions',
+            detailPermission: 'operations.subscriptions.read',
+        );
+    }
+
+    private function runtimeCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->source->runtimeSnapshot($now);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'runtime', 'API, worker et scheduler', 'La santé runtime ou PostgreSQL n’a pas pu être lue.',
+                'operations.runtime_heartbeats + PostgreSQL probe', 60, 180,
+                '/backoffice/runtime', 'operations.dashboard.read',
+            );
+        }
+
+        $current = count(array_filter($snapshot['roles'], static fn (array $role): bool => $role['status'] === 'Current'));
+        $stale = count(array_filter($snapshot['roles'], static fn (array $role): bool => $role['status'] === 'Stale'));
+        $missing = count(array_filter($snapshot['roles'], static fn (array $role): bool => $role['status'] === 'NotCollected'));
+
+        return $this->availableCard(
+            key: 'runtime',
+            label: 'API, worker et scheduler',
+            description: 'Derniers signaux persistés des rôles et contrôle PostgreSQL à la lecture.',
+            source: 'operations.runtime_heartbeats + PostgreSQL probe',
+            now: $now,
+            targetSeconds: 60,
+            staleAfterSeconds: 180,
+            tone: $stale > 0 ? 'Critical' : ($missing > 0 ? 'Warning' : 'Neutral'),
+            values: [
+                ['key' => 'current', 'label' => 'À jour', 'value' => $current],
+                ['key' => 'stale', 'label' => 'Périmés', 'value' => $stale],
+                ['key' => 'missing', 'label' => 'Sans signal', 'value' => $missing],
+            ],
+            context: $snapshot['database_available'] ? 'PostgreSQL répond à la sonde courante.' : 'PostgreSQL indisponible.',
+            href: '/backoffice/runtime',
+            detailPermission: 'operations.dashboard.read',
+        );
+    }
+
+    private function maintenanceCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->source->maintenanceSnapshot($now);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'backup', 'Sauvegardes et restauration', 'Le registre des opérations de sauvegarde n’a pas pu être lu.',
+                'operations.maintenance_runs', 86400, 90000,
+                '/backoffice/runtime', 'operations.dashboard.read',
+            );
+        }
+        if ($snapshot['backup'] === null && $snapshot['restore_canary'] === null) {
+            return $this->noDataCard(
+                'backup', 'Sauvegardes et restauration', 'Aucune exécution instrumentée n’est encore enregistrée.',
+                'operations.maintenance_runs', $now, 86400, 90000,
+                '/backoffice/runtime', 'operations.dashboard.read',
+            );
+        }
+
+        $backup = $snapshot['backup'];
+        $canary = $snapshot['restore_canary'];
+        $failed = ($backup !== null && $backup['status'] === 'Failed') || ($canary !== null && $canary['status'] === 'Failed');
+        $stale = $backup !== null && $backup['age_seconds'] > 90000;
+        $values = [];
+        if ($backup !== null) {
+            $values[] = ['key' => 'backup', 'label' => 'Backup OK', 'value' => $backup['status'] === 'Succeeded' ? 1 : 0];
+        }
+        if ($canary !== null) {
+            $values[] = ['key' => 'canary', 'label' => 'Canary OK', 'value' => $canary['status'] === 'Succeeded' ? 1 : 0];
+        }
+        $values[] = ['key' => 'failures', 'label' => 'Dernier échec', 'value' => $failed ? 1 : 0];
+        $measuredAt = new \DateTimeImmutable((string) ($backup['completed_at'] ?? $canary['completed_at']));
+
+        return $this->availableCard(
+            key: 'backup',
+            label: 'Sauvegardes et restauration',
+            description: 'Derniers résultats explicites des dumps et restaurations canary.',
+            source: 'operations.maintenance_runs',
+            now: $now,
+            targetSeconds: 86400,
+            staleAfterSeconds: 90000,
+            tone: $failed ? 'Critical' : ($stale || $canary === null ? 'Warning' : 'Neutral'),
+            values: $values,
+            context: $backup !== null ? 'Dernière sauvegarde : '.$this->humanDuration($backup['age_seconds']) : 'Aucune sauvegarde instrumentée.',
+            href: '/backoffice/runtime',
+            detailPermission: 'operations.dashboard.read',
+            measuredAt: $measuredAt,
+            freshnessState: $stale ? 'Stale' : 'Current',
+        );
+    }
+
     private function betaCard(\DateTimeImmutable $now): array
     {
         try {
@@ -240,6 +378,8 @@ final class OperationsOverviewQueryHandler
         string $context,
         ?string $href,
         ?string $detailPermission,
+        ?\DateTimeImmutable $measuredAt = null,
+        string $freshnessState = 'Current',
     ): array {
         return [
             'key' => $key,
@@ -250,11 +390,11 @@ final class OperationsOverviewQueryHandler
             'values' => $values,
             'context' => $context,
             'source' => $source,
-            'measured_at' => $now->format(DATE_ATOM),
+            'measured_at' => ($measuredAt ?? $now)->format(DATE_ATOM),
             'freshness' => [
                 'target_seconds' => $targetSeconds,
                 'stale_after_seconds' => $staleAfterSeconds,
-                'state' => 'Current',
+                'state' => $freshnessState,
             ],
             'href' => $href,
             'detail_permission' => $detailPermission,

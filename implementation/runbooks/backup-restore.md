@@ -5,6 +5,7 @@ last_updated: 2026-08-07
 references:
   - ../SEC-TEST-MATRIX.md
   - ../../fondation/security/mvp-threat-model.md
+  - backoffice-operations.md
 ---
 
 # Sauvegarde et restauration PostgreSQL
@@ -16,7 +17,8 @@ données réelles.
 
 - Stack Docker démarrée : `make up`
 - Schémas module : `identity`, `workspace`, `crm`, `billing`, `analytics`,
-  `business_health`, `advisor`, `notifications`, `platform`
+  `business_health`, `advisor`, `notifications`, `subscriptions`, `operations`,
+  `platform`
 
 ## Sauvegarde
 
@@ -30,6 +32,10 @@ Produit dans `implementation/backups/` :
 
 - `atlas-<timestamp>.dump` — archive PostgreSQL (format custom)
 - `atlas-<timestamp>.manifest.json` — métadonnées (version Postgres, schémas)
+
+Le script publie également un résultat minimisé dans
+`operations.maintenance_runs`. Cette preuve alimente `/backoffice/runtime` ;
+elle ne remplace ni le manifeste, ni l'alerte externe du job.
 
 **RPO cible (beta)** : 24 h — à resserrer en production.
 
@@ -67,6 +73,8 @@ make verify-restore
 5. restauration de l'état pré-canary.
 
 Gate : canary vert avant toute rehearsal de release ou migration risquée.
+Le résultat final est enregistré comme `RestoreCanary/Succeeded` ou `Failed`
+si PostgreSQL reste disponible pour recevoir la preuve.
 
 ### CI (workflow dispatch)
 

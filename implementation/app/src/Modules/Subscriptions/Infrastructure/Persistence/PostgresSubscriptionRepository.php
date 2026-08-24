@@ -6,10 +6,15 @@ namespace Atlas\Modules\Subscriptions\Infrastructure\Persistence;
 
 use Atlas\Modules\Subscriptions\Domain\Subscription;
 use Atlas\Modules\Subscriptions\Domain\SubscriptionRepository;
+use Atlas\Modules\Subscriptions\Infrastructure\Payment\ConfiguredBillingEnvironment;
 use Illuminate\Support\Facades\DB;
 
 final class PostgresSubscriptionRepository implements SubscriptionRepository
 {
+    public function __construct(
+        private readonly ConfiguredBillingEnvironment $environment,
+    ) {}
+
     public function findByWorkspaceId(string $workspaceId): ?Subscription
     {
         $row = DB::table('subscriptions.recurring_subscriptions')->where('workspace_id', $workspaceId)->first();
@@ -82,6 +87,7 @@ final class PostgresSubscriptionRepository implements SubscriptionRepository
             'plan_id' => $subscription->planId(),
             'plan_price_id' => $subscription->planPriceId(),
             'provider' => $subscription->provider(),
+            'billing_environment' => $this->environment->current(),
             'provider_subscription_reference' => $subscription->providerReference(),
             'status' => $subscription->status(),
             'current_period_start' => $subscription->currentPeriodStart()->format('Y-m-d H:i:sP'),
