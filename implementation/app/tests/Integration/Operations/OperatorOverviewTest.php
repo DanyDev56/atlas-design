@@ -11,6 +11,22 @@ use Tests\Integration\IntegrationTestCase;
 
 final class OperatorOverviewTest extends IntegrationTestCase
 {
+    public function test_http_metrics_classify_an_authentication_failure_as_4xx(): void
+    {
+        $this->getJson('/api/operator/overview')->assertUnauthorized();
+
+        $this->assertDatabaseHas('operations.http_red_minute_buckets', [
+            'method' => 'GET',
+            'route_template' => '/api/operator/overview',
+            'status_class' => '4xx',
+            'error_count' => 0,
+        ]);
+        $this->assertDatabaseMissing('operations.http_red_minute_buckets', [
+            'route_template' => '/api/operator/overview',
+            'status_class' => '5xx',
+        ]);
+    }
+
     public function test_overview_and_filtered_registries_use_real_sources_without_exposing_sensitive_fields(): void
     {
         $token = $this->operatorToken([
@@ -43,8 +59,7 @@ final class OperatorOverviewTest extends IntegrationTestCase
             ->assertJsonPath('cards.0.values.1.value', 1)
             ->assertJsonPath('cards.1.values.0.value', 1)
             ->assertJsonPath('cards.2.status', 'Available')
-            ->assertJsonPath('cards.3.status', 'NotCollected')
-            ->assertJsonPath('cards.3.values', []);
+            ->assertJsonPath('cards.3.status', 'Available');
 
         $outbox = $this->withToken($token)->getJson('/api/operator/overview/outbox?status=Retrying&per_page=10')
             ->assertOk()
@@ -180,6 +195,24 @@ final class OperatorOverviewTest extends IntegrationTestCase
             ->assertJsonPath('items.0.size_bytes', 1048576)
             ->assertJsonMissingPath('items.0.path')
             ->assertJsonMissingPath('items.0.error');
+    }
+
+    public function test_http_metrics_are_aggregated_by_route_template_without_identifiers_or_query_strings(): void
+    {
+        $token = $this->operatorToken(OperatorPermissionCatalog::initialReadOnly(), 'http-operator@example.test');
+        $identifier = (string) Str::uuid();
+
+        $this->withToken($token)->getJson('/api/workspaces/'.$identifier.'/summary?secret=must-not-leak');
+
+        $response = $this->withToken($token)->getJson('/api/operator/overview/http?window=15')
+            ->assertOk();
+
+        self::assertContains(
+            '/api/workspaces/{workspaceId}/summary',
+            array_column($response->json('items'), 'route_template'),
+        );
+        self::assertStringNotContainsString($identifier, $response->getContent());
+        self::assertStringNotContainsString('must-not-leak', $response->getContent());
     }
 
     /** @param list<string> $permissions */

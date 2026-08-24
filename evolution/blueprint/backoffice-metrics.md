@@ -3,7 +3,7 @@ id: BPT-014
 title: Back-office Metrics Catalogue
 status: In Review
 owner: Product, Engineering and Operations
-version: 0.4.0
+version: 0.5.0
 last_updated: 2026-08-24
 
 references:
@@ -143,7 +143,7 @@ réels.
 
 | Famille | Signaux minimums | Source cible |
 |---|---|---|
-| HTTP RED | débit, erreurs, durée par route normalisée | OpenTelemetry metrics |
+| HTTP RED | débit, erreurs 5xx, durée moyenne/maximale par route normalisée | `operations.http_red_minute_buckets` |
 | Runtime | disponibilité et redémarrages API/worker/scheduler | orchestrateur + heartbeat |
 | PostgreSQL | disponibilité, connexions, saturation, taille, latence | exporter PostgreSQL |
 | Outbox | pending, dead-letter, âge du plus ancien, débit traité, retries | Platform messaging |
@@ -153,9 +153,12 @@ réels.
 | Webhooks | reçus, invalides, doublons, échecs et âge du dernier succès | Subscriptions inbox |
 | Frontend | erreurs non gérées et échecs de chargement essentiels | collecte first-party minimisée |
 
-Jaeger fournit aujourd'hui des traces, pas ce catalogue complet de métriques.
-Le choix d'un backend de métriques et d'alertes doit être documenté avant que la
-vue « Santé des services » soit déclarée disponible.
+Jaeger fournit des traces et reste le diagnostic détaillé. Le socle RED durable
+est une projection PostgreSQL bornée à 30 jours : buckets minute, méthode,
+gabarit Laravel, classe HTTP, volume et durées. Il ne stocke ni URL appelée, ni
+query string, ni UUID, ni utilisateur, ni Workspace. Cette projection suffit à
+la vue opérateur et à l'alerte beta ; un backend de métriques dédié reste requis
+avant une exploitation à plus grande échelle ou des percentiles fiables.
 
 ## Support et conformité
 
@@ -188,15 +191,15 @@ vue « Santé des services » soit déclarée disponible.
 |---|---|---|
 | 13 métriques Analytics Workspace | API snapshot et endpoint unitaire ; plusieurs clés restent `NoData` | vue opérateur et calculs manquants |
 | Dashboard et Business Health | interface par Workspace | agrégation et diagnostic opérateur |
-| Traces HTTP/outbox | Jaeger via OTLP | métriques RED, stockage et alertes durables |
+| Traces et HTTP RED | Jaeger via OTLP + buckets minute Operations | percentiles et backend longue durée |
 | Backlog outbox | compteurs à la demande et registre opérateur paginé/filtré | série temporelle et alertes durables |
 | Emails | compteurs à la demande et registre opérateur paginé/filtré, sans destinataire ni contenu | délai de remise, rejets et alertes durables |
 | Stripe | dashboard fournisseur et état local | vue corrélée, séparation sandbox/live |
 | Activation beta | projection E0–E6 à la demande, entonnoir avec dénominateurs, cellules pricing et vues pseudonymisées | série historique et sign-off Product/Security sur la cohorte réelle |
 | Support/conformité | runbooks et documents | stockage, workflow et audit opérateur |
 
-Les cartes API, runtime, sauvegarde, support et demandes de données restent
-explicitement `NotCollected`. La carte cohorte devient `Available` ou `NoData`
-depuis le registre Operations ; une panne de projection devient `Unavailable`.
-Le tableau ne déduit aucune valeur zéro d'une absence. Une panne de lecture
-Outbox ou Emails produit également `Unavailable`.
+Les cartes HTTP, runtime et sauvegarde sont désormais raccordées aux projections
+Operations. HTTP vaut `NoData` lorsque la fenêtre observée est réellement vide,
+et jamais zéro par défaut ; un heartbeat absent reste `NotCollected`. Support et
+demandes de données restent explicitement `NotCollected`. Une panne de lecture
+devient `Unavailable` pour toutes ces sources.

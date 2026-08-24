@@ -17,4 +17,16 @@ return [
     'beta' => [
         'blocked_after_days' => (int) env('BACKOFFICE_BETA_BLOCKED_AFTER_DAYS', 7),
     ],
+    'http' => [
+        'window_minutes' => (int) env('OPERATIONS_HTTP_WINDOW_MINUTES', 5),
+        'minimum_requests' => (int) env('OPERATIONS_HTTP_MINIMUM_REQUESTS', 20),
+        'error_rate_threshold_percent' => (float) env('OPERATIONS_HTTP_ERROR_RATE_THRESHOLD_PERCENT', 10),
+        'retention_days' => (int) env('OPERATIONS_HTTP_RETENTION_DAYS', 30),
+    ],
+    'alerts' => [
+        'webhook_url' => env('OPERATIONS_ALERT_WEBHOOK_URL'),
+        'repeat_minutes' => (int) env('OPERATIONS_ALERT_REPEAT_MINUTES', 60),
+        'runtime_stale_seconds' => (int) env('OPERATIONS_RUNTIME_STALE_SECONDS', 180),
+        'backup_stale_seconds' => (int) env('OPERATIONS_BACKUP_STALE_SECONDS', 90000),
+    ],
 ];

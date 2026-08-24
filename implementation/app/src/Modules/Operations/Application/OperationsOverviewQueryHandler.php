@@ -15,6 +15,9 @@ final class OperationsOverviewQueryHandler
         private readonly bool $readOnly,
         private readonly bool $actionsEnabled,
         private readonly int $betaBlockedAfterDays,
+        private readonly int $httpWindowMinutes = 5,
+        private readonly int $httpMinimumRequests = 20,
+        private readonly float $httpErrorRateThresholdPercent = 10,
     ) {}
 
     /** @return array{generated_at: string, read_only: bool, actions_enabled: bool, attention_count: int, cards: list<array<string, mixed>>} */
@@ -25,14 +28,7 @@ final class OperationsOverviewQueryHandler
             $this->outboxCard($now),
             $this->emailCard($now),
             $this->subscriptionCard($now),
-            $this->notCollectedCard(
-                'http',
-                'Disponibilité API',
-                'Les métriques HTTP RED attendent un backend de métriques durable.',
-                'OpenTelemetry metrics',
-                60,
-                300,
-            ),
+            $this->httpCard($now),
             $this->runtimeCard($now),
             $this->maintenanceCard($now),
             $this->betaCard($now),
@@ -89,6 +85,16 @@ final class OperationsOverviewQueryHandler
     public function runtime(): array
     {
         return $this->source->runtimeSnapshot(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+    }
+
+    public function http(int $windowMinutes, int $page, int $perPage): array
+    {
+        return $this->source->httpPage($windowMinutes, $page, $perPage);
+    }
+
+    public function alerts(string $state, int $page, int $perPage): array
+    {
+        return $this->source->alertPage($state, $page, $perPage);
     }
 
     public function maintenance(string $kind, string $status, int $page, int $perPage): array
@@ -257,6 +263,54 @@ final class OperationsOverviewQueryHandler
             context: $snapshot['database_available'] ? 'PostgreSQL répond à la sonde courante.' : 'PostgreSQL indisponible.',
             href: '/backoffice/runtime',
             detailPermission: 'operations.dashboard.read',
+        );
+    }
+
+    private function httpCard(\DateTimeImmutable $now): array
+    {
+        try {
+            $snapshot = $this->source->httpSnapshot($now, $this->httpWindowMinutes);
+        } catch (\Throwable) {
+            return $this->unavailableCard(
+                'http', 'Disponibilité API', 'Les métriques HTTP agrégées n’ont pas pu être lues.',
+                'operations.http_red_minute_buckets', 60, max(300, $this->httpWindowMinutes * 120),
+                '/backoffice/runtime', 'operations.dashboard.read',
+            );
+        }
+        if ($snapshot['request_count'] === 0) {
+            return $this->noDataCard(
+                'http', 'Disponibilité API', 'Aucune requête n’a été observée dans la fenêtre courante.',
+                'operations.http_red_minute_buckets', $now, 60, max(300, $this->httpWindowMinutes * 120),
+                '/backoffice/runtime', 'operations.dashboard.read',
+            );
+        }
+
+        $errorRate = (float) ($snapshot['error_rate_percent'] ?? 0);
+        $critical = $snapshot['request_count'] >= $this->httpMinimumRequests
+            && $errorRate >= $this->httpErrorRateThresholdPercent;
+        $measuredAt = new \DateTimeImmutable((string) $snapshot['measured_at']);
+        $age = max(0, $now->getTimestamp() - $measuredAt->getTimestamp());
+        $staleAfter = max(300, $this->httpWindowMinutes * 120);
+
+        return $this->availableCard(
+            key: 'http',
+            label: 'Disponibilité API',
+            description: 'Volume, erreurs serveur et durée des routes normalisées.',
+            source: 'operations.http_red_minute_buckets',
+            now: $now,
+            targetSeconds: 60,
+            staleAfterSeconds: $staleAfter,
+            tone: $critical ? 'Critical' : ($snapshot['error_count'] > 0 ? 'Warning' : 'Neutral'),
+            values: [
+                ['key' => 'requests', 'label' => 'Requêtes', 'value' => $snapshot['request_count']],
+                ['key' => 'errors', 'label' => 'Erreurs 5xx', 'value' => $snapshot['error_count']],
+                ['key' => 'average-duration', 'label' => 'Durée moy. (ms)', 'value' => $snapshot['average_duration_ms']],
+            ],
+            context: $snapshot['route_count'].' route(s) · taux 5xx : '.number_format($errorRate, 2, ',', ' ').' %',
+            href: '/backoffice/runtime',
+            detailPermission: 'operations.dashboard.read',
+            measuredAt: $measuredAt,
+            freshnessState: $age > $staleAfter ? 'Stale' : 'Current',
         );
     }
 

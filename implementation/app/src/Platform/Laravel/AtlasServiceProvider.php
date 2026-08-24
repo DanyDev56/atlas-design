@@ -141,6 +141,7 @@ use Atlas\Modules\Notifications\Infrastructure\PostgresNotificationsIdempotencyS
 use Atlas\Modules\Operations\Application\BetaCohortQueryHandler;
 use Atlas\Modules\Operations\Application\DisableOperatorMfaHandler;
 use Atlas\Modules\Operations\Application\EnrollOperatorMfaHandler;
+use Atlas\Modules\Operations\Application\EvaluateOperationsAlertsHandler;
 use Atlas\Modules\Operations\Application\OpenOperatorSessionHandler;
 use Atlas\Modules\Operations\Application\OperationsOverviewQueryHandler;
 use Atlas\Modules\Operations\Application\RevokeOperatorSessionHandler;
@@ -149,6 +150,7 @@ use Atlas\Modules\Operations\Contracts\BetaCohortSource;
 use Atlas\Modules\Operations\Contracts\OperationsOverviewSource;
 use Atlas\Modules\Operations\Domain\OperatorRecoveryCodes;
 use Atlas\Modules\Operations\Domain\TotpAuthenticator;
+use Atlas\Modules\Operations\Infrastructure\Alerts\OperationsAlertNotifier;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresBetaCohortSource;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperationsOverviewSource;
 use Atlas\Modules\Operations\Infrastructure\Persistence\PostgresOperatorAuditRepository;
@@ -332,6 +334,20 @@ final class AtlasServiceProvider extends ServiceProvider
             (bool) config('operations.backoffice.read_only', true),
             (bool) config('operations.backoffice.actions_enabled', false),
             (int) config('operations.beta.blocked_after_days', 7),
+            (int) config('operations.http.window_minutes', 5),
+            (int) config('operations.http.minimum_requests', 20),
+            (float) config('operations.http.error_rate_threshold_percent', 10),
+        ));
+        $this->app->singleton(EvaluateOperationsAlertsHandler::class, fn ($app): EvaluateOperationsAlertsHandler => new EvaluateOperationsAlertsHandler(
+            $app->make(OperationsOverviewSource::class),
+            $app->make(OperationsAlertNotifier::class),
+            (int) config('operations.http.window_minutes', 5),
+            (int) config('operations.http.minimum_requests', 20),
+            (float) config('operations.http.error_rate_threshold_percent', 10),
+            (int) config('operations.alerts.runtime_stale_seconds', 180),
+            (int) config('operations.alerts.backup_stale_seconds', 90000),
+            (int) config('operations.alerts.repeat_minutes', 60),
+            (int) config('operations.http.retention_days', 30),
         ));
         $this->app->singleton(TotpAuthenticator::class);
         $this->app->singleton(OperatorRecoveryCodes::class, fn (): OperatorRecoveryCodes => new OperatorRecoveryCodes(

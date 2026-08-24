@@ -137,6 +137,31 @@ export interface OperatorMaintenanceItem {
     completed_at: string;
 }
 
+export interface OperatorHttpMetricItem {
+    method: string;
+    route_template: string;
+    request_count: number;
+    error_count: number;
+    error_rate_percent: number | null;
+    average_duration_ms: number | null;
+    maximum_duration_ms: number;
+    measured_at: string;
+}
+
+export interface OperatorHttpMetricPage extends OperatorPage<OperatorHttpMetricItem> {
+    window_minutes: number;
+}
+
+export interface OperatorAlertItem {
+    key: string;
+    state: 'Healthy' | 'Firing';
+    context: Record<string, string | number | boolean | null>;
+    first_detected_at: string | null;
+    last_evaluated_at: string;
+    last_notified_at: string | null;
+    resolved_at: string | null;
+}
+
 export interface BetaFunnelStep {
     stage: string;
     reached: number;
@@ -297,6 +322,16 @@ export async function fetchOperatorRuntime(token: string): Promise<OperatorRunti
 export async function fetchOperatorMaintenance(token: string, page: number): Promise<OperatorPage<OperatorMaintenanceItem>> {
     const query = new URLSearchParams({ kind: 'All', status: 'All', page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorMaintenanceItem>>('GET', `/operator/overview/maintenance?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorHttpMetrics(token: string, window: number): Promise<OperatorHttpMetricPage> {
+    const query = new URLSearchParams({ window: String(window), page: '1', per_page: '20' });
+    return apiRequest<OperatorHttpMetricPage>('GET', `/operator/overview/http?${query}`, undefined, { token });
+}
+
+export async function fetchOperatorAlerts(token: string): Promise<OperatorPage<OperatorAlertItem>> {
+    const query = new URLSearchParams({ state: 'All', page: '1', per_page: '20' });
+    return apiRequest<OperatorPage<OperatorAlertItem>>('GET', `/operator/overview/alerts?${query}`, undefined, { token });
 }
 
 export async function fetchBetaCohortOverview(token: string): Promise<BetaCohortOverview> {

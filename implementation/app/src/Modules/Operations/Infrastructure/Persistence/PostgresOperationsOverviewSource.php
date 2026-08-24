@@ -139,6 +139,39 @@ final class PostgresOperationsOverviewSource implements OperationsOverviewSource
         return ['database_available' => true, 'roles' => $roles];
     }
 
+    public function httpSnapshot(\DateTimeImmutable $now, int $windowMinutes): array
+    {
+        $cutoff = $now->sub(new \DateInterval('PT'.max(1, $windowMinutes).'M'));
+        $row = DB::selectOne(
+            <<<'SQL'
+            SELECT
+                COALESCE(SUM(request_count), 0)::bigint AS request_count,
+                COALESCE(SUM(error_count), 0)::bigint AS error_count,
+                COALESCE(SUM(duration_sum_ms), 0)::bigint AS duration_sum_ms,
+                MAX(duration_max_ms)::int AS maximum_duration_ms,
+                COUNT(DISTINCT method || ' ' || route_template)::int AS route_count,
+                MAX(updated_at) AS measured_at
+            FROM operations.http_red_minute_buckets
+            WHERE bucket_started_at >= ?
+            SQL,
+            [$cutoff->format('Y-m-d H:i:sP')],
+        );
+        $requestCount = (int) ($row->request_count ?? 0);
+        $errorCount = (int) ($row->error_count ?? 0);
+
+        return [
+            'request_count' => $requestCount,
+            'error_count' => $errorCount,
+            'error_rate_percent' => $requestCount > 0 ? round(($errorCount / $requestCount) * 100, 2) : null,
+            'average_duration_ms' => $requestCount > 0 ? round(((int) $row->duration_sum_ms) / $requestCount, 1) : null,
+            'maximum_duration_ms' => $row->maximum_duration_ms !== null ? (int) $row->maximum_duration_ms : null,
+            'route_count' => (int) ($row->route_count ?? 0),
+            'measured_at' => $row->measured_at !== null
+                ? (new \DateTimeImmutable((string) $row->measured_at))->format(DATE_ATOM)
+                : null,
+        ];
+    }
+
     public function maintenanceSnapshot(\DateTimeImmutable $now): array
     {
         $latest = DB::table('operations.maintenance_runs')
@@ -351,6 +384,73 @@ final class PostgresOperationsOverviewSource implements OperationsOverviewSource
             'started_at' => (string) $row->started_at,
             'completed_at' => (string) $row->completed_at,
         ])->all();
+
+        return $this->page($items, $total, $page, $perPage);
+    }
+
+    public function httpPage(int $windowMinutes, int $page, int $perPage): array
+    {
+        $cutoff = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+            ->sub(new \DateInterval('PT'.max(1, $windowMinutes).'M'));
+        $aggregate = DB::table('operations.http_red_minute_buckets')
+            ->where('bucket_started_at', '>=', $cutoff->format('Y-m-d H:i:sP'))
+            ->groupBy('method', 'route_template')
+            ->select([
+                'method',
+                'route_template',
+                DB::raw('SUM(request_count)::bigint AS request_count'),
+                DB::raw('SUM(error_count)::bigint AS error_count'),
+                DB::raw('SUM(duration_sum_ms)::bigint AS duration_sum_ms'),
+                DB::raw('MAX(duration_max_ms)::int AS maximum_duration_ms'),
+                DB::raw('MAX(updated_at) AS measured_at'),
+            ]);
+        $query = DB::query()->fromSub($aggregate, 'http_routes');
+        $total = (clone $query)->count();
+        $rows = $query->orderByDesc('error_count')->orderByDesc('request_count')->forPage($page, $perPage)->get();
+        $items = $rows->map(static function (object $row): array {
+            $requestCount = (int) $row->request_count;
+            $errorCount = (int) $row->error_count;
+
+            return [
+                'method' => (string) $row->method,
+                'route_template' => (string) $row->route_template,
+                'request_count' => $requestCount,
+                'error_count' => $errorCount,
+                'error_rate_percent' => $requestCount > 0 ? round(($errorCount / $requestCount) * 100, 2) : null,
+                'average_duration_ms' => $requestCount > 0 ? round(((int) $row->duration_sum_ms) / $requestCount, 1) : null,
+                'maximum_duration_ms' => (int) $row->maximum_duration_ms,
+                'measured_at' => (new \DateTimeImmutable((string) $row->measured_at))->format(DATE_ATOM),
+            ];
+        })->all();
+
+        return [...$this->page($items, $total, $page, $perPage), 'window_minutes' => $windowMinutes];
+    }
+
+    public function alertPage(string $state, int $page, int $perPage): array
+    {
+        $query = DB::table('operations.alert_states')->select([
+            'alert_key', 'state', 'context', 'first_detected_at', 'last_evaluated_at', 'last_notified_at', 'resolved_at',
+        ]);
+        if ($state !== 'All') {
+            $query->where('state', $state);
+        }
+
+        $total = (clone $query)->count();
+        $rows = $query->orderByRaw("CASE WHEN state = 'Firing' THEN 0 ELSE 1 END")
+            ->orderByDesc('last_evaluated_at')->forPage($page, $perPage)->get();
+        $items = $rows->map(static function (object $row): array {
+            $context = is_string($row->context) ? json_decode($row->context, true) : (array) $row->context;
+
+            return [
+                'key' => (string) $row->alert_key,
+                'state' => (string) $row->state,
+                'context' => is_array($context) ? $context : [],
+                'first_detected_at' => $row->first_detected_at !== null ? (string) $row->first_detected_at : null,
+                'last_evaluated_at' => (string) $row->last_evaluated_at,
+                'last_notified_at' => $row->last_notified_at !== null ? (string) $row->last_notified_at : null,
+                'resolved_at' => $row->resolved_at !== null ? (string) $row->resolved_at : null,
+            ];
+        })->all();
 
         return $this->page($items, $total, $page, $perPage);
     }

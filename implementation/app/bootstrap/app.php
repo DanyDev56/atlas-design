@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('atlas:retention:purge')->dailyAt('03:00');
         $schedule->command('atlas:billing:mark-overdue')->hourly();
         $schedule->command('atlas:operations:heartbeat scheduler')->everyMinute();
+        $schedule->command('atlas:operations:evaluate-alerts')->everyMinute()->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         if (filter_var(env('ATLAS_TRUST_PROXIES', false), FILTER_VALIDATE_BOOL)) {

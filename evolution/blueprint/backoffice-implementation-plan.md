@@ -3,7 +3,7 @@ id: BPT-015
 title: Back-office Implementation Plan
 status: In Review
 owner: Engineering, Product and Security
-version: 0.6.0
+version: 0.7.0
 last_updated: 2026-08-24
 
 references:
@@ -41,7 +41,7 @@ action opérateur, ni exposition externe sans authentification forte.
 | 1 — identité et audit | Socle local livré | audience séparée, provisioning CLI, grants fins, TOTP chiffré, récupération à usage unique, jetons hachés, révocation immédiate, audit et shell lecture seule |
 | 2 — dashboard lecture seule | Socle partiel livré | Outbox et emails raccordés à leurs registres réels ; pagination, filtres, permissions et états d'absence livrés ; autres sources marquées `NotCollected` |
 | 3 — cohorte beta | Socle lecture seule livré | registre pseudonymisé, dérivation E0–E6, entonnoir, jalons et décisions pricing raccordés ; écritures limitées aux commandes administratives auditées |
-| 4 — exploitation et abonnements | Socle lecture seule partiel | abonnements/webhooks séparés par environnement, heartbeats, sonde PostgreSQL et registre backup/canary raccordés ; HTTP RED et alertes externes restent ouverts |
+| 4 — exploitation et abonnements | Socle lecture seule avancé | abonnements/webhooks séparés, heartbeats, backup/canary, HTTP RED durable et états d'alerte anti-rafale raccordés ; exercice externe et métriques PostgreSQL détaillées restent ouverts |
 | 5 à 7 | Non démarrés | aucune action opérateur web ni donnée transverse supplémentaire raccordée |
 
 ## Incrément 0 — Décisions et modèle de menace
@@ -189,10 +189,20 @@ bancaire.
 - sonde PostgreSQL exécutée à la lecture et résultats backup/canary enregistrés
   par les scripts officiels ;
 - vues `/backoffice/subscriptions` et `/backoffice/runtime`, routes protégées et
-  consultations auditées.
+  consultations auditées ;
+- buckets HTTP minute limités à la méthode, au gabarit de route, à la classe de
+  statut, au volume et aux durées, avec rétention configurable ;
+- vue RED sur 5 min, 15 min, 1 h ou 24 h, sans URL, query string, identifiant ni
+  corrélation nominative ;
+- évaluateur minute pour erreurs HTTP, rôles périmés, webhooks en échec et
+  sauvegarde en échec/périmée ; état durable, résolution et rappels bornés ;
+- webhook externe optionnel, dont les échecs de remise ne cassent ni le
+  scheduler ni la requête métier et restent visibles comme non notifiés.
 
-La gate reste partielle : les séries HTTP RED, l'historique de santé PostgreSQL,
-les alertes externes et leur exercice reçu sur cible ne sont pas encore livrés.
+La gate reste partielle : l'historique de santé PostgreSQL au-delà de la sonde,
+la réconciliation fournisseur et l'exercice effectivement reçu par chaque
+famille d'alerte sur la cible candidate ne sont pas encore livrés. La projection
+PostgreSQL RED est un socle beta, pas encore un backend de métriques de scale.
 
 ## Incrément 5 — Support et conformité
 

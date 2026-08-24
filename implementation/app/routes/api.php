@@ -43,6 +43,7 @@ use Atlas\Modules\Operations\Domain\OperatorPermissionCatalog;
 use Atlas\Platform\Laravel\Http\Middleware\BearerSessionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\CorrelationIdMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\DevelopmentOnlyMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\HttpRedMetricsMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorAccessEnabledMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorBearerSessionMiddleware;
@@ -50,7 +51,7 @@ use Atlas\Platform\Laravel\Http\Middleware\RequireOperatorPermissionMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\RequireWorkspaceEntitlementMiddleware;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class])->group(function (): void {
+Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::class, HttpTracingMiddleware::class])->group(function (): void {
     Route::prefix('/operator')->middleware(OperatorAccessEnabledMiddleware::class)->group(function (): void {
         Route::middleware('throttle:auth')->post('/auth/login', OperatorLoginController::class);
 
@@ -69,6 +70,10 @@ Route::middleware([CorrelationIdMiddleware::class, HttpTracingMiddleware::class]
             Route::get('/overview/subscription-webhooks', [OperatorOverviewController::class, 'webhooks'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUBSCRIPTIONS_READ);
             Route::get('/overview/runtime', [OperatorOverviewController::class, 'runtime'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
+            Route::get('/overview/http', [OperatorOverviewController::class, 'http'])
+                ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
+            Route::get('/overview/alerts', [OperatorOverviewController::class, 'alerts'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/overview/maintenance', [OperatorOverviewController::class, 'maintenance'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);

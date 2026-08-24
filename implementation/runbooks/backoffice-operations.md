@@ -3,7 +3,7 @@ id: RUN-021
 title: Back-office Operations and Subscriptions
 status: In Review
 owner: Engineering and Operations
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-24
 
 references:
@@ -17,9 +17,10 @@ references:
 
 ## Portée livrée
 
-`/backoffice/runtime` expose en lecture seule les derniers heartbeats de l'API,
-du worker Outbox et du scheduler, une sonde PostgreSQL réalisée à la lecture,
-ainsi que le registre des sauvegardes et restaurations canary.
+`/backoffice/runtime` expose en lecture seule les métriques HTTP RED agrégées,
+les derniers heartbeats de l'API, du worker Outbox et du scheduler, une sonde
+PostgreSQL réalisée à la lecture, les états d'alerte, ainsi que le registre des
+sauvegardes et restaurations canary.
 
 `/backoffice/subscriptions` expose les abonnements récurrents et l'inbox des
 webhooks. Les UUID Workspace et Subscription, références Stripe, payloads,
@@ -55,8 +56,9 @@ silencieusement les résultats live et sandbox.
 - l'absence d'une ligne vaut `NotCollected`, jamais `Healthy`.
 
 Le heartbeat API prouve une activité récente, pas une disponibilité historique.
-Les séries HTTP RED restent donc `NotCollected` jusqu'au raccordement d'un
-backend de métriques durable.
+La projection RED complète ce signal avec des buckets minute conservés 30 jours
+par défaut. Elle n'est pas un remplacement des traces Jaeger ni d'un backend de
+métriques à grande échelle.
 
 Diagnostic manuel autorisé :
 
@@ -68,6 +70,58 @@ docker compose -f implementation/docker-compose.yml exec app php artisan \
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operations:heartbeat scheduler
 ```
+
+## HTTP RED et confidentialité
+
+`HttpRedMetricsMiddleware` enregistre après chaque route API : méthode, gabarit
+Laravel, classe `1xx` à `5xx`, volume, somme et maximum des durées. Le gabarit
+`/api/workspaces/{workspaceId}/summary` est conservé ; l'UUID réellement appelé,
+la query string, le corps, l'utilisateur, le Workspace et le correlation ID ne
+le sont jamais.
+
+La carte générale utilise cinq minutes. Le détail permet 5 min, 15 min, 1 h ou
+24 h. Une fenêtre vide vaut `NoData`. La rétention est appliquée par
+`atlas:operations:evaluate-alerts` et vaut 30 jours par défaut.
+
+## Alertes externes
+
+Le scheduler exécute l'évaluateur chaque minute pour :
+
+- taux 5xx au-dessus du seuil, seulement après un volume minimum ;
+- heartbeat API, worker ou scheduler périmé ;
+- webhook d'abonnement `Failed` ou `Deferred` ;
+- dernier backup en échec ou plus ancien que la fenêtre, et canary en échec.
+
+Un état `Firing` persiste tant que la condition tient. Une notification est
+envoyée à l'ouverture, à la résolution et après le délai de rappel, jamais à
+chaque évaluation. Une source illisible conserve son dernier état au lieu de le
+remplacer par un faux succès. Un rôle jamais observé et une sauvegarde jamais
+exécutée restent visibles mais ne déclenchent pas d'alerte de démarrage.
+
+Configuration :
+
+```dotenv
+OPERATIONS_ALERT_WEBHOOK_URL=https://incident-relay.example.test/atlas
+OPERATIONS_ALERT_REPEAT_MINUTES=60
+OPERATIONS_HTTP_MINIMUM_REQUESTS=20
+OPERATIONS_HTTP_ERROR_RATE_THRESHOLD_PERCENT=10
+OPERATIONS_RUNTIME_STALE_SECONDS=180
+OPERATIONS_BACKUP_STALE_SECONDS=90000
+```
+
+Le récepteur doit accepter un POST JSON `{alert, state, environment, context}`.
+Les webhooks Slack ou Teams directs exigent généralement un adaptateur de
+format ; utiliser un relais d'incident ou un endpoint compatible. Tester la
+configuration avec :
+
+```bash
+docker compose -f implementation/docker-compose.yml exec app php artisan \
+  atlas:operations:evaluate-alerts
+```
+
+L'écran distingue « En cours », « Saine » et « Non notifiée ». Ne jamais placer
+de secret dans l'URL du webhook si le fournisseur propose un en-tête ou un
+relais de secrets ; la variable reste hors Git dans tous les cas.
 
 ## Sauvegardes et restauration canary
 
@@ -87,6 +141,7 @@ job. Le back-office montrera alors une donnée périmée, pas un faux succès.
 ./implementation/scripts/run-tests.sh \
   tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php \
+  tests/Integration/Operations/OperationsAlertsTest.php \
   tests/Integration/Messaging/OutboxWorkerCommandTest.php \
   tests/Feature/Api/Subscriptions/RecurringBillingWebhookTest.php
 
@@ -101,8 +156,7 @@ réellement arrêté.
 
 ## Reste à livrer pour fermer l'incrément 4
 
-- séries HTTP RED et historique PostgreSQL dans un backend de métriques ;
-- alerte externe pour heartbeat périmé, webhook échoué et job de sauvegarde ;
+- historique PostgreSQL détaillé et backend de métriques adapté au scale ;
 - réconciliation fournisseur ciblée, d'abord en lecture seule ;
 - exercice reçu de chaque famille d'alerte sur l'environnement candidat ;
 - preuve de sauvegarde hors site et canary sur la cible OCI.

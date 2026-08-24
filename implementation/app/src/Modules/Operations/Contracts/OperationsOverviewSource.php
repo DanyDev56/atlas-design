@@ -18,6 +18,9 @@ interface OperationsOverviewSource
     /** @return array{database_available: bool, roles: array<string, array{status: string, recorded_at: string|null, age_seconds: int|null}>} */
     public function runtimeSnapshot(\DateTimeImmutable $now): array;
 
+    /** @return array{request_count: int, error_count: int, error_rate_percent: float|null, average_duration_ms: float|null, maximum_duration_ms: int|null, route_count: int, measured_at: string|null} */
+    public function httpSnapshot(\DateTimeImmutable $now, int $windowMinutes): array;
+
     /** @return array{backup: array{status: string, completed_at: string, age_seconds: int, size_bytes: int|null}|null, restore_canary: array{status: string, completed_at: string, age_seconds: int}|null} */
     public function maintenanceSnapshot(\DateTimeImmutable $now): array;
 
@@ -35,4 +38,10 @@ interface OperationsOverviewSource
 
     /** @return array{items: list<array<string, int|string|null>>, total: int, page: int, per_page: int, total_pages: int} */
     public function maintenancePage(string $kind, string $status, int $page, int $perPage): array;
+
+    /** @return array{items: list<array<string, int|float|string|null>>, total: int, page: int, per_page: int, total_pages: int, window_minutes: int} */
+    public function httpPage(int $windowMinutes, int $page, int $perPage): array;
+
+    /** @return array{items: list<array<string, mixed>>, total: int, page: int, per_page: int, total_pages: int} */
+    public function alertPage(string $state, int $page, int $perPage): array;
 }

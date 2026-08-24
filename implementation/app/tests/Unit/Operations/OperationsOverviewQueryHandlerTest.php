@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 final class OperationsOverviewQueryHandlerTest extends TestCase
 {
-    public function test_it_preserves_real_zeroes_and_marks_missing_instrumentation_explicitly(): void
+    public function test_it_preserves_real_zeroes_and_distinguishes_an_empty_http_window(): void
     {
         $overview = (new OperationsOverviewQueryHandler($this->source(), $this->betaSource(), true, false, 7))->overview();
 
@@ -21,7 +21,7 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
         self::assertSame(0, $overview['cards'][0]['values'][0]['value']);
         self::assertSame('Available', $overview['cards'][2]['status']);
         self::assertSame(0, $overview['cards'][2]['values'][2]['value']);
-        self::assertSame('NotCollected', $overview['cards'][3]['status']);
+        self::assertSame('NoData', $overview['cards'][3]['status']);
         self::assertSame([], $overview['cards'][3]['values']);
         self::assertSame('NoData', $overview['cards'][6]['status']);
         self::assertSame([], $overview['cards'][6]['values']);
@@ -83,6 +83,19 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
                 ];
             }
 
+            public function httpSnapshot(\DateTimeImmutable $now, int $windowMinutes): array
+            {
+                return [
+                    'request_count' => 0,
+                    'error_count' => 0,
+                    'error_rate_percent' => null,
+                    'average_duration_ms' => null,
+                    'maximum_duration_ms' => null,
+                    'route_count' => 0,
+                    'measured_at' => null,
+                ];
+            }
+
             public function maintenanceSnapshot(\DateTimeImmutable $now): array
             {
                 return ['backup' => null, 'restore_canary' => null];
@@ -109,6 +122,16 @@ final class OperationsOverviewQueryHandlerTest extends TestCase
             }
 
             public function maintenancePage(string $kind, string $status, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
+            }
+
+            public function httpPage(int $windowMinutes, int $page, int $perPage): array
+            {
+                return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1, 'window_minutes' => $windowMinutes];
+            }
+
+            public function alertPage(string $state, int $page, int $perPage): array
             {
                 return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage, 'total_pages' => 1];
             }

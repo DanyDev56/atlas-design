@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.4.0
+version: 0.5.0
 last_updated: 2026-08-24
 
 references:
@@ -28,10 +28,11 @@ PostgreSQL rend le registre d'audit append-only, y compris face à une mutation
 accidentelle.
 
 La vue d'ensemble lit les registres techniques Outbox et Emails, la projection
-de cohorte beta, les abonnements/webhooks, les heartbeats runtime et les
-résultats de sauvegarde/restauration. Elle expose
+de cohorte beta, les abonnements/webhooks, les métriques HTTP RED agrégées, les
+heartbeats runtime, les états d'alerte et les résultats de
+sauvegarde/restauration. Elle expose
 des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
-adresses destinataires, contenus ou identifiants fournisseur. Les cartes HTTP,
+adresses destinataires, contenus ou identifiants fournisseur. Les cartes
 Support et Conformité restent `NotCollected` tant que leur instrumentation
 durable n'existe pas ; une
 source attendue en erreur devient `Unavailable`, jamais zéro.
@@ -184,6 +185,7 @@ avant un nouvel enrôlement.
   tests/Integration/Operations/OperatorAccessFoundationTest.php \
   tests/Integration/Operations/OperatorMfaTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php \
+  tests/Integration/Operations/OperationsAlertsTest.php \
   tests/Integration/Operations/OperatorBetaCohortTest.php
 
 make web-check

@@ -1,7 +1,7 @@
 ---
 title: Runbook — Observabilité (Palier 3)
 owner: Engineering
-last_updated: 2026-08-07
+last_updated: 2026-08-24
 references:
   - ../SEC-TEST-MATRIX.md
   - ../../fondation/decisions/ADR-002-mvp-implementation-stack.md
@@ -17,8 +17,8 @@ references:
 | Logs JSON structurés | ☑ | canal `json_stderr`, contexte `correlation_id` |
 | Export OTLP (infra) | ☑ | `otel-collector` + Jaeger (profile `observability`) |
 | Export OTLP (PHP SDK) | ☑ | `Telemetry`, `HttpTracingMiddleware`, `TraceScope` / outbox |
-| Métriques RED / outbox lag | ◐ | `OutboxBacklogMonitor`, logs structurés backlog |
-| Alertes et runbooks incident | ◐ | runbooks ☑ ; webhook backlog optionnel |
+| Métriques RED / outbox lag | ☑ beta | buckets HTTP minute durables + `OutboxBacklogMonitor` |
+| Alertes et runbooks incident | ☑ socle | états anti-rafale + webhooks Operations/Outbox optionnels |
 
 ## Démarrer la stack observabilité
 
@@ -88,6 +88,12 @@ OUTBOX_BACKLOG_ALERT_WEBHOOK_URL=https://hooks.example.com/outbox
 ```
 
 Émis sur log warning `Outbox backlog above threshold` — voir `OutboxBacklogAlertNotifier`.
+
+Les alertes transverses HTTP/runtime/webhooks/backup utilisent une configuration
+distincte et un état durable. Voir
+[`backoffice-operations.md`](backoffice-operations.md#alertes-externes). Les
+buckets HTTP ne contiennent que des routes normalisées et sont purgés après 30
+jours par défaut.
 
 ### Vérifier dans Jaeger
 

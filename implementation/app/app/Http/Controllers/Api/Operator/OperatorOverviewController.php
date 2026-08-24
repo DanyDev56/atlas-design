@@ -136,6 +136,52 @@ final class OperatorOverviewController extends Controller
         return response()->json($result);
     }
 
+    public function http(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'window' => ['sometimes', 'integer', Rule::in([5, 15, 60, 1440])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->http(
+                (int) ($validated['window'] ?? 15),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.http-metrics.list-read', OperatorPermissionCatalog::DASHBOARD_READ);
+
+        return response()->json($result);
+    }
+
+    public function alerts(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'state' => ['sometimes', 'string', Rule::in(['All', 'Healthy', 'Firing'])],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $result = $this->overview->alerts(
+                (string) ($validated['state'] ?? 'All'),
+                (int) ($validated['page'] ?? 1),
+                (int) ($validated['per_page'] ?? 20),
+            );
+        } catch (\Throwable) {
+            return $this->sourceUnavailable();
+        }
+
+        $this->recordRead($request, 'operator.alerts.list-read', OperatorPermissionCatalog::DASHBOARD_READ);
+
+        return response()->json($result);
+    }
+
     public function maintenance(Request $request): JsonResponse
     {
         $validated = $request->validate([
