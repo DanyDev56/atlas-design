@@ -132,15 +132,15 @@ export function OperatorShellPage() {
                         <p className="atlas-kicker">Plan de contrôle</p>
                         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">Socle opérateur</h1>
                         <p className="mt-4 max-w-2xl text-base leading-7 text-atlas-ink-muted">
-                            L’audience, les grants, les sessions et l’audit sont séparés des Workspaces. Les données métier ne sont pas encore raccordées.
+                            L’audience, les grants, les sessions et l’audit sont séparés des Workspaces. Les registres métier sont raccordés progressivement avec une autorité explicite par capacité.
                         </p>
                     </div>
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">
                         <div className="flex items-center gap-2 font-semibold">
                             <span className="size-2 rounded-full bg-emerald-500" />
-                            Mode lecture seule
+                            {session?.actionsEnabled ? 'Actions bornées actives' : 'Mode lecture seule'}
                         </div>
-                        <p className="mt-1 text-xs text-emerald-800/70">Aucune action métier ou destructive disponible.</p>
+                        <p className="mt-1 text-xs text-emerald-800/70">{session?.actionsEnabled ? 'Seules les actions explicitement autorisées et protégées par step-up sont disponibles.' : 'Aucune action métier ou destructive disponible.'}</p>
                     </div>
                 </div>
 

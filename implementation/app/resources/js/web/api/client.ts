@@ -21,6 +21,7 @@ export interface RequestOptions {
     auth?: boolean;
     token?: string | null;
     idempotency?: boolean;
+    idempotencyKey?: string;
 }
 
 export async function apiRequest<T>(
@@ -29,7 +30,7 @@ export async function apiRequest<T>(
     body?: unknown,
     options: RequestOptions = {},
 ): Promise<T> {
-    const { auth = true, token = null, idempotency = body !== undefined && method !== 'GET' } = options;
+    const { auth = true, token = null, idempotency = body !== undefined && method !== 'GET', idempotencyKey } = options;
     const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
 
     const headers: Record<string, string> = {
@@ -40,7 +41,9 @@ export async function apiRequest<T>(
         headers['Content-Type'] = 'application/json';
     }
 
-    if (idempotency) {
+    if (idempotencyKey) {
+        headers['Idempotency-Key'] = idempotencyKey;
+    } else if (idempotency) {
         headers['Idempotency-Key'] = newIdempotencyKey();
     }
 

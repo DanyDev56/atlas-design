@@ -136,6 +136,9 @@ Les registres runtime, continuité, abonnements et webhooks sont décrits dans l
 Les dossiers support, demandes de données, versions de textes et consentements
 facultatifs sont décrits dans le
 [`runbook Support et conformité`](runbooks/support-compliance-operations.md).
+La gestion locale du statut et de l'assignation Support y est activable comme
+première action opérateur bornée ; les flags restent sûrs par défaut et aucune
+action destructive n'est ouverte.
 Le scénario de démonstration correspondant est créé par `make backoffice-seed`.
 Le cycle d'abonnement factice signé et son rejeu sont décrits dans le
 [`runbook des webhooks d'abonnement`](runbooks/subscription-webhooks.md).

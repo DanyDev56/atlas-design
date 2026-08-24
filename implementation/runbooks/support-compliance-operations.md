@@ -3,7 +3,7 @@ id: RUN-022
 title: Support and Compliance Operations
 status: In Review
 owner: Support, Operations and Legal
-version: 0.1.0
+version: 0.2.0
 last_updated: 2026-08-24
 
 references:
@@ -19,7 +19,7 @@ references:
 
 ## Portée livrée
 
-`/backoffice/support` expose en lecture seule trois registres Operations :
+`/backoffice/support` expose trois registres Operations minimisés :
 
 - dossiers support ouverts, priorité et échéance de première réponse ;
 - demandes relatives aux données, type, état et échéance ;
@@ -31,9 +31,12 @@ UUID brut, contenu d'échange, justificatif, document juridique, référence de
 preuve brute ou donnée d'un Workspace. Les corrélations utilisent des
 références HMAC locales `WS-*` et `USR-*`.
 
-Cette surface prépare les dossiers ; elle ne produit ni export, ni correction,
-ni restriction, ni suppression. Ces actions restent bloquées jusqu'à leur
-workflow dédié avec step-up, prévisualisation, idempotence et approbation.
+La lecture reste le comportement par défaut. Une première action web bornée
+permet, lorsqu'elle est explicitement activée, de changer le statut d'un dossier
+Support et de l'assigner à l'opérateur courant ou de le désassigner. Elle ne
+produit ni email, ni export, ni correction, ni restriction, ni suppression de
+donnée ou fermeture de Workspace. Ces opérations restent bloquées jusqu'à leur
+workflow dédié avec approbation adaptée à leur impact.
 
 ## Autorisations
 
@@ -41,8 +44,56 @@ workflow dédié avec step-up, prévisualisation, idempotence et approbation.
 |---|---|
 | `operations.support.read` | compteurs et liste des dossiers support |
 | `operations.compliance.read` | demandes de données, politiques, preuves et consentements |
-| `operations.support.manage` | autorité attendue pour administrer un dossier ; aucun bouton web livré |
+| `operations.support.manage` | prévisualiser et confirmer un changement borné de statut ou d'assignation Support |
 | `operations.compliance.manage` | autorité attendue pour administrer les registres ; aucun bouton web livré |
+
+## Activer la gestion bornée des dossiers
+
+L'action reste coupée par deux verrous serveur et n'est destinée qu'à une
+recette locale encadrée tant que l'accès externe fort n'est pas livré :
+
+```dotenv
+BACKOFFICE_READ_ONLY=false
+BACKOFFICE_ACTIONS_ENABLED=true
+```
+
+Après modification, purger le cache de configuration puis accorder explicitement
+`operations.support.manage` en plus des permissions de lecture :
+
+```bash
+docker compose -f implementation/docker-compose.yml exec app php artisan config:clear
+docker compose -f implementation/docker-compose.yml exec app php artisan \
+  atlas:operator:grant demo@atlas.test \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.support.read,operations.support.manage,operations.compliance.read" \
+  --reason="Recette locale de la gestion Support"
+```
+
+Une session avec MFA et un step-up encore valide est obligatoire. L'interface
+impose ensuite une prévisualisation exacte avant confirmation. La confirmation
+porte une clé d'idempotence stable, une révision attendue et l'empreinte de la
+prévisualisation ; un rejeu identique renvoie le même résultat, tandis qu'un
+rejeu différent, une révision périmée ou une autorité révoquée est refusé.
+
+Les transitions autorisées sont :
+
+- `Open` vers `Acknowledged` ou `InProgress` ;
+- `Acknowledged` vers `InProgress`, `WaitingRequester` ou `Resolved` ;
+- `InProgress` vers `WaitingRequester` ou `Resolved` ;
+- `WaitingRequester` vers `InProgress` ou `Resolved` ;
+- `Resolved` vers `InProgress` ou `Closed`.
+
+Le motif provient d'une taxonomie structurée, jamais d'un texte libre. La
+mutation du dossier, ses événements append-only, le résultat d'idempotence et
+l'audit de succès sont validés dans une seule transaction. Les tentatives,
+refus et rejeux sont également audités sans contenu métier.
+
+Pour couper immédiatement toute nouvelle action, remettre au moins un des deux
+verrous dans son état sûr puis purger la configuration :
+
+```dotenv
+BACKOFFICE_READ_ONLY=true
+BACKOFFICE_ACTIONS_ENABLED=false
+```
 
 Les commandes ci-dessous constituent un canal d'administration privilégié :
 leur accès repose sur l'accès au conteneur et non sur une session opérateur.
@@ -167,6 +218,7 @@ refusée hors des environnements `local` et `testing`.
   tests/Integration/Demo/SupportComplianceFixtureSeederTest.php \
   tests/Unit/Operations/OperationsOverviewQueryHandlerTest.php \
   tests/Integration/Operations/SupportComplianceTest.php \
+  tests/Integration/Operations/SupportCaseManagementTest.php \
   tests/Integration/Operations/OperatorOverviewTest.php
 
 make web-check
@@ -175,4 +227,6 @@ make web-check
 Vérifier que les permissions Support et Compliance sont indépendantes, qu'un
 non-Owner ne peut préparer une demande Workspace sensible, qu'une preuve sur un
 brouillon est refusée, que les registres probatoires refusent update/delete et
-qu'aucune identité brute n'est renvoyée par l'API.
+qu'aucune identité brute n'est renvoyée par l'API. Pour l'action bornée, vérifier
+indépendamment les deux flags, la permission, le step-up, le conflit de révision,
+le rejeu idempotent et la révocation concurrente.

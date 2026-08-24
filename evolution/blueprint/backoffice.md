@@ -3,7 +3,7 @@ id: BPT-013
 title: Operator Back-office Blueprint
 status: In Review
 owner: Product, Engineering and Security
-version: 0.5.0
+version: 0.6.0
 last_updated: 2026-08-24
 
 references:
@@ -26,7 +26,8 @@ Ce document décrit la cible fonctionnelle du back-office Atlas. `ADR-004` est
 accepté. Les incréments locaux livrés couvrent l'audience opérateur, les grants,
 les sessions, la MFA TOTP transitoire, le step-up, l'audit, le dashboard
 Outbox/Emails, la cohorte beta pseudonymisée, les abonnements/webhooks et les
-signaux runtime/continuité en lecture seule. TOTP n'est pas
+signaux runtime/continuité en lecture seule, ainsi qu'une première action locale
+bornée sur le statut et l'assignation des dossiers Support. TOTP n'est pas
 présenté comme résistant au phishing et l'accès externe reste fermé par défaut.
 Les autres surfaces restent soumises à leurs gates respectives.
 
@@ -79,7 +80,7 @@ alertée et revue après usage.
 | `operations.users.read-summary` | rechercher et lire un résumé de compte |
 | `operations.sensitive-data.reveal` | révéler un champ masqué avec motif et audit |
 | `operations.support.read` | lire les dossiers support autorisés |
-| `operations.support.manage` | qualifier, assigner et clôturer un dossier |
+| `operations.support.manage` | qualifier et assigner un dossier Support par une action bornée ; ne ferme jamais un Workspace |
 | `operations.compliance.read` | lire consentements et demandes de droits |
 | `operations.compliance.manage` | instruire une demande ou preuve de conformité |
 | `operations.exports.request` | préparer une demande d'export |

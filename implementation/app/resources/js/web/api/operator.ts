@@ -18,6 +18,7 @@ export interface OperatorSessionContext {
     expires_at: string;
     permissions: string[];
     read_only: boolean;
+    actions_enabled: boolean;
     authentication_strength: string;
     mfa_verified_at: string | null;
     step_up_expires_at: string | null;
@@ -169,6 +170,8 @@ export interface OperatorSupportCaseItem {
     category: 'Access' | 'Security' | 'Billing' | 'DataRequest' | 'Product' | 'Other';
     severity: 'P0' | 'P1' | 'P2' | 'P3';
     status: 'Open' | 'Acknowledged' | 'InProgress' | 'WaitingRequester' | 'Resolved' | 'Closed';
+    assigned: boolean;
+    revision: number;
     requester_verified: boolean;
     ownership_verified: boolean;
     summary_code: string;
@@ -176,6 +179,31 @@ export interface OperatorSupportCaseItem {
     opened_at: string;
     resolved_at: string | null;
     event_count: number;
+}
+
+export interface OperatorSupportCaseProposal {
+    expected_revision: number;
+    status: 'Keep' | 'Acknowledged' | 'InProgress' | 'WaitingRequester' | 'Resolved' | 'Closed';
+    assignment: 'Keep' | 'Self' | 'Unassigned';
+    reason_code: string;
+}
+
+export interface OperatorSupportCasePreview {
+    reference: string;
+    current: { status: string; assignment: string; revision: number };
+    proposed: { status: string; assignment: string; revision: number };
+    reason_code: string;
+    preview_fingerprint: string;
+    effects: string[];
+}
+
+export interface OperatorSupportCaseActionResult {
+    reference: string;
+    status: string;
+    assignment: string;
+    revision: number;
+    updated_at: string;
+    replayed: boolean;
 }
 
 export interface OperatorDataRequestItem {
@@ -386,6 +414,27 @@ export async function fetchOperatorSupport(
 ): Promise<OperatorPage<OperatorSupportCaseItem>> {
     const query = new URLSearchParams({ status, severity, page: String(page), per_page: '20' });
     return apiRequest<OperatorPage<OperatorSupportCaseItem>>('GET', `/operator/overview/support?${query}`, undefined, { token });
+}
+
+export async function previewOperatorSupportCase(
+    token: string,
+    reference: string,
+    proposal: OperatorSupportCaseProposal,
+): Promise<OperatorSupportCasePreview> {
+    return apiRequest<OperatorSupportCasePreview>('POST', `/operator/support/${reference}/preview`, proposal, { token });
+}
+
+export async function updateOperatorSupportCase(
+    token: string,
+    reference: string,
+    proposal: OperatorSupportCaseProposal,
+    previewFingerprint: string,
+    idempotencyKey: string,
+): Promise<OperatorSupportCaseActionResult> {
+    return apiRequest<OperatorSupportCaseActionResult>('PATCH', `/operator/support/${reference}`, {
+        ...proposal,
+        preview_fingerprint: previewFingerprint,
+    }, { token, idempotencyKey });
 }
 
 export async function fetchOperatorDataRequests(

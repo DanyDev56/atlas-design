@@ -79,6 +79,7 @@ final class PostgresSupportComplianceSource implements SupportComplianceSource
                 'support.reference', 'support.workspace_id', 'support.requester_user_id', 'support.category',
                 'support.severity', 'support.status', 'support.requester_verified', 'support.ownership_verified',
                 'support.summary_code', 'support.response_due_at', 'support.opened_at', 'support.resolved_at',
+                'support.assigned_operator_user_id', 'support.revision',
                 DB::raw('(SELECT COUNT(*) FROM operations.support_case_events event WHERE event.support_case_id = support.id)::int AS event_count'),
             ]);
         if ($status !== 'All') {
@@ -98,6 +99,8 @@ final class PostgresSupportComplianceSource implements SupportComplianceSource
             'category' => (string) $row->category,
             'severity' => (string) $row->severity,
             'status' => (string) $row->status,
+            'assigned' => $row->assigned_operator_user_id !== null,
+            'revision' => (int) $row->revision,
             'requester_verified' => (bool) $row->requester_verified,
             'ownership_verified' => (bool) $row->ownership_verified,
             'summary_code' => (string) $row->summary_code,

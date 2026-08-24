@@ -24,6 +24,7 @@ export interface OperatorSessionState {
     expiresAt: string;
     permissions: string[];
     readOnly: boolean;
+    actionsEnabled: boolean;
     authenticationStrength: string;
     mfaVerifiedAt: string | null;
     stepUpExpiresAt: string | null;
@@ -88,6 +89,7 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
                     expiresAt: context.expires_at,
                     permissions: context.permissions,
                     readOnly: context.read_only,
+                    actionsEnabled: context.actions_enabled,
                     authenticationStrength: context.authentication_strength,
                     mfaVerifiedAt: context.mfa_verified_at,
                     stepUpExpiresAt: context.step_up_expires_at,
@@ -122,6 +124,7 @@ export function OperatorAuthProvider({ children }: { children: ReactNode }) {
             expiresAt: result.expires_at,
             permissions: result.permissions,
             readOnly: true,
+            actionsEnabled: false,
             authenticationStrength: result.authentication_strength,
             mfaVerifiedAt: result.mfa_verified_at,
             stepUpExpiresAt: result.step_up_expires_at,

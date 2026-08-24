@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiClientError } from '@/api/client';
-import { fetchOperatorCompliance, fetchOperatorDataRequests, fetchOperatorSupport, type OperatorDataRequestItem, type OperatorPage, type OperatorPolicyPage, type OperatorSupportCaseItem } from '@/api/operator';
+import { fetchOperatorCompliance, fetchOperatorDataRequests, fetchOperatorSupport, previewOperatorSupportCase, updateOperatorSupportCase, type OperatorDataRequestItem, type OperatorPage, type OperatorPolicyPage, type OperatorSupportCaseItem, type OperatorSupportCasePreview, type OperatorSupportCaseProposal } from '@/api/operator';
 import { OperatorFrame } from '@/components/operator/OperatorFrame';
 import { useOperatorAuth } from '@/hooks/useOperatorAuth';
 
@@ -11,6 +11,18 @@ function formatDate(value: string | null): string {
 
 function isOverdue(value: string): boolean {
     return new Date(value).getTime() < Date.now();
+}
+
+function nextStatuses(status: OperatorSupportCaseItem['status']): OperatorSupportCaseProposal['status'][] {
+    const transitions: Record<OperatorSupportCaseItem['status'], OperatorSupportCaseProposal['status'][]> = {
+        Open: ['Acknowledged', 'InProgress'],
+        Acknowledged: ['InProgress', 'WaitingRequester', 'Resolved'],
+        InProgress: ['WaitingRequester', 'Resolved'],
+        WaitingRequester: ['InProgress', 'Resolved'],
+        Resolved: ['InProgress', 'Closed'],
+        Closed: [],
+    };
+    return transitions[status];
 }
 
 function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (page: number) => void }) {
@@ -27,6 +39,8 @@ export function OperatorSupportCompliancePage() {
     const { session } = useOperatorAuth();
     const canReadSupport = session?.permissions.includes('operations.support.read') ?? false;
     const canReadCompliance = session?.permissions.includes('operations.compliance.read') ?? false;
+    const canManageSupport = session?.permissions.includes('operations.support.manage') ?? false;
+    const stepUpActive = session?.stepUpExpiresAt ? Date.parse(session.stepUpExpiresAt) > Date.now() : false;
     const [support, setSupport] = useState<OperatorPage<OperatorSupportCaseItem> | null>(null);
     const [dataRequests, setDataRequests] = useState<OperatorPage<OperatorDataRequestItem> | null>(null);
     const [policies, setPolicies] = useState<OperatorPolicyPage | null>(null);
@@ -39,6 +53,13 @@ export function OperatorSupportCompliancePage() {
     const [policyPage, setPolicyPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [managedCase, setManagedCase] = useState<OperatorSupportCaseItem | null>(null);
+    const [proposal, setProposal] = useState<OperatorSupportCaseProposal | null>(null);
+    const [preview, setPreview] = useState<OperatorSupportCasePreview | null>(null);
+    const [actionIdempotencyKey, setActionIdempotencyKey] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         if (!session?.token) return;
@@ -67,16 +88,76 @@ export function OperatorSupportCompliancePage() {
         return () => { document.title = previousTitle; };
     }, [load]);
 
+    function openManagement(item: OperatorSupportCaseItem) {
+        const status = nextStatuses(item.status)[0] ?? 'Keep';
+        setManagedCase(item);
+        setProposal({ expected_revision: item.revision, status, assignment: 'Keep', reason_code: 'case.triage' });
+        setPreview(null);
+        setActionIdempotencyKey(null);
+        setActionError(null);
+        setActionSuccess(null);
+    }
+
+    async function requestPreview() {
+        if (!session?.token || !managedCase || !proposal) return;
+        setActionLoading(true);
+        setActionError(null);
+        try {
+            setPreview(await previewOperatorSupportCase(session.token, managedCase.reference, proposal));
+            setActionIdempotencyKey(crypto.randomUUID());
+        } catch (caught) {
+            setActionError(caught instanceof ApiClientError ? caught.message : 'La prévisualisation a échoué.');
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
+    async function confirmAction() {
+        if (!session?.token || !managedCase || !proposal || !preview || !actionIdempotencyKey) return;
+        setActionLoading(true);
+        setActionError(null);
+        try {
+            const result = await updateOperatorSupportCase(session.token, managedCase.reference, proposal, preview.preview_fingerprint, actionIdempotencyKey);
+            setActionSuccess(`Le dossier ${result.reference} est maintenant ${result.status}.`);
+            setManagedCase(null);
+            setProposal(null);
+            setPreview(null);
+            setActionIdempotencyKey(null);
+            await load();
+        } catch (caught) {
+            if (caught instanceof ApiClientError) {
+                setPreview(null);
+                setActionIdempotencyKey(null);
+                setActionError(`${caught.message} Prévisualisez à nouveau.`);
+            } else {
+                setActionError('La confirmation n’a pas pu être vérifiée. Réessayez : la même clé d’idempotence sera utilisée.');
+            }
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
     return (
         <OperatorFrame>
             <main className="mx-auto max-w-[90rem] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
                 <Link to="/backoffice" className="text-sm font-semibold text-atlas-accent">← Retour à la vue d’ensemble</Link>
-                <div className="mt-8"><p className="atlas-kicker">Accompagnement beta</p><h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em]">Support et conformité</h1><p className="mt-4 max-w-3xl leading-7 text-atlas-ink-muted">Registres pseudonymisés, échéances internes et preuves minimisées. Cette surface est strictement en lecture seule : elle ne lance ni export, ni fermeture, ni effacement.</p></div>
+                <div className="mt-8"><p className="atlas-kicker">Accompagnement beta</p><h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em]">Support et conformité</h1><p className="mt-4 max-w-3xl leading-7 text-atlas-ink-muted">Registres pseudonymisés, échéances internes et preuves minimisées. Seuls le statut et l’assignation d’un dossier Support peuvent être modifiés lorsque les actions bornées sont explicitement activées ; aucun export, fermeture de Workspace ou effacement n’est lancé.</p></div>
                 {error && <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error} <button type="button" className="font-semibold underline" onClick={() => void load()}>Réessayer</button></div>}
+                {actionSuccess && <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{actionSuccess}</div>}
                 {loading && <p className="mt-8 text-sm font-semibold text-atlas-accent">Actualisation des registres…</p>}
 
+                {canManageSupport && !session?.actionsEnabled && <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900"><p className="font-semibold">Actions Support désactivées</p><p className="mt-1 leading-6">Le grant autorise la gestion, mais cet environnement reste en lecture seule. Activez explicitement les actions uniquement pour une recette encadrée.</p></div>}
+                {canManageSupport && session?.actionsEnabled && !stepUpActive && <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900"><p className="font-semibold">Authentification renforcée requise</p><p className="mt-1 leading-6">Renouvelez le step-up avant de préparer une action.</p><Link to="/backoffice/security" className="mt-3 inline-flex font-semibold underline">Ouvrir la sécurité opérateur →</Link></div>}
+
+                {managedCase && proposal && <section className="mt-8 rounded-2xl border border-atlas-accent/30 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="support-action-title"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="atlas-kicker">Action bornée</p><h2 id="support-action-title" className="mt-2 text-xl font-semibold">Gérer {managedCase.reference}</h2><p className="mt-1 text-sm text-atlas-ink-muted">Révision {managedCase.revision} · aucune communication ou donnée Workspace ne sera modifiée.</p></div><button type="button" onClick={() => { setManagedCase(null); setPreview(null); setActionIdempotencyKey(null); }} className="text-sm font-semibold text-atlas-ink-muted">Annuler</button></div>
+                    <div className="mt-6 grid gap-4 md:grid-cols-3"><label className="text-sm font-medium">Nouveau statut<select value={proposal.status} onChange={(event) => { setProposal({ ...proposal, status: event.target.value as OperatorSupportCaseProposal['status'] }); setPreview(null); setActionIdempotencyKey(null); }} className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3"><option value="Keep">Conserver</option>{nextStatuses(managedCase.status).map((status) => <option key={status} value={status}>{status}</option>)}</select></label><label className="text-sm font-medium">Assignation<select value={proposal.assignment} onChange={(event) => { setProposal({ ...proposal, assignment: event.target.value as OperatorSupportCaseProposal['assignment'] }); setPreview(null); setActionIdempotencyKey(null); }} className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3"><option value="Keep">Conserver</option><option value="Self">Me l’assigner</option><option value="Unassigned">Désassigner</option></select></label><label className="text-sm font-medium">Motif structuré<select value={proposal.reason_code} onChange={(event) => { setProposal({ ...proposal, reason_code: event.target.value }); setPreview(null); setActionIdempotencyKey(null); }} className="mt-2 min-h-11 w-full rounded-xl border border-atlas-border bg-white px-3"><option value="case.triage">Qualification effectuée</option><option value="investigation.started">Investigation démarrée</option><option value="requester.response-needed">Réponse du demandeur requise</option><option value="case.resolved">Résolution confirmée</option><option value="case.reopened">Dossier rouvert</option><option value="case.closed">Dossier clos</option><option value="assignment.updated">Assignation mise à jour</option></select></label></div>
+                    {actionError && <p role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{actionError}</p>}
+                    {!preview && <button type="button" disabled={actionLoading} onClick={() => void requestPreview()} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-sidebar px-5 text-sm font-semibold text-white disabled:opacity-50">{actionLoading ? 'Préparation…' : 'Prévisualiser l’action'}</button>}
+                    {preview && <div className="mt-6 rounded-xl border border-atlas-border bg-atlas-surface p-5"><div className="grid gap-4 sm:grid-cols-2"><div><p className="text-xs font-semibold uppercase tracking-wider text-atlas-ink-muted">Avant</p><p className="mt-2 font-semibold">{preview.current.status} · {preview.current.assignment}</p></div><div><p className="text-xs font-semibold uppercase tracking-wider text-atlas-ink-muted">Après</p><p className="mt-2 font-semibold">{preview.proposed.status} · {preview.proposed.assignment}</p></div></div><ul className="mt-4 space-y-1 text-sm text-atlas-ink-muted">{preview.effects.map((effect) => <li key={effect}>✓ {effect}</li>)}</ul><div className="mt-5 flex flex-wrap gap-3"><button type="button" disabled={actionLoading} onClick={() => void confirmAction()} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-atlas-sidebar px-5 text-sm font-semibold text-white disabled:opacity-50">{actionLoading ? 'Confirmation…' : 'Confirmer'}</button><button type="button" disabled={actionLoading} onClick={() => { setPreview(null); setActionIdempotencyKey(null); }} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-atlas-border bg-white px-5 text-sm font-semibold">Modifier</button></div></div>}
+                </section>}
+
                 {canReadSupport && <section className="mt-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-xl font-semibold">Dossiers support</h2><p className="mt-1 text-sm text-atlas-ink-muted">Priorité, cible de réponse et vérification, sans nom ni adresse.</p></div><div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row"><select aria-label="Statut support" value={supportStatus} onChange={(event) => { setSupportStatus(event.target.value); setSupportPage(1); }} className="min-h-10 rounded-xl border border-atlas-border bg-white px-3 text-sm"><option value="All">Tous les statuts</option><option value="Open">Ouverts</option><option value="Acknowledged">Pris en compte</option><option value="InProgress">En cours</option><option value="WaitingRequester">En attente du demandeur</option><option value="Resolved">Résolus</option><option value="Closed">Clos</option></select><select aria-label="Priorité support" value={severity} onChange={(event) => { setSeverity(event.target.value); setSupportPage(1); }} className="min-h-10 rounded-xl border border-atlas-border bg-white px-3 text-sm"><option value="All">Toutes priorités</option>{['P0', 'P1', 'P2', 'P3'].map((value) => <option key={value} value={value}>{value}</option>)}</select></div></div>
-                    <div className="mt-5 overflow-hidden rounded-2xl border border-atlas-border bg-white shadow-sm">{!loading && support?.items.length === 0 && <div className="p-10 text-center text-sm text-atlas-ink-muted">Aucun dossier pour ces filtres.</div>}{support && <><div className="divide-y divide-atlas-border">{support.items.map((item) => <article key={item.reference} className="grid gap-3 p-5 lg:grid-cols-[1fr_.6fr_.8fr_1fr] lg:items-center"><div><p className="font-mono text-sm font-semibold">{item.reference}</p><p className="mt-1 text-xs text-atlas-ink-muted">{item.workspace_reference} · {item.requester_reference}</p></div><div><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${item.severity === 'P0' || item.severity === 'P1' ? 'border-red-200 bg-red-50 text-red-700' : 'border-atlas-border bg-atlas-surface text-atlas-ink-muted'}`}>{item.severity}</span><p className="mt-2 text-xs text-atlas-ink-muted">{item.category}</p></div><div><p className="text-sm font-semibold">{item.summary_code}</p><p className="mt-1 text-xs text-atlas-ink-muted">{item.status} · {item.event_count} événement(s)</p></div><div><p className={`text-sm ${isOverdue(item.response_due_at) && !['Resolved', 'Closed'].includes(item.status) ? 'font-semibold text-red-700' : 'text-atlas-ink-muted'}`}>Cible : {formatDate(item.response_due_at)}</p><p className="mt-1 text-xs text-atlas-ink-muted">Identité vérifiée · Owner {item.ownership_verified ? 'vérifié' : 'non requis'}</p></div></article>)}</div><Pagination page={support.page} totalPages={support.total_pages} onChange={setSupportPage} /></>}</div>
+                    <div className="mt-5 overflow-hidden rounded-2xl border border-atlas-border bg-white shadow-sm">{!loading && support?.items.length === 0 && <div className="p-10 text-center text-sm text-atlas-ink-muted">Aucun dossier pour ces filtres.</div>}{support && <><div className="divide-y divide-atlas-border">{support.items.map((item) => <article key={item.reference} className="grid gap-3 p-5 lg:grid-cols-[1fr_.6fr_.8fr_1fr_auto] lg:items-center"><div><p className="font-mono text-sm font-semibold">{item.reference}</p><p className="mt-1 text-xs text-atlas-ink-muted">{item.workspace_reference} · {item.requester_reference}</p></div><div><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${item.severity === 'P0' || item.severity === 'P1' ? 'border-red-200 bg-red-50 text-red-700' : 'border-atlas-border bg-atlas-surface text-atlas-ink-muted'}`}>{item.severity}</span><p className="mt-2 text-xs text-atlas-ink-muted">{item.category}</p></div><div><p className="text-sm font-semibold">{item.summary_code}</p><p className="mt-1 text-xs text-atlas-ink-muted">{item.status} · {item.event_count} événement(s) · {item.assigned ? 'assigné' : 'non assigné'}</p></div><div><p className={`text-sm ${isOverdue(item.response_due_at) && !['Resolved', 'Closed'].includes(item.status) ? 'font-semibold text-red-700' : 'text-atlas-ink-muted'}`}>Cible : {formatDate(item.response_due_at)}</p><p className="mt-1 text-xs text-atlas-ink-muted">Identité vérifiée · Owner {item.ownership_verified ? 'vérifié' : 'non requis'}</p></div>{canManageSupport && session?.actionsEnabled && stepUpActive && item.status !== 'Closed' && <button type="button" onClick={() => openManagement(item)} className="min-h-10 rounded-xl border border-atlas-border px-3 text-sm font-semibold hover:bg-atlas-surface">Gérer</button>}</article>)}</div><Pagination page={support.page} totalPages={support.total_pages} onChange={setSupportPage} /></>}</div>
                 </section>}
 
                 {canReadCompliance && <section className="mt-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-xl font-semibold">Demandes relatives aux données</h2><p className="mt-1 text-sm text-atlas-ink-muted">Qualification et préparation uniquement ; aucune action destructive disponible.</p></div><div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row"><select aria-label="Statut demande" value={dataStatus} onChange={(event) => { setDataStatus(event.target.value); setDataPage(1); }} className="min-h-10 rounded-xl border border-atlas-border bg-white px-3 text-sm"><option value="All">Tous les statuts</option><option value="Received">Reçues</option><option value="IdentityPending">Identité à vérifier</option><option value="Qualified">Qualifiées</option><option value="InPreparation">En préparation</option><option value="AwaitingApproval">À approuver</option><option value="Delivered">Remises</option><option value="Rejected">Rejetées</option><option value="Closed">Closes</option></select><select aria-label="Type de demande" value={dataType} onChange={(event) => { setDataType(event.target.value); setDataPage(1); }} className="min-h-10 rounded-xl border border-atlas-border bg-white px-3 text-sm"><option value="All">Tous les types</option>{['Access', 'Rectification', 'Erasure', 'Restriction', 'Objection', 'Portability'].map((value) => <option key={value} value={value}>{value}</option>)}</select></div></div>

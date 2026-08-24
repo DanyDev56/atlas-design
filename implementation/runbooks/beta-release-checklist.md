@@ -213,6 +213,9 @@ satisfait.
 - [x] Registres minimisés Support et Conformité, échéances, preuves append-only,
   consentements séparés et écran opérateur pseudonymisé disponibles ; ils ne
   déclenchent encore aucune action destructive.
+- [x] Première action Support non destructive disponible sous deux flags sûrs
+  par défaut, permission dédiée, step-up, prévisualisation, révision,
+  idempotence et audit ; aucune action Conformité ou Workspace n'est ouverte.
 - [x] Entonnoir d'activation basé sur les états métier, revues de cohorte,
   minimisation et script d'entretien définis sans tracking tiers dans le
   [plan de recherche](beta-research-plan.md).

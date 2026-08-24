@@ -44,6 +44,8 @@ final class OperatorSessionController extends Controller
             'mfa_verified_at' => $request->attributes->get('operator_mfa_verified_at'),
             'step_up_expires_at' => $this->stepUpExpiresAt($request->attributes->get('operator_step_up_at')),
             'read_only' => (bool) config('operations.backoffice.read_only', true),
+            'actions_enabled' => (bool) config('operations.backoffice.actions_enabled', false)
+                && ! (bool) config('operations.backoffice.read_only', true),
         ]);
     }
 

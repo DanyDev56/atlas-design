@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\Operator\OperatorLoginController;
 use App\Http\Controllers\Api\Operator\OperatorOverviewController;
 use App\Http\Controllers\Api\Operator\OperatorSessionController;
 use App\Http\Controllers\Api\Operator\OperatorStepUpController;
+use App\Http\Controllers\Api\Operator\OperatorSupportActionController;
 use App\Http\Controllers\Api\RegisterUserController;
 use App\Http\Controllers\Api\RemoveMembershipController;
 use App\Http\Controllers\Api\RevokeSessionController;
@@ -47,7 +48,9 @@ use Atlas\Platform\Laravel\Http\Middleware\HttpRedMetricsMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\HttpTracingMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorAccessEnabledMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\OperatorBearerSessionMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\RequireOperatorActionsEnabledMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\RequireOperatorPermissionMiddleware;
+use Atlas\Platform\Laravel\Http\Middleware\RequireRecentOperatorStepUpMiddleware;
 use Atlas\Platform\Laravel\Http\Middleware\RequireWorkspaceEntitlementMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +80,20 @@ Route::middleware([CorrelationIdMiddleware::class, HttpRedMetricsMiddleware::cla
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::DASHBOARD_READ);
             Route::get('/overview/support', [OperatorOverviewController::class, 'support'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUPPORT_READ);
+            Route::post('/support/{reference}/preview', [OperatorSupportActionController::class, 'preview'])
+                ->where('reference', 'SUP-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUPPORT_MANAGE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
+            Route::patch('/support/{reference}', [OperatorSupportActionController::class, 'update'])
+                ->where('reference', 'SUP-[A-Z0-9]{12}')
+                ->middleware([
+                    RequireOperatorActionsEnabledMiddleware::class,
+                    RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::SUPPORT_MANAGE,
+                    RequireRecentOperatorStepUpMiddleware::class,
+                ]);
             Route::get('/overview/data-requests', [OperatorOverviewController::class, 'dataRequests'])
                 ->middleware(RequireOperatorPermissionMiddleware::class.':'.OperatorPermissionCatalog::COMPLIANCE_READ);
             Route::get('/overview/compliance', [OperatorOverviewController::class, 'compliance'])

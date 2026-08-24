@@ -3,7 +3,7 @@ id: RUN-019
 title: Back-office Operator Access
 status: In Review
 owner: Engineering and Security
-version: 0.6.0
+version: 0.7.0
 last_updated: 2026-08-24
 
 references:
@@ -20,8 +20,8 @@ references:
 
 ## Portée actuelle
 
-Le back-office local fournit désormais une vue d'ensemble `/backoffice` en
-lecture seule et une surface de sécurité `/backoffice/security`. Il sépare les
+Le back-office local fournit désormais une vue d'ensemble `/backoffice`, une
+surface de sécurité `/backoffice/security` et des registres métier minimisés. Il sépare les
 sessions opérateur des sessions Workspace, stocke
 les jetons uniquement sous forme hachée et audite provisioning, refus,
 connexion, MFA, step-up, consultation du contexte et révocation. Un trigger
@@ -36,6 +36,12 @@ des compteurs et des listes paginées, jamais les payloads, erreurs brutes,
 adresses destinataires, contenus ou identifiants fournisseur. Les cartes
 Support et Demandes de données reflètent désormais leurs projections durables ;
 une source attendue en erreur devient `Unavailable`, jamais zéro.
+
+Le mode sûr reste la lecture seule. La seule mutation web livrée est la gestion
+non destructive du statut et de l'assignation d'un dossier Support ; elle exige
+deux flags explicites, `operations.support.manage` et un step-up récent. Son
+activation, sa recette et sa coupure sont décrites dans
+[`support-compliance-operations.md`](support-compliance-operations.md).
 
 La MFA actuelle utilise TOTP. Le secret est chiffré avec la clé applicative, un
 code temporel ne peut pas être rejoué et huit codes de récupération à usage
@@ -95,7 +101,7 @@ Pour ouvrir les registres techniques et la cohorte depuis la vue générale :
 ```bash
 docker compose -f implementation/docker-compose.yml exec app php artisan \
   atlas:operator:grant demo@atlas.test \
-  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read" \
+  --permissions="operations.backoffice.access,operations.dashboard.read,operations.outbox.read,operations.email.read,operations.subscriptions.read,operations.beta.read,operations.metrics.read-product,operations.support.read,operations.compliance.read,operations.support.manage" \
   --reason="Recette locale du dashboard opérateur"
 ```
 
@@ -113,6 +119,9 @@ environnement. Les écrans runtime et continuité restent couverts par
 pseudonymisés correspondants sur `/backoffice/support`. Leur qualification et
 leurs limites non destructives sont détaillées dans
 [`support-compliance-operations.md`](support-compliance-operations.md).
+`operations.support.manage` n'a d'effet que lorsque
+`BACKOFFICE_READ_ONLY=false` et `BACKOFFICE_ACTIONS_ENABLED=true` ; accorder la
+permission seule ne contourne jamais ces verrous.
 
 ## Enrôler ou renouveler la MFA
 
@@ -192,7 +201,8 @@ avant un nouvel enrôlement.
   tests/Integration/Operations/OperatorOverviewTest.php \
   tests/Integration/Operations/OperationsAlertsTest.php \
   tests/Integration/Operations/OperatorBetaCohortTest.php \
-  tests/Integration/Operations/SupportComplianceTest.php
+  tests/Integration/Operations/SupportComplianceTest.php \
+  tests/Integration/Operations/SupportCaseManagementTest.php
 
 make web-check
 ```
