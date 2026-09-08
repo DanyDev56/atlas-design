@@ -4,7 +4,7 @@
 
 ## Objet
 
-Ce protocole rend les expériences synthétiques Atlas reproductibles, comparables et auditables.
+Ce protocole rend les expériences synthétiques Atlas reproductibles, comparables, auditables et reprenables sur plusieurs tours d'exécution.
 
 Il complète le cadre de `README.md` sans transformer les résultats synthétiques en preuves de marché.
 
@@ -17,13 +17,19 @@ Frozen Scenario
     ↓
 Independent Pre-Atlas Runs
     ↓
+Checkpoint(s)
+    ↓
 Frozen Observable States
     ↓
 Independent Atlas Runs by Observable State
     ↓
+Checkpoint(s)
+    ↓
 Frozen Recommendations
     ↓
 Independent Post-Atlas Runs
+    ↓
+Checkpoint(s)
     ↓
 Frozen Raw Results
     ↓
@@ -37,6 +43,8 @@ Keep / Change / Kill / Field Test
 ```
 
 Aucune étape aval ne peut modifier rétroactivement une réponse produite à une étape amont.
+
+Un run n'a pas besoin d'être terminé dans un seul tour. La contrainte pertinente est l'intégrité des artefacts, pas la durée d'une session agentique.
 
 ## 1. Figer l'expérience
 
@@ -73,9 +81,46 @@ Une exécution persona :
 - ne connaît que son Profile, le Business State autorisé et son Hidden State ;
 - formule et fige sa décision initiale avant toute recommandation Atlas.
 
-Si l'environnement ne permet pas une isolation réelle des contextes malgré l'autorisation explicite de délégation, le run doit être arrêté avant les simulations et documenté comme bloqué.
+Si l'environnement ne permet pas une isolation réelle des contextes malgré l'autorisation explicite de délégation, le run doit être arrêté avant les simulations concernées et documenté comme bloqué.
 
-## 3. Frontière d'information Atlas
+## 3. Exécution multi-tours, lots et checkpoints
+
+Un run peut être exécuté en plusieurs tours indépendants.
+
+Chaque tour traite un **lot borné** d'unités de travail puis crée un checkpoint durable.
+
+### Taille des lots
+
+La taille du lot est une contrainte opérationnelle, pas expérimentale.
+
+Par défaut :
+- traiter jusqu'à 4 exécutions persona par lot ;
+- réduire le lot si la limite de contexte ou de temps l'exige ;
+- ne jamais augmenter le lot au prix de l'isolation ou de la traçabilité.
+
+### Règle de reprise
+
+Avant chaque nouveau tour, l'orchestrateur doit :
+1. lire `manifest.md` ;
+2. inspecter uniquement les artefacts nécessaires pour déterminer l'état du run ;
+3. identifier les unités `COMPLETED`, `PENDING`, `IN_PROGRESS`, `INVALID` ou `BLOCKED` ;
+4. ne jamais relancer une unité `COMPLETED` ;
+5. reprendre uniquement le prochain travail manquant compatible avec la phase courante.
+
+Une unité `IN_PROGRESS` laissée sans artefact final après interruption doit être marquée `INVALID` avant d'être rejouée dans un contexte neuf.
+
+### Checkpoint
+
+À la fin de chaque lot :
+- figer tous les artefacts terminés ;
+- mettre à jour `manifest.md` ;
+- enregistrer la phase courante et la prochaine unité attendue ;
+- conserver `Run status: IN_PROGRESS` tant que le protocole complet n'est pas terminé ;
+- créer un commit de checkpoint.
+
+Un checkpoint n'est ni un résultat final ni une preuve exploitable isolément.
+
+## 4. Frontière d'information Atlas
 
 La recommandation Atlas est produite dans une étape séparée et dans un contexte qui n'a jamais reçu de Hidden State.
 
@@ -89,7 +134,7 @@ Elle ne peut jamais exploiter :
 
 Lorsque l'information disponible ne permet pas un conseil fiable, `No Recommendation` est une sortie valide et potentiellement préférable.
 
-## 4. Déduplication des états observables
+## 5. Déduplication des états observables
 
 Une recommandation Atlas n'est pas générée une fois par persona si plusieurs simulations exposent exactement le même état observable.
 
@@ -105,7 +150,7 @@ Cette règle évite de confondre variabilité du modèle et réaction du persona
 
 Deux états ne peuvent être fusionnés que si toutes les informations accessibles à Atlas sont identiques. En cas de doute, les garder séparés.
 
-## 5. Séquence d'une simulation
+## 6. Séquence d'une simulation
 
 Pour chaque combinaison persona × Hidden State :
 
@@ -118,7 +163,9 @@ Pour chaque combinaison persona × Hidden State :
 7. Une évaluation 0–4 est proposée avec justification factuelle.
 8. Le résultat brut est figé.
 
-## 6. Résultats bruts immuables
+Pre-Atlas et Post-Atlas peuvent être exécutés dans des tours différents. Le fichier figé du Pre-Atlas devient alors l'unique source autorisée pour le Post-Atlas correspondant.
+
+## 7. Résultats bruts immuables
 
 Les fichiers de simulation bruts ne sont pas réécrits par le comité.
 
@@ -128,9 +175,9 @@ Une erreur de protocole est corrigée par :
 
 Ne jamais corriger silencieusement une réponse afin de la rendre plus cohérente.
 
-## 7. Devil's Advocate
+## 8. Devil's Advocate
 
-Le contradicteur intervient uniquement après gel de tous les résultats bruts.
+Le contradicteur intervient uniquement après gel de tous les résultats bruts requis.
 
 Il cherche notamment :
 - conseil déjà connu ;
@@ -145,7 +192,12 @@ Il cherche notamment :
 
 Il ne rescrore pas silencieusement les runs. Toute contestation d'un score est consignée comme telle.
 
-## 8. Review Committee
+## 9. Review Committee
+
+Le comité intervient uniquement lorsque :
+- toutes les exécutions prévues sont `COMPLETED` ou explicitement `INVALID` avec justification acceptée ;
+- tous les Observable States requis sont figés ;
+- le Devil's Advocate est terminé.
 
 Le comité reçoit :
 - le manifest ;
@@ -165,7 +217,7 @@ Il produit :
 
 Le comité ne transforme jamais une fréquence synthétique en probabilité de marché.
 
-## 9. Structure d'un run
+## 10. Structure d'un run
 
 ```text
 results/<EXPERIMENT_ID>/run-XXX/
@@ -183,9 +235,9 @@ results/<EXPERIMENT_ID>/run-XXX/
 
 `run-XXX` est séquentiel pour une expérience donnée.
 
-Un run bloqué reste immuable. Sa reprise crée toujours le numéro suivant.
+Un run `BLOCKED` ou `COMPLETED` reste immuable. Un run `IN_PROGRESS` est repris jusqu'à complétion ; il ne faut pas créer un nouveau numéro uniquement parce qu'une session agentique s'est arrêtée.
 
-## 10. Manifest obligatoire
+## 11. Manifest obligatoire
 
 `manifest.md` contient au minimum :
 
@@ -193,6 +245,10 @@ Un run bloqué reste immuable. Sa reprise crée toujours le numéro suivant.
 Experiment:
 Experiment version:
 Run:
+Run status: IN_PROGRESS | BLOCKED | COMPLETED
+Current phase: PRE_ATLAS | ATLAS | POST_ATLAS | ADVERSARIAL_REVIEW | COMMITTEE | COMPLETE
+Next work item:
+Last checkpoint commit:
 Date:
 Orchestrator model:
 Persona model:
@@ -204,6 +260,7 @@ Prompt version:
 Scenario hash or commit:
 Executions planned:
 Executions completed:
+Executions invalid:
 Observable states planned:
 Observable states completed:
 Delegation explicitly authorized: YES
@@ -212,9 +269,21 @@ Synthetic Evidence: YES
 Market Evidence: NO
 ```
 
+Le manifest doit aussi contenir un registre d'avancement :
+
+```text
+## Progress
+
+| Unit | Phase | Status | Artifact |
+|---|---|---|---|
+| P01-H01 | PRE_ATLAS | COMPLETED | raw/P01-H01.md |
+| P01-H02 | PRE_ATLAS | PENDING | - |
+| O01 | ATLAS | PENDING | - |
+```
+
 Lorsque la plateforme ne fournit pas une information de modèle/configuration, inscrire `Unknown` plutôt que l'inventer.
 
-## 11. Format d'un Observable State Atlas
+## 12. Format d'un Observable State Atlas
 
 Chaque fichier `atlas/OXX.md` contient :
 
@@ -236,20 +305,21 @@ Recommendation frozen: YES
 
 Le contenu `Visible to Atlas` doit être suffisant pour auditer qu'aucun Hidden State n'a contaminé la recommandation.
 
-## 12. Format d'un résultat brut
+## 13. Format d'un résultat brut
 
-Chaque fichier `PXX-HXX.md` conserve :
+Chaque fichier `PXX-HXX.md` peut être construit par étapes, mais chaque section terminée est ensuite immuable.
 
 ```text
 Persona:
 Hidden State:
 Observable State:
-Execution status:
+Execution status: PRE_ATLAS_COMPLETED | COMPLETED | INVALID
 
 ## Pre-Atlas
 Compréhension:
 Décision initiale:
 Calendrier prévu:
+Pre-Atlas frozen: YES
 
 ## Atlas
 Recommendation source: atlas/OXX.md
@@ -267,7 +337,24 @@ Information critique manquante:
 Substitut évident:
 ```
 
-## 13. Comparaison entre versions
+Une reprise peut compléter un fichier `PRE_ATLAS_COMPLETED` avec les sections aval prévues, mais ne peut pas modifier son contenu Pre-Atlas figé.
+
+## 14. Commits de checkpoint
+
+Les commits intermédiaires sont autorisés et recommandés.
+
+Convention conseillée :
+
+```text
+docs(validation): checkpoint BH-001 run-002 pre-atlas batch 01
+docs(validation): checkpoint BH-001 run-002 atlas
+docs(validation): checkpoint BH-001 run-002 post-atlas batch 01
+docs(validation): complete BH-001 run-002
+```
+
+Chaque commit doit représenter un état cohérent et reprenable du run.
+
+## 15. Comparaison entre versions
 
 Pour comparer Advisor actuel et une conception candidate :
 - conserver la même expérience et les mêmes Hidden States ;
@@ -278,7 +365,7 @@ Pour comparer Advisor actuel et une conception candidate :
 
 Une comparaison n'est valide comme expérience synthétique que si les différences de protocole sont explicites.
 
-## 14. Interdictions
+## 16. Interdictions
 
 Ne jamais :
 - présenter `18/24` simulations positives comme un taux de conversion ou une probabilité ;
@@ -286,12 +373,15 @@ Ne jamais :
 - faire voter les personas sur la stratégie Atlas ;
 - permettre au comité de réécrire les résultats ;
 - modifier une expérience en cours parce qu'un résultat est décevant ;
+- recommencer une unité `COMPLETED` lors d'une reprise ;
+- créer un nouveau run uniquement parce qu'un tour agentique a atteint sa limite ;
+- lancer le Devil's Advocate ou le Review Committee sur un run incomplet ;
 - confondre répétabilité du modèle et répétabilité humaine ;
 - générer plusieurs recommandations Atlas différentes pour un même Observable State dans un même run ;
 - transmettre un Hidden State à un agent Atlas ;
 - promouvoir automatiquement une hypothèse synthétique réussie en décision produit.
 
-## 15. Usage des modèles coûteux
+## 17. Usage des modèles coûteux
 
 Les modèles à fort coût de raisonnement sont réservés de préférence à la synthèse finale ou à une question stratégique précise.
 
