@@ -2,9 +2,9 @@ Experiment: BH-001
 Experiment version: Draft; scenario SHA-256 ci-dessous
 Run: run-002
 Run status: IN_PROGRESS
-Current phase: PRE_ATLAS
-Next work item: P06-H02, P06-H03 et P06-H04 (dernier lot PRE_ATLAS)
-Last checkpoint commit: e941d4e (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
+Current phase: ATLAS
+Next work item: O01 — produire et figer l'unique recommandation Atlas à partir des seules données Visible to Atlas
+Last checkpoint commit: 2bfed17 (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
 Date: 2026-09-09 (Europe/Paris); démarré 2026-09-08 22:16:38 UTC
 Orchestrator model: GPT-5 (identifiant exact déclaré par la session; configuration exacte Unknown)
 Persona model: gpt-5.6-luna
@@ -16,7 +16,7 @@ Prompt version: Draft; SHA-256 875E415221D37542B93766F9FFAF36C65A2DD7C782FEAB2BC
 Scenario hash or commit: SHA-256 518CA4A70C2F534E4EB2B0E88DF5D45B5AB4DCD94A8D2AB2540B3885227C6936; initial commit 29391983d83ca0a8d2b71ec0d693f6fd8456316e
 Executions planned: 24 (P01–P06 × H01–H04)
 Executions completed: 0
-Executions invalid: 0 canonical units (10 attempts invalidated; audit ci-dessous)
+Executions invalid: 0 canonical units (11 attempts invalidated; audit ci-dessous)
 Observable states planned: 1
 Observable states completed: 0
 Delegation explicitly authorized: YES
@@ -49,12 +49,12 @@ Market Evidence: NO
 | P05-H03 | PRE_ATLAS | COMPLETED | raw/P05-H03.md |
 | P05-H04 | PRE_ATLAS | COMPLETED | raw/P05-H04.md |
 | P06-H01 | PRE_ATLAS | COMPLETED | raw/P06-H01.md |
-| P06-H02 | PRE_ATLAS | PENDING | - |
-| P06-H03 | PRE_ATLAS | PENDING | - |
-| P06-H04 | PRE_ATLAS | PENDING | - |
+| P06-H02 | PRE_ATLAS | COMPLETED | raw/P06-H02.md |
+| P06-H03 | PRE_ATLAS | COMPLETED | raw/P06-H03.md |
+| P06-H04 | PRE_ATLAS | COMPLETED | raw/P06-H04.md |
 | O01 | ATLAS | PENDING | - |
 
-`Executions completed` compte uniquement les simulations ayant aussi terminé Post-Atlas; les vingt-et-une unités marquées ci-dessus ont seulement leur Pre-Atlas figé.
+`Executions completed` compte uniquement les simulations ayant aussi terminé Post-Atlas; les vingt-quatre unités ont maintenant leur Pre-Atlas figé.
 
 ## Audit de reprise
 
@@ -66,6 +66,7 @@ Market Evidence: NO
 - Ce lot a produit P03-H02, P03-H03, P03-H04 et P04-H01 dans quatre contextes indépendants. La première tentative P03-H03 a été invalidée pour omission de la contrainte privée, puis rejouée dans un contexte neuf.
 - Ce lot a produit P04-H02, P04-H03, P04-H04 et P05-H01 dans quatre contextes neufs et indépendants.
 - Ce lot a produit P05-H02, P05-H03, P05-H04 et P06-H01 dans quatre contextes neufs et indépendants.
+- Le dernier lot Pre-Atlas a produit P06-H02, P06-H03 et P06-H04. La première tentative P06-H02 a été invalidée pour confusion d'identité et hypothèses non fournies, puis rejouée dans un contexte neuf.
 
 ## Sources
 
