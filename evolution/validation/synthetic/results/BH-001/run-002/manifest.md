@@ -3,8 +3,8 @@ Experiment version: Draft; scenario SHA-256 ci-dessous
 Run: run-002
 Run status: IN_PROGRESS
 Current phase: POST_ATLAS
-Next work item: P01-H01, P01-H02, P01-H03 et P01-H04 (premier lot POST_ATLAS)
-Last checkpoint commit: 89ccb5a (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
+Next work item: P02-H01, P02-H02, P02-H03 et P02-H04 (prochain lot POST_ATLAS)
+Last checkpoint commit: c8719f9 (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
 Date: 2026-09-09 (Europe/Paris); démarré 2026-09-08 22:16:38 UTC
 Orchestrator model: GPT-5 (identifiant exact déclaré par la session; configuration exacte Unknown)
 Persona model: gpt-5.6-luna
@@ -15,8 +15,8 @@ Persona version: SHA-256 8CD566A6140C6B5AD2FD7FC373BD7D5B1D2C6D5531C454C84A29020
 Prompt version: Draft; SHA-256 875E415221D37542B93766F9FFAF36C65A2DD7C782FEAB2BCEE9E2AA78DF7A2D
 Scenario hash or commit: SHA-256 518CA4A70C2F534E4EB2B0E88DF5D45B5AB4DCD94A8D2AB2540B3885227C6936; initial commit 29391983d83ca0a8d2b71ec0d693f6fd8456316e
 Executions planned: 24 (P01–P06 × H01–H04)
-Executions completed: 0
-Executions invalid: 0 canonical units (11 attempts invalidated; audit ci-dessous)
+Executions completed: 4
+Executions invalid: 0 canonical units (14 attempts invalidated; audit ci-dessous)
 Observable states planned: 1
 Observable states completed: 1
 Delegation explicitly authorized: YES
@@ -28,10 +28,10 @@ Market Evidence: NO
 
 | Unit | Phase | Status | Artifact |
 |---|---|---|---|
-| P01-H01 | PRE_ATLAS | COMPLETED | raw/P01-H01.md |
-| P01-H02 | PRE_ATLAS | COMPLETED | raw/P01-H02.md |
-| P01-H03 | PRE_ATLAS | COMPLETED | raw/P01-H03.md |
-| P01-H04 | PRE_ATLAS | COMPLETED | raw/P01-H04.md |
+| P01-H01 | POST_ATLAS | COMPLETED | raw/P01-H01.md |
+| P01-H02 | POST_ATLAS | COMPLETED | raw/P01-H02.md |
+| P01-H03 | POST_ATLAS | COMPLETED | raw/P01-H03.md |
+| P01-H04 | POST_ATLAS | COMPLETED | raw/P01-H04.md |
 | P02-H01 | PRE_ATLAS | COMPLETED | raw/P02-H01.md |
 | P02-H02 | PRE_ATLAS | COMPLETED | raw/P02-H02.md |
 | P02-H03 | PRE_ATLAS | COMPLETED | raw/P02-H03.md |
@@ -54,7 +54,7 @@ Market Evidence: NO
 | P06-H04 | PRE_ATLAS | COMPLETED | raw/P06-H04.md |
 | O01 | ATLAS | COMPLETED | atlas/O01.md |
 
-`Executions completed` compte uniquement les simulations ayant aussi terminé Post-Atlas; les vingt-quatre unités ont maintenant leur Pre-Atlas figé.
+Les vingt-quatre unités ont leur Pre-Atlas figé; quatre ont aussi terminé Post-Atlas et sont entièrement complétées.
 
 ## Audit de reprise
 
@@ -68,6 +68,7 @@ Market Evidence: NO
 - Ce lot a produit P05-H02, P05-H03, P05-H04 et P06-H01 dans quatre contextes neufs et indépendants.
 - Le dernier lot Pre-Atlas a produit P06-H02, P06-H03 et P06-H04. La première tentative P06-H02 a été invalidée pour confusion d'identité et hypothèses non fournies, puis rejouée dans un contexte neuf.
 - O01 regroupe les 24 simulations, dont les données Visible to Atlas sont strictement identiques. Une seule recommandation a été produite dans un contexte Atlas vierge, sans Hidden State, puis figée dans atlas/O01.md.
+- Le premier lot Post-Atlas a complété P01-H01 à P01-H04 dans quatre contextes indépendants. Deux tentatives P01-H02 ont été invalidées (complaisance puis langage méta) et une tentative P01-H03 a été interrompue et invalidée pour prompt malformé; chaque unité concernée a été rejouée dans un contexte neuf.
 
 ## Sources
 
