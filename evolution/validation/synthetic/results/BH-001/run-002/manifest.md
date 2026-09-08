@@ -3,8 +3,8 @@ Experiment version: Draft; scenario SHA-256 ci-dessous
 Run: run-002
 Run status: IN_PROGRESS
 Current phase: PRE_ATLAS
-Next work item: P02-H01, P02-H02, P02-H03, puis P03-H01 (prochain lot, maximum 4)
-Last checkpoint commit: This checkpoint commit (resolve with git log for this path)
+Next work item: P03-H02, P03-H03, P03-H04, puis P04-H01 (prochain lot, maximum 4)
+Last checkpoint commit: db51e2e (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
 Date: 2026-09-09 (Europe/Paris); démarré 2026-09-08 22:16:38 UTC
 Orchestrator model: GPT-5 (identifiant exact déclaré par la session; configuration exacte Unknown)
 Persona model: gpt-5.6-luna
@@ -32,11 +32,11 @@ Market Evidence: NO
 | P01-H02 | PRE_ATLAS | COMPLETED | raw/P01-H02.md |
 | P01-H03 | PRE_ATLAS | COMPLETED | raw/P01-H03.md |
 | P01-H04 | PRE_ATLAS | COMPLETED | raw/P01-H04.md |
-| P02-H01 | PRE_ATLAS | PENDING | - |
-| P02-H02 | PRE_ATLAS | PENDING | - |
-| P02-H03 | PRE_ATLAS | PENDING | - |
+| P02-H01 | PRE_ATLAS | COMPLETED | raw/P02-H01.md |
+| P02-H02 | PRE_ATLAS | COMPLETED | raw/P02-H02.md |
+| P02-H03 | PRE_ATLAS | COMPLETED | raw/P02-H03.md |
 | P02-H04 | PRE_ATLAS | COMPLETED | raw/P02-H04.md |
-| P03-H01 | PRE_ATLAS | PENDING | - |
+| P03-H01 | PRE_ATLAS | COMPLETED | raw/P03-H01.md |
 | P03-H02 | PRE_ATLAS | PENDING | - |
 | P03-H03 | PRE_ATLAS | PENDING | - |
 | P03-H04 | PRE_ATLAS | PENDING | - |
@@ -54,7 +54,7 @@ Market Evidence: NO
 | P06-H04 | PRE_ATLAS | PENDING | - |
 | O01 | ATLAS | PENDING | - |
 
-`Executions completed` compte uniquement les simulations ayant aussi terminé Post-Atlas; les cinq unités marquées ci-dessus ont seulement leur Pre-Atlas figé.
+`Executions completed` compte uniquement les simulations ayant aussi terminé Post-Atlas; les neuf unités marquées ci-dessus ont seulement leur Pre-Atlas figé.
 
 ## Audit de reprise
 
@@ -62,6 +62,7 @@ Market Evidence: NO
 - L'interruption précédente n'avait produit aucun checkpoint. Neuf sorties sans artefact final fiable ont été invalidées avant reprise: P01-H01 (1), P01-H02 (2), P01-H03 (1), P01-H04 (1), P02-H01 (2), P02-H02 (1), P02-H03 (1).
 - P02-H04 avait un artefact Pre-Atlas fiable. Seules ses métadonnées et sa marque de gel ont été ajoutées; son contenu Pre-Atlas est inchangé.
 - Ce lot a rejoué P01-H01 à P01-H04 dans quatre contextes neufs et indépendants.
+- Le lot suivant a produit P02-H01, P02-H02, P02-H03 et P03-H01 dans quatre contextes neufs et indépendants.
 
 ## Sources
 
