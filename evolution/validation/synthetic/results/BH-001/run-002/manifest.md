@@ -2,9 +2,9 @@ Experiment: BH-001
 Experiment version: Draft; scenario SHA-256 ci-dessous
 Run: run-002
 Run status: IN_PROGRESS
-Current phase: POST_ATLAS
-Next work item: P06-H01, P06-H02, P06-H03 et P06-H04 (dernier lot POST_ATLAS)
-Last checkpoint commit: c193c33 (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
+Current phase: ADVERSARIAL_REVIEW
+Next work item: Devil's Advocate — analyser le manifest, O01 et les 24 résultats bruts figés
+Last checkpoint commit: 9d49597 (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
 Date: 2026-09-09 (Europe/Paris); démarré 2026-09-08 22:16:38 UTC
 Orchestrator model: GPT-5 (identifiant exact déclaré par la session; configuration exacte Unknown)
 Persona model: gpt-5.6-luna
@@ -15,8 +15,8 @@ Persona version: SHA-256 8CD566A6140C6B5AD2FD7FC373BD7D5B1D2C6D5531C454C84A29020
 Prompt version: Draft; SHA-256 875E415221D37542B93766F9FFAF36C65A2DD7C782FEAB2BCEE9E2AA78DF7A2D
 Scenario hash or commit: SHA-256 518CA4A70C2F534E4EB2B0E88DF5D45B5AB4DCD94A8D2AB2540B3885227C6936; initial commit 29391983d83ca0a8d2b71ec0d693f6fd8456316e
 Executions planned: 24 (P01–P06 × H01–H04)
-Executions completed: 20
-Executions invalid: 0 canonical units (26 attempts invalidated; audit ci-dessous)
+Executions completed: 24
+Executions invalid: 0 canonical units (29 attempts invalidated; audit ci-dessous)
 Observable states planned: 1
 Observable states completed: 1
 Delegation explicitly authorized: YES
@@ -48,13 +48,13 @@ Market Evidence: NO
 | P05-H02 | POST_ATLAS | COMPLETED | raw/P05-H02.md |
 | P05-H03 | POST_ATLAS | COMPLETED | raw/P05-H03.md |
 | P05-H04 | POST_ATLAS | COMPLETED | raw/P05-H04.md |
-| P06-H01 | PRE_ATLAS | COMPLETED | raw/P06-H01.md |
-| P06-H02 | PRE_ATLAS | COMPLETED | raw/P06-H02.md |
-| P06-H03 | PRE_ATLAS | COMPLETED | raw/P06-H03.md |
-| P06-H04 | PRE_ATLAS | COMPLETED | raw/P06-H04.md |
+| P06-H01 | POST_ATLAS | COMPLETED | raw/P06-H01.md |
+| P06-H02 | POST_ATLAS | COMPLETED | raw/P06-H02.md |
+| P06-H03 | POST_ATLAS | COMPLETED | raw/P06-H03.md |
+| P06-H04 | POST_ATLAS | COMPLETED | raw/P06-H04.md |
 | O01 | ATLAS | COMPLETED | atlas/O01.md |
 
-Les vingt-quatre unités ont leur Pre-Atlas figé; vingt ont aussi terminé Post-Atlas et sont entièrement complétées.
+Les vingt-quatre unités ont leur Pre-Atlas figé et ont terminé Post-Atlas. Tous les résultats bruts sont maintenant figés.
 
 ## Audit de reprise
 
@@ -73,6 +73,7 @@ Les vingt-quatre unités ont leur Pre-Atlas figé; vingt ont aussi terminé Post
 - Le troisième lot Post-Atlas a complété P03-H01 à P03-H04 dans quatre contextes indépendants. Deux tentatives P03-H02 ont été invalidées (langage méta puis donnée fournie déclarée manquante), puis rejouées dans des contextes neufs.
 - Le quatrième lot Post-Atlas a complété P04-H01 à P04-H04 dans quatre contextes indépendants. Les premières tentatives P04-H02 et P04-H03 ont été invalidées pour données faussement manquantes ou incohérence avec leur baseline, puis rejouées dans des contextes neufs.
 - Le cinquième lot Post-Atlas a d'abord été entièrement invalidé : un contexte P05-H01 a ouvert et complété les quatre variantes, contaminant l'isolation du lot. Les quatre unités ont été restaurées depuis le checkpoint Pre-Atlas, puis rejouées dans quatre contextes sans accès fichier. Trois tentatives supplémentaires P05-H02 ont été invalidées pour donnée fournie déclarée manquante, réponse à la troisième personne puis incohérence décision/score.
+- Le dernier lot Post-Atlas a complété P06-H01 à P06-H04 dans quatre contextes sans accès fichier. Deux tentatives P06-H02 ont été invalidées pour troisième personne puis incohérence YES/NO; une tentative P06-H04 a été invalidée pour rubrique absente et donnée fournie déclarée manquante. Chaque unité a été rejouée dans un contexte neuf.
 
 ## Sources
 
