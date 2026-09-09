@@ -1,15 +1,15 @@
 Experiment: BH-001
 Experiment version: Draft; scenario SHA-256 ci-dessous
 Run: run-002
-Run status: IN_PROGRESS
-Current phase: COMMITTEE
-Next work item: Review Committee — analyser le manifest, O01, les 24 résultats bruts et devil-advocate.md
-Last checkpoint commit: d466aa3 (checkpoint précédent); ce checkpoint se résout avec git log pour ce chemin
+Run status: COMPLETED
+Current phase: COMPLETE
+Next work item: None — run completed
+Last checkpoint commit: 112631b (checkpoint précédent); le commit final se résout avec git log pour ce chemin
 Date: 2026-09-09 (Europe/Paris); démarré 2026-09-08 22:16:38 UTC
 Orchestrator model: GPT-5 (identifiant exact déclaré par la session; configuration exacte Unknown)
 Persona model: gpt-5.6-luna
 Atlas model: gpt-6-astra
-Model configuration: Persona reasoning effort medium; Atlas reasoning effort high; Devil's Advocate gpt-5.6-luna reasoning effort high; autres paramètres Unknown
+Model configuration: Persona reasoning effort medium; Atlas reasoning effort high; Devil's Advocate gpt-5.6-luna reasoning effort high; Review Committee gpt-6-astra reasoning effort high; autres paramètres Unknown
 Protocol version: Draft; SHA-256 6BF0B2789A7FBB1426A001D65627D3EA299571E82C4369A14D8B5AA8C7E44A0E
 Persona version: SHA-256 8CD566A6140C6B5AD2FD7FC373BD7D5B1D2C6D5531C454C84A2902086A2F65A4
 Prompt version: Draft; SHA-256 875E415221D37542B93766F9FFAF36C65A2DD7C782FEAB2BCEE9E2AA78DF7A2D
@@ -54,7 +54,7 @@ Market Evidence: NO
 | P06-H04 | POST_ATLAS | COMPLETED | raw/P06-H04.md |
 | O01 | ATLAS | COMPLETED | atlas/O01.md |
 | Devil's Advocate | ADVERSARIAL_REVIEW | COMPLETED | devil-advocate.md |
-| Review Committee | COMMITTEE | PENDING | - |
+| Review Committee | COMMITTEE | COMPLETED | review.md |
 
 Les vingt-quatre unités ont leur Pre-Atlas figé et ont terminé Post-Atlas. Tous les résultats bruts sont maintenant figés.
 
@@ -77,6 +77,7 @@ Les vingt-quatre unités ont leur Pre-Atlas figé et ont terminé Post-Atlas. To
 - Le cinquième lot Post-Atlas a d'abord été entièrement invalidé : un contexte P05-H01 a ouvert et complété les quatre variantes, contaminant l'isolation du lot. Les quatre unités ont été restaurées depuis le checkpoint Pre-Atlas, puis rejouées dans quatre contextes sans accès fichier. Trois tentatives supplémentaires P05-H02 ont été invalidées pour donnée fournie déclarée manquante, réponse à la troisième personne puis incohérence décision/score.
 - Le dernier lot Post-Atlas a complété P06-H01 à P06-H04 dans quatre contextes sans accès fichier. Deux tentatives P06-H02 ont été invalidées pour troisième personne puis incohérence YES/NO; une tentative P06-H04 a été invalidée pour rubrique absente et donnée fournie déclarée manquante. Chaque unité a été rejouée dans un contexte neuf.
 - Le Devil's Advocate a analysé le manifest, O01 et les 24 résultats bruts figés dans un contexte distinct. Son rapport a été figé sans rescoring des résultats bruts.
+- Le Review Committee a analysé le manifest, O01, les 24 résultats bruts figés et le rapport du Devil's Advocate dans un contexte distinct. Il conclut `Field Test`, documente les limites de la simulation et propose un pilote terrain minimal. Aucun résultat brut ni score n'a été modifié.
 
 ## Sources
 
